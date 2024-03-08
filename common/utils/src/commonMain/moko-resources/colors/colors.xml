@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--DEFAULT-->
+
+    <color name="defaultLightPrimary">#0b57d0</color>
+    <color name="defaultLightOnPrimary">#FFFFFF</color>
+    <color name="defaultLightPrimaryContainer">#d3e3fd</color>
+    <color name="defaultLightOnPrimaryContainer">#041e49</color>
+    <color name="defaultLightInversePrimary">#a8c7fa</color>
+    <color name="defaultLightSecondary">#00639b</color>
+    <color name="defaultLightOnSecondary">#FFFFFF</color>
+    <color name="defaultLightSecondaryContainer">#c2e7ff</color>
+    <color name="defaultLightOnSecondaryContainer">#001d35</color>
+    <color name="defaultLightTertiary">#93f7bb</color>
+    <color name="defaultLightOnTertiary">#002110</color>
+    <color name="defaultLightTertiaryContainer">#c4eed0</color>
+    <color name="defaultLightOnTertiaryContainer">#072711</color>
+    <color name="defaultLightBackground">#ffffff</color>
+    <color name="defaultLightOnBackground">#1f1f1f</color>
+    <color name="defaultLightSurface">@color/defaultLightBackground</color>
+    <color name="defaultLightOnSurface">@color/defaultLightOnBackground</color>
+    <color name="defaultLightSurfaceVariant">#e1e3e1</color>
+    <color name="defaultLightOnSurfaceVariant">#444746</color>
+    <color name="defaultLightSurfaceTint">@color/defaultLightPrimary</color>
+    <color name="defaultLightInverseSurface">#303030</color>
+    <color name="defaultLightInverseOnSurface">#f2f2f2</color>
+    <color name="defaultLightError">#b3261e</color>
+    <color name="defaultLightOnError">#FFFFFF</color>
+    <color name="defaultLightErrorContainer">#FFDAD6</color>
+    <color name="defaultLightOnErrorContainer">#410002</color>
+    <color name="defaultLightOutline">#747775</color>
+    <color name="defaultLightOutlineVariant">#74777550</color>
+
+
+    <color name="defaultDarkPrimary">@color/defaultLightInversePrimary</color>
+    <color name="defaultDarkOnPrimary">#062e6f</color>
+    <color name="defaultDarkPrimaryContainer">#0842a0</color>
+    <color name="defaultDarkOnPrimaryContainer">@color/defaultLightPrimaryContainer</color>
+    <color name="defaultDarkInversePrimary">@color/defaultLightPrimary</color>
+    <color name="defaultDarkSecondary">#7fcfff</color>
+    <color name="defaultDarkOnSecondary">#003355</color>
+    <color name="defaultDarkSecondaryContainer">#004a77</color>
+    <color name="defaultDarkOnSecondaryContainer">@color/defaultLightSecondaryContainer</color>
+    <color name="defaultDarkTertiary">#00531f</color>
+    <color name="defaultDarkOnTertiary">#a3f6ab</color>
+    <color name="defaultDarkTertiaryContainer">#0f5223</color>
+    <color name="defaultDarkOnTertiaryContainer">@color/defaultLightTertiaryContainer</color>
+    <color name="defaultDarkBackground">#1f1f1f</color>
+    <color name="defaultDarkOnBackground">#e3e3e3</color>
+    <color name="defaultDarkSurface">@color/defaultDarkBackground</color>
+    <color name="defaultDarkOnSurface">@color/defaultDarkOnBackground</color>
+    <color name="defaultDarkSurfaceVariant">#444746</color>
+    <color name="defaultDarkOnSurfaceVariant">#c4c7c5</color>
+    <color name="defaultDarkSurfaceTint">@color/defaultDarkPrimary</color>
+    <color name="defaultDarkInverseSurface">#e3e3e3</color>
+    <color name="defaultDarkInverseOnSurface">#303030</color>
+    <color name="defaultDarkError">#f2b8b5</color>
+    <color name="defaultDarkOnError">#601410</color>
+    <color name="defaultDarkErrorContainer">#7D2B22</color>
+    <color name="defaultDarkOnErrorContainer">@color/defaultLightErrorContainer</color>
+    <color name="defaultDarkOutline">#8e918f</color>
+    <color name="defaultDarkOutlineVariant">#8e918f50</color>
+
+    <!--GREEN-->
+    <color name="greenLightPrimary">#386A20</color>
+    <color name="greenLightOnPrimary">#FFFFFF</color>
+    <color name="greenLightPrimaryContainer">#B8F397</color>
+    <color name="greenLightOnPrimaryContainer">#042100</color>
+    <color name="greenLightInversePrimary">#9CD67D</color>
+    <color name="greenLightSecondary">#55624C</color>
+    <color name="greenLightOnSecondary">#FFFFFF</color>
+    <color name="greenLightSecondaryContainer">#D9E7CB</color>
+    <color name="greenLightOnSecondaryContainer">#131F0D</color>
+    <color name="greenLightTertiary">#6FF6F8</color>
+    <color name="greenLightOnTertiary">#002020</color>
+    <color name="greenLightTertiaryContainer">#BBEBEB</color>
+    <color name="greenLightOnTertiaryContainer">#002021</color>
+    <color name="greenLightBackground">#FDFDF6</color>
+    <color name="greenLightOnBackground">#1A1C18</color>
+    <color name="greenLightSurface">@color/greenLightBackground</color>
+    <color name="greenLightOnSurface">@color/greenLightOnBackground</color>
+    <color name="greenLightSurfaceVariant">#DFE4D6</color>
+    <color name="greenLightOnSurfaceVariant">#43493E</color>
+    <color name="greenLightSurfaceTint">@color/greenLightPrimary</color>
+    <color name="greenLightInverseSurface">#2F312C</color>
+    <color name="greenLightInverseOnSurface">#F1F1EA</color>
+    <color name="greenLightError">#BA1B1B</color>
+    <color name="greenLightOnError">#FFFFFF</color>
+    <color name="greenLightErrorContainer">#FFDAD6</color>
+    <color name="greenLightOnErrorContainer">#410002</color>
+    <color name="greenLightOutline">#74796E</color>
+    <color name="greenLightOutlineVariant">#74796E50</color>
+
+
+    <color name="greenDarkPrimary">@color/greenLightInversePrimary</color>
+    <color name="greenDarkOnPrimary">#0C3900</color>
+    <color name="greenDarkPrimaryContainer">#205107</color>
+    <color name="greenDarkOnPrimaryContainer">@color/greenLightPrimaryContainer</color>
+    <color name="greenDarkInversePrimary">@color/greenLightPrimary</color>
+    <color name="greenDarkSecondary">#BDCBB0</color>
+    <color name="greenDarkOnSecondary">#273420</color>
+    <color name="greenDarkSecondaryContainer">#3E4A36</color>
+    <color name="greenDarkOnSecondaryContainer">@color/greenLightSecondaryContainer</color>
+    <color name="greenDarkTertiary">#004F50</color>
+    <color name="greenDarkOnTertiary">#6FF7F7</color>
+    <color name="greenDarkTertiaryContainer">#1E4E4E</color>
+    <color name="greenDarkOnTertiaryContainer">@color/greenLightTertiaryContainer</color>
+    <color name="greenDarkBackground">#1A1C18</color>
+    <color name="greenDarkOnBackground">#E3E3DC</color>
+    <color name="greenDarkSurface">@color/greenDarkBackground</color>
+    <color name="greenDarkOnSurface">@color/greenDarkOnBackground</color>
+    <color name="greenDarkSurfaceVariant">#43493E</color>
+    <color name="greenDarkOnSurfaceVariant">#C4C8BB</color>
+    <color name="greenDarkSurfaceTint">@color/greenDarkPrimary</color>
+    <color name="greenDarkInverseSurface">#2F312C</color>
+    <color name="greenDarkInverseOnSurface">#E3E3DC</color>
+    <color name="greenDarkError">#FFB4A9</color>
+    <color name="greenDarkOnError">#680003</color>
+    <color name="greenDarkErrorContainer">#7D2B22</color>
+    <color name="greenDarkOnErrorContainer">@color/greenLightErrorContainer</color>
+    <color name="greenDarkOutline">#8D9286</color>
+    <color name="greenDarkOutlineVariant">#8D928650</color>
+
+    <!--RED-->
+
+    <color name="redLightPrimary">#9c4146</color>
+    <color name="redLightOnPrimary">#FFFFFF</color>
+    <color name="redLightPrimaryContainer">#ffdadb</color>
+    <color name="redLightOnPrimaryContainer">#400008</color>
+    <color name="redLightInversePrimary">#ffb3b5</color>
+    <color name="redLightSecondary">#765656</color>
+    <color name="redLightOnSecondary">#FFFFFF</color>
+    <color name="redLightSecondaryContainer">#ffdad9</color>
+    <color name="redLightOnSecondaryContainer">#2d1516</color>
+    <color name="redLightTertiary">#ffdeac</color>
+    <color name="redLightOnTertiary">#281900</color>
+    <color name="redLightTertiaryContainer">#ffddaa</color>
+    <color name="redLightOnTertiaryContainer">#281800</color>
+    <color name="redLightBackground">#fcfcfc</color>
+    <color name="redLightOnBackground">#211a1a</color>
+    <color name="redLightSurface">@color/redLightBackground</color>
+    <color name="redLightOnSurface">@color/redLightOnBackground</color>
+    <color name="redLightSurfaceVariant">#f4dedd</color>
+    <color name="redLightOnSurfaceVariant">#534343</color>
+    <color name="redLightSurfaceTint">@color/redLightPrimary</color>
+    <color name="redLightInverseSurface">#362f2f</color>
+    <color name="redLightInverseOnSurface">#fbeeed</color>
+    <color name="redLightError">#BA1B1B</color>
+    <color name="redLightOnError">#FFFFFF</color>
+    <color name="redLightErrorContainer">#FFDAD6</color>
+    <color name="redLightOnErrorContainer">#410002</color>
+    <color name="redLightOutline">#857373</color>
+    <color name="redLightOutlineVariant">#85737350</color>
+
+
+    <color name="redDarkPrimary">@color/redLightInversePrimary</color>
+    <color name="redDarkOnPrimary">#5f121b</color>
+    <color name="redDarkPrimaryContainer">#7d2a30</color>
+    <color name="redDarkOnPrimaryContainer">@color/redLightPrimaryContainer</color>
+    <color name="redDarkInversePrimary">@color/redLightPrimary</color>
+    <color name="redDarkSecondary">#e6bcbc</color>
+    <color name="redDarkOnSecondary">#442929</color>
+    <color name="redDarkSecondaryContainer">#5c3f3f</color>
+    <color name="redDarkOnSecondaryContainer">@color/redLightSecondaryContainer</color>
+    <color name="redDarkTertiary">#614000</color>
+    <color name="redDarkOnTertiary">#ffddaf</color>
+    <color name="redDarkTertiaryContainer">#5b4219</color>
+    <color name="redDarkOnTertiaryContainer">@color/redLightTertiaryContainer</color>
+    <color name="redDarkBackground">#211a1a</color>
+    <color name="redDarkOnBackground">#ede0df</color>
+    <color name="redDarkSurface">@color/redDarkBackground</color>
+    <color name="redDarkOnSurface">@color/redDarkOnBackground</color>
+    <color name="redDarkSurfaceVariant">#534343</color>
+    <color name="redDarkOnSurfaceVariant">#d7c2c1</color>
+    <color name="redDarkSurfaceTint">@color/redDarkPrimary</color>
+    <color name="redDarkInverseSurface">#362f2f</color>
+    <color name="redDarkInverseOnSurface">#fbeeed</color>
+    <color name="redDarkError">#ffb4a9</color>
+    <color name="redDarkOnError">#680003</color>
+    <color name="redDarkErrorContainer">#7D2B22</color>
+    <color name="redDarkOnErrorContainer">@color/redLightErrorContainer</color>
+    <color name="redDarkOutline">#a08c8c</color>
+    <color name="redDarkOutlineVariant">#a08c8c50</color>
+
+
+    <!--YELLOW-->
+
+    <color name="yellowLightPrimary">#616200</color>
+    <color name="yellowLightOnPrimary">#FFFFFF</color>
+    <color name="yellowLightPrimaryContainer">#e8e971</color>
+    <color name="yellowLightOnPrimaryContainer">#1d1d00</color>
+    <color name="yellowLightInversePrimary">#cbcc58</color>
+    <color name="yellowLightSecondary">#606042</color>
+    <color name="yellowLightOnSecondary">#FFFFFF</color>
+    <color name="yellowLightSecondaryContainer">#e6e4bf</color>
+    <color name="yellowLightOnSecondaryContainer">#1c1d06</color>
+    <color name="yellowLightTertiary">#82f8cf</color>
+    <color name="yellowLightOnTertiary">#002117</color>
+    <color name="yellowLightTertiaryContainer">#bfedd9</color>
+    <color name="yellowLightOnTertiaryContainer">#002117</color>
+    <color name="yellowLightBackground">#fffcf3</color>
+    <color name="yellowLightOnBackground">#1c1c16</color>
+    <color name="yellowLightSurface">@color/yellowLightBackground</color>
+    <color name="yellowLightOnSurface">@color/yellowLightOnBackground</color>
+    <color name="yellowLightSurfaceVariant">#e6e3d1</color>
+    <color name="yellowLightOnSurfaceVariant">#48473a</color>
+    <color name="yellowLightSurfaceTint">@color/yellowLightPrimary</color>
+    <color name="yellowLightInverseSurface">#31302b</color>
+    <color name="yellowLightInverseOnSurface">#f4f0e8</color>
+    <color name="yellowLightError">#BA1B1B</color>
+    <color name="yellowLightOnError">#FFFFFF</color>
+    <color name="yellowLightErrorContainer">#FFDAD6</color>
+    <color name="yellowLightOnErrorContainer">#410002</color>
+    <color name="yellowLightOutline">#797869</color>
+    <color name="yellowLightOutlineVariant">#79786950</color>
+
+
+    <color name="yellowDarkPrimary">@color/yellowLightInversePrimary</color>
+    <color name="yellowDarkOnPrimary">#323200</color>
+    <color name="yellowDarkPrimaryContainer">#494a00</color>
+    <color name="yellowDarkOnPrimaryContainer">@color/yellowLightPrimaryContainer</color>
+    <color name="yellowDarkInversePrimary">@color/yellowLightPrimary</color>
+    <color name="yellowDarkSecondary">#cac8a5</color>
+    <color name="yellowDarkOnSecondary">#323219</color>
+    <color name="yellowDarkSecondaryContainer">#48482d</color>
+    <color name="yellowDarkOnSecondaryContainer">@color/yellowLightSecondaryContainer</color>
+    <color name="yellowDarkTertiary">#00513e</color>
+    <color name="yellowDarkOnTertiary">#81f8d0</color>
+    <color name="yellowDarkTertiaryContainer">#254e40</color>
+    <color name="yellowDarkOnTertiaryContainer">@color/yellowLightTertiaryContainer</color>
+    <color name="yellowDarkBackground">#1c1c16</color>
+    <color name="yellowDarkOnBackground">#e5e2d9</color>
+    <color name="yellowDarkSurface">@color/yellowDarkBackground</color>
+    <color name="yellowDarkOnSurface">@color/yellowDarkOnBackground</color>
+    <color name="yellowDarkSurfaceVariant">#48473a</color>
+    <color name="yellowDarkOnSurfaceVariant">#c9c7b6</color>
+    <color name="yellowDarkSurfaceTint">@color/yellowDarkPrimary</color>
+    <color name="yellowDarkInverseSurface">#31302b</color>
+    <color name="yellowDarkInverseOnSurface">#f4f0e8</color>
+    <color name="yellowDarkError">#ffb4a9</color>
+    <color name="yellowDarkOnError">#680003</color>
+    <color name="yellowDarkErrorContainer">#7D2B22</color>
+    <color name="yellowDarkOnErrorContainer">@color/yellowLightErrorContainer</color>
+    <color name="yellowDarkOutline">#939182</color>
+    <color name="yellowDarkOutlineVariant">#93918250</color>
+
+    <!-- format: #RRGGBB[AA] or 0xRRGGBB[AA] or RRGGBB[AA] where [AA] - optional -->
+    <color name="valueColor">#B02743FF</color>
+    <color name="referenceColor">@color/valueColor</color>
+    <color name="themedColor">
+        <light>#FF0000</light>
+        <dark>#804030</dark>
+    </color>
+    <color name="themedReferenceColor">
+        <light>@color/valueColor</light>
+        <dark>@color/referenceColor</dark>
+    </color>
+</resources>

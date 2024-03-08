@@ -1,0 +1,11 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="AppTheme" parent="@style/Theme.AppCompat.NoActionBar">
+        <item name="android:statusBarColor">#00000000</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">
+            shortEdges <!-- default, shortEdges, or never -->
+        </item>
+        <item name="android:navigationBarColor">
+            @android:color/transparent
+        </item>
+    </style>
+</resources>

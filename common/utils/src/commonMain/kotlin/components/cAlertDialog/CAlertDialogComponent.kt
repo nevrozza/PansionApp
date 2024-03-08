@@ -1,0 +1,57 @@
+package components.cAlertDialog
+
+import asValue
+import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.mvikotlin.core.instancekeeper.getStore
+import com.arkivanov.mvikotlin.core.store.StoreFactory
+import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.StateFlow
+
+
+//return@ListDialogComponent model.value.forms.map {
+//    ListItem(
+//        id = it.id,
+//        text = "${it.classNum}${if (it.name.length < 2) "-" else " "}${it.name} класс"
+//    )
+//}
+class CAlertDialogComponent(
+    componentContext: ComponentContext,
+    storeFactory: StoreFactory,
+    name: String,
+    private val onAcceptClick: () -> Unit,
+    private val onDeclineClick: () -> Unit,
+//    private val isDeclineShowing
+) : ComponentContext by componentContext {
+    //    private val settingsRepository: SettingsRepository = Inject.instance()
+//    private val adminRepository: AdminRepository = Inject.instance()
+    private val cAlertDialogStore =
+        instanceKeeper.getStore(key = name) {
+            CAlertDialogStoreFactory(
+                storeFactory = storeFactory,
+                onAcceptClick = onAcceptClick,
+                onDeclineClick = onDeclineClick
+//                authRepository = authRepository
+            ).create()
+        }
+
+    val model: Value<CAlertDialogStore.State> = cAlertDialogStore.asValue()
+
+    private val backCallback = BackCallback {
+        onEvent(CAlertDialogStore.Intent.HideDialog)
+    }
+
+
+    init {
+        backHandler.register(backCallback)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val state: StateFlow<CAlertDialogStore.State> = cAlertDialogStore.stateFlow
+
+    fun onEvent(event: CAlertDialogStore.Intent) {
+        cAlertDialogStore.accept(event)
+    }
+}
