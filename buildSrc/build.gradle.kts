@@ -28,6 +28,6 @@ dependencies {
 //    implementation(Deps.Moko.Resources.gradlePlugin)
 }
 
-kotlin {
-    sourceSets.getByName("main").kotlin.srcDir("buildSrc/src/main/kotlin")
-}
+//kotlin {
+//    sourceSets.getByName("main").kotlin.srcDir("buildSrc/src/main/kotlin")
+//}

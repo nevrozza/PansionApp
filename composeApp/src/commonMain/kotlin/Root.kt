@@ -29,6 +29,8 @@ import view.dynamicDarkScheme
 import view.dynamicLightScheme
 import view.isCanInDynamic
 
+class Root
+
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable

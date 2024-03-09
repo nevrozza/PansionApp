@@ -15,7 +15,12 @@ application {
 }
 
 repositories {
+
     mavenCentral()
+    google()
+    mavenLocal()
+    gradlePluginPortal()
+    maven("https://packages.jetbrains.team/maven/p/kpm/public/")
 }
 kotlin {
     jvm {

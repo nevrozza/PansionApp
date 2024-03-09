@@ -4,6 +4,8 @@ plugins {
 
 repositories {
     mavenCentral()
+    google()
+    mavenLocal()
     gradlePluginPortal()
     maven("https://jitpack.io")
 }

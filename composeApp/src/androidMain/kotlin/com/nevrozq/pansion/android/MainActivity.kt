@@ -55,7 +55,6 @@ class MainActivity : AppCompatActivity() {
 
         val root = RootComponentImpl(componentContext = defaultComponentContext(), storeFactory = DefaultStoreFactory())
 
-
         setContent {
             Root(root)
         }

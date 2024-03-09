@@ -1,16 +1,65 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 plugins {
 //    id("compose-setup")
     id(libs.plugins.android.get().pluginId)
     id(libs.plugins.kotlin.get().pluginId)
     id(libs.plugins.compose.get().pluginId)
+    id(libs.plugins.cocoapods.get().pluginId)
 }
+
+version = "0.0.1"
 
 kotlin {
     jvm("jvm")
 
     androidTarget()
+    listOf(
+        iosArm64(),
+        iosX64(),
+        iosSimulatorArm64()
+    ).forEach {
+        it.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = false
+            linkerOpts.add("-lsqlite3")
+        }
+    }
 
-    ios()
+    cocoapods {
+        summary = "PlayZone iOS SDK"
+        homepage = "https://google.com"
+        ios.deploymentTarget = "16.0"
+
+        framework {
+            transitiveExport = false
+            baseName = "SharedSDK"
+
+            export(libs.decompose.core)
+//            export("com.arkivanov.essenty:lifecycle:<essenty_version>")
+            export(project(":common:core"))
+
+            export(project(":common:utils-compose"))
+            export(project(":common:utils"))
+
+            export(project(":common:umbrella-core"))
+
+            export(project(":common:settings:api"))
+            export(project(":common:auth:api"))
+            export(project(":common:auth:compose"))
+            export(project(":common:main:compose"))
+            export(project(":common:admin:compose"))
+            export(project(":common:journal:compose"))
+        }
+    }
+
+    targets.withType<KotlinNativeTarget> {
+        binaries {
+            all {
+                linkerOpts("-lsqlite3")
+            }
+        }
+    }
 
 //    iosX64()
 //    iosArm64()
@@ -60,7 +109,6 @@ kotlin {
 
             implementation(libs.kotlinx.datetime)
 
-            implementation(project(":common:umbrella-core"))
 
             implementation(project(":common:core"))
 
@@ -98,6 +146,35 @@ kotlin {
             implementation("org.jetbrains.kotlin-wrappers:kotlin-css")
             implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-system") //mui-system
             implementation(project.dependencies.enforcedPlatform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:1.0.0-pre.648"))
+        }
+
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
+        val commonMain by getting
+
+        val iosMain by creating {
+            dependsOn(commonMain)
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
+            dependencies {
+                api(libs.decompose.core)
+                api(libs.decompose.compose)
+                api(project(":common:core"))
+
+                api(project(":common:utils-compose"))
+                api(project(":common:utils"))
+
+                api(project(":common:umbrella-core"))
+
+                api(project(":common:settings:api"))
+                api(project(":common:auth:api"))
+                api(project(":common:auth:compose"))
+                api(project(":common:main:compose"))
+                api(project(":common:admin:compose"))
+                api(project(":common:journal:compose"))
+            }
         }
     }
 }

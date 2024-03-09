@@ -1,8 +1,9 @@
 pluginManagement {
     repositories {
+
+        mavenCentral()
         google()
         gradlePluginPortal()
-        mavenCentral()
         mavenLocal()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://packages.jetbrains.team/maven/p/kpm/public/")
@@ -11,8 +12,9 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-        google()
+
         mavenCentral()
+        google()
         mavenLocal()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://packages.jetbrains.team/maven/p/kpm/public/")
