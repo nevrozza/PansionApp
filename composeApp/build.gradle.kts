@@ -14,17 +14,24 @@ kotlin {
     jvm("jvm")
 
     androidTarget()
-    listOf(
-        iosArm64(),
-        iosX64(),
-        iosSimulatorArm64()
-    ).forEach {
-        it.binaries.framework {
+    ios() {
+        this.binaries.framework {
             baseName = "ComposeApp"
             isStatic = false
             linkerOpts.add("-lsqlite3")
         }
     }
+//    listOf(
+//        iosArm64(),
+//        iosX64(),
+//        iosSimulatorArm64()
+//    ).forEach {
+//        it.binaries.framework {
+//            baseName = "ComposeApp"
+//            isStatic = false
+//            linkerOpts.add("-lsqlite3")
+//        }
+//    }
 
     cocoapods {
         summary = "PlayZone iOS SDK"
@@ -35,21 +42,21 @@ kotlin {
             transitiveExport = false
             baseName = "SharedSDK"
 
-            export(libs.decompose.core)
+//            export(libs.decompose.core)
 //            export("com.arkivanov.essenty:lifecycle:<essenty_version>")
-            export(project(":common:core"))
-
-            export(project(":common:utils-compose"))
-            export(project(":common:utils"))
-
-            export(project(":common:umbrella-core"))
-
-            export(project(":common:settings:api"))
-            export(project(":common:auth:api"))
-            export(project(":common:auth:compose"))
-            export(project(":common:main:compose"))
-            export(project(":common:admin:compose"))
-            export(project(":common:journal:compose"))
+//            export(project(":common:core"))
+//
+//            export(project(":common:utils-compose"))
+//            export(project(":common:utils"))
+//
+//            export(project(":common:umbrella-core"))
+//
+//            export(project(":common:settings:api"))
+//            export(project(":common:auth:api"))
+//            export(project(":common:auth:compose"))
+//            export(project(":common:main:compose"))
+//            export(project(":common:admin:compose"))
+//            export(project(":common:journal:compose"))
         }
     }
 
@@ -135,10 +142,11 @@ kotlin {
         jvmMain.dependencies {
             implementation(project(":server"))
 //            implementation(compose.desktop.common)
-            implementation(compose.desktop.currentOs)
+            implementation(compose.desktop.common)
             implementation("org.jetbrains.jewel:jewel-int-ui-decorated-window:0.12.0")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
         }
+
         jsMain.dependencies {
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
@@ -148,32 +156,33 @@ kotlin {
             implementation(project.dependencies.enforcedPlatform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:1.0.0-pre.648"))
         }
 
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val commonMain by getting
+//        val iosX64Main by getting
+//        val iosArm64Main by getting
+//        val iosSimulatorArm64Main by getting
+//        val commonMain by getting
 
-        val iosMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
+        iosMain  {
+//            dependsOn(commonMain)
+//            iosX64Main.dependsOn(this)
+//            iosArm64Main.dependsOn(this)
+//            iosSimulatorArm64Main.dependsOn(this)
             dependencies {
-                api(libs.decompose.core)
-                api(libs.decompose.compose)
-                api(project(":common:core"))
 
-                api(project(":common:utils-compose"))
-                api(project(":common:utils"))
-
-                api(project(":common:umbrella-core"))
-
-                api(project(":common:settings:api"))
-                api(project(":common:auth:api"))
-                api(project(":common:auth:compose"))
-                api(project(":common:main:compose"))
-                api(project(":common:admin:compose"))
-                api(project(":common:journal:compose"))
+//                api(libs.decompose.core)
+//                api(libs.decompose.compose)
+//                api(project(":common:core"))
+//
+//                api(project(":common:utils-compose"))
+//                api(project(":common:utils"))
+//
+//                api(project(":common:umbrella-core"))
+//
+//                api(project(":common:settings:api"))
+//                api(project(":common:auth:api"))
+//                api(project(":common:auth:compose"))
+//                api(project(":common:main:compose"))
+//                api(project(":common:admin:compose"))
+//                api(project(":common:journal:compose"))
             }
         }
     }

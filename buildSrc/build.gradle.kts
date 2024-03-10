@@ -4,12 +4,12 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
-    mavenLocal()
     google()
-    gradlePluginPortal()
-
+    mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    mavenLocal()
+    gradlePluginPortal()
+    maven("https://packages.jetbrains.team/maven/p/kpm/public/")
     maven("https://jitpack.io")
 }
 dependencies {
@@ -28,6 +28,6 @@ dependencies {
 //    implementation(Deps.Moko.Resources.gradlePlugin)
 }
 
-//kotlin {
-//    sourceSets.getByName("main").kotlin.srcDir("buildSrc/src/main/kotlin")
-//}
+kotlin {
+    sourceSets.getByName("main").kotlin.srcDir("buildSrc/src/main/kotlin")
+}

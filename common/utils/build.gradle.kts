@@ -24,7 +24,7 @@ kotlin {
 //        val androidMain by getting {
 //            dependsOn(commonMain)
 //        }
-//        val desktopMain by getting {
+//        val jvmMain by getting {
 //            dependsOn(commonMain)
 //        }
 //        val jsMain by getting {

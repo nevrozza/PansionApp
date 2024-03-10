@@ -43,7 +43,7 @@ kotlin {
             }
         }
 
-        desktopMain {
+        jvmMain {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.sqldelight.sqlite.driver)

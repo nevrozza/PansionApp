@@ -1,22 +1,20 @@
 pluginManagement {
     repositories {
-
-        mavenCentral()
         google()
+        mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         gradlePluginPortal()
         mavenLocal()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://packages.jetbrains.team/maven/p/kpm/public/")
     }
 }
 
 dependencyResolutionManagement {
     repositories {
-
-        mavenCentral()
         google()
-        mavenLocal()
+        mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        mavenLocal()
         maven("https://packages.jetbrains.team/maven/p/kpm/public/")
     }
 }
