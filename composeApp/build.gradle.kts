@@ -97,6 +97,25 @@ kotlin {
         kotlinOptions.jvmTarget = "17"
     }
 
+//    configurations.configureEach {
+//        resolutionStrategy.eachDependency {
+//            if (requested.group == "androidx.collection" && requested.name.startsWith("collection")) {
+//                useTarget("androidx.collection:collection:1.4.0")
+//            }
+//            else if (requested.group == "androidx.annotation" && requested.name.startsWith("annotation")) {
+//                useTarget("androidx.annotation:annotation:1.7.1")
+//            }
+//        }
+//    }
+//    configurations.configureEach {
+//        resolutionStrategy.eachDependency {
+//            if (requested.group == "androidx.collection" && requested.name.startsWith("collection")) {
+//                useTarget("org.jetbrains.compose.collection-internal:collection:1.6.0-beta02")
+//            } else if (requested.group == "androidx.annotation" && requested.name.startsWith("annotation")) {
+//                useTarget("org.jetbrains.compose.annotation-internal:annotation:1.8.0-alpha01")
+//            }
+//        }
+//    }
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -143,6 +162,7 @@ kotlin {
             implementation(project(":server"))
 //            implementation(compose.desktop.common)
             implementation(compose.desktop.common)
+            implementation(compose.desktop.currentOs)
             implementation("org.jetbrains.jewel:jewel-int-ui-decorated-window:0.12.0")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
         }

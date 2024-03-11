@@ -53,14 +53,12 @@ internal val ktorModule = DI.Module("ktorModule") {
 
                 url {
                     protocol = URLProtocol.HTTP
-                    host = "192.168.137.1:8081" //192.168.137.1:8080
+                    host = "192.168.0.112:8081" //192.168.137.1:8080
                 }
             }
         }
     }
-}
-
-fun HttpMessageBuilder.bearer() {
+}un HttpMessageBuilder.bearer() {
     val token = Inject.instance<AuthRepository>().fetchToken()
     header("Bearer-Authorization", token)
 }
