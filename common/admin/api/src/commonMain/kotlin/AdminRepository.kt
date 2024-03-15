@@ -1,61 +1,54 @@
-import admin.ClearUserPasswordResponse
-import admin.CreateFormGroupsResponse
-import admin.CreateNewFormResponse
-import admin.CreateNewGSubjectResponse
-import admin.CreateNewGroupResponse
-import admin.CreateUserFormResponse
-import admin.EditUserResponse
-import admin.FetchAllFormsResponse
-import admin.FetchAllGSubjectsResponse
-import admin.FetchAllMentorsForGroupsResponse
-import admin.FetchAllTeachersForGroupsResponse
-import admin.FetchAllUsersResponse
-import admin.FetchFormGroupsOfSubjectResponse
-import admin.FetchFormGroupsResponse
-import admin.FetchStudentGroupsOfStudentResponse
-import admin.FetchStudentsInFormResponse
-import admin.FetchSubjectGroupsResponse
-import admin.RegisterResponse
-import admin.UserForRegistration
+import admin.groups.forms.RFetchCutedGroupsResponse
+import admin.groups.forms.outside.RFetchFormsResponse
+import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
+import admin.groups.forms.outside.RFetchMentorsResponse
+import admin.groups.subjects.RFetchTeachersResponse
+import admin.groups.forms.RFetchFormGroupsResponse
+import admin.groups.students.deep.RFetchStudentGroupsResponse
+import admin.groups.students.RFetchStudentsInFormResponse
+import admin.groups.subjects.RFetchGroupsResponse
+import admin.users.RCreateUserResponse
+import admin.users.RFetchAllUsersResponse
+import admin.users.UserInit
 
 interface AdminRepository {
 
 
-    suspend fun registerUser(user: UserForRegistration): RegisterResponse
-    suspend fun fetchAllUsers(): FetchAllUsersResponse
+    suspend fun registerUser(user: UserInit): RCreateUserResponse
+    suspend fun fetchAllUsers(): RFetchAllUsersResponse
 
-    suspend fun clearUserPassword(login: String): ClearUserPasswordResponse
-    suspend fun editUser(login: String, user: UserForRegistration): EditUserResponse
+    suspend fun clearUserPassword(login: String)//: RClearUserPasswordReceive
+    suspend fun editUser(login: String, user: UserInit)//: REditUserReceive
 
-    suspend fun fetchAllGSubject(): FetchAllGSubjectsResponse
-    suspend fun createGSubject(name: String): CreateNewGSubjectResponse
+    suspend fun fetchAllSubjects(): RFetchAllSubjectsResponse
+    suspend fun createSubject(name: String)//: R
 
-    suspend fun fetchSubjectGroups(id: Int): FetchSubjectGroupsResponse
-    suspend fun fetchStudentGroups(login: String): FetchStudentGroupsOfStudentResponse
-    suspend fun fetchSubjectFormGroups(id: Int): FetchFormGroupsOfSubjectResponse
-    suspend fun fetchFormGroups(id: Int): FetchFormGroupsResponse
-    suspend fun fetchStudentsInForm(formId: Int): FetchStudentsInFormResponse
-    suspend fun createUserForm(login: String, formId: Int, currentFormIdToGetList: Int): CreateUserFormResponse
+    suspend fun fetchGroups(subjectId: Int): RFetchGroupsResponse
+    suspend fun fetchStudentGroups(login: String): RFetchStudentGroupsResponse
+    suspend fun fetchCutedGroups(subjectId: Int): RFetchCutedGroupsResponse
+    suspend fun fetchFormGroups(id: Int): RFetchFormGroupsResponse
+    suspend fun fetchStudentsInForm(formId: Int): RFetchStudentsInFormResponse
+    suspend fun bindStudentToForm(login: String, formId: Int)//: CreateUserFormResponse
     suspend fun createFormGroup(
         formId: Int,
         subjectId: Int,
         groupId: Int,
-    ): CreateFormGroupsResponse
+    )//: RCreateFormGroupReceive
     suspend fun createGroup(
         name: String,
         mentorLogin: String,
         subjectId: Int,
         difficult: String
-    ): CreateNewGroupResponse
+    )//: CreateNewGroupResponse
 
     suspend fun createForm(
-        name: String,
+        title: String,
         mentorLogin: String,
         classNum: Int,
-        shortName: String
-    ): CreateNewFormResponse
-    suspend fun fetchAllForms(): FetchAllFormsResponse
+        shortTitle: String
+    )//: CreateNewFormResponse
+    suspend fun fetchAllForms(): RFetchFormsResponse
 
-    suspend fun fetchAllTeachersForGroups(): FetchAllTeachersForGroupsResponse
-    suspend fun fetchAllMentorsForGroups(): FetchAllMentorsForGroupsResponse
+    suspend fun fetchAllTeachers(): RFetchTeachersResponse
+    suspend fun fetchAllMentors(): RFetchMentorsResponse
 }

@@ -1,33 +1,28 @@
 package com.nevrozq.pansion.database.groups
 
-import admin.FormGroupOfSubject
-import admin.SubjectGroup
-import com.nevrozq.pansion.database.subjects.GSubjects
-import journal.init.TeacherGroup
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 
 object Groups : Table() {
     private val id = Groups.integer("id").autoIncrement().uniqueIndex()
     private val name = Groups.varchar("name", 50)
     private val teacherLogin = Groups.varchar("teacherLogin", 30)
-    private val gSubjectId = Groups.integer("GSubjectId")
+    private val subjectId = Groups.integer("subjectId")
     private val difficult = Groups.varchar("difficult", 1)
-    private val isActivated = Groups.bool("isActivated")
+    private val isActive = Groups.bool("isActive")
 
-    fun insert(group: GroupsDTO) {
+    fun insert(group: GroupDTO) {
         try {
             transaction {
                 Groups.insert {
                     it[name] = group.name
                     it[teacherLogin] = group.teacherLogin
-                    it[gSubjectId] = group.gSubjectId
+                    it[subjectId] = group.subjectId
                     it[difficult] = group.difficult
-                    it[isActivated] = true
+                    it[isActive] = true
                 }
             }
         } catch (e: Throwable) {
@@ -35,33 +30,36 @@ object Groups : Table() {
         }
     }
 
-    fun getAllGroups(): List<Map<Int, GroupsDTO>> {
+    fun getAllGroups(): List<GroupDTO> {
         return transaction {
             Groups.selectAll().map {
-                mapOf(
-                    it[Groups.id] to
-                            GroupsDTO(
-                                name = it[name],
-                                teacherLogin = it[teacherLogin],
-                                gSubjectId = it[gSubjectId],
-                                difficult = it[difficult],
-                                isActivated = it[isActivated]
-                            )
+                GroupDTO(
+                    id = it[Groups.id],
+                    name = it[name],
+                    teacherLogin = it[teacherLogin],
+                    subjectId = it[subjectId],
+                    difficult = it[difficult],
+                    isActive = it[isActive]
                 )
+
             }
         }
     }
 
 
-    fun getGroupsOfGSubjectButFormGroup(gSubjectId: Int): List<FormGroupOfSubject> {
+    fun fetchGroupOfSubject(subjectId: Int): List<GroupDTO> {
         return transaction {
             try {
                 val groups =
-                    Groups.select { Groups.gSubjectId eq gSubjectId }
+                    Groups.select { Groups.subjectId eq subjectId }
                 groups.map {
-                    FormGroupOfSubject(
+                    GroupDTO(
                         id = it[Groups.id],
-                        name = it[name]
+                        name = it[name],
+                        teacherLogin = it[teacherLogin],
+                        subjectId = it[Groups.subjectId],
+                        difficult = it[difficult],
+                        isActive = it[isActive]
                     )
                 }
             } catch (e: Throwable) {
@@ -84,41 +82,41 @@ object Groups : Table() {
         }
     }
 
-    fun getGroupsOfGSubject(gSubjectId: Int): List<SubjectGroup> {
-        return transaction {
-            try {
-                val groups =
-                    Groups.select { Groups.gSubjectId eq gSubjectId }
-                groups.map {
-                    SubjectGroup(
-                        id = it[Groups.id],
-                        name = it[name],
-                        teacherLogin = it[teacherLogin],
-                        gSubjectId = gSubjectId,
-                        difficult = it[difficult],
-                        isActivated = it[isActivated]
-                    )
-                }
-            } catch (e: Throwable) {
-                println(e)
-                listOf()
-            }
-        }
-    }
+//    fun getGroupsOfGSubject(gSubjectId: Int): List<SubjectGroup> {
+//        return transaction {
+//            try {
+//                val groups =
+//                    Groups.select { Groups.subjectId eq gSubjectId }
+//                groups.map {
+//                    SubjectGroup(
+//                        id = it[Groups.id],
+//                        name = it[name],
+//                        teacherLogin = it[teacherLogin],
+//                        gSubjectId = gSubjectId,
+//                        difficult = it[difficult],
+//                        isActivated = it[isActive]
+//                    )
+//                }
+//            } catch (e: Throwable) {
+//                println(e)
+//                listOf()
+//            }
+//        }
+//    }
 
-    fun getGroupById(groupId: Int): SubjectGroup? {
+    fun getGroupById(groupId: Int): GroupDTO? {
         return transaction {
             try {
                 val group =
                     Groups.select { Groups.id eq groupId }.first()
 
-                SubjectGroup(
+                GroupDTO(
                     id = group[Groups.id],
                     name = group[name],
                     teacherLogin = group[teacherLogin],
-                    gSubjectId = group[gSubjectId],
+                    subjectId = group[subjectId],
                     difficult = group[difficult],
-                    isActivated = group[isActivated]
+                    isActive = group[isActive]
                 )
 
             } catch (e: Throwable) {
@@ -128,34 +126,37 @@ object Groups : Table() {
         }
     }
 
-    fun getGroupsOfTeacher(teacherLogin: String): List<TeacherGroup> {
+    // val subjects = GSubjects.getSubjects()
+    //"${subjects.find { it.id == group[subjectId] }?.name ?: "null"} ${group[name]}"
+    fun getGroupsOfTeacher(teacherLogin: String): List<GroupDTO> {
         return transaction {
-            val subjects = GSubjects.getSubjects()
             Groups.select { Groups.teacherLogin eq teacherLogin }.map { group ->
-                TeacherGroup(
+                GroupDTO(
                     id = group[Groups.id],
-                    name = "${subjects.find { it.id == group[gSubjectId]}?.name ?: "null"} ${group[name]}",
-                    subjectNum = group[gSubjectId],
-                    isActivated = group[isActivated]
+                    name = group[name],
+                    teacherLogin = group[Groups.teacherLogin],
+                    subjectId = group[subjectId],
+                    difficult = group[difficult],
+                    isActive = group[isActive]
                 )
             }
         }
     }
 
-    fun updateGroup(id: Int, groupsDTO: GroupsDTO) {
-        try {
-            transaction {
-                Groups.update({ Groups.id eq id }) {
-                    it[name] = groupsDTO.name
-                    it[teacherLogin] = groupsDTO.teacherLogin
-                    it[gSubjectId] = groupsDTO.gSubjectId
-                    it[difficult] = groupsDTO.difficult
-                    it[isActivated] = groupsDTO.isActivated
-                }
-            }
-        } catch (e: Throwable) {
-            println(e)
-        }
-    }
+//    fun updateGroup(id: Int, groupDTO: GroupDTO) {
+//        try {
+//            transaction {
+//                Groups.update({ Groups.id eq id }) {
+//                    it[name] = groupDTO.name
+//                    it[teacherLogin] = groupDTO.teacherLogin
+//                    it[subjectId] = groupDTO.subjectId
+//                    it[difficult] = groupDTO.difficult
+//                    it[isActive] = groupDTO.isActive
+//                }
+//            }
+//        } catch (e: Throwable) {
+//            println(e)
+//        }
+//    }
 
 }

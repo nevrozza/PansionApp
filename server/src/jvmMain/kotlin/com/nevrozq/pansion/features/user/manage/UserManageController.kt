@@ -1,16 +1,13 @@
 package com.nevrozq.pansion.features.user.manage
 
-import admin.ClearUserPasswordReceive
-import admin.ClearUserPasswordResponse
-import admin.EditUserReceive
-import admin.EditUserResponse
-import admin.FetchAllStudentsByClassReceive
-import admin.FetchAllStudentsByClassResponse
-import admin.FetchAllUsersResponse
+import admin.groups.students.RFetchStudentsInFormReceive
+import admin.groups.students.RFetchStudentsInFormResponse
+import admin.users.RClearUserPasswordReceive
+import admin.users.REditUserReceive
 import server.Moderation
-import admin.RegisterReceive
-import admin.RegisterResponse
-import com.nevrozq.pansion.database.groups.Groups
+import admin.users.RRegisterUserReceive
+import admin.users.RCreateUserResponse
+import admin.users.RFetchAllUsersResponse
 import com.nevrozq.pansion.database.tokens.Tokens
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -19,40 +16,35 @@ import io.ktor.server.response.*
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.database.users.mapToUser
 import com.nevrozq.pansion.utils.createLogin
-import com.nevrozq.pansion.utils.toId
-import org.jetbrains.exposed.sql.select
+import com.nevrozq.pansion.utils.isMember
+import com.nevrozq.pansion.utils.isModer
 
 class UserManageController() {
-    suspend fun registerNewUser(call: ApplicationCall) {
-        val registerReceive = call.receive<RegisterReceive>()
-        val token = call.request.headers["Bearer-Authorization"]
-        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(token.toId()))
-        //Users.fetchUser(---login)
-        //admin.User already exists
-        //else {
-        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
-            val login = createLogin(registerReceive.name, registerReceive.surname)
-
+    suspend fun createUser(call: ApplicationCall) {
+        val r = call.receive<RRegisterUserReceive>()
+        if (call.isModer) {
+            val login = createLogin(r.userInit.fio.name, r.userInit.fio.surname)
             try {
                 Users.insert(
                     UserDTO(
                         login = login,
                         password = null,
-                        name = registerReceive.name,
-                        surname = registerReceive.surname,
-                        praname = registerReceive.praname,
-                        birthday = registerReceive.birthday,
-                        role = registerReceive.role,
-                        moderation = registerReceive.moderation,
-                        isParent = registerReceive.isParent,
-                        avatarId = 0
+                        name = r.userInit.fio.name,
+                        surname = r.userInit.fio.surname,
+                        praname = r.userInit.fio.praname,
+                        birthday = r.userInit.birthday,
+                        role = r.userInit.role,
+                        moderation = r.userInit.moderation,
+                        isParent = r.userInit.isParent,
+                        avatarId = 0,
+                        isActive = true
                     )
                 )
-
-                call.respond(RegisterResponse(login))
+                call.respond(RCreateUserResponse(login))
             } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "admin.User already exists")
+                call.respond(HttpStatusCode.Conflict, "This User already exists")
             } catch (e: Throwable) {
                 call.respond(HttpStatusCode.BadRequest, "Can't create user: ${e.localizedMessage}")
             }
@@ -62,56 +54,54 @@ class UserManageController() {
     }
 
     suspend fun fetchAllUsers(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-
-        if (Tokens.getIsMember(token.toId())) {
+        if (call.isMember) {
             try {
                 val users = Users.fetchAll()
-
-                call.respond(FetchAllUsersResponse(users))
-            }
-            catch (e: Throwable) {
-                call.respond(HttpStatusCode.BadRequest, "Can't fetch teachers: ${e.localizedMessage}")
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
-        }
-    }
-    suspend fun fetchAllUsersByClass(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-        val classNum = call.receive<FetchAllStudentsByClassReceive>().classNum
-        if (Tokens.getIsMember(token.toId())) {
-            try {
-                val students = Users.fetchStudentsByClass(classNum)
-
-                call.respond(FetchAllStudentsByClassResponse(students))
-            }
-            catch (e: Throwable) {
-                call.respond(HttpStatusCode.BadRequest, "Can't fetch teachers: ${e.localizedMessage}")
+                call.respond(RFetchAllUsersResponse(users.map { it.mapToUser() }))
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch all users: ${e.localizedMessage}"
+                )
             }
         } else {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
+
+//    suspend fun fetchAllUsersByClass(call: ApplicationCall) {
+//        val formId = call.receive<RFetchStudentsInFormReceive>().formId
+//        if (call.isMember) {
+//            try {
+//                val students = Users.fetchStude(formId)
+//
+//                call.respond(RFetchStudentsInFormResponse(students))
+//            } catch (e: Throwable) {
+//                call.respond(
+//                    HttpStatusCode.BadRequest,
+//                    "Can't fetch teachers: ${e.localizedMessage}"
+//                )
+//            }
+//        } else {
+//            call.respond(HttpStatusCode.Forbidden, "No permission")
+//        }
+//    }
 
     suspend fun performEditUser(call: ApplicationCall) {
-        val editUserReceive = call.receive<EditUserReceive>()
-        val token = call.request.headers["Bearer-Authorization"]
-        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(token.toId()))
-
-        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
+        val r = call.receive<REditUserReceive>()
+        if (call.isModer) {
             try {
                 Users.update(
-                    login = editUserReceive.login,
-                    newName = editUserReceive.name,
-                    newSurname = editUserReceive.surname,
-                    newPraname = editUserReceive.praname,
-                    newBirthday = editUserReceive.birthday,
-                    newRole = editUserReceive.role,
-                    newModeration = editUserReceive.moderation,
-                    newIsParent = editUserReceive.isParent
+                    login = r.login,
+                    newName = r.user.fio.name,
+                    newSurname = r.user.fio.surname,
+                    newPraname = r.user.fio.praname,
+                    newBirthday = r.user.birthday,
+                    newRole = r.user.role,
+                    newModeration = r.user.moderation,
+                    newIsParent = r.user.isParent
                 )
-                call.respond(EditUserResponse(true))
+                call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "SQL Conflict")
             } catch (e: Throwable) {
@@ -123,19 +113,19 @@ class UserManageController() {
     }
 
     suspend fun clearUserPassword(call: ApplicationCall) {
-        val editUserReceive = call.receive<ClearUserPasswordReceive>()
-        val token = call.request.headers["Bearer-Authorization"]
-        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(token.toId()))
-
-        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
+        val r = call.receive<RClearUserPasswordReceive>()
+        if (call.isModer) {
             try {
-                Users.clearPassword(editUserReceive.login)
-                Tokens.deleteTokenByLogin(editUserReceive.login)
-                call.respond(ClearUserPasswordResponse(true))
+                Users.clearPassword(r.login)
+                Tokens.deleteTokenByLogin(r.login)
+                call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "SQL Conflict")
             } catch (e: Throwable) {
-                call.respond(HttpStatusCode.BadRequest, "Can't -password user: ${e.localizedMessage}")
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't clear user password: ${e.localizedMessage}"
+                )
             }
         } else {
             call.respond(HttpStatusCode.Forbidden, "No permission")

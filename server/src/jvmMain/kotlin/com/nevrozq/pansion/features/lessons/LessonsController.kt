@@ -1,71 +1,69 @@
 package com.nevrozq.pansion.features.lessons
 
-import admin.CreateNewGSubjectReceive
-import admin.CreateNewGSubjectResponse
-import admin.CreateNewGroupReceive
-import admin.CreateNewGroupResponse
-import admin.FetchAllGSubjectsResponse
-import admin.FetchAllTeachersForGroupsResponse
-import admin.FetchSubjectGroupsReceive
-import admin.FetchSubjectGroupsResponse
-import admin.AdultForGroup
-import admin.CreateFormGroupsReceive
-import admin.CreateFormGroupsResponse
-import admin.CreateNewFormReceive
-import admin.CreateNewFormResponse
-import admin.CreateUserFormReceive
-import admin.CreateUserFormResponse
-import admin.FetchAllFormsResponse
-import admin.FetchAllMentorsForGroupsResponse
-import admin.FetchFormGroupsOfSubjectReceive
-import admin.FetchFormGroupsOfSubjectResponse
-import admin.FetchFormGroupsReceive
-import admin.FetchFormGroupsResponse
-import admin.FetchStudentGroupsOfStudentReceive
-import admin.FetchStudentGroupsOfStudentResponse
-import admin.FetchStudentsInFormReceive
-import admin.FetchStudentsInFormResponse
-import admin.Student
-import com.nevrozq.pansion.database.defaultGroupsForms.DefaultGroupFormDTO
-import com.nevrozq.pansion.database.defaultGroupsForms.DefaultGroupsForms
+import FIO
+import Person
+import admin.groups.forms.RCreateFormGroupReceive
+import admin.groups.subjects.RCreateGroupReceive
+import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
+import admin.groups.subjects.RFetchTeachersResponse
+import admin.groups.forms.outside.CreateFormReceive
+import admin.groups.students.RBindStudentToFormReceive
+import admin.groups.forms.outside.RFetchFormsResponse
+import admin.groups.forms.outside.RFetchMentorsResponse
+import admin.groups.subjects.RFetchGroupsReceive
+import admin.groups.forms.RFetchFormGroupsReceive
+import admin.groups.forms.RFetchFormGroupsResponse
+import admin.groups.students.deep.RFetchStudentGroupsReceive
+import admin.groups.students.deep.RFetchStudentGroupsResponse
+import admin.groups.students.RFetchStudentsInFormReceive
+import admin.groups.students.RFetchStudentsInFormResponse
+import admin.groups.forms.RFetchCutedGroupsResponse
+import admin.groups.subjects.RFetchGroupsResponse
+import admin.groups.subjects.topBar.RCreateSubjectReceive
+import com.nevrozq.pansion.database.formGroups.FormGroupDTO
+import com.nevrozq.pansion.database.formGroups.FormGroups
+import com.nevrozq.pansion.database.formGroups.mapToFormGroup
 import com.nevrozq.pansion.database.forms.Forms
-import com.nevrozq.pansion.database.forms.FormsDTO
+import com.nevrozq.pansion.database.forms.FormDTO
+import com.nevrozq.pansion.database.forms.mapToForm
 import com.nevrozq.pansion.database.groups.Groups
-import com.nevrozq.pansion.database.groups.GroupsDTO
-import com.nevrozq.pansion.database.studentLessons.StudentGroups
-import com.nevrozq.pansion.database.subjects.GSubjects
-import com.nevrozq.pansion.database.subjects.GSubjectsDTO
-import com.nevrozq.pansion.database.tokens.Tokens
-import com.nevrozq.pansion.database.userForms.UserForms
-import com.nevrozq.pansion.database.userForms.UserFormsDTO
+import com.nevrozq.pansion.database.groups.GroupDTO
+import com.nevrozq.pansion.database.groups.mapToCutedGroup
+import com.nevrozq.pansion.database.groups.mapToGroup
+import com.nevrozq.pansion.database.groups.mapToTeacherGroup
+import com.nevrozq.pansion.database.studentGroups.StudentGroups
+import com.nevrozq.pansion.database.subjects.Subjects
+import com.nevrozq.pansion.database.subjects.SubjectDTO
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
+import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
+import com.nevrozq.pansion.database.subjects.mapToSubject
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.utils.isMember
+import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.isTeacher
-import com.nevrozq.pansion.utils.toId
+import com.nevrozq.pansion.utils.login
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import journal.init.FetchStudentsInGroupReceive
-import journal.init.FetchStudentsInGroupResponse
-import journal.init.FetchTeacherGroupsResponse
+import journal.init.RFetchStudentsInGroupReceive
+import journal.init.RFetchStudentsInGroupResponse
+import journal.init.RFetchTeacherGroupsResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
-import server.Moderation
 
 class LessonsController() {
     suspend fun fetchAllSubjects(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-
-        if (Tokens.getIsMember(token.toId())) {
+        if (call.isMember) {
             try {
-                val gSubjects = GSubjects.getSubjects()
+                val subjects = Subjects.fetchAllSubjects()
 
                 call.respond(
-                    FetchAllGSubjectsResponse(gSubjects)
+                    RFetchAllSubjectsResponse(subjects.map { it.mapToSubject() })
                 )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Can't fetch gSubjects: ${e.localizedMessage}"
+                    "Can't fetch subjects: ${e.localizedMessage}"
                 )
             }
         } else {
@@ -74,19 +72,20 @@ class LessonsController() {
     }
 
     suspend fun fetchAllTeachersForGroups(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-
-        if (Tokens.getIsMember(token.toId())) {
+        if (call.isMember) {
             try {
-                val mentors = Users.fetchAllTeachers()
+                val teachers = Users.fetchAllTeachers()
 
-                call.respond(FetchAllTeachersForGroupsResponse(
-                    mentors.map {
-                        AdultForGroup(
+                call.respond(RFetchTeachersResponse(
+                    teachers.filter { it.isActive }.map {
+                        Person(
                             login = it.login,
-                            name = it.name,
-                            surname = it.surname,
-                            praname = it.praname
+                            fio = FIO(
+                                name = it.name,
+                                surname = it.surname,
+                                praname = it.praname
+                            ),
+                            isActive = true
                         )
                     }
                 ))
@@ -102,18 +101,19 @@ class LessonsController() {
     }
 
     suspend fun fetchAllMentorsForGroups(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-
-        if (Tokens.getIsMember(token.toId())) {
+        if (call.isMember) {
             try {
                 val mentors = Users.fetchAllMentors()
-                call.respond(FetchAllMentorsForGroupsResponse(
-                    mentors.map {
-                        AdultForGroup(
+                call.respond(RFetchMentorsResponse(
+                    mentors.filter { it.isActive }.map {
+                        Person(
                             login = it.login,
-                            name = it.name,
-                            surname = it.surname,
-                            praname = it.praname
+                            fio = FIO(
+                                name = it.name,
+                                surname = it.surname,
+                                praname = it.praname
+                            ),
+                            isActive = true
                         )
                     }
                 ))
@@ -128,15 +128,14 @@ class LessonsController() {
         }
     }
 
-    suspend fun fetchSubjectGroupsButFormGroup(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-        val fetchGroupsReceive = call.receive<FetchFormGroupsOfSubjectReceive>()
-        if (Tokens.getIsMember(token.toId())) {
+    suspend fun fetchCutedGroups(call: ApplicationCall) {
+        val r = call.receive<RFetchGroupsReceive>()
+        if (call.isMember) {
             try {
-                val groups = Groups.getGroupsOfGSubjectButFormGroup(fetchGroupsReceive.subjectId)
+                val groups = Groups.fetchGroupOfSubject(r.subjectId).filter { it.isActive }
 
                 call.respond(
-                    FetchFormGroupsOfSubjectResponse(groups)
+                    RFetchCutedGroupsResponse(groups.map { it.mapToCutedGroup() })
                 )
             } catch (e: Throwable) {
                 call.respond(
@@ -149,15 +148,14 @@ class LessonsController() {
         }
     }
 
-    suspend fun fetchSubjectGroups(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-        val fetchGroupsReceive = call.receive<FetchSubjectGroupsReceive>()
-        if (Tokens.getIsMember(token.toId())) {
+    suspend fun fetchGroups(call: ApplicationCall) {
+        val r = call.receive<RFetchGroupsReceive>()
+        if (call.isMember) {
             try {
-                val groups = Groups.getGroupsOfGSubject(fetchGroupsReceive.id)
+                val groups = Groups.fetchGroupOfSubject(r.subjectId).map { it.mapToGroup() }
 
                 call.respond(
-                    FetchSubjectGroupsResponse(groups)
+                    RFetchGroupsResponse(groups)
                 )
             } catch (e: Throwable) {
                 call.respond(
@@ -171,13 +169,12 @@ class LessonsController() {
     }
 
     suspend fun fetchAllForms(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-        if (Tokens.getIsMember(token.toId())) {
+        if (call.isMember) {
             try {
                 val forms = Forms.getAllForms()
 
                 call.respond(
-                    FetchAllFormsResponse(forms)
+                    RFetchFormsResponse(forms.map { it.mapToForm() })
                 )
             } catch (e: Throwable) {
                 call.respond(
@@ -190,26 +187,21 @@ class LessonsController() {
         }
     }
 
-    suspend fun createNewGroup(call: ApplicationCall) {
-        val createGroupReceive = call.receive<CreateNewGroupReceive>()
-        val token = call.request.headers["Bearer-Authorization"]
-        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(token.toId()))
-        //Users.fetchUser(---login)
-        //admin.User already exists
-        //else {
-        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
+    suspend fun createGroup(call: ApplicationCall) {
+        val r = call.receive<RCreateGroupReceive>()
+        if (call.isModer) {
             try {
                 Groups.insert(
-                    GroupsDTO(
-                        name = createGroupReceive.name,
-                        teacherLogin = createGroupReceive.mentorLogin,
-                        gSubjectId = createGroupReceive.gSubjectId,
-                        difficult = createGroupReceive.difficult,
-                        isActivated = true
+                    GroupDTO(
+                        name = r.group.name,
+                        teacherLogin = r.group.teacherLogin,
+                        subjectId = r.group.subjectId,
+                        difficult = r.group.difficult,
+                        isActive = true
                     )
                 )
 
-                call.respond(CreateNewGroupResponse(Groups.getGroupsOfGSubject(gSubjectId = createGroupReceive.gSubjectId)))
+                call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Group already exists")
             } catch (e: Throwable) {
@@ -222,26 +214,22 @@ class LessonsController() {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
-    suspend fun createNewForm(call: ApplicationCall) {
-        val createFormReceive = call.receive<CreateNewFormReceive>()
-        val token = call.request.headers["Bearer-Authorization"]
-        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(token.toId()))
-        //Users.fetchUser(---login)
-        //admin.User already exists
-        //else {
-        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
+
+    suspend fun createForm(call: ApplicationCall) {
+        val r = call.receive<CreateFormReceive>()
+        if (call.isModer) {
             try {
                 Forms.insert(
-                    FormsDTO(
-                        name = createFormReceive.name,
-                        classNum = createFormReceive.classNum,
-                        mentorLogin = createFormReceive.mentorLogin,
-                        shortName = createFormReceive.shortName,
-                        isActivated = true
+                    FormDTO(
+                        title = r.form.title,
+                        classNum = r.form.classNum,
+                        mentorLogin = r.form.mentorLogin,
+                        shortTitle = r.form.shortTitle,
+                        isActive = true
                     )
                 )
 
-                call.respond(CreateNewFormResponse(Forms.getAllForms()))
+                call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Form already exists")
             } catch (e: Throwable) {
@@ -255,24 +243,18 @@ class LessonsController() {
         }
     }
 
-    suspend fun createNewFormGroup(call: ApplicationCall) {
-        val createFormGroupReceive = call.receive<CreateFormGroupsReceive>()
-        val token = call.request.headers["Bearer-Authorization"]
-        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(token.toId()))
-        //Users.fetchUser(---login)
-        //admin.User already exists
-        //else {
-        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
+    suspend fun createFormGroup(call: ApplicationCall) {
+        val r = call.receive<RCreateFormGroupReceive>()
+        if (call.isModer) {
             try {
-                DefaultGroupsForms.insert(
-                    DefaultGroupFormDTO(
-                        formId = createFormGroupReceive.formId,
-                        groupId = createFormGroupReceive.groupId,
-                        subjectId = createFormGroupReceive.subjectId
+                FormGroups.insert(
+                    FormGroupDTO(
+                        formId = r.formId,
+                        groupId = r.groupId,
+                        subjectId = r.subjectId
                     )
                 )
-                val groups = DefaultGroupsForms.getGroupsOfThisForm(createFormGroupReceive.formId)
-                call.respond(CreateFormGroupsResponse(groups))
+                call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "FormGroup already exists")
             } catch (e: Throwable) {
@@ -287,19 +269,18 @@ class LessonsController() {
     }
 
     suspend fun fetchFormGroups(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-        val receive = call.receive<FetchFormGroupsReceive>()
-        if (Tokens.getIsMember(token.toId())) {
+        val r = call.receive<RFetchFormGroupsReceive>()
+        if (call.isMember) {
             try {
-                val forms = DefaultGroupsForms.getGroupsOfThisForm(receive.formId)
+                val forms = FormGroups.getGroupsOfThisForm(r.formId)
 
                 call.respond(
-                    FetchFormGroupsResponse(forms)
+                    RFetchFormGroupsResponse(forms.map { it.mapToFormGroup() })
                 )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Can't fetch groups: ${e.localizedMessage}"
+                    "Can't fetch formGroups(binding): ${e.localizedMessage}"
                 )
             }
         } else {
@@ -307,31 +288,38 @@ class LessonsController() {
         }
     }
 
-    private fun fetchStudentsInFormNotCall(formId: Int): List<Student> {
-        if(formId == 0) {
-            val loginsWithGroups = UserForms.fetchAllStudentsLogins()
-            val students = Users.fetchAllStudents().filter { it.login !in loginsWithGroups }
+    private fun fetchStudentsInFormNotCall(formId: Int): List<Person> {
+        if (formId == 0) {
+            val loginsWithGroups = StudentsInForm.fetchAllStudentsLogins()
+            val students =
+                Users.fetchAllStudents().filter { it.login !in loginsWithGroups && it.isActive }
             val response = students.map {
-                Student(
+                Person(
                     login = it.login,
-                    name = it.name,
-                    surname = it.surname,
-                    praname = it.praname
+                    fio = FIO(
+                        name = it.name,
+                        surname = it.surname,
+                        praname = it.praname
+                    ),
+                    isActive = true
                 )
             }
             return response
         } else {
-            val logins = UserForms.getStudentLoginsInForm(formId = formId)
+            val logins = StudentsInForm.fetchStudentLoginsInForm(formId = formId)
             val response = logins.map {
                 val user = Users.fetchUser(it)
-                if (user == null) {
+                if (user == null || !user.isActive) {
                     null
                 } else {
-                    Student(
+                    Person(
                         login = user.login,
-                        name = user.name,
-                        surname = user.surname,
-                        praname = user.praname
+                        fio = FIO(
+                            name = user.name,
+                            surname = user.surname,
+                            praname = user.praname
+                        ),
+                        isActive = true
                     )
                 }
             }
@@ -340,31 +328,33 @@ class LessonsController() {
     }
 
     suspend fun fetchStudentGroups(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-        val receive = call.receive<FetchStudentGroupsOfStudentReceive>()
-        if (Tokens.getIsMember(token.toId())) {
+        val r = call.receive<RFetchStudentGroupsReceive>()
+        if (call.isMember) {
             try {
-                call.respond(FetchStudentGroupsOfStudentResponse(StudentGroups.getGroupsOfStudent(receive.studentLogin)))
+                call.respond(
+                    RFetchStudentGroupsResponse(
+                        StudentGroups.fetchGroupsOfStudent(r.studentLogin).map { it.mapToGroup() })
+                )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Can't fetch groups: ${e.localizedMessage}"
+                    "Can't fetch groups for students: ${e.localizedMessage}"
                 )
             }
         } else {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
+
     suspend fun fetchTeacherGroups(call: ApplicationCall) {
-        val login = Tokens.getLoginOfThisToken(call.request.headers["Bearer-Authorization"].toId())
-        if (login.isTeacher()) {
+        if (call.isTeacher) {
             try {
-                val groups = Groups.getGroupsOfTeacher(login)
-                call.respond(FetchTeacherGroupsResponse(groups))
+                val groups = Groups.getGroupsOfTeacher(call.login)
+                call.respond(RFetchTeacherGroupsResponse(groups.map { it.mapToTeacherGroup() }))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Can't fetch groups: ${e.localizedMessage}"
+                    "Can't fetch teacher(cuted+) groups: ${e.localizedMessage}"
                 )
             }
         } else {
@@ -373,18 +363,17 @@ class LessonsController() {
     }
 
     suspend fun fetchStudentsInGroup(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-        val receive = call.receive<FetchStudentsInGroupReceive>()
-        if (Tokens.getIsMember(token.toId())) {
+        val r = call.receive<RFetchStudentsInGroupReceive>()
+        if (call.isMember) {
             try {
-                val students = StudentGroups.getStudentsOfGroup(
-                    groupId = receive.groupId
+                val students = StudentGroups.fetchStudentsOfGroup(
+                    groupId = r.groupId
                 )
-                call.respond(FetchStudentsInGroupResponse(students))
+                call.respond(RFetchStudentsInGroupResponse(students))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Can't fetch groups: ${e.localizedMessage}"
+                    "Can't fetch students in group: ${e.localizedMessage}"
                 )
             }
         } else {
@@ -393,15 +382,14 @@ class LessonsController() {
     }
 
     suspend fun fetchStudentsInForm(call: ApplicationCall) {
-        val token = call.request.headers["Bearer-Authorization"]
-        val receive = call.receive<FetchStudentsInFormReceive>()
-        if (Tokens.getIsMember(token.toId())) {
+        val r = call.receive<RFetchStudentsInFormReceive>()
+        if (call.isMember) {
             try {
-                call.respond(FetchStudentsInFormResponse(fetchStudentsInFormNotCall(receive.formId)))
+                call.respond(RFetchStudentsInFormResponse(fetchStudentsInFormNotCall(r.formId)))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Can't fetch groups: ${e.localizedMessage}"
+                    "Can't fetch students in form: ${e.localizedMessage}"
                 )
             }
         } else {
@@ -409,23 +397,41 @@ class LessonsController() {
         }
     }
 
-    suspend fun createUserForm(call: ApplicationCall) {
-        val receive = call.receive<CreateUserFormReceive>()
-        val token = call.request.headers["Bearer-Authorization"]
-        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(token.toId()))
-        //Users.fetchUser(---login)
-        //admin.User already exists
-        //else {
-        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
+    suspend fun bindStudentToForm(call: ApplicationCall) {
+        val r = call.receive<RBindStudentToFormReceive>()
+        if (call.isModer) {
             try {
-                UserForms.insert(
-                    UserFormsDTO(
-                        formId = receive.hisFormId,
-                        login = receive.studentLogin
+                StudentsInForm.insert(
+                    StudentInFormDTO(
+                        formId = r.formId,
+                        login = r.studentLogin
                     )
                 )
-                val students = fetchStudentsInFormNotCall(receive.currentFormId)
-                call.respond(CreateUserFormResponse(students))
+//                val students = fetchStudentsInFormNotCall(r.currentFormId)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't bind student to form: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun createSubject(call: ApplicationCall) {
+        val r = call.receive<RCreateSubjectReceive>()
+        if (call.isModer) {
+            try {
+                Subjects.insert(
+                    SubjectDTO(
+                        name = r.name,
+                        isActive = true
+                    )
+                )
+
+                call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Subject already exists")
             } catch (e: Throwable) {
@@ -438,137 +444,4 @@ class LessonsController() {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
-
-    suspend fun createNewGSubject(call: ApplicationCall) {
-        val createGSubjectReceive = call.receive<CreateNewGSubjectReceive>()
-        val token = call.request.headers["Bearer-Authorization"]
-        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(token.toId()))
-        //Users.fetchUser(---login)
-        //admin.User already exists
-        //else {
-        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
-            try {
-                GSubjects.insert(
-                    GSubjectsDTO(
-                        name = createGSubjectReceive.name,
-                        isActivated = true
-                    )
-                )
-
-                call.respond(CreateNewGSubjectResponse(GSubjects.getSubjects()))
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Subject already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create subject: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
-        }
-    }
-
-
-//    suspend fun registerNewUser(call: ApplicationCall) {
-//        val registerReceive = call.receive<RegisterReceive>()
-//
-//        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(registerReceive.token.toId()))
-//        //Users.fetchUser(---login)
-//        //admin.User already exists
-//        //else {
-//        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
-//            val login = createLogin(registerReceive.name, registerReceive.surname)
-//
-//            try {
-//                Users.insert(
-//                    UserDTO(
-//                        login = login,
-//                        password = null,
-//                        name = registerReceive.name,
-//                        surname = registerReceive.surname,
-//                        praname = registerReceive.praname,
-//                        birthday = registerReceive.birthday,
-//                        role = registerReceive.role,
-//                        moderation = registerReceive.moderation,
-//                        isParent = registerReceive.isParent,
-//                        avatarId = 0
-//                    )
-//                )
-//
-//                call.respond(RegisterResponse(login))
-//            } catch (e: ExposedSQLException) {
-//                call.respond(HttpStatusCode.Conflict, "admin.User already exists")
-//            } catch (e: Throwable) {
-//                call.respond(HttpStatusCode.BadRequest, "Can't create user: ${e.localizedMessage}")
-//            }
-//        } else {
-//            call.respond(HttpStatusCode.Forbidden, "No permission")
-//        }
-//    }
-//
-//    suspend fun fetchAllUsers(call: ApplicationCall) {
-//        val fetchAllUsersReceive = call.receive<FetchAllUsersReceive>()
-//
-//        if (Users.getIsMember(Tokens.getLoginOfThisToken(fetchAllUsersReceive.token.toId()))) {
-//            try {
-//                val teachers = Users.fetchAllSubjects()
-//
-//                call.respond(FetchAllUsersResponse(teachers))
-//            }
-//            catch (e: Throwable) {
-//                call.respond(HttpStatusCode.BadRequest, "Can't fetch teachers: ${e.localizedMessage}")
-//            }
-//        } else {
-//            call.respond(HttpStatusCode.Forbidden, "No permission")
-//        }
-//    }
-//
-//    suspend fun performEditUser(call: ApplicationCall) {
-//        val editUserReceive = call.receive<EditUserReceive>()
-//
-//        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(editUserReceive.token.toId()))
-//
-//        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
-//            try {
-//                Users.update(
-//                    login = editUserReceive.login,
-//                    newName = editUserReceive.name,
-//                    newSurname = editUserReceive.surname,
-//                    newPraname = editUserReceive.praname,
-//                    newBirthday = editUserReceive.birthday,
-//                    newRole = editUserReceive.role,
-//                    newModeration = editUserReceive.moderation,
-//                    newIsParent = editUserReceive.isParent
-//                )
-//                call.respond(EditUserResponse(true))
-//            } catch (e: ExposedSQLException) {
-//                call.respond(HttpStatusCode.Conflict, "SQL Conflict")
-//            } catch (e: Throwable) {
-//                call.respond(HttpStatusCode.BadRequest, "Can't edit user: ${e.localizedMessage}")
-//            }
-//        } else {
-//            call.respond(HttpStatusCode.Forbidden, "No permission")
-//        }
-//    }
-//
-//    suspend fun clearUserPassword(call: ApplicationCall) {
-//        val editUserReceive = call.receive<ClearUserPasswordReceive>()
-//
-//        val moderation = Users.getModeration(Tokens.getLoginOfThisToken(editUserReceive.token.toId()))
-//
-//        if (moderation != Moderation.mentor && moderation != Moderation.nothing) {
-//            try {
-//                Users.clearPassword(editUserReceive.login)
-//                Tokens.deleteTokenByLogin(editUserReceive.login)
-//                call.respond(ClearUserPasswordResponse(true))
-//            } catch (e: ExposedSQLException) {
-//                call.respond(HttpStatusCode.Conflict, "SQL Conflict")
-//            } catch (e: Throwable) {
-//                call.respond(HttpStatusCode.BadRequest, "Can't -password user: ${e.localizedMessage}")
-//            }
-//        } else {
-//            call.respond(HttpStatusCode.Forbidden, "No permission")
-//        }
-//    }
 }

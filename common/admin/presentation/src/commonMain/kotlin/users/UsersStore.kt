@@ -1,6 +1,6 @@
 package users
 
-import admin.User
+import admin.users.User
 import com.arkivanov.mvikotlin.core.store.Store
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -12,19 +12,12 @@ import users.UsersStore.State
 interface UsersStore : Store<Intent, State, Label> {
     data class State(
         val users: List<User>? = null,
-        val isInProcess: Boolean = false,
-        val isAccessDenied: Boolean = false,
-        val isCreatingInProcess: Boolean = false,
-        val isEditingInProcess: Boolean = false,
-        val isCreatingSheetShowing: Boolean = false,
-        val isEditingSheetShowing: Boolean = false,
         val isDateDialogShowing: Boolean = false,
 
         val currentYear: Int = Clock.System.now()
             .toLocalDateTime(TimeZone.of("Europe/Moscow")).year,
         val currentMillis: Long = Clock.System.now().toEpochMilliseconds(),
 
-        val cError: String = "",
         val cLogin: String = "",
         val cName: String = "",
         val cSurname: String = "",
@@ -35,7 +28,6 @@ interface UsersStore : Store<Intent, State, Label> {
         val cIsMentor: Boolean = false,
         val cIsParent: Boolean = false,
 
-        val eError: String = "",
         val eLogin: String = "",
         val eIsPassword: Boolean = false,
         val eName: String = "",
@@ -52,8 +44,6 @@ interface UsersStore : Store<Intent, State, Label> {
     sealed interface Intent {
         data object FetchUsers : Intent
         data object FetchUsersInit : Intent
-        data class ChangeCreatingSheetShowing(val isShowing: Boolean) : Intent
-        data class ChangeEditingSheetShowing(val isShowing: Boolean) : Intent
         data class ChangeDateDialogShowing(val isShowing: Boolean) : Intent
 
         data class ChangeCName(val name: String) : Intent
@@ -67,7 +57,6 @@ interface UsersStore : Store<Intent, State, Label> {
 
         data object CreateUser : Intent
         data object ClearUser : Intent
-        data object TryCreateAgain : Intent
 
         data class ChangeEName(val name: String) : Intent
         data class ChangeESurname(val surname: String) : Intent
@@ -81,17 +70,11 @@ interface UsersStore : Store<Intent, State, Label> {
         data class OpenEditingSheet(val user: User) : Intent
         data object ClearPassword: Intent
         data object EditUser: Intent
-        data object TryEditUserAgain: Intent
     }
 
     sealed interface Message {
         data class UsersChanged(val users: List<User>?) : Message
-        data object ProcessStarted : Message
-        data object CreatingProcessStarted : Message
-//        data object EditingProcessStarted : Message
-        data object AccessDenied : Message
-        data class CreatingSheetShowingChanged(val isShowing: Boolean) : Message
-        data class EditingSheetShowingChanged(val isShowing: Boolean) : Message
+
         data class DateDialogShowingChanged(val isShowing: Boolean) : Message
 
         data class CNameChanged(val name: String) : Message
@@ -102,13 +85,10 @@ interface UsersStore : Store<Intent, State, Label> {
         data class CIsModeratorChanged(val isModerator: Boolean) : Message
         data class CIsMentorChanged(val isMentor: Boolean) : Message
         data class CIsParentChanged(val isParent: Boolean) : Message
-        data object CreationError : Message
 
         data class UserCreated(val login: String) : Message
         data object ClearUser : Message
-        data object TryCreateAgain : Message
 
-        data object EditingProcessStarted: Message
         data class ENameChanged(val name: String) : Message
         data class ESurnameChanged(val surname: String) : Message
         data class EPranameChanged(val praname: String) : Message
@@ -117,8 +97,6 @@ interface UsersStore : Store<Intent, State, Label> {
         data class EIsModeratorChanged(val isModerator: Boolean) : Message
         data class EIsMentorChanged(val isMentor: Boolean) : Message
         data class EIsParentChanged(val isParent: Boolean) : Message
-        data object EditingError : Message
-        data object TryEditAgain : Message
 
         data class InitEditingUser(
             val name: String,

@@ -1,7 +1,7 @@
-import journal.init.FetchStudentsInGroupResponse
-import journal.init.FetchTeacherGroupsResponse
+import journal.init.RFetchStudentsInGroupResponse
+import journal.init.RFetchTeacherGroupsResponse
 
 interface MainRepository {
-    suspend fun fetchTeacherGroups(): FetchTeacherGroupsResponse
-    suspend fun fetchStudentsInGroup(groupId: Int): FetchStudentsInGroupResponse
+    suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse
+    suspend fun fetchStudentsInGroup(groupId: Int): RFetchStudentsInGroupResponse
 }

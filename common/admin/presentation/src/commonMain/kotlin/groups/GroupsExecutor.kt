@@ -1,8 +1,10 @@
 package groups
 
 import AdminRepository
+import admin.groups.forms.Form
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import components.listDialog.ListDialogComponent
+import components.networkInterface.NetworkInterface
+import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import groups.GroupsStore.Intent
@@ -10,50 +12,20 @@ import groups.GroupsStore.Label
 import groups.GroupsStore.State
 import groups.GroupsStore.Message
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class GroupsExecutor(
     private val adminRepository: AdminRepository,
-    private val formListDialogComponent: ListDialogComponent
+    private val formListComponent: ListComponent,
+    private val nGroupsInterface: NetworkInterface,
+    private val nSubjectsInterface: NetworkInterface,
+    private val nFormsInterface: NetworkInterface
 ) :
     CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent, getState: () -> State) {
         when (intent) {
-            is Intent.ChangeCurrentIndex -> changeSubjectIndex(intent.index)
-            is Intent.ChangeCreateGSubjectText -> dispatch(Message.CreateGSubjectTextChanged(intent.text))
-            is Intent.ChangeGSubjectDialogShowing -> dispatch(
-                Message.GSubjectDialogShowingChanged(
-                    intent.isShowing
-                )
-            )
-
-            is Intent.ChangeGSubjectList -> dispatch(Message.GSubjectListChanged(intent.gSubjects))
             is Intent.InitList -> init()
-            Intent.CreateGSubjectError -> dispatch(Message.CreateGSubjectErrored)
-            Intent.TryCreateGSubjectAgain -> dispatch(Message.CreateGSubjectAgainTryed)
-            Intent.CreateGSubject -> createGSubject(getState())
-            Intent.TryInitAgain -> {
-                dispatch(Message.ClearInitError)
-                init()
-            }
 
-            Intent.TryChangeIndexAgain -> {
-                dispatch(Message.ClearGroupError)
-                changeSubjectIndex(getState().currentGSubjectIndex)
-            }
-
-            is Intent.ChangeCDifficult -> dispatch(Message.CDifficultChanged(intent.difficult))
-            is Intent.ChangeCTeacherLogin -> dispatch(Message.CMentorLoginChanged(intent.teacherLogin))
-            is Intent.ChangeCName -> dispatch(Message.CNameChanged(intent.name))
-            is Intent.ChangeCreatingSheetShowing -> dispatch(
-                Message.CreatingSheetShowingChanged(
-                    intent.isShowing
-                )
-            )
-
-            Intent.TryCreateAgain -> dispatch(Message.TryCreateAgain)
-            Intent.CreateGroup -> createGroup(getState())
             Intent.ChangeView -> dispatch(
                 Message.ViewChanged(
                     when (getState().view) {
@@ -72,242 +44,81 @@ class GroupsExecutor(
                 )
             )
 
-            is Intent.ChangeCurrentClass -> changeCurrentClass(formId = intent.classNum)
-            is Intent.ChangeCFormMentorLogin -> dispatch(Message.CFormMentorLoginChanged(intent.mentorLogin))
-            is Intent.ChangeCFormName -> dispatch(Message.CFormNameChanged(intent.name))
-            is Intent.ChangeCFormShortName -> dispatch(Message.CFormShortNameChanged(intent.shortName))
-            is Intent.ChangeCFormNum -> dispatch(Message.CFormNumChanged(intent.num))
-            is Intent.ChangeCreatingFormSheetShowing -> dispatch(
-                Message.CreatingFormSheetShowingChanged(
-                    intent.isShowing
-                )
-            )
-
-            Intent.CreateForm -> createForm(getState())
-            Intent.TryCreateFormAgain -> dispatch(Message.TryCreateFormAgain)
-            is Intent.ChangeCurrentFormId -> changeFormId(intent.formId)
-            Intent.OpenFormGroupCreatingMenu -> dispatch(Message.FormGroupCreatingMenuOpened)
-            is Intent.ChangeCFormGroupSubjectId -> changeCFormGroupSubjectId(intent.subjectId)
-            is Intent.ChangeCFormGroupGroupId -> dispatch(Message.CFormGroupGroupIdChanged(intent.groupId))
-            Intent.CloseFormGroupCreationMenu -> dispatch(Message.FormGroupCreationMenuClosed)
-            Intent.CreateFormGroup -> createFormGroup(getState())
-            is Intent.CreateUserForm -> createUserForm(getState(), intent.formId)
-            is Intent.ClickOnStudentPlus -> {
-                dispatch(Message.StudentPlusClicked(intent.studentLogin))
-            } //; formListDialogComponent.onEvent(ListDialogStore.Intent.ShowDialog())
-            is Intent.ClickOnStudent -> changeStudent(intent.studentLogin)
+            Intent.ChangeSubjectList -> updateSubjects()
+            Intent.ChangeFormsList -> updateForms()
         }
     }
 
-    private fun changeCurrentClass(formId: Int) {
+    private fun updateForms() {
         scope.launch {
-            dispatch(Message.CurrentClassStartedChanged(formId))
+            nFormsInterface.nStartLoading()
             try {
-                val students = adminRepository.fetchStudentsInForm(formId)
-
-                dispatch(Message.CurrentClassChanged(formId, students.students))
+                val forms = adminRepository.fetchAllForms().forms
+                dispatch(Message.FormsListChanged(forms))
+                nFormsInterface.nSuccess()
+                updateFormsList(forms)
             } catch (_: Throwable) {
-                println("error!")
-                dispatch(Message.FetchingFormStudentsError)
+                nFormsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+                    updateForms()
+                })
             }
         }
     }
 
-    private fun createFormGroup(state: State) {
+    private fun updateSubjects() {
         scope.launch {
-//            dispatch(Message.CreatingProcessStarted)
+            nSubjectsInterface.nStartLoading()
             try {
-                val groups = adminRepository.createFormGroup(
-                    formId = state.currentFormId,
-                    subjectId = state.cFormGroupSubjectId,
-                    groupId = state.cFormGroupGroupId
-                ).groups
-                dispatch(Message.FormGroupCreated(groups))
+                val subjects = adminRepository.fetchAllSubjects().subjects
+                dispatch(Message.SubjectListChanged(subjects))
+                nSubjectsInterface.nSuccess()
             } catch (_: Throwable) {
-                dispatch(Message.CreationError)
+                nSubjectsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+                    updateSubjects()
+                })
             }
         }
-    }
-
-    private fun createUserForm(state: State, formId: Int) {
-        scope.launch {
-            formListDialogComponent.onEvent(ListDialogStore.Intent.StartProcess)
-            try {
-                val students = adminRepository.createUserForm(
-                    login = state.currentStudentPlusLogin,
-                    formId = formId,
-                    currentFormIdToGetList = state.currentFormTabId
-                ).students
-
-                dispatch(Message.UserFormCreated(students))
-                with(formListDialogComponent) {
-                    onEvent(ListDialogStore.Intent.HideDialog)
-                    delay(200)
-                    onEvent(ListDialogStore.Intent.StopProcess)
-                }
-            } catch (_: Throwable) {
-                formListDialogComponent.onEvent(ListDialogStore.Intent.CallError("Что-то пошло не так =/"))
-            }
-        }
-    }
-
-    private fun changeCFormGroupSubjectId(subjectId: Int) {
-        scope.launch {
-            dispatch(Message.CFormGroupSubjectIdChanged(subjectId))
-            try {
-                val groups = adminRepository.fetchSubjectFormGroups(subjectId).groups
-                dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, groups))
-            } catch (_: Throwable) {
-                println("error!")
-            }
-        }
-    }
-
-    private fun createGroup(state: GroupsStore.State) {
-        scope.launch {
-            dispatch(Message.CreatingProcessStarted)
-            try {
-                val groups = adminRepository.createGroup(
-                    name = state.cName,
-                    mentorLogin = state.cTeacherLogin,
-                    subjectId = state.currentGSubjectIndex,
-                    difficult = state.cDifficult
-                ).groups
-                dispatch(Message.GroupCreated(groups))
-            } catch (_: Throwable) {
-                dispatch(Message.CreationError)
-            }
-        }
-    }
-
-    private fun createForm(state: GroupsStore.State) {
-        scope.launch {
-            dispatch(Message.CreatingFormProcessStarted)
-            try {
-                val forms = adminRepository.createForm(
-                    name = state.cFormName,
-                    mentorLogin = state.cFormMentorLogin,
-                    classNum = state.cFormNum.toInt(),
-                    shortName = state.cFormShortName
-                ).forms
-                dispatch(Message.FormCreated(forms))
-                formListDialogComponent.onEvent(ListDialogStore.Intent.InitList(forms.map {
-                    ListItem(
-                        id = it.id,
-                        text = "${it.classNum}${if (it.name.length < 2) "-" else " "}${it.name} класс"
-                    )
-                }))
-            } catch (_: Throwable) {
-                dispatch(Message.CreationFormError)
-            }
-        }
-    }
-
-    private fun createGSubject(state: State) {
-        scope.launch {
-            dispatch(Message.GSubjectListProcessStarted)
-            try {
-                val gSubjects = adminRepository.createGSubject(state.createGSubjectText).gSubjects
-                dispatch(Message.GSubjectListChanged(gSubjects))
-                changeSubjectIndex(gSubjects.last().id)
-            } catch (e: Throwable) {
-                dispatch(Message.CreateGSubjectErrored)
-                println(e)
-            }
-        }
-    }
-
-    private fun changeSubjectIndex(id: Int) {
-        scope.launch {
-            try {
-                dispatch(Message.GroupsProcessStarted(id))
-                val groups = adminRepository.fetchSubjectGroups(id).groups
-                dispatch(Message.CurrentIndexChanged(id, groups))
-            } catch (e: Throwable) {
-                println(e)
-                dispatch(Message.ChangeIndexErrored)
-            }
-        }
-    }
-
-    private fun changeFormId(id: Int) {
-        if (id == 0) {
-            dispatch(Message.CurrentFormIdChanged(0, listOf()))
-        } else {
-            scope.launch {
-                try {
-                    dispatch(Message.FormsProcessStarted(id))
-                    val groups = adminRepository.fetchFormGroups(id).groups
-                    dispatch(Message.CurrentFormIdChanged(id, groups))
-                } catch (e: Throwable) {
-                    println(e)
-                    dispatch(Message.CurrentFormIdChanged(0, listOf()))
-                }
-            }
-        }
-    }
-
-    private fun changeStudent(login: String) {
-
-        scope.launch {
-            try {
-                dispatch(Message.StudentClicked(login))
-                val groups = adminRepository.fetchStudentGroups(login).groups
-                dispatch(Message.StudentDownloaded(groups))
-            } catch (e: Throwable) {
-                println(e)
-                dispatch(Message.StudentErrored("Что-то пошло не так =/"))
-            }
-        }
-
     }
 
     private fun init() {
+        nGroupsInterface.nStartLoading()
         scope.launch {
             try {
-                val teachersA = async { adminRepository.fetchAllTeachersForGroups().teachers }
-                val studentsInitA = async { adminRepository.fetchStudentsInForm(0).students }
-                val mentorsA = async { adminRepository.fetchAllMentorsForGroups().mentors }
-                val gSubjectsA = async { adminRepository.fetchAllGSubject().gSubjects }
-                val formsA = async { adminRepository.fetchAllForms().forms }
+                val teachersA = adminRepository.fetchAllTeachers().teachers
+                val subjectsA =  adminRepository.fetchAllSubjects().subjects
+                val formsA = adminRepository.fetchAllForms().forms
+                // async {
 
-
-                val gSubjects = gSubjectsA.await()
-                val groups = if (gSubjects.isNotEmpty()) {
-                    async {
-
-                        adminRepository.fetchSubjectGroups(gSubjects.last().id).groups
-                    }.await()
-                } else listOf()
-
-                val teachers = teachersA.await()
-                val mentors = mentorsA.await()
-                val forms = formsA.await()
-                val studentsInit = studentsInitA.await()
+//                val subjects = subjectsA.await()
+//                val teachers = teachersA.await()
+//                val forms = formsA.await()
 
                 dispatch(
                     Message.ListInited(
-                        gSubjects,
-                        groups,
-                        teachers,
-                        mentors,
-                        forms,
-                        studentsInit
+                        subjectsA,
+                        teachersA,
+                        formsA
                     )
                 )
-                formListDialogComponent.onEvent(ListDialogStore.Intent.InitList(forms.map {
-                    ListItem(
-                        id = it.id,
-                        text = "${it.classNum}${if (it.name.length < 2) "-" else " "}${it.name} класс"
-                    )
-                }))
-
-
+                updateFormsList(formsA)
             } catch (e: Throwable) {
-                dispatch(Message.InitErrored)
+                nGroupsInterface.nError("Что-то пошло не так =/") {
+
+                        init()
+
+                }
                 println(e)
             }
 
         }
+    }
+
+    private fun updateFormsList(forms: List<Form>) {
+        formListComponent.onEvent(ListDialogStore.Intent.InitList(forms.map {
+            ListItem(
+                id = it.id,
+                text = "${it.form.classNum}${if (it.form.title.length < 2) "-" else " "}${it.form.title} класс"
+            )
+        }))
     }
 }

@@ -1,11 +1,14 @@
 package com.nevrozq.pansion.utils
 
+import com.nevrozq.pansion.database.tokens.Tokens
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import com.nevrozq.pansion.database.users.Users
+import io.ktor.server.application.ApplicationCall
+import server.Moderation
 import server.Roles
 import server.twoNums
 import java.lang.IllegalArgumentException
@@ -93,4 +96,29 @@ object UUIDSerializer : KSerializer<UUID> {
     }
 }
 
-fun String.isTeacher() = Users.getRole(this) == Roles.teacher
+//fun String.isTeacher() = Users.getRole(this) == Roles.teacher
+
+//fun String.isModer(): Boolean {
+//    val moderation = Users.getModeration(this)
+//    return moderation != Moderation.mentor && moderation != Moderation.nothing
+//}
+
+val ApplicationCall.login: String get() {
+    return Tokens.getLoginOfThisToken(this.request.headers["Bearer-Authorization"].toId())
+}
+
+val ApplicationCall.isMember: Boolean get() {
+    return Tokens.getIsMember(this.token.toId())
+}
+val ApplicationCall.isModer: Boolean get() {
+    val moderation = Users.getModeration(this.login)
+    return moderation != Moderation.mentor && moderation != Moderation.nothing
+}
+val ApplicationCall.isTeacher: Boolean get() {
+    return Users.getRole(this.login) == Roles.teacher
+}
+
+val ApplicationCall.token: String?
+    get() {
+    return this.request.headers["Bearer-Authorization"]
+}

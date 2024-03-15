@@ -1,14 +1,14 @@
 package journal
 
+import Person
 import com.arkivanov.mvikotlin.core.store.Store
 import journal.JournalStore.Intent
 import journal.JournalStore.Label
 import journal.JournalStore.State
-import journal.init.StudentInGroup
 
 interface JournalStore : Store<Intent, State, Label> {
     data class State(
-        val studentsInGroup: List<StudentInGroup> = emptyList(),
+        val studentsInGroup: List<Person> = emptyList(),
         val currentGroupId: Int = 0
     )
 
@@ -18,7 +18,7 @@ interface JournalStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
-        data class StudentsInGroupUpdated(val students: List<StudentInGroup>, val groupId: Int) : Message
+        data class StudentsInGroupUpdated(val students: List<Person>, val groupId: Int) : Message
     }
 
     sealed interface Label

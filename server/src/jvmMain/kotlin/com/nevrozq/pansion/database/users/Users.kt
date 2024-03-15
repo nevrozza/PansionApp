@@ -1,9 +1,10 @@
 package com.nevrozq.pansion.database.users
 
-import admin.Student
+import FIO
 import server.Moderation
 import server.Roles
-import admin.User
+import admin.users.User
+import admin.users.UserInit
 import com.nevrozq.pansion.utils.cut
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -16,12 +17,12 @@ object Users : Table() {
     private val name = Users.varchar("name", 30)
     private val surname = Users.varchar("surname", 50)
     private val praname = Users.varchar("praname", 30).nullable()
-    private val birthday = Users.varchar("birthday", 8).nullable()
+    private val birthday = Users.varchar("birthday", 8)
     private val role = Users.varchar("role", 1)
     private val moderation = Users.varchar("moderation", 1)
     private val isParent = Users.bool("isParent")
     private val avatarId = Users.integer("avatarId")
-//    private val isActivated = Users.bool("isActivated")
+    private val isActive = Users.bool("isActive")
 
     fun insert(userDTO: UserDTO) {
         transaction {
@@ -36,6 +37,7 @@ object Users : Table() {
                 it[moderation] = userDTO.moderation
                 it[isParent] = userDTO.isParent
                 it[avatarId] = userDTO.avatarId
+                it[isActive] = userDTO.isActive
             }
         }
     }
@@ -84,7 +86,6 @@ object Users : Table() {
         return try {
             transaction {
                 Users.select { (Users.login eq login) }.first()[role]
-
             }
         } catch (e: Throwable) {
             println(e)
@@ -133,7 +134,7 @@ object Users : Table() {
         newName: String,
         newSurname: String,
         newPraname: String?,
-        newBirthday: String?,
+        newBirthday: String,
         newRole: String,
         newModeration: String,
         newIsParent: Boolean
@@ -195,7 +196,8 @@ object Users : Table() {
                         role = it[role],
                         moderation = it[moderation],
                         isParent = it[isParent],
-                        avatarId = it[avatarId]
+                        avatarId = it[avatarId],
+                        isActive = it[isActive]
                     )
                 }.first()
             }
@@ -204,12 +206,11 @@ object Users : Table() {
         }
     }
 
-    fun fetchAll(): List<User> {
+    fun fetchAll(): List<UserDTO> {
         return try {
             transaction {
                 Users.selectAll().map {
-
-                    User(
+                    UserDTO(
                         login = it[login],
                         password = it[password],
                         name = it[name],
@@ -219,41 +220,59 @@ object Users : Table() {
                         role = it[role],
                         moderation = it[moderation],
                         isParent = it[isParent],
-                        avatarId = it[avatarId]
+                        avatarId = it[avatarId],
+                        isActive = it[isActive]
                     )
+//                    User(
+//                        login = it[login],
+//                        isProtected = it[password] != null,
+//                        user = UserInit(
+//                            fio = FIO(
+//                                name = it[name],
+//                                surname = it[surname],
+//                                praname = it[praname],
+//                            ),
+//                            birthday = it[birthday],
+//                            role = it[role],
+//                            moderation = it[moderation],
+//                            isParent = it[isParent]
+//                        ),
+//                        avatarId = it[avatarId],
+//                        isActive = it[isActive]
+//                    )
                 }
             }
         } catch (e: Throwable) {
             listOf()
         }
     }
-    fun fetchStudentsByClass(classNum: Int): List<Student> {
-        return try {
-            transaction {
-//                Users.select { Users.role eq Roles.student and (Users.classNum eq classNum) } .map {
-//                    Student(
-//                        login = it[login],
-//                        name = it[name],
-//                        surname = it[surname],
-//                        praname = it[praname],
-////                        isActivated = true
-//                    )
-//                }
-                listOf() //TODO
-            }
-        } catch (e: Throwable) {
-            listOf()
-        }
-    }
+//    fun fetchStudentsByForm(formId: Int): List<UserDTO> {
+//        return try {
+//            transaction {
+////                Users.select { Users.role eq Roles.student and (Users.classNum eq classNum) } .map {
+////                    Student(
+////                        login = it[login],
+////                        name = it[name],
+////                        surname = it[surname],
+////                        praname = it[praname],
+//////                        isActivated = true
+////                    )
+////                }
+////                listOf() //TODO
+//            }
+//        } catch (e: Throwable) {
+//            listOf()
+//        }
+//    }
 
-    fun fetchAllTeachers(): List<User> {
+    fun fetchAllTeachers(): List<UserDTO> {
         return try {
             transaction {
                 val teachersQuery = Users.select { Users.role eq Roles.teacher }
 
                 teachersQuery.map {
 
-                    User(
+                    UserDTO(
                         login = it[login],
                         password = it[password],
                         name = it[name],
@@ -263,7 +282,8 @@ object Users : Table() {
                         role = it[role],
                         moderation = it[moderation],
                         isParent = it[isParent],
-                        avatarId = it[avatarId]
+                        avatarId = it[avatarId],
+                        isActive = it[isActive]
                     )
                 }
             }
@@ -273,14 +293,21 @@ object Users : Table() {
         }
     }
 
-    fun fetchAllMentors(): List<User> {
+    fun fetchAllMentors(): List<UserDTO> {
         return try {
             transaction {
-                val mentorsQuery = Users.select { Users.moderation.inList(listOf(Moderation.mentor, Moderation.both, Moderation.superBoth)) }
+                val mentorsQuery = Users.select {
+                    Users.moderation.inList(
+                        listOf(
+                            Moderation.mentor,
+                            Moderation.both,
+                            Moderation.superBoth
+                        )
+                    )
+                }
 
                 mentorsQuery.map {
-
-                    User(
+                    UserDTO(
                         login = it[login],
                         password = it[password],
                         name = it[name],
@@ -290,7 +317,8 @@ object Users : Table() {
                         role = it[role],
                         moderation = it[moderation],
                         isParent = it[isParent],
-                        avatarId = it[avatarId]
+                        avatarId = it[avatarId],
+                        isActive = it[isActive]
                     )
                 }
             }
@@ -299,14 +327,15 @@ object Users : Table() {
             listOf()
         }
     }
-    fun fetchAllStudents(): List<User> {
+
+    fun fetchAllStudents(): List<UserDTO> {
         return try {
             transaction {
                 val studentQuery = Users.select { Users.role eq Roles.student }
 
                 studentQuery.map {
 
-                    User(
+                    UserDTO(
                         login = it[login],
                         password = it[password],
                         name = it[name],
@@ -316,7 +345,8 @@ object Users : Table() {
                         role = it[role],
                         moderation = it[moderation],
                         isParent = it[isParent],
-                        avatarId = it[avatarId]
+                        avatarId = it[avatarId],
+                        isActive = it[isActive]
                     )
                 }
             }

@@ -1,139 +1,138 @@
-import admin.ClearUserPasswordReceive
-import admin.ClearUserPasswordResponse
-import admin.CreateFormGroupsReceive
-import admin.CreateFormGroupsResponse
-import admin.CreateNewFormReceive
-import admin.CreateNewFormResponse
-import admin.CreateNewGSubjectReceive
-import admin.CreateNewGSubjectResponse
-import admin.CreateNewGroupReceive
-import admin.CreateNewGroupResponse
-import admin.CreateUserFormReceive
-import admin.CreateUserFormResponse
-import admin.EditUserReceive
-import admin.EditUserResponse
-import admin.FetchAllFormsResponse
-import admin.FetchAllGSubjectsResponse
-import admin.FetchAllMentorsForGroupsResponse
-import admin.FetchAllTeachersForGroupsResponse
-import admin.FetchAllUsersResponse
-import admin.FetchFormGroupsOfSubjectReceive
-import admin.FetchFormGroupsOfSubjectResponse
-import admin.FetchFormGroupsReceive
-import admin.FetchFormGroupsResponse
-import admin.FetchStudentGroupsOfStudentReceive
-import admin.FetchStudentGroupsOfStudentResponse
-import admin.FetchStudentsInFormReceive
-import admin.FetchStudentsInFormResponse
-import admin.FetchSubjectGroupsReceive
-import admin.FetchSubjectGroupsResponse
-import admin.RegisterReceive
-import admin.RegisterResponse
-import admin.UserForRegistration
+import admin.groups.GroupInit
+import admin.groups.forms.FormInit
+import admin.groups.forms.RCreateFormGroupReceive
+import admin.users.RClearUserPasswordReceive
+import admin.groups.forms.outside.CreateFormReceive
+import admin.groups.subjects.RCreateGroupReceive
+import admin.groups.students.RBindStudentToFormReceive
+import admin.groups.forms.RFetchCutedGroupsResponse
+import admin.users.REditUserReceive
+import admin.groups.forms.outside.RFetchFormsResponse
+import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
+import admin.groups.forms.outside.RFetchMentorsResponse
+import admin.groups.subjects.RFetchTeachersResponse
+import admin.groups.subjects.RFetchGroupsReceive
+import admin.groups.forms.RFetchFormGroupsReceive
+import admin.groups.forms.RFetchFormGroupsResponse
+import admin.groups.students.deep.RFetchStudentGroupsReceive
+import admin.groups.students.deep.RFetchStudentGroupsResponse
+import admin.groups.students.RFetchStudentsInFormReceive
+import admin.groups.students.RFetchStudentsInFormResponse
+import admin.groups.subjects.RFetchGroupsResponse
+import admin.groups.subjects.topBar.RCreateSubjectReceive
+import admin.users.RRegisterUserReceive
+import admin.users.RCreateUserResponse
+import admin.users.RFetchAllUsersResponse
+import admin.users.UserInit
 import ktor.KtorAdminRemoteDataSource
 
 class AdminRepositoryImpl(
     private val remoteDataSource: KtorAdminRemoteDataSource
 ) : AdminRepository {
-    override suspend fun registerUser(user: UserForRegistration): RegisterResponse {
+    override suspend fun registerUser(user: UserInit): RCreateUserResponse {
         return remoteDataSource.performRegistrationUser(
-            RegisterReceive(
-                name = user.name,
-                surname = user.surname,
-                praname = user.praname,
-                birthday = user.birthday,
-                role = user.role,
-                moderation = user.moderation,
-                isParent = user.isParent
+            RRegisterUserReceive(
+                userInit = UserInit(
+                    fio = FIO(
+                        name = user.fio.name,
+                        surname = user.fio.surname,
+                        praname = user.fio.praname
+                    ),
+                    birthday = user.birthday,
+                    role = user.role,
+                    moderation = user.moderation,
+                    isParent = user.isParent
+                )
             )
         )
     }
 
-    override suspend fun fetchAllUsers(): FetchAllUsersResponse {
+    override suspend fun fetchAllUsers(): RFetchAllUsersResponse {
         return remoteDataSource.performFetchAllUsers()
     }
 
-    override suspend fun clearUserPassword(login: String): ClearUserPasswordResponse {
-        return remoteDataSource.clearUserPassword(ClearUserPasswordReceive(login))
+    override suspend fun clearUserPassword(login: String) {
+        remoteDataSource.clearUserPassword(RClearUserPasswordReceive(login))
     }
 
-    override suspend fun editUser(login: String, user: UserForRegistration): EditUserResponse {
-        return remoteDataSource.performEditUser(
-            EditUserReceive(
+    override suspend fun editUser(login: String, user: UserInit) {
+        remoteDataSource.performEditUser(
+            REditUserReceive(
                 login = login,
-                name = user.name,
-                surname = user.surname,
-                praname = user.praname,
-                birthday = user.birthday,
-                role = user.role,
-                moderation = user.moderation,
-                isParent = user.isParent
+                user = UserInit(
+                    fio = FIO(
+                        name = user.fio.name,
+                        surname = user.fio.surname,
+                        praname = user.fio.praname
+                    ),
+                    birthday = user.birthday,
+                    role = user.role,
+                    moderation = user.moderation,
+                    isParent = user.isParent
+                )
             )
         )
     }
 
-    override suspend fun fetchAllGSubject(): FetchAllGSubjectsResponse {
-        return remoteDataSource.performFetchAllSubject()
+    override suspend fun fetchAllSubjects(): RFetchAllSubjectsResponse {
+        return remoteDataSource.performFetchAllSubjects()
     }
 
-    override suspend fun createGSubject(name: String): CreateNewGSubjectResponse {
-        return remoteDataSource.createNewSubject(
-            CreateNewGSubjectReceive(
+    override suspend fun createSubject(name: String) {
+        remoteDataSource.createNewSubject(
+            RCreateSubjectReceive(
                 name = name
             )
         )
     }
 
-    override suspend fun fetchSubjectGroups(id: Int): FetchSubjectGroupsResponse {
-        return remoteDataSource.performFetchSubjectGroups(
-            FetchSubjectGroupsReceive(
-                id = id
+    override suspend fun fetchGroups(subjectId: Int): RFetchGroupsResponse {
+        return remoteDataSource.performFetchGroups(
+            RFetchGroupsReceive(
+                subjectId = subjectId
             )
         )
     }
 
-    override suspend fun fetchStudentGroups(login: String): FetchStudentGroupsOfStudentResponse {
+    override suspend fun fetchStudentGroups(login: String): RFetchStudentGroupsResponse {
         return remoteDataSource.performFetchStudentGroups(
-            FetchStudentGroupsOfStudentReceive(
+            RFetchStudentGroupsReceive(
                 studentLogin = login
             )
         )
     }
 
-    override suspend fun fetchSubjectFormGroups(id: Int): FetchFormGroupsOfSubjectResponse {
-        return remoteDataSource.performFetchSubjectFormGroups(
-            FetchFormGroupsOfSubjectReceive(
+    override suspend fun fetchCutedGroups(id: Int): RFetchCutedGroupsResponse {
+        return remoteDataSource.performFetchCutedGroups(
+            RFetchGroupsReceive(
                 subjectId = id
             )
         )
     }
 
-    override suspend fun fetchFormGroups(id: Int): FetchFormGroupsResponse {
+    override suspend fun fetchFormGroups(id: Int): RFetchFormGroupsResponse {
         return remoteDataSource.performFormGroups(
-            FetchFormGroupsReceive(
+            RFetchFormGroupsReceive(
                 formId = id
             )
         )
     }
 
-    override suspend fun fetchStudentsInForm(formId: Int): FetchStudentsInFormResponse {
+    override suspend fun fetchStudentsInForm(formId: Int): RFetchStudentsInFormResponse {
         return remoteDataSource.performStudentsInForm(
-            FetchStudentsInFormReceive(
+            RFetchStudentsInFormReceive(
                 formId = formId
             )
         )
     }
 
-    override suspend fun createUserForm(
-        login: String,
-        formId: Int,
-        currentFormIdToGetList: Int
-    ): CreateUserFormResponse {
-        return remoteDataSource.createUserForm(
-            CreateUserFormReceive(
-                currentFormId = currentFormIdToGetList,
+    override suspend fun bindStudentToForm(
+        login: String, formId: Int
+    ) {
+        remoteDataSource.bindStudentToForm(
+            RBindStudentToFormReceive(
                 studentLogin = login,
-                hisFormId = formId
+                formId = formId
             )
         )
     }
@@ -142,9 +141,9 @@ class AdminRepositoryImpl(
         formId: Int,
         subjectId: Int,
         groupId: Int
-    ): CreateFormGroupsResponse {
-        return remoteDataSource.createFormGroup(
-            CreateFormGroupsReceive(
+    ) {
+        remoteDataSource.createFormGroup(
+            RCreateFormGroupReceive(
                 formId = formId,
                 subjectId = subjectId,
                 groupId = groupId
@@ -157,42 +156,46 @@ class AdminRepositoryImpl(
         mentorLogin: String,
         subjectId: Int,
         difficult: String
-    ): CreateNewGroupResponse {
-        return remoteDataSource.createGroup(
-            CreateNewGroupReceive(
-                name = name,
-                mentorLogin = mentorLogin,
-                gSubjectId = subjectId,
-                difficult = difficult
+    ) {
+        remoteDataSource.createGroup(
+            RCreateGroupReceive(
+                group = GroupInit(
+                    name = name,
+                    teacherLogin = mentorLogin,
+                    subjectId = subjectId,
+                    difficult = difficult
+                )
             )
         )
     }
 
     override suspend fun createForm(
-        name: String,
+        title: String,
         mentorLogin: String,
         classNum: Int,
-        shortName: String
-    ): CreateNewFormResponse {
-        return remoteDataSource.createForm(
-            CreateNewFormReceive(
-                name = name,
-                mentorLogin = mentorLogin,
-                classNum = classNum,
-                shortName = shortName
+        shortTitle: String
+    ) {
+        remoteDataSource.createForm(
+            CreateFormReceive(
+                form = FormInit(
+                    title = title,
+                    mentorLogin = mentorLogin,
+                    classNum = classNum,
+                    shortTitle = shortTitle
+                )
             )
         )
     }
 
-    override suspend fun fetchAllForms(): FetchAllFormsResponse {
+    override suspend fun fetchAllForms(): RFetchFormsResponse {
         return remoteDataSource.performFetchAllForms()
     }
 
-    override suspend fun fetchAllTeachersForGroups(): FetchAllTeachersForGroupsResponse {
-        return remoteDataSource.performFetchTeachersForGroups()
+    override suspend fun fetchAllTeachers(): RFetchTeachersResponse {
+        return remoteDataSource.performFetchTeachersForGroup()
     }
 
-    override suspend fun fetchAllMentorsForGroups(): FetchAllMentorsForGroupsResponse {
+    override suspend fun fetchAllMentors(): RFetchMentorsResponse {
         return remoteDataSource.performFetchMentorsForGroups()
     }
 }

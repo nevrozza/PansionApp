@@ -8,12 +8,10 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
-import components.listDialog.ListDialogComponent
+import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 
 class JournalComponent(
@@ -24,7 +22,7 @@ class JournalComponent(
     //    private val settingsRepository: SettingsRepository = Inject.instance()
 //    private val authRepository: AuthRepository = Inject.instance()
     private val mainRepository: MainRepository = Inject.instance()
-    val groupListDialogComponent = ListDialogComponent(
+    val groupListComponent = ListComponent(
         componentContext,
         storeFactory,
         name = "groupListInMainJournal",
@@ -41,7 +39,7 @@ class JournalComponent(
         },
         onDeclineClick = {
             //some magic..
-            groupListDialogComponent.onEvent(ListDialogStore.Intent.ShowDialog(65566556f, 65566556f))
+            groupListComponent.onEvent(ListDialogStore.Intent.ShowDialog(65566556f, 65566556f))
             hideStudentAlarm()
         }
     )
@@ -60,7 +58,7 @@ class JournalComponent(
             JournalStoreFactory(
                 storeFactory = storeFactory,
                 mainRepository = mainRepository,
-                groupListDialogComponent = groupListDialogComponent,
+                groupListComponent = groupListComponent,
                 studentsInGroupCAlertDialogComponent = studentsInGroupCAlertDialogComponent
 //                authRepository = authRepository
             ).create()

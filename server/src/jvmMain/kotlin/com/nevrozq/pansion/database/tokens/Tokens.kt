@@ -10,15 +10,15 @@ import kotlin.Exception
 object Tokens : Table() {
     private val deviceId = Tokens.uuid("deviceId")
     private val login = Tokens.varchar("login", 30)
-    private val token = Tokens.uuid("token")
+    private val token = Tokens.uuid("token").uniqueIndex()
     private val deviceName = Tokens.varchar("deviceName", 20).nullable()
     private val deviceType = Tokens.varchar("deviceType", 10)
     private val time = Tokens.varchar("time", 16)
 
     fun insert(tokenDTO: TokenDTO) {
-        transaction {
 
-            deleteTokenByIdAndLogin(tokenDTO.deviceId, tokenDTO.login)
+        deleteTokenByIdAndLogin(tokenDTO.deviceId, tokenDTO.login)
+        transaction {
             Tokens.insert {
                 it[deviceId] = tokenDTO.deviceId
                 it[login] = tokenDTO.login
@@ -34,7 +34,6 @@ object Tokens : Table() {
         return try {
             transaction {
                 val x = Tokens.select(Tokens.token eq token).count()
-
                 x > 0
             }
         } catch (e: Throwable) {

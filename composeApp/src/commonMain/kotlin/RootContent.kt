@@ -74,7 +74,7 @@ import kotlinx.datetime.toLocalDateTime
 import root.RootComponent
 import root.RootComponent.Child
 import root.RootComponent.Child.AdminGroups
-import root.RootComponent.Child.AdminMentors
+//import root.RootComponent.Child.AdminMentors
 import root.RootComponent.Child.AdminUsers
 import root.RootComponent.Child.LessonReport
 import root.RootComponent.Child.MainAdmin
@@ -86,6 +86,7 @@ import server.Roles
 import view.LocalViewManager
 import view.ViewManager
 import view.WindowScreen
+import groups.GroupsContent
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -169,7 +170,7 @@ fun RootContent(component: RootComponent) {
                             is MainJournal -> fade()
                             is MainHome -> fade()
                             is MainAdmin -> fade()
-                            is AdminMentors -> if (isExpanded) fade() else slide()
+//                            is AdminMentors -> if (isExpanded) fade() else slide()
                             is AdminUsers -> if (isExpanded) fade() else slide()
                             is AdminGroups -> if (isExpanded) fade() else slide()
                             is LessonReport -> if (isExpanded) fade() else slide()
@@ -224,13 +225,13 @@ fun RootContent(component: RootComponent) {
                             }
                         )
 
-                    is AdminMentors ->
+                    /*is AdminMentors ->
                         MultiPaneAdmin(
                             isExpanded,
                             adminComponent = child.adminComponent,
                             currentRouting = AdminComponent.Output.NavigateToMentors,
                             secondScreen = { MentorsContent(child.mentorsComponent) }
-                        )
+                        )*/
 
 
                     is AdminUsers ->
@@ -249,7 +250,7 @@ fun RootContent(component: RootComponent) {
                             secondScreen = { GroupsContent(child.groupsComponent) }
                         )
 
-                    is Child.AdminStudents -> TODO()
+//                    is Child.AdminStudents -> TODO()
                     is LessonReport ->
                         MultiPaneJournal(
                             isExpanded,

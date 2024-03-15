@@ -27,16 +27,8 @@ class LoginExecutor(private val authRepository: AuthRepository) : CoroutineExecu
         dispatch(Message.ProcessStarted)
         scope.launch {
             try {
-                val response = //authRepository.performLogin(state.login, state.password)
-                LoginResponse(
-                    token = "dsa",
-                    name = "Артём",
-                    surname = "Маташков",
-                    praname = "Игоревич",
-                    role = "2",
-                    moderation = "0"
-                )
-                if (response.token.isNotBlank()) {
+                val r = authRepository.performLogin(state.login, state.password)
+                if (r.activation.token.isNotBlank()) {
                     dispatch(Message.Logined)
                 } else {
                     dispatch(Message.CustomError("Неправильный пароль или логин"))

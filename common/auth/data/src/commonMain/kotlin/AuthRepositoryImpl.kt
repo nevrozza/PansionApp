@@ -12,7 +12,7 @@ class AuthRepositoryImpl(
     private val cPlatformConfiguration: CommonPlatformConfiguration = Inject.instance()
 
     override suspend fun performLogin(login: String, password: String): LoginResponse {
-        val response =
+        val r =
             remoteDataSource.performLogin(
                 request = LoginReceive(
                     login = login,
@@ -23,12 +23,19 @@ class AuthRepositoryImpl(
                 )
             )
 //        cacheDataSource.saveToken(response.token)
-        cacheDataSource.saveUser(response.token, response.name, response.surname, response.praname, response.role, response.moderation)
-        return response
+        cacheDataSource.saveUser(
+            token = r.activation.token,
+            name = r.activation.user.fio.name,
+            surname = r.activation.user.fio.surname,
+            praname = r.activation.user.fio.praname,
+            role = r.activation.user.role,
+            moderation = r.activation.user.moderation
+        )
+        return r
     }
 
     override suspend fun activate(login: String, password: String): ActivationResponse {
-        val response =
+        val r =
             remoteDataSource.activate(
                 request = ActivationReceive(
                     login = login,
@@ -38,17 +45,25 @@ class AuthRepositoryImpl(
                     deviceType = cPlatformConfiguration.deviceType
                 )
             )
-        cacheDataSource.saveUser(response.token, response.name, response.surname, response.praname, response.role, response.moderation)
-        return response
+
+        cacheDataSource.saveUser(
+            token = r.token,
+            name = r.user.fio.name,
+            surname = r.user.fio.surname,
+            praname = r.user.fio.praname,
+            role = r.user.role,
+            moderation = r.user.moderation
+        )
+        return r
     }
 
     override suspend fun checkActivation(login: String): CheckActivationResponse {
-        val response = remoteDataSource.checkUserActivation(
+        val r = remoteDataSource.checkUserActivation(
             request = CheckActivationReceive(
                 login = login
             )
         )
-        return response
+        return r
     }
 
 //    override suspend fun register(login: String, password: String, name: String, surname: String, number: String): RegistrationResponse {

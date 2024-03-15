@@ -1,4 +1,3 @@
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -37,7 +36,6 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -108,7 +106,7 @@ fun JournalContent(
                     IconButton(
 
                         onClick = {
-                            component.groupListDialogComponent.onEvent(
+                            component.groupListComponent.onEvent(
                                 ListDialogStore.Intent.ShowDialog(
                                     x = if (viewManager.size!!.maxWidth - (viewManager.size!!.maxWidth / 4 + viewManager.size!!.maxWidth / 2) >= 250.dp) viewManager.size!!.maxWidth.value / 4 else viewManager.size!!.maxWidth.value / 5,
                                     y = 50.0f
@@ -165,7 +163,7 @@ fun JournalContent(
                 refreshing = refreshing,
                 state = refreshState,
             )
-            ListDialogContent(component.groupListDialogComponent)
+            ListDialogContent(component.groupListComponent)
             CAlertDialogContent(
                 component.studentsInGroupCAlertDialogComponent,
                 title = "Ученики"
@@ -182,7 +180,7 @@ fun JournalContent(
                                 ),
                                 shape = RoundedCornerShape(15.dp)
                             ) {
-                                Text("${it.surname} ${it.name} ${it.praname}")
+                                Text("${it.fio.surname} ${it.fio.name} ${it.fio.praname}")
                             }
                         }
 

@@ -37,10 +37,10 @@ class AdminComponent(
     }
 
     sealed class Output {
-        data object NavigateToMentors : Output()
+//        data object NavigateToMentors : Output()
         data object NavigateToUsers : Output()
         data object NavigateToGroups : Output()
-        data object NavigateToStudents : Output()
+//        data object NavigateToStudents : Output()
 
     }
 }

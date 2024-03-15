@@ -4,7 +4,7 @@ import MainRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cAlertDialog.CAlertDialogComponent
-import components.listDialog.ListDialogComponent
+import components.listDialog.ListComponent
 import journal.JournalStore.Intent
 import journal.JournalStore.Label
 import journal.JournalStore.State
@@ -12,7 +12,7 @@ import journal.JournalStore.State
 class JournalStoreFactory(
     private val storeFactory: StoreFactory,
     private val mainRepository: MainRepository,
-    private val groupListDialogComponent: ListDialogComponent,
+    private val groupListComponent: ListComponent,
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent,
 ) {
 
@@ -27,7 +27,7 @@ class JournalStoreFactory(
             initialState = JournalStore.State(),
             executorFactory = { JournalExecutor(
                 mainRepository = mainRepository,
-                groupListDialogComponent = groupListDialogComponent,
+                groupListComponent = groupListComponent,
                 studentsInGroupCAlertDialogComponent = studentsInGroupCAlertDialogComponent
             ) },
             reducer = JournalReducer

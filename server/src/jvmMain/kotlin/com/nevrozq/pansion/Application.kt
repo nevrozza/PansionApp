@@ -1,13 +1,12 @@
 package com.nevrozq.pansion
 
-import com.nevrozq.pansion.database.defaultGroupsForms.DefaultGroupsForms
+import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
-import com.nevrozq.pansion.database.studentLessons.StudentGroups
-import com.nevrozq.pansion.database.studentLessons.StudentLessonsDTO
-import com.nevrozq.pansion.database.subjects.GSubjects
+import com.nevrozq.pansion.database.studentGroups.StudentGroups
+import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.tokens.Tokens
-import com.nevrozq.pansion.database.userForms.UserForms
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
 import io.ktor.server.application.*
@@ -15,8 +14,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import org.jetbrains.exposed.sql.Database
 import com.nevrozq.pansion.plugins.configureSerialization
-import com.nevrozq.pansion.features.auth.activation.configureActivationRouting
-import com.nevrozq.pansion.features.auth.login.configureLoginRouting
+import com.nevrozq.pansion.features.auth.configureActivationRouting
 import com.nevrozq.pansion.features.lessons.configureLessonsRouting
 import com.nevrozq.pansion.features.user.manageOld.configureUserManageRouting
 import com.nevrozq.pansion.plugins.configureRouting
@@ -40,51 +38,47 @@ fun main() {
         SchemaUtils.create(
             Users,
             Tokens,
-            GSubjects,
+            Subjects,
             Groups,
             Forms,
-            DefaultGroupsForms,
+            FormGroups,
             StudentGroups,
-            UserForms
+            StudentsInForm
         )
-        StudentGroups.insert(
-            StudentLessonsDTO(
-                groupId = 123,
-                studentLogin = "sad"
-            )
-        )
+
 
 //        Users.deleteAll()
 //        Tokens.deleteAll()
-//        GSubjects.deleteAll()
+//        Subjects.deleteAll()
 //        Groups.deleteAll()
 //        Forms.deleteAll()
 //        DefaultGroupsForms.deleteAll()
 //        StudentGroups.deleteAll()
 //        UserForms.deleteAll()
 
-//        val login = createLogin("Артём", "Маташков")
-//        Users.insert(
-//            UserDTO(
-//                login = login,
-//                password = null,
-//                name = "Артём",
-//                surname = "Маташков",
-//                praname = "Игоревич",
-//                birthday = null,
-//                role = Roles.teacher,
-//                moderation = Moderation.moderator,
-//                isParent = false,
-//                avatarId = 0
-//            )
-//        )
+        val login = createLogin("Артём", "Маташков")
+        Users.insert(
+            UserDTO(
+                login = login,
+                password = null,
+                name = "Артём",
+                surname = "Маташков",
+                praname = "Игоревич",
+                birthday = "15111978",
+                role = Roles.teacher,
+                moderation = Moderation.moderator,
+                isParent = false,
+                avatarId = 0,
+                isActive = true
+            )
+        )
 
+        println(login)
     }
 //    transaction {
 //        Users.deleteAll()
 //        Tokens.deleteAll()
 //    }
-//    println(createLogin("Артём", "Маташков"))
 
     embeddedServer(Netty, port = 8081, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
@@ -96,7 +90,6 @@ fun Application.module() {
     configureRegisterRouting()
     configureActivationRouting()
     configureUserManageRouting()
-    configureLoginRouting()
     configureLessonsRouting()
 //    configureLessonRouting()
 //    configureScheduleRouting()

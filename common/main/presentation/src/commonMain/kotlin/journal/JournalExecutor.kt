@@ -4,7 +4,7 @@ import MainRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
-import components.listDialog.ListDialogComponent
+import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import journal.JournalStore.Intent
@@ -16,14 +16,14 @@ import kotlinx.coroutines.launch
 
 class JournalExecutor(
     private val mainRepository: MainRepository,
-    private val groupListDialogComponent: ListDialogComponent,
+    private val groupListComponent: ListComponent,
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent, getState: () -> State) {
         when (intent) {
             Intent.Init -> initComponent()
             is Intent.OnGroupClicked -> {
-                groupListDialogComponent.onEvent(ListDialogStore.Intent.HideDialog)
+                groupListComponent.onEvent(ListDialogStore.Intent.HideDialog)
                 studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
                 fetchStudentsInGroup(intent.groupId)
             }
@@ -39,40 +39,39 @@ class JournalExecutor(
     private fun fetchStudentsInGroup(groupId: Int) {
         scope.launch {
             try {
-                studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.StartProcess)
+                studentsInGroupCAlertDialogComponent.nInterface.nStartLoading()
                 val students = mainRepository.fetchStudentsInGroup(groupId).students
                 dispatch(Message.StudentsInGroupUpdated(students, groupId))
-                studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.StopProcess)
+                studentsInGroupCAlertDialogComponent.fullySuccess()
 
             } catch (e: Throwable) {
                 println(e)
-                studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.CallError("Не удалось загрузить список учеников =/") {
-                    fetchStudentsInGroup(
-                        groupId
-                    )
-                })
+//                studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.CallError("Не удалось загрузить список учеников =/") {
+//                    fetchStudentsInGroup(
+//                        groupId
+//                    )
+//                })
             }
         }
     }
 
     private fun fetchTeacherGroups() {
         scope.launch {
-            try {
-                groupListDialogComponent.onEvent(ListDialogStore.Intent.StartProcess)
-                val groups = mainRepository.fetchTeacherGroups().groups
-                groupListDialogComponent.onEvent(ListDialogStore.Intent.InitList(
-                    //IGNORE IT
-                    groups.filter { it.isActivated }.sortedBy { it.subjectNum }.map {
-                        ListItem(
-                            id = it.id,
-                            text = it.name
-                        )
-                    }
-                ))
-            } catch (e: Throwable) {
-                println(e)
-                groupListDialogComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
-            }
+//            try {
+//                groupListComponent.onEvent(ListDialogStore.Intent.StartProcess)
+//                val groups = mainRepository.fetchTeacherGroups().groups
+//                groupListComponent.onEvent(ListDialogStore.Intent.InitList(
+//                    groups.filter { it.cutedGroup.isActive }.sortedBy { it.subjectId }.map {
+//                        ListItem(
+//                            id = it.cutedGroup.groupId,
+//                            text = "${it.subjectName} ${it.cutedGroup.groupName}"
+//                        )
+//                    }
+//                ))
+//            } catch (e: Throwable) {
+//                println(e)
+//                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
+//            }
         }
     }
 }

@@ -28,11 +28,11 @@ import journal.JournalComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import login.LoginComponent
-import mentors.MentorsComponent
+//import mentors.MentorsComponent
 import root.RootComponent.Child
 import root.RootComponent.Companion.WEB_PATH_ADMIN_GROUPS
-import root.RootComponent.Companion.WEB_PATH_ADMIN_MENTORS
-import root.RootComponent.Companion.WEB_PATH_ADMIN_STUDENTS
+//import root.RootComponent.Companion.WEB_PATH_ADMIN_MENTORS
+//import root.RootComponent.Companion.WEB_PATH_ADMIN_STUDENTS
 import root.RootComponent.Companion.WEB_PATH_ADMIN_USERS
 import root.RootComponent.Companion.WEB_PATH_AUTH_ACTIVATION
 import root.RootComponent.Config
@@ -46,7 +46,7 @@ import root.RootComponent.RootCategories.Home
 import root.RootComponent.RootCategories.Journal
 import root.store.RootStore
 import root.store.RootStoreFactory
-import students.StudentsComponent
+//import students.StudentsComponent
 import users.UsersComponent
 
 @ExperimentalDecomposeApi
@@ -156,17 +156,17 @@ class RootComponentImpl(
                     mainAdminComponent
                 )
             }
-
-            is Config.AdminMentors -> {
-                Child.AdminMentors(
-                    adminComponent = mainAdminComponent,
-                    mentorsComponent = MentorsComponent(
-                        componentContext,
-                        storeFactory,
-                        output = ::onAdminMentorsOutput
-                    )
-                )
-            }
+//
+//            is Config.AdminMentors -> {
+//                Child.AdminMentors(
+//                    adminComponent = mainAdminComponent,
+//                    mentorsComponent = MentorsComponent(
+//                        componentContext,
+//                        storeFactory,
+//                        output = ::onAdminMentorsOutput
+//                    )
+//                )
+//            }
 
             is Config.AdminUsers -> {
                 Child.AdminUsers(
@@ -190,7 +190,7 @@ class RootComponentImpl(
                 )
             }
 
-            Config.AdminStudents -> TODO()
+//            Config.AdminStudents -> TODO()
             is Config.LessonReport -> {
                 Child.LessonReport(
                     lessonReport = LessonReportComponent(
@@ -217,12 +217,12 @@ class RootComponentImpl(
                 }
             }
         }
-    private fun onAdminStudentsOutput(output: StudentsComponent.Output): Unit =
-        when (output) {
-            StudentsComponent.Output.BackToAdmin -> navigateToAdmin {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin}
-            }
-        }
+//    private fun onAdminStudentsOutput(output: StudentsComponent.Output): Unit =
+//        when (output) {
+//            StudentsComponent.Output.BackToAdmin -> navigateToAdmin {
+//                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin}
+//            }
+//        }
 
     private fun onAdminGroupsOutput(output: GroupsComponent.Output): Unit =
         when (output) {
@@ -247,9 +247,9 @@ class RootComponentImpl(
 
     private fun onAdminOutput(output: AdminComponent.Output): Unit =
         when (output) {
-            AdminComponent.Output.NavigateToMentors -> navigateToAdminMentors {
-                navigation.bringToFront(it)
-            }
+//            AdminComponent.Output.NavigateToMentors -> navigateToAdminMentors {
+//                navigation.bringToFront(it)
+//            }
 
             AdminComponent.Output.NavigateToUsers -> navigateToAdminUsers {
                 navigation.bringToFront(it)
@@ -259,16 +259,16 @@ class RootComponentImpl(
                 navigation.bringToFront(it)
             }
 
-            AdminComponent.Output.NavigateToStudents -> navigateToAdminStudents {
-                navigation.bringToFront(it)
-            }
+//            AdminComponent.Output.NavigateToStudents -> navigateToAdminStudents {
+//                navigation.bringToFront(it)
+//            }
             else -> {}
         }
 
-    private fun onAdminMentorsOutput(output: MentorsComponent.Output): Unit =
-        when (output) {
-            else -> {}
-        }
+//    private fun onAdminMentorsOutput(output: MentorsComponent.Output): Unit =
+//        when (output) {
+//            else -> {}
+//        }
 
     private fun onLoginOutput(output: LoginComponent.Output): Unit =
         when (output) {
@@ -332,12 +332,12 @@ class RootComponentImpl(
         post(d)
     }
 
-    private fun navigateToAdminStudents(post: (Config) -> Unit) {
-        val d = Config.AdminStudents
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-        post(d)
-    }
+//    private fun navigateToAdminStudents(post: (Config) -> Unit) {
+//        val d = Config.AdminStudents
+//        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
+//        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
+//        post(d)
+//    }
 
     private fun navigateToLessonReport(lessonReportId: Int, post: (Config) -> Unit) {
         val d = Config.LessonReport(lessonReportId)
@@ -347,12 +347,12 @@ class RootComponentImpl(
         post(d)
     }
 
-    private fun navigateToAdminMentors(post: (Config) -> Unit) {
-        val d = Config.AdminMentors
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-        post(d)
-    }
+//    private fun navigateToAdminMentors(post: (Config) -> Unit) {
+//        val d = Config.AdminMentors
+//        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
+//        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
+//        post(d)
+//    }
 
     private fun navigateToAdminUsers(post: (Config) -> Unit) {
         val d = Config.AdminUsers
@@ -426,10 +426,10 @@ class RootComponentImpl(
             Config.MainJournal -> "/$WEB_PATH_MAIN_JOURNAL"
             Config.MainAdmin -> "/$WEB_PATH_MAIN_ADMIN"
 
-            Config.AdminMentors -> "/$WEB_PATH_ADMIN_MENTORS"
+//            Config.AdminMentors -> "/$WEB_PATH_ADMIN_MENTORS"
             Config.AdminUsers -> "/$WEB_PATH_ADMIN_USERS"
             Config.AdminGroups -> "/$WEB_PATH_ADMIN_GROUPS"
-            Config.AdminStudents -> "/$WEB_PATH_ADMIN_STUDENTS"
+//            Config.AdminStudents -> "/$WEB_PATH_ADMIN_STUDENTS"
             is Config.LessonReport -> "/$WEB_PATH_JOURNAL_LESSON_REPORT/${config.lessonReportId}"
         }
 
@@ -442,10 +442,10 @@ class RootComponentImpl(
             WEB_PATH_MAIN_JOURNAL -> Config.MainJournal
             WEB_PATH_MAIN_ADMIN -> Config.MainAdmin
 
-            WEB_PATH_ADMIN_MENTORS -> Config.AdminMentors
+//            WEB_PATH_ADMIN_MENTORS -> Config.AdminMentors
             WEB_PATH_ADMIN_USERS -> Config.AdminUsers
             WEB_PATH_ADMIN_GROUPS -> Config.AdminGroups
-            WEB_PATH_ADMIN_STUDENTS -> Config.AdminStudents
+//            WEB_PATH_ADMIN_STUDENTS -> Config.AdminStudents
             WEB_PATH_JOURNAL_LESSON_REPORT.split("/")[0] -> Config.LessonReport(
                 path.removePrefix("/").split("/")[1].toInt()
             )

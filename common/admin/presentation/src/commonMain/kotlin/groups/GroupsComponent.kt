@@ -6,13 +6,12 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
-import components.listDialog.ListDialogComponent
-import components.listDialog.ListDialogStore
-import components.listDialog.ListItem
+import components.networkInterface.NetworkInterface
+import components.listDialog.ListComponent
 import di.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
+import groups.forms.FormsComponent
+import groups.students.StudentsComponent
+import groups.subjects.SubjectsComponent
 
 class GroupsComponent(
     componentContext: ComponentContext,
@@ -21,25 +20,76 @@ class GroupsComponent(
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
     private val adminRepository: AdminRepository = Inject.instance()
-    val formListDialogComponent = ListDialogComponent(
+    val nGroupsInterface = NetworkInterface(
+
+        componentContext,
+        storeFactory
+    )
+
+    // HARD
+    val formsListComponent = ListComponent(
         componentContext,
         storeFactory,
         name = "formListInGroups",
         onItemClick = {
-            onEvent(GroupsStore.Intent.CreateUserForm(it.id))
+            //onEvent(StudentsStore.Intent.BindStudentToForm(it.id))
         })
+    val nSubjectsInterface = NetworkInterface(
 
+        componentContext,
+        storeFactory
+    )
+    val nFormsInterface = NetworkInterface(
+
+        componentContext,
+        storeFactory
+    )
     private val groupsStore =
         instanceKeeper.getStore {
             GroupsStoreFactory(
                 storeFactory = storeFactory,
                 adminRepository = adminRepository,
-                formListDialogComponent
-//                authRepository = authRepository
-            ).create()
+                formListComponent = formsListComponent,
+                nGroupsInterface = nGroupsInterface,
+                nSubjectsInterface = nSubjectsInterface,
+                nFormsInterface = nFormsInterface
+                ).create()
         }
 
     val model = groupsStore.asValue()
+
+    val subjectsComponent = SubjectsComponent(
+        componentContext,
+        storeFactory,
+        groupModel = model,
+        updateSubjects = {
+            onEvent(GroupsStore.Intent.ChangeSubjectList)
+        },
+        adminRepository = adminRepository,
+        nSubjectsInterface = nSubjectsInterface
+    )
+
+    val formsComponent = FormsComponent(
+        componentContext,
+        storeFactory,
+        groupModel = model,
+        adminRepository = adminRepository,
+        updateForms = {
+            onEvent(GroupsStore.Intent.ChangeFormsList)
+        },
+        nFormsInterface = nFormsInterface
+    )
+
+    val studentsComponent = StudentsComponent(
+        componentContext,
+        storeFactory,
+        groupModel = model,
+        adminRepository = adminRepository
+    )
+
+
+
+
 
     private val backCallback = BackCallback {
         onOutput(Output.BackToAdmin)
@@ -51,8 +101,8 @@ class GroupsComponent(
         onEvent(GroupsStore.Intent.InitList)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<GroupsStore.State> = groupsStore.stateFlow
+//    @OptIn(ExperimentalCoroutinesApi::class)
+//    val state: StateFlow<GroupsStore.State> = groupsStore.stateFlow
 
     fun onEvent(event: GroupsStore.Intent) {
         groupsStore.accept(event)

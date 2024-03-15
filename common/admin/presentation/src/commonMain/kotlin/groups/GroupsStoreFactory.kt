@@ -3,7 +3,8 @@ package groups
 import AdminRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.listDialog.ListDialogComponent
+import components.networkInterface.NetworkInterface
+import components.listDialog.ListComponent
 import groups.GroupsStore.Intent
 import groups.GroupsStore.Label
 import groups.GroupsStore.State
@@ -11,7 +12,10 @@ import groups.GroupsStore.State
 class GroupsStoreFactory(
     private val storeFactory: StoreFactory,
     private val adminRepository: AdminRepository,
-    private val formListDialogComponent: ListDialogComponent
+    private val formListComponent: ListComponent,
+    private val nGroupsInterface: NetworkInterface,
+    private val nSubjectsInterface: NetworkInterface,
+    private val nFormsInterface: NetworkInterface
 ) {
 
     fun create(): GroupsStore {
@@ -23,7 +27,15 @@ class GroupsStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "GroupsStore",
             initialState = GroupsStore.State(),
-            executorFactory = { GroupsExecutor(adminRepository = adminRepository, formListDialogComponent) },
+            executorFactory = {
+                GroupsExecutor(
+                    adminRepository = adminRepository,
+                    formListComponent = formListComponent,
+                    nGroupsInterface = nGroupsInterface,
+                    nSubjectsInterface = nSubjectsInterface,
+                    nFormsInterface = nFormsInterface
+                )
+            },
             reducer = GroupsReducer
         )
 }

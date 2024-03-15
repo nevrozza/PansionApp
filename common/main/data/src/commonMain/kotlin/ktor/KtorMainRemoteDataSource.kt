@@ -1,36 +1,5 @@
 package ktor
 
-import admin.ClearUserPasswordReceive
-import admin.ClearUserPasswordResponse
-import admin.CreateFormGroupsReceive
-import admin.CreateFormGroupsResponse
-import admin.CreateNewFormReceive
-import admin.CreateNewFormResponse
-import admin.CreateNewGSubjectReceive
-import admin.CreateNewGSubjectResponse
-import admin.CreateNewGroupReceive
-import admin.CreateNewGroupResponse
-import admin.CreateUserFormReceive
-import admin.CreateUserFormResponse
-import admin.EditUserReceive
-import admin.EditUserResponse
-import admin.FetchAllFormsResponse
-import admin.FetchAllGSubjectsResponse
-import admin.FetchAllMentorsForGroupsResponse
-import admin.FetchAllTeachersForGroupsResponse
-import admin.FetchAllUsersResponse
-import admin.FetchFormGroupsOfSubjectReceive
-import admin.FetchFormGroupsOfSubjectResponse
-import admin.FetchFormGroupsReceive
-import admin.FetchFormGroupsResponse
-import admin.FetchStudentGroupsOfStudentReceive
-import admin.FetchStudentGroupsOfStudentResponse
-import admin.FetchStudentsInFormReceive
-import admin.FetchStudentsInFormResponse
-import admin.FetchSubjectGroupsReceive
-import admin.FetchSubjectGroupsResponse
-import admin.RegisterReceive
-import admin.RegisterResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post
@@ -38,14 +7,14 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.path
-import journal.init.FetchStudentsInGroupReceive
-import journal.init.FetchStudentsInGroupResponse
-import journal.init.FetchTeacherGroupsResponse
+import journal.init.RFetchStudentsInGroupReceive
+import journal.init.RFetchStudentsInGroupResponse
+import journal.init.RFetchTeacherGroupsResponse
 
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
-    suspend fun fetchTeacherGroups(): FetchTeacherGroupsResponse {
+    suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse {
         val response = httpClient.post {
             bearer()
             url {
@@ -55,7 +24,7 @@ class KtorMainRemoteDataSource(
 
         return response.body()
     }
-    suspend fun fetchStudentInGroup(request: FetchStudentsInGroupReceive): FetchStudentsInGroupResponse {
+    suspend fun fetchStudentInGroup(request: RFetchStudentsInGroupReceive): RFetchStudentsInGroupResponse {
         val response = httpClient.post {
             bearer()
             url {

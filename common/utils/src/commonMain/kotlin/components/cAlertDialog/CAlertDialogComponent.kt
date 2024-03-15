@@ -7,11 +7,12 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import components.networkInterface.NetworkInterface
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
 
-//return@ListDialogComponent model.value.forms.map {
+//return@ListComponent model.value.forms.map {
 //    ListItem(
 //        id = it.id,
 //        text = "${it.classNum}${if (it.name.length < 2) "-" else " "}${it.name} класс"
@@ -25,8 +26,12 @@ class CAlertDialogComponent(
     private val onDeclineClick: () -> Unit,
 //    private val isDeclineShowing
 ) : ComponentContext by componentContext {
-    //    private val settingsRepository: SettingsRepository = Inject.instance()
-//    private val adminRepository: AdminRepository = Inject.instance()
+    val nInterface = NetworkInterface(
+        componentContext,
+        storeFactory
+    )
+    val nModel = nInterface.networkModel
+
     private val cAlertDialogStore =
         instanceKeeper.getStore(key = name) {
             CAlertDialogStoreFactory(
@@ -46,6 +51,11 @@ class CAlertDialogComponent(
 
     init {
         backHandler.register(backCallback)
+    }
+
+    fun fullySuccess() {
+        nInterface.nSuccess()
+        onEvent(CAlertDialogStore.Intent.HideDialog)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
