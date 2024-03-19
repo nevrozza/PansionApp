@@ -29,9 +29,14 @@ kotlin {
         browser()
         binaries.executable()
     }
+    wasmJs {
+        browser()
+//        useCommonJs()
+        binaries.executable()
+    }
 
     sourceSets {
-        val commonMain by getting
+//        val commonMain by getting
 //        val iosX64Main by getting
 //        val iosArm64Main by getting
 //        val iosSimulatorArm64Main by getting

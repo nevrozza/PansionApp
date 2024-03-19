@@ -44,6 +44,7 @@ import components.AppBar
 import components.listDialog.ListDialogStore
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.ListDialogContent
+import home.HomeComponent
 import journal.JournalComponent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -131,7 +132,9 @@ fun JournalContent(
                     }
                     if (viewManager.orientation.value == WindowScreen.Expanded && isNotMinimized) {
                         IconButton(
-                            onClick = { }
+                            onClick = {
+                                component.onOutput(JournalComponent.Output.NavigateToSettings)
+                            }
                         ) {
                             Icon(
                                 Icons.Rounded.Settings, null

@@ -7,4 +7,10 @@ interface SettingsRepository {
 
     fun saveColor(color: String)
     fun fetchColor(): String
+
+//    fun fetchSettingsScreenData(): SettingsScreenData
 }
+
+//data class SettingsScreenData(
+//    val
+//)

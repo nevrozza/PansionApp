@@ -26,6 +26,13 @@ object FormsReducer : Reducer<State, Message> {
             Message.FormGroupCreatingMenuOpened -> copy(isFormGroupCreatingMenu = true)
             Message.FormGroupCreationMenuClosed -> copy(isFormGroupCreatingMenu = false)
             is Message.FormGroupsUpdated -> copy(formGroups = msg.groups)
+            is Message.MentorsUpdated -> copy(mentors = msg.mentors)
+            Message.FormGroupCreated -> copy(
+                isFormGroupCreatingMenu = false,
+                cFormGroupSubjectId = 0,
+                cFormGroupGroupId = 0,
+                cutedGroups = listOf()
+            )
         }
     }
 }

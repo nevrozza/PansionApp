@@ -10,6 +10,7 @@ import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.service.controls.DeviceTypes
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -23,6 +24,7 @@ import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import io.ktor.util.decodeBase64Bytes
 import root.RootComponentImpl
 import java.util.UUID
+import server.DeviceTypex
 
 //@ExperimentalFoundationApi
 class MainActivity : AppCompatActivity() {
@@ -39,7 +41,7 @@ class MainActivity : AppCompatActivity() {
             configuration = PlatformConfiguration(applicationContext),
             cConfiguration = CommonPlatformConfiguration(
                 deviceName = Build.MODEL ?: "unknown",
-                deviceType = "Android",
+                deviceType = DeviceTypex.android,
                 deviceId = uuid.toString()
             )
         )

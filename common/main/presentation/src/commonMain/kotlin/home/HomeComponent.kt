@@ -39,6 +39,6 @@ class HomeComponent(
     }
 
     sealed class Output {
-
+        data object NavigateToSettings : Output()
     }
 }

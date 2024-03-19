@@ -7,7 +7,7 @@ import admin.AdminStore.State
 import admin.AdminStore.Message
 
 class AdminExecutor : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             else -> {}
         }

@@ -59,7 +59,7 @@ class AuthController {
                             token = token,
                             deviceName = authReceive.deviceName,
                             deviceType = authReceive.deviceType,
-                            time = Clock.System.now().toLocalDateTime(TimeZone.of("Europe/Moscow"))
+                            time = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
                                 .toString()
                                 .cut(16)
                         )
@@ -78,7 +78,8 @@ class AuthController {
                                 moderation = loginUser.moderation,
                                 birthday = loginUser.birthday,
                                 isParent = loginUser.isParent
-                            )
+                            ),
+                            login = loginUser.login
                         )
                     )
 
@@ -130,7 +131,7 @@ class AuthController {
                                 deviceName = receive.deviceName,
                                 deviceType = receive.deviceType,
                                 time = Clock.System.now()
-                                    .toLocalDateTime(TimeZone.of("Europe/Moscow")).toString()
+                                    .toLocalDateTime(TimeZone.of("UTC+3")).toString()
                                     .cut(16)
                             )
                         )
@@ -149,7 +150,8 @@ class AuthController {
                                             role = userDTO.role,
                                             moderation = userDTO.moderation,
                                             isParent = userDTO.isParent
-                                        )
+                                        ),
+                                        login = userDTO.login
                                     ),
                                     avatarId = userDTO.avatarId
                                 )

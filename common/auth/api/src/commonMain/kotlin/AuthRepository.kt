@@ -18,4 +18,7 @@ interface AuthRepository {
     fun fetchPraname(): String
     fun fetchRole(): String
     fun fetchModeration(): String
+    fun fetchLogin(): String
+
+    suspend fun logout()
 }

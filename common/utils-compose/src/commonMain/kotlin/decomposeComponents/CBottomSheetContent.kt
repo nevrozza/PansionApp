@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
@@ -35,6 +36,7 @@ import kotlinx.coroutines.launch
 fun CBottomSheetContent(
     component: CBottomSheetComponent,
     customLoadingScreen: Boolean = false,
+    customMaxHeight: Dp = 500.dp,
     content: @Composable () -> Unit
 ) {
     val model by component.model.subscribeAsState()
@@ -65,7 +67,7 @@ fun CBottomSheetContent(
     if (isShowingCostil.value) {
 
         DefaultModalBottomSheet(
-            additionalModifier = Modifier.sizeIn(maxHeight = 500.dp),
+            additionalModifier = if(customMaxHeight != 0.dp) Modifier.sizeIn(maxHeight = customMaxHeight) else Modifier,
             modalBottomSheetState = modalBottomSheetState,
             onDismissRequest = {
                 component.onEvent(CBottomSheetStore.Intent.HideSheet)

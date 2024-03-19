@@ -8,7 +8,7 @@ import components.networkInterface.NetworkInterfaceStore.Message
 import kotlinx.coroutines.launch
 
 class NetworkInterfaceExecutor : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.OnRetryClick -> {
                 scope.launch {

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    #loading {
+            position: fixed;
+            bottom: 0;
+            z-index: 2;
+            font-size: initial;
+        }
+    #clip {
+        z-index: 1;
+    }
+    html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            overflow: hidden;
+        }
+
+        #warning {
+            position: absolute;
+            top: 100px;
+            left: 100px;
+            max-width: 830px;
+            z-index: 100;
+            background-color: white;
+            font-size: initial;
+            display: none;
+        }
+        #warning li {
+            padding-bottom: 15px;
+        }
+
+        #warning span.code {
+            font-family: monospace;
+        }
+
+        ul {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        #footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: white;
+            font-size: initial;
+        }
+
+        #close {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            cursor: pointer;
+        }
+</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="user-scalable=no, maximum-scale=1.0, width=device-width, interactive-widget=resizes-content, target-densityDpi=device-dpi">
+    <title>Классический пансион МГУ</title>
+    <link rel="icon" href="/favicon.ico">
+<!--    <link type="text/css" rel="stylesheet" href="styles.css"/>-->
+</head>
+<body>
+<div id="clip">
+    <canvas id="ComposeTarget" onfocus="document.getElementById('loading').style.display='none'"></canvas>
+</div>
+<div id="warning">
+<!--    ⚠️ Please make sure that your runtime environment supports the latest version of Wasm GC and Exception-Handling proposals.-->
+<!--    For more information, see <a href="https://kotl.in/wasm-help">https://kotl.in/wasm-help</a>.-->
+<!--    <br/>-->
+<!--    <br/>-->
+    <ul>
+        ⚠️ Версия этого браузера не поддерживается
+<!--        <li>For <b>Chrome</b> and <b>Chromium-based</b> browsers (Edge, Brave etc.), it <b>should just work</b> since version 119.</li>-->
+<!--        <li>For <b>Firefox</b> 120 it <b>should just work</b>.</li>-->
+<!--        <li>For <b>Firefox</b> 119:-->
+<!--            <ol>-->
+<!--                <li>Open <span class="code">about:config</span> in the browser.</li>-->
+<!--                <li>Enable <strong>javascript.options.wasm_gc</strong>.</li>-->
+<!--                <li>Refresh this page.</li>-->
+<!--            </ol>-->
+<!--        </li>-->
+    </ul>
+</div>
+<div id="loading">
+    Loading
+</div>
+<!--<script>-->
+<!--&lt;!&ndash;    const canvas = document.getElementById("ComposeTarget");&ndash;&gt;-->
+<!--&lt;!&ndash;    canvas.width = window.innerWidth&ndash;&gt;-->
+<!--&lt;!&ndash;    canvas.height = window.innerHeight&ndash;&gt;-->
+
+<!--&lt;!&ndash;    window.addEventListener('resize', () => {&ndash;&gt;-->
+<!--&lt;!&ndash;      canvas.width = window.innerWidth&ndash;&gt;-->
+<!--&lt;!&ndash;      canvas.height = window.innerHeight&ndash;&gt;-->
+<!--&lt;!&ndash;    })&ndash;&gt;-->
+<!--</script>-->
+<!--<script src="skiko.js"></script>-->
+<script src="composeApp.js"></script>
+<script type="application/javascript" >
+    const unhandledError = (event, error) => {
+        if (error instanceof WebAssembly.CompileError) {
+            document.getElementById("warning").style.display="initial";
+
+            // Hide a Scary Webpack Overlay which is less informative in this case.
+            const webpackOverlay = document.getElementById("webpack-dev-server-client-overlay");
+            if (webpackOverlay != null) webpackOverlay.style.display="none";
+        }
+    }
+    addEventListener("error", (event) => unhandledError(event, event.error));
+    addEventListener("unhandledrejection", (event) => unhandledError(event, event.reason));
+</script>
+</body>
+</html>

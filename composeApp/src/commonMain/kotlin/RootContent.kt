@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSplitPaneApi::class)
+
 import admin.AdminComponent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -64,8 +66,11 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.ThemePreview
+import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.SplitPaneScope
+import forks.splitPane.dSplitter
 import forks.splitPane.rememberSplitPaneState
 import journal.JournalComponent
 import kotlinx.datetime.Clock
@@ -87,6 +92,7 @@ import view.LocalViewManager
 import view.ViewManager
 import view.WindowScreen
 import groups.GroupsContent
+import root.RootComponent.Child.HomeSettings
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -95,7 +101,7 @@ import groups.GroupsContent
 )
 @ExperimentalFoundationApi
 @Composable
-fun RootContent(component: RootComponent) {
+fun RootContent(component: RootComponent, isJs: Boolean = false) {
     val viewManager = LocalViewManager.current
     val childStack by component.childStack.subscribeAsState()
     val model by component.model.subscribeAsState()
@@ -126,7 +132,7 @@ fun RootContent(component: RootComponent) {
             onClickOutput = RootComponent.Output.NavigateToAdmin
         ) else null
     )
-    var bottomBarAnimationScope: AnimatedVisibilityScope? = null
+//    var bottomBarAnimationScope: AnimatedVisibilityScope? = null
     Scaffold(
         Modifier.fillMaxSize(),
         bottomBar = {
@@ -141,7 +147,7 @@ fun RootContent(component: RootComponent) {
                     CustomNavigationBar(
                         viewManager, component, model, items
                     )
-                    bottomBarAnimationScope = this
+//                    bottomBarAnimationScope = this
                 }
             }
         }
@@ -174,7 +180,10 @@ fun RootContent(component: RootComponent) {
                             is AdminUsers -> if (isExpanded) fade() else slide()
                             is AdminGroups -> if (isExpanded) fade() else slide()
                             is LessonReport -> if (isExpanded) fade() else slide()
-                            else -> slide()
+                            is HomeSettings -> if (isExpanded) fade() else slide()
+//                            else -> slide()
+                            is Child.AuthActivation -> if (isExpanded) fade() else slide()
+                            is Child.AuthLogin -> if (isExpanded) fade() else slide()
                         }
                     }
                 )
@@ -258,6 +267,14 @@ fun RootContent(component: RootComponent) {
                             currentReportId = 0,
                             secondScreen = { LessonReportContent(child.lessonReport) }
                         )
+
+                    is HomeSettings ->
+                        SettingsContent(
+                            isExpanded,
+                            child.settingsComponent
+                        )
+
+
                 }
 
 
@@ -266,36 +283,39 @@ fun RootContent(component: RootComponent) {
         }
 
     }
-    val time = 600
-//    AnimatedVisibility(
-//        model.isGreetingsShowing,
-//        enter = fadeIn(animationSpec = tween(time)) + slideInVertically(
-//            animationSpec = tween(
-//                time
-//            )
-//        ) { -it / 2 },
-//        exit = fadeOut(animationSpec = tween(time)) + slideOutVertically(
-//            animationSpec = tween(
-//                time
-//            )
-//        ) { -it / 2 }
-//    ) {
-//        Box(
-//            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text(
-//                when (Clock.System.now().toLocalDateTime(TimeZone.of("Europe/Moscow")).hour) {
-//                    in 5..10 -> "Доброе утро!"
-//                    in 11..18 -> "Добрый день!"
-//                    in 19..21 -> "Добрый вечер!"
-//                    else -> "Доброй ночи!"
-//                },
-//                fontSize = 25.sp,
-//                fontWeight = FontWeight.Black
-//            )
-//        }
-//    }
+
+    if(!isJs) {
+        val time = 600
+        AnimatedVisibility(
+            model.isGreetingsShowing,
+            enter = fadeIn(animationSpec = tween(time)) + slideInVertically(
+                animationSpec = tween(
+                    time
+                )
+            ) { -it / 2 },
+            exit = fadeOut(animationSpec = tween(time)) + slideOutVertically(
+                animationSpec = tween(
+                    time
+                )
+            ) { -it / 2 }
+        ) {
+            Box(
+                Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    when (Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).hour) {
+                        in 5..10 -> "Доброе утро!"
+                        in 11..18 -> "Добрый день!"
+                        in 19..21 -> "Добрый вечер!"
+                        else -> "Доброй ночи!"
+                    },
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+        }
+    }
 }
 
 
@@ -351,35 +371,6 @@ fun MultiPaneAdmin(
     } else {
         secondScreen()
     }
-}
-
-
-private fun SplitPaneScope.dSplitter() = splitter {
-    visiblePart {
-        Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-            Box(
-                Modifier
-                    .width(4.5.dp)
-                    .height(25.dp)
-                    .clip(RoundedCornerShape(50.dp))
-                    .background(
-                        color = MaterialTheme.colorScheme.secondaryContainer.copy(
-                            alpha = .5f
-                        )
-                    )
-            )
-        }
-    }
-    handle {
-        Box(
-            Modifier
-                .markAsHandle()
-                .cursorForHorizontalResize()
-                .width(9.dp)
-                .fillMaxHeight()
-        )
-    }
-
 }
 
 @Composable

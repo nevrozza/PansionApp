@@ -1,3 +1,4 @@
+import android.service.controls.DeviceTypes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.ui.window.ComposeUIViewController
@@ -17,7 +18,7 @@ fun MainViewController(): UIViewController =
             configuration = PlatformConfiguration(),
             cConfiguration = CommonPlatformConfiguration(
                 deviceName = "unknown",
-                deviceType = "iOS",
+                deviceType = DeviceTypex.ios,
                 deviceId = "c53379fe-19a7-3f07-911c-0c9d195b1925"//getDeviceId()
             )
         )

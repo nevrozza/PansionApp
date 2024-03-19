@@ -1,6 +1,8 @@
 package groups.forms
 
 import AdminRepository
+import FIO
+import Person
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
@@ -25,7 +27,19 @@ class FormsStoreFactory(
         FormsStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "FormsStore",
-            initialState = FormsStore.State(),
+            initialState = FormsStore.State(
+                mentors = listOf(
+                    Person(
+                        login = "sad",
+                        fio = FIO(
+                            name = "anime",
+                            surname = "girl",
+                            praname = "hentai"
+                        ),
+                        true
+                    )
+                )
+            ),
             executorFactory = {
                 FormsExecutor(
                     adminRepository = adminRepository,

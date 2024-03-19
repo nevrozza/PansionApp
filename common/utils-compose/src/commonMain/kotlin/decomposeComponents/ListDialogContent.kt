@@ -26,12 +26,14 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -85,23 +87,51 @@ fun ListDialogContent(
     val viewManager = LocalViewManager.current
     val isShowingCostil = remember { mutableStateOf(false) }
     val isTooltip = viewManager.orientation.value != WindowScreen.Vertical
+//    if(model.isDialogShowing) {
+//        AlertDialog({}){}
+//    }
+    if(isTooltip) {
+        DropdownVariant(
+            component = component,
+            viewManager = viewManager,
+            model = model,
+            nModel = nModel,
+            isTooltip = isTooltip
+        )
+    }
 
-    DropdownVariant(
-        component = component,
-        viewManager = viewManager,
-        model = model,
-        nModel = nModel,
-        isTooltip = isTooltip
-    )
 
-    BottomSheetVariant(
-        component = component,
-        model = model,
-        nModel = nModel,
-        isShowingCostil = isShowingCostil,
-        isTooltip = isTooltip,
-        coroutineScope = coroutineScope
-    )
+
+
+    else {
+        val modalBottomSheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        )
+
+        DisposableEffect(model.isDialogShowing) {
+            onDispose {
+                if (!model.isDialogShowing) {
+                    coroutineScope.launch {
+                        modalBottomSheetState.hide()
+                    }.invokeOnCompletion {
+                        isShowingCostil.value = false
+                    }
+                } else {
+                    isShowingCostil.value = true
+                }
+            }
+
+        }
+
+        BottomSheetVariant(
+            component = component,
+            model = model,
+            nModel = nModel,
+            isShowingCostil = isShowingCostil,
+            coroutineScope = coroutineScope,
+            modalBottomSheetState = modalBottomSheetState
+        )
+    }
 
 }
 
@@ -112,31 +142,14 @@ private fun BottomSheetVariant(
     model: ListDialogStore.State,
     nModel: NetworkInterface.NetworkModel,
     isShowingCostil: MutableState<Boolean>,
-    isTooltip: Boolean,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    modalBottomSheetState: SheetState
 ) {
-    val modalBottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
 
-    DisposableEffect(model.isDialogShowing) {
-        onDispose {
-            if (!model.isDialogShowing) {
-                coroutineScope.launch {
-                    modalBottomSheetState.hide()
-                }.invokeOnCompletion {
-                    isShowingCostil.value = false
-                }
-            } else {
-                isShowingCostil.value = true
-            }
-        }
-
-    }
 
     val lazyListState = rememberLazyListState()
 
-    if (isShowingCostil.value && !isTooltip) {
+    if (isShowingCostil.value) {
         DefaultModalBottomSheet(
             additionalModifier = Modifier.sizeIn(maxHeight = 500.dp),
             modalBottomSheetState = modalBottomSheetState,
@@ -321,32 +334,33 @@ private fun DropdownVariant(
 }
 
 
-val LazyListState.customConnection: NestedScrollConnection @Composable get() {
-    return remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                return if (source in listOf(
-                        NestedScrollSource.Drag,
-                        NestedScrollSource.Fling
-                    ) && (!this@customConnection.canScrollBackward && available.y > 0 || !this@customConnection.canScrollForward && available.y < 0)
-                ) {
-                    available
-                } else {
-                    Offset.Zero
+val LazyListState.customConnection: NestedScrollConnection
+    @Composable get() {
+        return remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                    return if (source in listOf(
+                            NestedScrollSource.Drag,
+                            NestedScrollSource.Fling
+                        ) && (!this@customConnection.canScrollBackward && available.y > 0 || !this@customConnection.canScrollForward && available.y < 0)
+                    ) {
+                        available
+                    } else {
+                        Offset.Zero
+                    }
                 }
-            }
 
-            override suspend fun onPostFling(
-                consumed: Velocity,
-                available: Velocity
-            ): Velocity {
-                return available
-            }
+                override suspend fun onPostFling(
+                    consumed: Velocity,
+                    available: Velocity
+                ): Velocity {
+                    return available
+                }
 
-            private fun Float.toOffset() = Offset(0f, this)
+                private fun Float.toOffset() = Offset(0f, this)
+            }
         }
     }
-}
 
 //@Composable
 //fun () : NestedScrollConnection {

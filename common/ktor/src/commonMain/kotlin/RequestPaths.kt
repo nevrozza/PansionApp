@@ -1,4 +1,8 @@
 object RequestPaths {
+    object Tokens {
+        const val logout = "server/profile/logout"
+    }
+
     object UserManage {
         const val CreateUser = "server/user/create"
         const val FetchAllUsers = "server/user/fetchAll"

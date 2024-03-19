@@ -17,7 +17,7 @@ object StudentsInForm : Table() {
     private fun deleteStudentInFormByLogin(login: String) {
         try {
             transaction {
-                Tokens.deleteWhere {
+                StudentsInForm.deleteWhere {
                     (StudentsInForm.login eq login)
                 }
             }

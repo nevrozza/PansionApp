@@ -1,11 +1,9 @@
 package groups.forms
 
 import Person
-import admin.groups.Group
 import admin.groups.forms.CutedGroup
 import admin.groups.forms.FormGroup
 import com.arkivanov.mvikotlin.core.store.Store
-import groups.GroupsStore
 import groups.forms.FormsStore.Intent
 import groups.forms.FormsStore.Label
 import groups.forms.FormsStore.State
@@ -37,6 +35,7 @@ interface FormsStore : Store<Intent, State, Label> {
         data class ChangeCFormMentorLogin(val mentorLogin: String) : Intent
         data class ChangeCFormClassNum(val classNum: String) : Intent
         data object CreateForm : Intent
+
 //        data class ChangeCreatingFormSheetShowing(val isShowing: Boolean) : GroupsStore.Intent
 //        data object TryCreateFormAgain : GroupsStore.Intent
 
@@ -47,6 +46,8 @@ interface FormsStore : Store<Intent, State, Label> {
         data class ChangeCFormGroupSubjectId(val subjectId: Int) : Intent
         data class ChangeCFormGroupGroupId(val groupId: Int) : Intent
         data object CreateFormGroup : Intent
+
+        data object UpdateMentors : Intent
     }
 
     sealed interface Message {
@@ -73,6 +74,10 @@ interface FormsStore : Store<Intent, State, Label> {
             val subjectId: Int,
             val cutedGroups: List<CutedGroup>
         ) : Message
+
+
+        data object FormGroupCreated : Message
+        data class MentorsUpdated(val mentors: List<Person>) : Message
 //        data object FormGroupCreated : Message
     }
 

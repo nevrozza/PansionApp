@@ -7,8 +7,7 @@ import kotlinx.coroutines.launch
 class CAlertDialogExecutor() :
     CoroutineExecutor<CAlertDialogStore.Intent, Unit, CAlertDialogStore.State, CAlertDialogStore.Message, CAlertDialogStore.Label>() {
     override fun executeIntent(
-        intent: CAlertDialogStore.Intent,
-        getState: () -> CAlertDialogStore.State
+        intent: CAlertDialogStore.Intent
     ) {
         when (intent) {
 //            is CAlertDialogStore.Intent.CallError -> dispatch(
@@ -25,7 +24,9 @@ class CAlertDialogExecutor() :
 
             CAlertDialogStore.Intent.HideDialog -> scope.launch {
                 // fix mercanie background
-                delay(50)
+                if(state().needDelayWhenHide) {
+                    delay(50)
+                }
                 dispatch(CAlertDialogStore.Message.HideDialog)
             }
 

@@ -44,8 +44,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.pointer.PointerIcon.Companion.Text
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.useResource
 import androidx.compose.ui.semantics.SemanticsProperties.Text
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
@@ -99,6 +102,7 @@ import java.util.UUID
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 import javax.swing.WindowConstants
+import server.DeviceTypex
 
 
 
@@ -113,7 +117,7 @@ fun main() {
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
             deviceName = getDeviceName() ?: "unknown",
-            deviceType = "PC",
+            deviceType = DeviceTypex.desktop,
             deviceId = getDeviceId()
         )
     )
@@ -145,8 +149,9 @@ fun main() {
             DecoratedWindow(
                 onCloseRequest = { exitApplication() },
                 state = windowState,
-                title = "PansionApp",
+                title = "Классический пансион МГУ",
                 visible = isVisible,
+                icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 
                 ) {
                 val color = remember { mutableStateOf(ThemeColors.Default.name) }

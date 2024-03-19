@@ -40,7 +40,7 @@ class KtorAdminRemoteDataSource(
             bearer()
             url {
 
-                path("server/user/register")
+                path(RequestPaths.UserManage.CreateUser)
                 setBody(request)
             }
         }
@@ -52,6 +52,7 @@ class KtorAdminRemoteDataSource(
         return httpClient.post {
             bearer()
             url {
+//                contentType(ContentType.Application.Json)
                 path(RequestPaths.UserManage.FetchAllUsers)
             }
         }.body()

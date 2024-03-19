@@ -32,8 +32,8 @@ class FormsComponent(
 
     val nFormsModel = nFormsInterface.networkModel
     val nFormGroupsModel = nFormGroupsInterface.networkModel
-    private val formsStore =
-        instanceKeeper.getStore {
+    val formsStore =
+        instanceKeeper.getStore("formsStore") {
             FormsStoreFactory(
                 storeFactory = storeFactory,
                 nFormGroupsInterface = nFormGroupsInterface,
@@ -43,6 +43,12 @@ class FormsComponent(
             ).create()
         }
     val model = formsStore.asValue()
+
+    init {
+        println("inited")
+//        nFormsInterface.nError("пошёл ты") {}
+        onEvent(FormsStore.Intent.UpdateMentors)
+    }
 
     fun onEvent(event: FormsStore.Intent) {
         formsStore.accept(event)

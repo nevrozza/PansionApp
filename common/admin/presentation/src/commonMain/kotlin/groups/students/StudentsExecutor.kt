@@ -17,9 +17,9 @@ class StudentsExecutor(
     private val nStudentsInterface: NetworkInterface,
     private val nStudentGroupsInterface: NetworkInterface
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
-            is Intent.BindStudentToForm -> bindStudentToForm(getState(), intent.formId)
+            is Intent.BindStudentToForm -> bindStudentToForm(state(), intent.formId)
             is Intent.ClickOnFormTab -> changeCurrentFormTab(intent.formId)
             is Intent.ClickOnStudent -> changeStudent(intent.studentLogin)
             is Intent.ClickOnStudentPlus -> dispatch(Message.OnStudentPlusClicked(intent.studentLogin))

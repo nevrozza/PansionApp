@@ -1,3 +1,5 @@
+@file:Suppress("OPT_IN_USAGE")
+
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
@@ -83,6 +85,17 @@ kotlin {
         binaries.executable()
     }
 
+    wasmJs {
+        moduleName = "composeApp"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+        useCommonJs()
+        binaries.executable()
+    }
+
 //    wasmJs {
 //        moduleName = "composeApp"
 //
@@ -129,7 +142,7 @@ kotlin {
             implementation(libs.decompose.core)
             implementation(libs.decompose.compose)
 
-                        implementation(libs.mvikotlin.core)
+            implementation(libs.mvikotlin.core)
             implementation(libs.mvikotlin.main)
             implementation(libs.mvikotlin.coroutines)
 
@@ -149,6 +162,8 @@ kotlin {
             implementation(project(":common:main:compose"))
             implementation(project(":common:admin:compose"))
             implementation(project(":common:journal:compose"))
+            implementation(project(":common:settings:compose"))
+            implementation(project(":common:settings:presentation"))
 
         }
 
@@ -156,6 +171,9 @@ kotlin {
             implementation(libs.androidx.appcompat)
             implementation(libs.androidx.activity)
             implementation(libs.androidx.compose.runtime)
+            implementation("androidx.fragment:fragment:1.7.0-alpha10")
+            implementation("androidx.fragment:fragment-ktx:1.7.0-alpha10")
+            implementation("androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.0-alpha02")
         }
 
         jvmMain.dependencies {
@@ -181,7 +199,7 @@ kotlin {
 //        val iosSimulatorArm64Main by getting
 //        val commonMain by getting
 
-        iosMain  {
+        iosMain {
 //            dependsOn(commonMain)
 //            iosX64Main.dependsOn(this)
 //            iosArm64Main.dependsOn(this)
@@ -209,6 +227,7 @@ kotlin {
 }
 
 android {
+
     namespace = "com.nevrozq.pansion.android"
     compileSdk = 34
 //    namespace = "com.nevrozq.pansion.android"
@@ -219,6 +238,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        compileSdkPreview = "UpsideDownCake"
     }
     buildFeatures {
         compose = true
@@ -245,7 +265,6 @@ android {
 compose.desktop {
     application {
         mainClass = "Main_desktopKt"
-
         nativeDistributions {
             targetFormats(
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
@@ -258,6 +277,7 @@ compose.desktop {
             windows {
                 menuGroup = "PansionApp"
                 upgradeUuid = "134213"
+                this.iconFile.set(File("icon.png"))
             }
         }
     }

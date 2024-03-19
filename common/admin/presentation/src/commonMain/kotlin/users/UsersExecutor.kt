@@ -21,7 +21,7 @@ class UsersExecutor(
     private val eUserBottomSheet: CBottomSheetComponent,
     private val cUserBottomSheet: CBottomSheetComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.FetchUsersInit -> fetchUsers(true)
             Intent.FetchUsers -> fetchUsers()
@@ -36,9 +36,9 @@ class UsersExecutor(
             is Intent.ChangeCIsMentor -> dispatch(Message.CIsMentorChanged(intent.isMentor))
             is Intent.ChangeCIsParent -> dispatch(Message.CIsParentChanged(intent.isParent))
 
-            Intent.CreateUser -> createUser(getState())
+            Intent.CreateUser -> createUser(state())
             Intent.ClearUser -> {
-                nUsersInterface.nSuccess()
+                cUserBottomSheet.fullySuccess()
                 dispatch(Message.ClearUser)
             }
 
@@ -52,8 +52,8 @@ class UsersExecutor(
             is Intent.ChangeEIsParent -> dispatch(Message.EIsParentChanged(intent.isParent))
 
             is Intent.OpenEditingSheet -> openEditingSheet(intent.user)
-            is Intent.ClearPassword -> clearPassword(getState())
-            Intent.EditUser -> editUser(getState())
+            is Intent.ClearPassword -> clearPassword(state())
+            Intent.EditUser -> editUser(state())
         }
     }
 
@@ -174,14 +174,19 @@ class UsersExecutor(
             try {
                 val users = adminRepository.fetchAllUsers().users
                 dispatch(Message.UsersChanged(users))
+                nUsersInterface.nSuccess()
             } catch (e: Throwable) {
                 if (isInit) {
-                    if (e.message!!.contains("403 Forbidden")) {
-                        nUsersInterface.nError(
-                            "Доступ запрещён",
-                            onFixErrorClick = {}
-                        )
-                    }
+
+                    nUsersInterface.nError(
+                        if (e.message!!.contains("403 Forbidden")) "Доступ запрещён" else "Что-то пошло не так",
+                        onFixErrorClick = if (e.message!!.contains("403 Forbidden")) {
+                            {}
+                        } else {
+                            { fetchUsers(true) }
+                        }
+                    )
+
                     dispatch(Message.UsersChanged(null))
                 }
             }

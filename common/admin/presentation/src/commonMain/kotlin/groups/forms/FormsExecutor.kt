@@ -16,22 +16,58 @@ class FormsExecutor(
     private val updateForms: () -> Unit,
     private val creatingFormBottomSheet: CBottomSheetComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(i: Intent, getState: () -> State) {
+    override fun executeIntent(i: Intent) {
         when (i) {
             is Intent.ClickOnForm -> chooseForm(i.formId)
 
             is Intent.ChangeCFormTitle -> dispatch(Message.CFormTitleChanged(i.title))
             is Intent.ChangeCFormClassNum -> dispatch(Message.CFormClassNumChanged(i.classNum))
             is Intent.ChangeCFormShortTitle -> dispatch(Message.CFormShortTitleChanged(i.shortTitle))
-            Intent.CreateForm -> createForm(getState())
+            Intent.CreateForm -> createForm(state())
 
             Intent.OpenFormGroupCreationMenu -> dispatch(Message.FormGroupCreatingMenuOpened)
             Intent.CloseFormGroupCreationMenu -> dispatch(Message.FormGroupCreationMenuClosed)
 
             is Intent.ChangeCFormGroupGroupId -> dispatch(Message.CFormGroupGroupIdChanged(i.groupId))
-            is Intent.ChangeCFormGroupSubjectId -> dispatch(Message.CFormGroupSubjectIdChanged(i.subjectId))
+            is Intent.ChangeCFormGroupSubjectId -> changeCFormGroupSubjectId(i.subjectId)
             is Intent.ChangeCFormMentorLogin -> dispatch(Message.CFormMentorLoginChanged(i.mentorLogin))
-            Intent.CreateFormGroup -> createFormGroup(getState())
+            Intent.CreateFormGroup -> createFormGroup(state())
+            Intent.UpdateMentors -> updateMentors()
+        }
+    }
+
+    private fun changeCFormGroupSubjectId(subjectId: Int) {
+        println("updatingMentors")
+        dispatch(Message.CFormGroupSubjectIdChanged(subjectId))
+        scope.launch {
+            try {
+                val cutedGroups = adminRepository.fetchCutedGroups(subjectId).groups
+//                println("animeGo: $mentors")
+                dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
+//                creatingFormBottomSheet.nInterface.nSuccess()
+            } catch (_: Throwable) {
+//                creatingFormBottomSheet.nInterface.nError("Не удалось загрузить список") {
+//                    updateMentors()
+//                }
+            }
+        }
+
+    }
+
+    private fun updateMentors() {
+        println("updatingMentors")
+        creatingFormBottomSheet.nInterface.nStartLoading()
+        scope.launch {
+            try {
+                val mentors = adminRepository.fetchAllMentors().mentors
+                println("animeGo: $mentors")
+                dispatch(Message.MentorsUpdated(mentors))
+                creatingFormBottomSheet.nInterface.nSuccess()
+            } catch (_: Throwable) {
+                creatingFormBottomSheet.nInterface.nError("Не удалось загрузить список") {
+                    updateMentors()
+                }
+            }
         }
     }
 
@@ -97,6 +133,7 @@ class FormsExecutor(
                     subjectId = state.cFormGroupSubjectId,
                     groupId = state.cFormGroupGroupId
                 )
+                dispatch(Message.FormGroupCreated)
 
             } catch (_: Throwable) {
                 with(nFormGroupsInterface) {

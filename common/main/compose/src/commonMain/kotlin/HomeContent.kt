@@ -174,7 +174,9 @@ fun HomeContent(
                     }
                     if (viewManager.orientation.value != WindowScreen.Expanded) {
                         IconButton(
-                            onClick = { }
+                            onClick = {
+                                component.onOutput(HomeComponent.Output.NavigateToSettings)
+                            }
                         ) {
                             Icon(
                                 Icons.Rounded.Settings, null

@@ -1,4 +1,13 @@
 package server
+
+
+object DeviceTypex {
+    const val android = "Android"
+    const val ios = "IOS"
+    const val web = "WEB"
+    const val desktop = "Desktop"
+}
+
 object Roles {
 
     const val nothing = "0"

@@ -8,6 +8,7 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
 import components.cAlertDialog.CAlertDialogComponent
+import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetComponent
 import groups.GroupsStore
 
@@ -32,8 +33,15 @@ class SubjectsComponent(
         onAcceptClick = {
             onEvent(SubjectsStore.Intent.CreateSubject)
         },
-        {}
+//        {
+//            createSubjectDialogOnDeclineClick()
+//        }
     )
+
+//    private fun createSubjectDialogOnDeclineClick() {
+//        cSubjectDialog.onEvent(CAlertDialogStore.Intent.HideDialog)
+//    }
+
     val cGroupBottomSheet = CBottomSheetComponent(
         componentContext,
         storeFactory,
@@ -46,6 +54,8 @@ class SubjectsComponent(
 //        onItemClick = {
 //            onEvent(StudentsStore.Intent.BindStudentToForm(it.id))
 //        })
+
+
 
     private val studentsStore =
         instanceKeeper.getStore {

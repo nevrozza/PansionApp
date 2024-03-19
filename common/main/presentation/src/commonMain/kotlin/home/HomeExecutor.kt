@@ -7,7 +7,7 @@ import home.HomeStore.State
 import home.HomeStore.Message
 
 class HomeExecutor : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             else -> TODO()
         }

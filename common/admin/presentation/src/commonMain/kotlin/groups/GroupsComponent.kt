@@ -10,6 +10,7 @@ import components.networkInterface.NetworkInterface
 import components.listDialog.ListComponent
 import di.Inject
 import groups.forms.FormsComponent
+import groups.forms.FormsStore
 import groups.students.StudentsComponent
 import groups.subjects.SubjectsComponent
 
@@ -79,6 +80,7 @@ class GroupsComponent(
         },
         nFormsInterface = nFormsInterface
     )
+
 
     val studentsComponent = StudentsComponent(
         componentContext,

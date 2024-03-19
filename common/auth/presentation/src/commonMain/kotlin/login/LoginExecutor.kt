@@ -13,11 +13,11 @@ import login.LoginStore.State
 import login.LoginStore.Message
 
 class LoginExecutor(private val authRepository: AuthRepository) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.InputLogin -> dispatch(Message.LoginChanged(intent.login))
             is Intent.InputPassword -> dispatch(Message.PasswordChanged(intent.password))
-            Intent.CheckToGoMain -> checkToGoMain(getState())
+            Intent.CheckToGoMain -> checkToGoMain(state())
             Intent.HideError -> dispatch(Message.ErrorHided)
         }
 

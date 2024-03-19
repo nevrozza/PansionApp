@@ -5,7 +5,7 @@ import components.networkInterface.NetworkInterface
 
 class ListDialogExecutor(private val nInterface: NetworkInterface) :
     CoroutineExecutor<ListDialogStore.Intent, Unit, ListDialogStore.State, ListDialogStore.Message, ListDialogStore.Label>() {
-    override fun executeIntent(intent: ListDialogStore.Intent, getState: () -> ListDialogStore.State) {
+    override fun executeIntent(intent: ListDialogStore.Intent) {
         when (intent) {
 //            is ListDialogStore.Intent.CallError -> dispatch(ListDialogStore.Message.ErrorCalled(intent.error, intent.onClick))
 //            is ListDialogStore.Intent.ClearError ->  {

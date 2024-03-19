@@ -8,7 +8,7 @@ kotlin {
         androidMain {
             dependencies {
 //                implementation("androidx.core:core:1.12.0")
-                api("androidx.core:core-ktx:1.12.0")
+                api("androidx.core:core-ktx:1.13.0-alpha05")
                 implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
             }
         }

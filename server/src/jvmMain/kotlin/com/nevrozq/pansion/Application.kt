@@ -16,9 +16,11 @@ import org.jetbrains.exposed.sql.Database
 import com.nevrozq.pansion.plugins.configureSerialization
 import com.nevrozq.pansion.features.auth.configureActivationRouting
 import com.nevrozq.pansion.features.lessons.configureLessonsRouting
+import com.nevrozq.pansion.features.settings.configureSettingsRouting
 import com.nevrozq.pansion.features.user.manageOld.configureUserManageRouting
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
+import com.nevrozq.pansion.plugins.configureCORS
 import com.nevrozq.pansion.utils.createLogin
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
@@ -87,10 +89,12 @@ fun main() {
 fun Application.module() {
     configureSerialization()
     configureRouting()
+    configureCORS()
     configureRegisterRouting()
     configureActivationRouting()
     configureUserManageRouting()
     configureLessonsRouting()
+    configureSettingsRouting()
 //    configureLessonRouting()
 //    configureScheduleRouting()
 }

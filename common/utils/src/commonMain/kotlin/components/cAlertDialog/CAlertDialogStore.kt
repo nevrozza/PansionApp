@@ -5,9 +5,10 @@ interface CAlertDialogStore : Store<CAlertDialogStore.Intent, CAlertDialogStore.
     data class State(
         val isDialogShowing: Boolean = false,
 //        val onRetrySpecialClick: (() -> Unit)? = null,
-        val onAcceptClick: (() -> Unit)? = null,
-        val onDeclineClick: (() -> Unit)? = null,
-        val isButtonEnabled: Boolean = true
+        val onAcceptClick: (() -> Unit),
+        val onDeclineClick: (() -> Unit),
+        val isButtonEnabled: Boolean = true,
+        val needDelayWhenHide: Boolean
     )
 
     sealed interface Intent {

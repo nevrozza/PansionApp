@@ -56,7 +56,7 @@ fun StudentsContent(
     val model = component.model.subscribeAsState().value
     val nSModel = component.nStudentsModel.subscribeAsState().value
     val nSGModel = component.nStudentsModel.subscribeAsState().value
-
+    println(component.formsListComponent.model.subscribeAsState().value.isDialogShowing)
     Column(Modifier.fillMaxSize().padding(horizontal = 10.dp)) {
         LazyRow(Modifier.fillMaxWidth().height(30.dp)) {
             item {

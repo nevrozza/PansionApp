@@ -18,15 +18,15 @@ class SubjectsExecutor(
     private val cSubjectDialog: CAlertDialogComponent,
     private val cGroupBottomSheet: CBottomSheetComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.ChangeCDifficult -> dispatch(Message.CDifficultChanged(intent.difficult))
             is Intent.ChangeCName -> dispatch(Message.CNameChanged(intent.name))
             is Intent.ChangeCSubjectText -> dispatch(Message.CSubjectTextChanged(intent.text))
             is Intent.ChangeCTeacherLogin -> dispatch(Message.CTeacherLoginChanged(intent.teacherLogin))
             is Intent.ClickOnSubject -> changeSubjectId(intent.subjectId)
-            Intent.CreateGroup -> createGroup(getState())
-            Intent.CreateSubject -> createSubject(getState())
+            Intent.CreateGroup -> createGroup(state())
+            Intent.CreateSubject -> createSubject(state())
         }
     }
 

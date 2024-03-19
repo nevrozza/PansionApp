@@ -12,13 +12,16 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.SIMPLE
+import io.ktor.client.request.accept
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.utils.EmptyContent.contentType
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMessageBuilder
 import io.ktor.http.URLProtocol
+import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -50,10 +53,12 @@ internal val ktorModule = DI.Module("ktorModule") {
 
             defaultRequest {
                 header("Content-Type", "application/json; charset=UTF-8")
-
+//                contentType(ContentType.Application.Json)
+//                accept(ContentType.Application.Json)
+//                header("Access-Control-Allow-Origin", true)
                 url {
                     protocol = URLProtocol.HTTP
-                    host = "0.0.0.0:8081" //192.168.137.1:8080
+                    host = "127.0.0.1:8081" //192.168.137.1:8080
                 }
             }
         }

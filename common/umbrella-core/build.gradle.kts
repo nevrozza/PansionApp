@@ -17,6 +17,7 @@ kotlin {
                 implementation(project(":common:main:presentation"))
                 implementation(project(":common:admin:presentation"))
                 implementation(project(":common:journal:presentation"))
+                implementation(project(":common:settings:presentation"))
                 implementation(project(":common:utils"))
 //                implementation(project(":common:utils-screens:presentation"))
 //                implementation(project(":common:launch:presentation"))

@@ -83,6 +83,7 @@ class JournalComponent(
     }
 
     sealed class Output {
+        data object NavigateToSettings : Output()
         data class NavigateToLessonReport(val lessonReportId: Int) : Output()
     }
 }

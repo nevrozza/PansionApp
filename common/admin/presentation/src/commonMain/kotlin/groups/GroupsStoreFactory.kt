@@ -8,6 +8,7 @@ import components.listDialog.ListComponent
 import groups.GroupsStore.Intent
 import groups.GroupsStore.Label
 import groups.GroupsStore.State
+import groups.subjects.SubjectsComponent
 
 class GroupsStoreFactory(
     private val storeFactory: StoreFactory,

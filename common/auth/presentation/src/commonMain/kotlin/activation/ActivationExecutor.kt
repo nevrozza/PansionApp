@@ -17,15 +17,15 @@ import view.isCanInDynamic
 
 class ActivationExecutor(private val settingsRepository: SettingsRepository, private val authRepository: AuthRepository) :
     CoroutineExecutor<Intent, Unit, State, Message, Nothing>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.InputLogin -> dispatch(Message.LoginChanged(intent.login))
             is Intent.InputPassword -> dispatch(Message.PasswordChanged(intent.password))
-            is Intent.ChangeStepOnActivation -> changeStepOnActivation(getState())
-            is Intent.CheckToGoMain -> checkToGoMain(getState())
-            Intent.ChangeTint -> changeTint(getState())
-            Intent.ChangeLanguage -> changeLanguage(getState())
-            Intent.ChangeColor -> changeColor(getState())
+            is Intent.ChangeStepOnActivation -> changeStepOnActivation(state())
+            is Intent.CheckToGoMain -> checkToGoMain(state())
+            Intent.ChangeTint -> changeTint(state())
+            Intent.ChangeLanguage -> changeLanguage(state())
+            Intent.ChangeColor -> changeColor(state())
             is Intent.ChangeStep -> dispatch(Message.StepChanged(intent.step))
             Intent.HideError -> dispatch(Message.ErrorHided)
         }

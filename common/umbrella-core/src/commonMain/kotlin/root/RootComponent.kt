@@ -2,6 +2,7 @@ package root
 
 
 import LessonReportComponent
+import SettingsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -26,6 +27,7 @@ interface RootComponent: BackHandlerOwner {
         class AuthLogin(val component: LoginComponent) : Child()
         class AuthActivation(val component: ActivationComponent) : Child()
         class MainHome(val homeComponent: HomeComponent, val journalComponent: JournalComponent) : Child()
+        class HomeSettings(val settingsComponent: SettingsComponent) : Child()
         class MainJournal(val homeComponent: HomeComponent, val journalComponent: JournalComponent) : Child()
         class MainAdmin(val adminComponent: AdminComponent) : Child()
 //        class AdminMentors(val adminComponent: AdminComponent, val mentorsComponent: MentorsComponent) : Child()
@@ -52,6 +54,9 @@ interface RootComponent: BackHandlerOwner {
         data object AuthActivation : Config
         @Serializable
         data object MainHome : Config
+
+        @Serializable
+        data object HomeSettings : Config
         @Serializable
         data object MainJournal : Config
         @Serializable
@@ -72,6 +77,7 @@ interface RootComponent: BackHandlerOwner {
         const val WEB_PATH_AUTH_LOGIN = "auth/login"
         const val WEB_PATH_AUTH_ACTIVATION = "auth/activation"
         const val WEB_PATH_MAIN_HOME = "main/home"
+        const val WEB_PATH_HOME_SETTINGS = "main/home/settings"
         const val WEB_PATH_MAIN_JOURNAL = "main/journal"
         const val WEB_PATH_MAIN_ADMIN = "main/admin"
 //        const val WEB_PATH_ADMIN_MENTORS = "main/admin/teachers"

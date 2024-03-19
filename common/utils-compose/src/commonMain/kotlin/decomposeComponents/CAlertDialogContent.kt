@@ -2,8 +2,10 @@ package decomposeComponents
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,11 +28,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
 import components.CustomTextButton
 import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogComponent
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import components.networkInterface.NetworkState
 
@@ -39,7 +41,11 @@ import components.networkInterface.NetworkState
 fun CAlertDialogContent(
     component: CAlertDialogComponent,
     customIf: Boolean? = null,
+    isCustomButtons: Boolean = true,
+    acceptColor: Color = MaterialTheme.colorScheme.primary,
     title: String = "",
+    acceptText: String = "Ок",
+    declineText: String = "Отмена",
     content: @Composable (() -> Unit)
 ) {
     val model by component.model.subscribeAsState()
@@ -58,51 +64,79 @@ fun CAlertDialogContent(
                     .animateContentSize(),
                 shape = MaterialTheme.shapes.large
             ) {
-                Crossfade(
-                    nModel.state,
-                    modifier = Modifier.animateContentSize().heightIn(max = 600.dp).widthIn(min = TextFieldDefaults.MinWidth)
-                ) {
+                Column {
+                    if (title.isNotBlank()) {
+                        Text(
+                            title,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Crossfade(
+                        nModel.state,
+                        modifier = Modifier.animateContentSize().heightIn(max = 600.dp)
+                            .widthIn(min = TextFieldDefaults.MinWidth)
+                    ) {
 
-                    when(it) {
-                        NetworkState.None -> {
-                            Column(Modifier.padding(6.dp)) {
-                                if(title.isNotBlank()) {
-                                    Text(
-                                        title, fontWeight = FontWeight.Bold,
-                                        fontSize = 20.sp, modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                                Box(Modifier.heightIn(max = 350.dp)) {
-                                    content()
-                                }
-                                AnimatedCommonButton(
-                                    text = "Создать",
-                                    isEnabled = model.isButtonEnabled,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    if (model.isButtonEnabled) {
-                                        model.onAcceptClick?.invoke()
+                        when (it) {
+                            NetworkState.None -> {
+                                Column(Modifier.padding(6.dp)) {
+                                    Box(Modifier.heightIn(max = 350.dp)) {
+                                        content()
                                     }
+                                    if (!isCustomButtons) {
+                                        Row(
+                                            Modifier.fillMaxWidth()
+                                                .padding(vertical = 10.dp)
+                                                .padding(end = 20.dp),
+                                            horizontalArrangement = Arrangement.End
+                                        ) {
+                                            CustomTextButton(
+                                                acceptText,
+                                                modifier = Modifier.padding(
+                                                    end = 20.dp
+                                                ),
+                                                color = acceptColor
+                                            ) {
+                                                model.onAcceptClick?.invoke()
+                                            }
+                                            CustomTextButton(
+                                                declineText
+                                            ) {
+                                                model.onDeclineClick?.invoke()
+                                            }
+//                                    AnimatedCommonButton(
+//                                        text = "Создать",
+//                                        isEnabled = model.isButtonEnabled,
+//                                        modifier = Modifier.fillMaxWidth()
+//                                    ) {
+//                                        if (model.isButtonEnabled) {
+//                                            model.onAcceptClick?.invoke()
+//                                        }
+//                                    }
+                                        }
+                                    }
+
                                 }
-
                             }
-                        }
 
-                        NetworkState.Loading -> {
-                            LoadingAnimation()
-                        }
+                            NetworkState.Loading -> {
+                                LoadingAnimation()
+                            }
 
-                        else -> {
-                            Column(
-                                Modifier.width(TextFieldDefaults.MinWidth).padding(6.dp)
-                                    .padding(vertical = 6.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(nModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Попробовать ещё раз") {
-                                    nModel.onFixErrorClick()
+                            else -> {
+                                Column(
+                                    Modifier.width(TextFieldDefaults.MinWidth).padding(6.dp)
+                                        .padding(vertical = 6.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(nModel.error)
+                                    Spacer(Modifier.height(7.dp))
+                                    CustomTextButton("Попробовать ещё раз") {
+                                        nModel.onFixErrorClick()
+                                    }
                                 }
                             }
                         }

@@ -2,6 +2,7 @@ package root
 
 import AuthRepository
 import LessonReportComponent
+import SettingsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
 import asValue
@@ -37,6 +38,7 @@ import root.RootComponent.Companion.WEB_PATH_ADMIN_USERS
 import root.RootComponent.Companion.WEB_PATH_AUTH_ACTIVATION
 import root.RootComponent.Config
 import root.RootComponent.Companion.WEB_PATH_AUTH_LOGIN
+import root.RootComponent.Companion.WEB_PATH_HOME_SETTINGS
 import root.RootComponent.Companion.WEB_PATH_JOURNAL_LESSON_REPORT
 import root.RootComponent.Companion.WEB_PATH_MAIN_ADMIN
 import root.RootComponent.Companion.WEB_PATH_MAIN_HOME
@@ -202,18 +204,28 @@ class RootComponentImpl(
                     journalComponent = mainJournalComponent
                 )
             }
+
+            Config.HomeSettings -> {
+                Child.HomeSettings(
+                    SettingsComponent(
+                        componentContext = componentContext,
+                        storeFactory = storeFactory,
+                        output = ::onHomeSettingsOutput
+                    )
+                )
+            }
         }
     }
 
     private fun onLessonReportOutput(output: LessonReportComponent.Output): Unit =
         when (output) {
-            LessonReportComponent.Output.BackToJournal -> if(model.value.currentCategory == RootComponent.RootCategories.Journal) {
+            LessonReportComponent.Output.BackToJournal -> if (model.value.currentCategory == RootComponent.RootCategories.Journal) {
                 navigateToJournal {
                     navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainJournal }
                 }
             } else {
                 navigateToHome {
-                    navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome  }
+                    navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
                 }
             }
         }
@@ -224,23 +236,38 @@ class RootComponentImpl(
 //            }
 //        }
 
+    private fun onHomeSettingsOutput(output: SettingsComponent.Output): Unit =
+        when (output) {
+            SettingsComponent.Output.BackToHome -> navigateToHome {
+                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
+            }
+
+            SettingsComponent.Output.GoToZero -> navigateToActivation {
+                navigation.bringToFront(it)
+            }
+        }
+
     private fun onAdminGroupsOutput(output: GroupsComponent.Output): Unit =
         when (output) {
             GroupsComponent.Output.BackToAdmin -> navigateToAdmin {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin}
+                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
             }
         }
 
     private fun onAdminUsersOutput(output: UsersComponent.Output): Unit =
         when (output) {
             UsersComponent.Output.BackToAdmin -> navigateToAdmin {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin}
+                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
             }
         }
 
     private fun onJournalOutput(output: JournalComponent.Output): Unit =
         when (output) {
             is JournalComponent.Output.NavigateToLessonReport -> navigateToLessonReport(output.lessonReportId) {
+                navigation.bringToFront(it)
+            }
+
+            JournalComponent.Output.NavigateToSettings -> navigateToHomeSettings {
                 navigation.bringToFront(it)
             }
         }
@@ -284,7 +311,9 @@ class RootComponentImpl(
 
     private fun onHomeOutput(output: HomeComponent.Output): Unit =
         when (output) {
-            else -> {}
+            HomeComponent.Output.NavigateToSettings -> navigateToHomeSettings {
+                navigation.bringToFront(it)
+            }
         }
 
     override fun onOutput(output: RootComponent.Output): Unit =
@@ -310,8 +339,6 @@ class RootComponentImpl(
         }
 
 
-
-
     private fun navigateAfterAuth() {
         navigateToHome {
             navigation.replaceAll(it)
@@ -325,9 +352,23 @@ class RootComponentImpl(
         }
     }
 
+    private fun navigateToActivation(post: (Config) -> Unit) {
+        val d = Config.AuthActivation
+        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
+        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
+        post(d)
+    }
+
     private fun navigateToHome(post: (Config) -> Unit) {
         val d = Config.MainHome
         rootStore.accept(RootStore.Intent.BottomBarShowing(true))
+        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
+        post(d)
+    }
+
+    private fun navigateToHomeSettings(post: (Config) -> Unit) {
+        val d = Config.HomeSettings
+        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
         rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
         post(d)
     }
@@ -342,7 +383,7 @@ class RootComponentImpl(
     private fun navigateToLessonReport(lessonReportId: Int, post: (Config) -> Unit) {
         val d = Config.LessonReport(lessonReportId)
         rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        val currentCategory = if(model.value.currentCategory == Journal) Journal else Home
+        val currentCategory = if (model.value.currentCategory == Journal) Journal else Home
         rootStore.accept(RootStore.Intent.ChangeCurrentScreen(currentCategory, d))
         post(d)
     }
@@ -390,7 +431,6 @@ class RootComponentImpl(
 
     init {
 //        authRepository.deleteToken()
-        println("x1")
         webHistoryController?.attach(
             navigator = navigation,
             stack = stack,
@@ -398,7 +438,6 @@ class RootComponentImpl(
             getConfiguration = ::getConfigForPath,
             serializer = Config.serializer()
         )
-        println("xxx")
 
         rootStore.accept(RootStore.Intent.HideGreetings())
 
@@ -420,7 +459,8 @@ class RootComponentImpl(
         when (config) {
             Config.AuthLogin -> "/$WEB_PATH_AUTH_LOGIN"
             Config.AuthActivation -> {
-                println("gogo") ; "/$WEB_PATH_AUTH_ACTIVATION" }
+                println("gogo"); "/$WEB_PATH_AUTH_ACTIVATION"
+            }
 
             Config.MainHome -> "/$WEB_PATH_MAIN_HOME"
             Config.MainJournal -> "/$WEB_PATH_MAIN_JOURNAL"
@@ -431,12 +471,15 @@ class RootComponentImpl(
             Config.AdminGroups -> "/$WEB_PATH_ADMIN_GROUPS"
 //            Config.AdminStudents -> "/$WEB_PATH_ADMIN_STUDENTS"
             is Config.LessonReport -> "/$WEB_PATH_JOURNAL_LESSON_REPORT/${config.lessonReportId}"
+            Config.HomeSettings -> "/$WEB_PATH_HOME_SETTINGS"
         }
 
     private fun getConfigForPath(path: String): Config {
         return when (path.removePrefix("/")) {
             WEB_PATH_AUTH_LOGIN -> Config.AuthLogin
-            WEB_PATH_AUTH_ACTIVATION -> {println("sad") ; Config.AuthActivation}
+            WEB_PATH_AUTH_ACTIVATION -> {
+                println("sad"); Config.AuthActivation
+            }
 
             WEB_PATH_MAIN_HOME -> Config.MainHome
             WEB_PATH_MAIN_JOURNAL -> Config.MainJournal
@@ -449,6 +492,8 @@ class RootComponentImpl(
             WEB_PATH_JOURNAL_LESSON_REPORT.split("/")[0] -> Config.LessonReport(
                 path.removePrefix("/").split("/")[1].toInt()
             )
+
+            WEB_PATH_HOME_SETTINGS -> Config.HomeSettings
             else -> Config.AuthActivation
         }
     }

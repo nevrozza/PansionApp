@@ -52,5 +52,9 @@ class StudentsComponent(
         studentsStore.accept(event)
     }
 
+    init {
+        onEvent(StudentsStore.Intent.ClickOnFormTab(0))
+    }
+
 
 }

@@ -23,7 +23,8 @@ class CAlertDialogComponent(
     storeFactory: StoreFactory,
     name: String,
     private val onAcceptClick: () -> Unit,
-    private val onDeclineClick: () -> Unit,
+    private val onDeclineClick: (() -> Unit)? = null,
+    private val needDelayWhenHide: Boolean = false
 //    private val isDeclineShowing
 ) : ComponentContext by componentContext {
     val nInterface = NetworkInterface(
@@ -36,8 +37,19 @@ class CAlertDialogComponent(
         instanceKeeper.getStore(key = name) {
             CAlertDialogStoreFactory(
                 storeFactory = storeFactory,
-                onAcceptClick = onAcceptClick,
-                onDeclineClick = onDeclineClick
+                onAcceptClick = { this.onEvent(CAlertDialogStore.Intent.HideDialog); onAcceptClick()},
+                onDeclineClick = if (onDeclineClick != null) {
+                    {
+                        this.onEvent(CAlertDialogStore.Intent.HideDialog)
+                        onDeclineClick
+                    }
+
+                } else {
+                    {
+                        this.onEvent(CAlertDialogStore.Intent.HideDialog)
+                    }
+                },
+                needDelayWhenHide = needDelayWhenHide//onDeclineClick
 //                authRepository = authRepository
             ).create()
         }

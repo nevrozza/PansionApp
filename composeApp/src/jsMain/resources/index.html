@@ -1,25 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
+<style>
+    #loading {
+            position: fixed;
+            bottom: 0;
+            z-index: 2;
+            font-size: initial;
+        }
+    #clip {
+        z-index: 1;
+    }
+</style>
+<!--<style>-->
+<!--    body {-->
+<!--       height : 100%;-->
+<!--       width : 100%;-->
+<!--    }-->
+<!--    canvas {-->
+<!--       background-color: #f12345;-->
+<!--       display: block;-->
+<!--       position: absolute;-->
+<!--       top: 0;-->
+<!--       bottom: 0;-->
+<!--       left: 0;-->
+<!--       right: 0;-->
+<!--       height: 100%;-->
+<!--       width: 100%;-->
+<!--    }-->
+<!--</style>-->
 <head>
     <meta charset="UTF-8">
-    <title>JetHabit</title>
-    <script src="skiko.js"> </script>
-    <link type="text/css" rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="user-scalable=no, maximum-scale=1.0, width=device-width, interactive-widget=resizes-content, target-densityDpi=device-dpi">
+    <title>Классический пансион МГУ</title>
+    <script src="skiko.js"></script>
+    <link rel="icon" href="/favicon.ico">
+<!--    <link type="text/css" rel="stylesheet" href="styles.css"/>-->
 </head>
 <body>
 <div id="clip">
-    <canvas id="ComposeTarget"/>
+    <canvas id="ComposeTarget" onfocus="document.getElementById('loading').style.display='none'"></canvas>
 </div>
-<script>
-    const canvas = document.getElementById("ComposeTarget");
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
+<div id="loading">
+    Loading
+</div>
+<!--<script>-->
+<!--&lt;!&ndash;    const canvas = document.getElementById("ComposeTarget");&ndash;&gt;-->
+<!--&lt;!&ndash;    canvas.width = window.innerWidth&ndash;&gt;-->
+<!--&lt;!&ndash;    canvas.height = window.innerHeight&ndash;&gt;-->
 
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    })
-</script>
-<script src="composeApp.js"> </script>
+<!--&lt;!&ndash;    window.addEventListener('resize', () => {&ndash;&gt;-->
+<!--&lt;!&ndash;      canvas.width = window.innerWidth&ndash;&gt;-->
+<!--&lt;!&ndash;      canvas.height = window.innerHeight&ndash;&gt;-->
+<!--&lt;!&ndash;    })&ndash;&gt;-->
+<!--</script>-->
+
+<script src="composeApp.js"></script>
 </body>
 </html>

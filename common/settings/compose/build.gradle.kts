@@ -7,7 +7,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(project(":common:settings:presentation"))
+                api(project(":common:settings:presentation"))
                 implementation(project(":common:utils-compose"))
                 implementation(project(":common:core"))
 

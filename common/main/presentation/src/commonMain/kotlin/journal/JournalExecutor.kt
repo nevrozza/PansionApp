@@ -19,7 +19,7 @@ class JournalExecutor(
     private val groupListComponent: ListComponent,
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> initComponent()
             is Intent.OnGroupClicked -> {
@@ -32,7 +32,7 @@ class JournalExecutor(
 
     private fun initComponent() {
         scope.launch {
-            async { fetchTeacherGroups() }
+            fetchTeacherGroups() //async { }
         }
     }
 

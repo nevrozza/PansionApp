@@ -2,6 +2,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -28,7 +29,7 @@ import view.colorSchemeGetter
 import view.dynamicDarkScheme
 import view.dynamicLightScheme
 import view.isCanInDynamic
-
+import androidx.compose.ui.Modifier
 class Root
 
 @ExperimentalAnimationApi
@@ -37,6 +38,7 @@ class Root
 fun Root(
     root: RootComponent,
     device: WindowType = WindowType.Phone,
+    isJs: Boolean = false,
     PCChange: ((String, Boolean) -> Unit)? = null
 ) {
     Text("sad")
@@ -90,11 +92,11 @@ fun Root(
 //            println("5")
             AppTheme(colorScheme = colorScheme) {
 //                println("6")
-                Surface {
+                Surface(Modifier.fillMaxSize()) {
 //                    println("7")
                     StatusBarColorFix()
 //                    println("8")
-                    RootContent(root)
+                    RootContent(root, isJs)
                 }
             }
         }

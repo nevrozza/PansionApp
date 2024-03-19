@@ -29,7 +29,8 @@ class AuthRepositoryImpl(
             surname = r.activation.user.fio.surname,
             praname = r.activation.user.fio.praname,
             role = r.activation.user.role,
-            moderation = r.activation.user.moderation
+            moderation = r.activation.user.moderation,
+            login = r.activation.login
         )
         return r
     }
@@ -52,7 +53,8 @@ class AuthRepositoryImpl(
             surname = r.user.fio.surname,
             praname = r.user.fio.praname,
             role = r.user.role,
-            moderation = r.user.moderation
+            moderation = r.user.moderation,
+            login = r.login
         )
         return r
     }
@@ -152,5 +154,15 @@ class AuthRepositoryImpl(
 
     override fun fetchModeration(): String {
         return cacheDataSource.fetchModeration()
+    }
+
+    override fun fetchLogin(): String {
+        return cacheDataSource.fetchLogin()
+    }
+
+    override suspend fun logout() {
+        val token = cacheDataSource.fetchToken()
+        cacheDataSource.logout()
+        remoteDataSource.logout(token)
     }
 }

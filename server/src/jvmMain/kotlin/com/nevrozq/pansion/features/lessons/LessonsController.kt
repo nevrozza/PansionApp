@@ -104,18 +104,21 @@ class LessonsController() {
         if (call.isMember) {
             try {
                 val mentors = Users.fetchAllMentors()
+                println("fuck: ${mentors}")
+                val result = mentors.filter { it.isActive }.map {
+                    Person(
+                        login = it.login,
+                        fio = FIO(
+                            name = it.name,
+                            surname = it.surname,
+                            praname = it.praname
+                        ),
+                        isActive = true
+                    )
+                }
+                println("fuck2: $result")
                 call.respond(RFetchMentorsResponse(
-                    mentors.filter { it.isActive }.map {
-                        Person(
-                            login = it.login,
-                            fio = FIO(
-                                name = it.name,
-                                surname = it.surname,
-                                praname = it.praname
-                            ),
-                            isActive = true
-                        )
-                    }
+                    result
                 ))
             } catch (e: Throwable) {
                 call.respond(

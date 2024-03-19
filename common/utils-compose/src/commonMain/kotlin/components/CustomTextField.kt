@@ -4,6 +4,8 @@ package components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -85,7 +87,7 @@ fun CustomTextField(
 
     var passwordVisible by rememberSaveable() { mutableStateOf(passwordVisibleInit ?: true) }
     OutlinedTextField(
-        modifier = modifier.width(TextFieldDefaults.MinWidth).onPreviewKeyEvent {
+        modifier = modifier.heightIn(min = 65.dp).width(TextFieldDefaults.MinWidth).onPreviewKeyEvent {
             if (focusManager != null) {
                 onNextButtonClicked(it) {
                     focusManager.moveFocus(FocusDirection.Next)

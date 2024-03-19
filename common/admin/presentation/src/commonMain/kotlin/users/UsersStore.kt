@@ -15,7 +15,7 @@ interface UsersStore : Store<Intent, State, Label> {
         val isDateDialogShowing: Boolean = false,
 
         val currentYear: Int = Clock.System.now()
-            .toLocalDateTime(TimeZone.of("Europe/Moscow")).year,
+            .toLocalDateTime(TimeZone.of("UTC+3")).year,
         val currentMillis: Long = Clock.System.now().toEpochMilliseconds(),
 
         val cLogin: String = "",

@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-plugin-android = "8.1.4"
+plugin-android = "8.3.0"
 plugin-compose = "1.6.1"
 
 # Multiplatform
@@ -8,7 +8,7 @@ kotlin = "1.9.23"
 coroutines = "1.8.0"
 serialization = "1.6.3"
 datetime = "0.6.0-RC.2"
-ktor = "2.3.9"
+ktor = "3.0.0-beta-2-eap-912"
 
 
 # Libraries
@@ -16,7 +16,7 @@ sqldelight = "2.0.1"
 settings = "1.1.1"
 di = "7.21.2"
 decompose = "3.0.0-alpha09"
-mvikotlin = "3.3.0" #4.0.0-alpha02
+mvikotlin = "4.0.0-alpha02" #"3.3.0" #4.0.0-alpha02
 moko = "0.24.0-alpha-4"
 mokographics = "0.9.0"
 
@@ -25,7 +25,7 @@ androidx-compose = "1.6.3"
 androidx-compiler = "1.5.10"
 androidx-material3 = "1.2.1"
 androidx-activityCompose = "1.8.2"
-androidx-appCompat = "1.7.0-alpha03"
+androidx-appCompat = "1.6.1"
 
 [libraries]
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

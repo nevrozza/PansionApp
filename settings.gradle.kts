@@ -3,9 +3,11 @@ pluginManagement {
         google()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+
         gradlePluginPortal()
         mavenLocal()
         maven("https://packages.jetbrains.team/maven/p/kpm/public/")
+        maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     }
 }
 
@@ -16,6 +18,7 @@ dependencyResolutionManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         mavenLocal()
         maven("https://packages.jetbrains.team/maven/p/kpm/public/")
+        maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     }
 }
 

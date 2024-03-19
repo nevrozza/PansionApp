@@ -1,12 +1,13 @@
+
+val ktorV = "3.0.0-beta-2-eap-912"
 plugins {
     kotlin("multiplatform")
-    id("io.ktor.plugin") version "2.3.5"
+    id("io.ktor.plugin") version "3.0.0-beta-1"
     id(libs.plugins.serialization.get().pluginId)
 }
 
 group = "com.nevrozq.pansion"
 version = "0.0.1"
-
 application {
     mainClass.set("com.nevrozq.pansion.ApplicationKt") //com.nevrozq
 
@@ -22,6 +23,7 @@ repositories {
     mavenLocal()
     gradlePluginPortal()
     maven("https://packages.jetbrains.team/maven/p/kpm/public/")
+    maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
 }
 kotlin {
     jvm {
@@ -36,11 +38,12 @@ kotlin {
 
 
                 implementation(project(":common:utils"))
-
-                implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.5")
-                implementation("io.ktor:ktor-server-core-jvm:2.3.5")
-                implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:2.3.5")
-                implementation("io.ktor:ktor-server-netty-jvm:2.3.5")
+                implementation("io.ktor:ktor-server-cors-jvm:$ktorV")
+                implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorV")
+                implementation("io.ktor:ktor-server-core-jvm:$ktorV")
+                implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorV")
+//                implementation("io.ktor:ktor-serialization-kotlinx-gson-jvm:2.3.5")
+                implementation("io.ktor:ktor-server-netty-jvm:$ktorV")
                 implementation("ch.qos.logback:logback-classic:1.4.11")
 
 

@@ -7,6 +7,17 @@ import com.russhwolf.settings.set
 class SettingsAuthDataSource(
     private val settings: Settings
 ) {
+
+    fun logout() {
+        settings[tokenKey] = ""
+        settings[loginKey] = ""
+        settings[nameKey] = ""
+        settings[surnameKey] = ""
+        settings[pranameKey] = ""
+        settings[roleKey] = ""
+        settings[moderationKey] = ""
+    }
+
     fun saveToken(token: String) {
         settings[tokenKey] = token
     }
@@ -14,6 +25,11 @@ class SettingsAuthDataSource(
     fun fetchToken(): String {
         return settings[tokenKey, ""]
     }
+
+    fun fetchLogin(): String {
+        return settings[loginKey, ""]
+    }
+
 
     fun deleteToken() {
         settings[tokenKey] = ""
@@ -27,8 +43,8 @@ class SettingsAuthDataSource(
         return settings[surnameKey, ""]
     }
 
-    fun saveUser(token: String, name: String, surname: String, praname: String?, role: String, moderation: String) {
-
+    fun saveUser(token: String, login: String, name: String, surname: String, praname: String?, role: String, moderation: String) {
+        settings[loginKey] = login
         settings[tokenKey] = token
         settings[nameKey] = name
         settings[surnameKey] = surname
@@ -52,6 +68,7 @@ class SettingsAuthDataSource(
 
     companion object {
         const val tokenKey = "tokenPansionAppKey"
+        const val loginKey = "loginKey"
         const val nameKey = "nameKey"
         const val surnameKey = "surnameKey"
         const val pranameKey = "pranameKey"

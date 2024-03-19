@@ -6,6 +6,7 @@ import io.ktor.server.routing.*
 
 fun Application.configureActivationRouting() {
     routing {
+        println(this)
         val authController = AuthController()
         post(RequestPaths.Auth.ActivateProfile) {
 //            val registerController = RegisterController(call)

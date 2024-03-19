@@ -15,6 +15,10 @@ data class ActivationReceive(
 
 @Serializable
 data class ActivationResponse(
+    @Serializable
     val token: String,
+    @Serializable
+    val login: String,
+    @Serializable
     val user: UserInit
 )

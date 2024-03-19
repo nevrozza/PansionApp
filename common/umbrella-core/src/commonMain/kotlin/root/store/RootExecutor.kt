@@ -12,7 +12,7 @@ import root.store.RootStore.Message
 
 class RootExecutor : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
 
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.HideGreetings -> hideGreetings(intent.time)
             is Intent.BottomBarShowing -> dispatch(Message.BottomBarShowingChanged(intent.isShowing))

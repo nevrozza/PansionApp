@@ -11,6 +11,8 @@ import groups.GroupsStore.Intent
 import groups.GroupsStore.Label
 import groups.GroupsStore.State
 import groups.GroupsStore.Message
+import groups.subjects.SubjectsComponent
+import groups.subjects.SubjectsStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -22,13 +24,13 @@ class GroupsExecutor(
     private val nFormsInterface: NetworkInterface
 ) :
     CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(intent: Intent, getState: () -> State) {
+    override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.InitList -> init()
 
             Intent.ChangeView -> dispatch(
                 Message.ViewChanged(
-                    when (getState().view) {
+                    when (state().view) {
                         GroupsStore.Views.Subjects -> {
                             GroupsStore.Views.Forms
                         }
@@ -54,8 +56,10 @@ class GroupsExecutor(
             nFormsInterface.nStartLoading()
             try {
                 val forms = adminRepository.fetchAllForms().forms
+                println("sad0: $forms")
                 dispatch(Message.FormsListChanged(forms))
                 nFormsInterface.nSuccess()
+                println("sad-1: $forms")
                 updateFormsList(forms)
             } catch (_: Throwable) {
                 nFormsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
@@ -100,6 +104,7 @@ class GroupsExecutor(
                         formsA
                     )
                 )
+//                subjectsComponent.onEvent(SubjectsStore.Intent.ClickOnSubject(subjectsA.first().id))
                 updateFormsList(formsA)
             } catch (e: Throwable) {
                 nGroupsInterface.nError("Что-то пошло не так =/") {
@@ -114,6 +119,7 @@ class GroupsExecutor(
     }
 
     private fun updateFormsList(forms: List<Form>) {
+        println("sad:$forms")
         formListComponent.onEvent(ListDialogStore.Intent.InitList(forms.map {
             ListItem(
                 id = it.id,

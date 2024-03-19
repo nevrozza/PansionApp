@@ -18,7 +18,7 @@ import components.listDialog.ListDialogStore
 @ExperimentalMaterial3Api
 @Composable
 fun DefaultModalBottomSheet(
-    modifier: Modifier = Modifier.padding(bottom = 10.dp).padding(horizontal = 10.dp)
+    modifier: Modifier = Modifier//.padding(bottom = 10.dp).padding(horizontal = 10.dp)
         .fillMaxWidth().defaultMinSize(minHeight = 100.dp),
     additionalModifier: Modifier = Modifier,
     modalBottomSheetState: SheetState,

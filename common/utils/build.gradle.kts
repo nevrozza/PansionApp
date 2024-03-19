@@ -16,7 +16,7 @@ kotlin {
             implementation(libs.mvikotlin.core)
             implementation(libs.mvikotlin.coroutines)
 
-            implementation("com.arkivanov.mvikotlin:rx:3.3.0")
+//            implementation("com.arkivanov.mvikotlin:rx:4.0.0-alpha02")
 
         }
 

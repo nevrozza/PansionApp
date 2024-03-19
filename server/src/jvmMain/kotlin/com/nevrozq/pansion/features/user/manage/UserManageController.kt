@@ -57,7 +57,7 @@ class UserManageController() {
         if (call.isMember) {
             try {
                 val users = Users.fetchAll()
-                call.respond(RFetchAllUsersResponse(users.map { it.mapToUser() }))
+                call.respond(RFetchAllUsersResponse(users.map { it.mapToUser() }.sortedBy { it.user.fio.surname }))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
