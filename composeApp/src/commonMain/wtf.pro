@@ -1,7 +1,3 @@
--keepclasseswithmembers public class Main_desktopKt {  # <-- Change com.company to yours
-    public static void main(); #java.lang.String[]
-}
-
 -dontwarn kotlinx.coroutines.debug.*
 -keep class java.lang.** { *; }
 -keep class org.sqlite.** { *; }
@@ -50,11 +46,11 @@
 
 # Keep Serializers
 
--keep,includedescriptorclasses class **$$serializer { *; }  # <-- Change com.company.package
--keepclassmembers class ** {  # <-- Change com.company.package to yours
+-keep,includedescriptorclasses class com.company.package.**$$serializer { *; }  # <-- Change com.company.package
+-keepclassmembers class com.company.package.** {  # <-- Change com.company.package to yours
     *** Companion;
 }
--keepclasseswithmembers class ** { # <-- Change com.company.package to yours
+-keepclasseswithmembers class com.company.package.** { # <-- Change com.company.package to yours
     kotlinx.serialization.KSerializer serializer(...);
 }
 
@@ -136,13 +132,11 @@
 -dontwarn org.slf4j.**
 
 -keep class com.arkivanov.decompose.mainthread.*
--keep class com.arkivanov.decompose.extensions.compose.mainthread.SwingMainThreadChecker
 
 -dontwarn androidx.compose.desktop.DesktopTheme*
 -dontoptimize
 -keep class org.fife.** { *; }
 -dontnote org.fife.**
--keep class sun.misc.Unsafe { *; }
 -dontnote sun.misc.Unsafe
 -keep class com.jetbrains.JBR* { *; }
 -dontnote com.jetbrains.JBR*
@@ -198,11 +192,11 @@ kotlinx.serialization.KSerializer serializer(...);
 
 # Keep Serializers
 
--keep,includedescriptorclasses class **$$serializer { *; }
--keepclassmembers class ** {
+-keep,includedescriptorclasses class com.company.package.**$$serializer { *; }
+-keepclassmembers class com.company.package.** {
     *** Companion;
 }
--keepclasseswithmembers class ** {
+-keepclasseswithmembers class com.company.package.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 
@@ -229,4 +223,3 @@ kotlinx.serialization.KSerializer serializer(...);
     public static <1> INSTANCE;
     kotlinx.serialization.KSerializer serializer(...);
 }
-

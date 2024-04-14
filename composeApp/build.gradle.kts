@@ -8,6 +8,7 @@ plugins {
     id(libs.plugins.kotlin.get().pluginId)
     id(libs.plugins.compose.get().pluginId)
     id(libs.plugins.cocoapods.get().pluginId)
+    id(libs.plugins.serialization.get().pluginId)
 }
 
 version = "0.0.1"
@@ -150,6 +151,7 @@ kotlin {
 
 
             implementation(project(":common:core"))
+            implementation(project(":common:ktor"))
 
             implementation(project(":common:utils-compose"))
             implementation(project(":common:utils"))
@@ -285,7 +287,9 @@ compose.desktop {
 
             buildTypes.release.proguard {
                 obfuscate.set(true)
+                isEnabled.set(true)
                 configurationFiles.from("src/jvmMain/compose-desktop.pro")
+                configurationFiles.from("src/commonMain/wtf.pro")
             }
 
 //            buildTypes.release.proguard {

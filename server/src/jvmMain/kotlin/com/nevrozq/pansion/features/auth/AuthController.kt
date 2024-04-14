@@ -164,12 +164,12 @@ class AuthController {
                         }
                     }
 
-                    null -> {
-                        call.respond(
-                            HttpStatusCode.Unauthorized,
-                            "admin.users.User wasn't authorized"
-                        )
-                    }
+//                    null -> {
+//                        call.respond(
+//                            HttpStatusCode.Unauthorized,
+//                            "admin.users.User wasn't authorized"
+//                        )
+//                    }
 
                     else -> {
                         call.respond(HttpStatusCode.BadRequest, "Invalid password")

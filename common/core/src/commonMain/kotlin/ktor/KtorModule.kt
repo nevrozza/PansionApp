@@ -60,7 +60,7 @@ internal val ktorModule = DI.Module("ktorModule") {
 //                header("Access-Control-Allow-Origin", true)
                 url {
                     protocol = URLProtocol.HTTP
-                    host = "127.0.0.1:8081" //127.0.0.1:8081 //192.168.137.1
+                    host = "91.142.72.206:8080" //127.0.0.1:8081 //192.168.137.1
                 }
             }
         }

@@ -3,6 +3,7 @@ plugins {
     id(libs.plugins.android.get().pluginId).apply(false)
     id(libs.plugins.compose.get().pluginId).apply(false)
     id(libs.plugins.cocoapods.get().pluginId).apply(false)
+    id(libs.plugins.serialization.get().pluginId).apply(false)
 //    id(libs.plugins.moko.get().pluginId).apply(false)
 }
 allprojects {
