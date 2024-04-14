@@ -18,6 +18,7 @@ import admin.groups.students.deep.RFetchStudentGroupsReceive
 import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
+import admin.groups.students.deep.RCreateStudentGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
 import admin.users.RRegisterUserReceive
@@ -145,6 +146,40 @@ class AdminRepositoryImpl(
         remoteDataSource.createFormGroup(
             RCreateFormGroupReceive(
                 formId = formId,
+                subjectId = subjectId,
+                groupId = groupId
+            )
+        )
+    }
+
+    override suspend fun deleteFormGroup(
+        formId: Int,
+        subjectId: Int,
+        groupId: Int
+    ) {
+        remoteDataSource.deleteFormGroup(
+            RCreateFormGroupReceive(
+                formId = formId,
+                subjectId = subjectId,
+                groupId = groupId
+            )
+        )
+    }
+
+    override suspend fun createStudentGroup(studentLogin: String, subjectId: Int, groupId: Int) {
+        remoteDataSource.createStudentGroup(
+            RCreateStudentGroupReceive(
+                studentLogin = studentLogin,
+                subjectId = subjectId,
+                groupId = groupId
+            )
+        )
+    }
+
+    override suspend fun deleteStudentGroup(studentLogin: String, subjectId: Int, groupId: Int) {
+        remoteDataSource.deleteStudentGroup(
+            RCreateStudentGroupReceive(
+                studentLogin = studentLogin,
                 subjectId = subjectId,
                 groupId = groupId
             )

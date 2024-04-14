@@ -11,10 +11,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.StringFormat
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonBuilder
 
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
-
         json()
 //        contentType(ContentType.Application.Json)
 //        accept(ContentType.Application.Json)
@@ -27,6 +27,7 @@ fun Application.configureSerialization() {
 //            }
 //        ))
     }
+
     routing {
         get("/json/kotlinx-serialization") {
             call.respond(mapOf("hello" to "world"))

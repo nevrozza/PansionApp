@@ -34,6 +34,25 @@ interface AdminRepository {
         subjectId: Int,
         groupId: Int,
     )//: RCreateFormGroupReceive
+
+    suspend fun createStudentGroup(
+        studentLogin: String,
+        subjectId: Int,
+        groupId: Int,
+    )//: RCreateFormGroupReceive
+
+    suspend fun deleteFormGroup(
+        formId: Int,
+        subjectId: Int,
+        groupId: Int,
+    )//: RCreateFormGroupReceive
+
+    suspend fun deleteStudentGroup(
+        studentLogin: String,
+        subjectId: Int,
+        groupId: Int,
+    )//: RCreateFormGroupReceive
+
     suspend fun createGroup(
         name: String,
         mentorLogin: String,

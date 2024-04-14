@@ -23,7 +23,108 @@ class StudentsExecutor(
             is Intent.ClickOnFormTab -> changeCurrentFormTab(intent.formId)
             is Intent.ClickOnStudent -> changeStudent(intent.studentLogin)
             is Intent.ClickOnStudentPlus -> dispatch(Message.OnStudentPlusClicked(intent.studentLogin))
+
+            Intent.OpenFormGroupCreationMenu -> dispatch(Message.FormGroupCreatingMenuOpened)
+            Intent.CloseFormGroupCreationMenu -> dispatch(Message.FormGroupCreationMenuClosed)
+
+            is Intent.ChangeCFormGroupGroupId -> dispatch(Message.CFormGroupGroupIdChanged(intent.groupId))
+            is Intent.ChangeCFormGroupSubjectId -> changeCFormGroupSubjectId(intent.subjectId)
+            Intent.CreateFormGroup -> createFormGroup(state())
+
+            is Intent.DeleteFormGroup -> deleteFormGroup(subjectId = intent.subjectId, groupId = intent.groupId)
         }
+    }
+
+
+    private fun deleteFormGroup(subjectId: Int, groupId: Int) {
+        scope.launch {
+//            dispatch(Message.CreatingProcessStarted)
+            nStudentGroupsInterface.nStartLoading()
+            try {
+                adminRepository.deleteStudentGroup(
+                    studentLogin = state().chosenStudentLogin,
+                    subjectId = subjectId,
+                    groupId = groupId
+                )
+//                adminRepository.createFormGroup(
+//                    formId = state.chosenFormId,
+//                    subjectId = state.cFormGroupSubjectId,
+//                    groupId = state.cFormGroupGroupId
+//                )
+                dispatch(Message.FormGroupCreated)
+
+            } catch (_: Throwable) {
+                with(nStudentGroupsInterface) {
+                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                        goToNone()
+                    })
+                }
+            }
+            try {
+                updateStudentsGroups(state().chosenStudentLogin)
+            } catch (_: Throwable) {
+                nStudentGroupsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+                    this.launch {
+                        updateStudentsGroups(state().chosenStudentLogin)
+                    }
+                })
+            }
+
+        }
+    }
+
+    private fun createFormGroup(state: State) {
+        scope.launch {
+//            dispatch(Message.CreatingProcessStarted)
+            nStudentGroupsInterface.nStartLoading()
+            try {
+                adminRepository.createStudentGroup(
+                    studentLogin = state.chosenStudentLogin,
+                    subjectId = state.cFormGroupSubjectId,
+                    groupId = state.cFormGroupGroupId
+                )
+//                adminRepository.createFormGroup(
+//                    formId = state.chosenFormId,
+//                    subjectId = state.cFormGroupSubjectId,
+//                    groupId = state.cFormGroupGroupId
+//                )
+                dispatch(Message.FormGroupCreated)
+
+            } catch (_: Throwable) {
+                with(nStudentGroupsInterface) {
+                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                        goToNone()
+                    })
+                }
+            }
+            try {
+                updateStudentsGroups(state().chosenStudentLogin)
+            } catch (_: Throwable) {
+                nStudentGroupsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+                    this.launch {
+                        updateStudentsGroups(state().chosenStudentLogin)
+                    }
+                })
+            }
+
+        }
+    }
+
+    private fun changeCFormGroupSubjectId(subjectId: Int) {
+        dispatch(Message.CFormGroupSubjectIdChanged(subjectId))
+        scope.launch {
+            try {
+                val cutedGroups = adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().studentGroups.map { it.id } }
+//                println("animeGo: $mentors")
+                dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
+//                creatingFormBottomSheet.nInterface.nSuccess()
+            } catch (_: Throwable) {
+//                creatingFormBottomSheet.nInterface.nError("Не удалось загрузить список") {
+//                    updateMentors()
+//                }
+            }
+        }
+
     }
 
     private fun changeStudent(login: String) {
@@ -72,8 +173,10 @@ class StudentsExecutor(
         try {
             nStudentGroupsInterface.nStartLoading()
             val groups = adminRepository.fetchStudentGroups(studentLogin).groups
-            dispatch(Message.StudentGroupsUpdated(groups))
-            nStudentGroupsInterface.nSuccess()
+            if(studentLogin == state().chosenStudentLogin) {
+                dispatch(Message.StudentGroupsUpdated(groups))
+                nStudentGroupsInterface.nSuccess()
+            }
         } catch (e: Throwable) {
             nStudentGroupsInterface.nError("Что-то пошло не так", onFixErrorClick = {
                 scope.launch {
@@ -87,8 +190,10 @@ class StudentsExecutor(
         try {
             nStudentsInterface.nStartLoading()
             val students = adminRepository.fetchStudentsInForm(formId).students
-            dispatch(Message.StudentsUpdated(students))
-            nStudentsInterface.nSuccess()
+            if(state().chosenFormTabId == formId) {
+                dispatch(Message.StudentsUpdated(students))
+                nStudentsInterface.nSuccess()
+            }
         } catch (e: Throwable) {
             nStudentsInterface.nError("Что-то пошло не так", onFixErrorClick = {
                 scope.launch {

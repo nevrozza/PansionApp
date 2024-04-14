@@ -47,6 +47,8 @@ interface FormsStore : Store<Intent, State, Label> {
         data class ChangeCFormGroupGroupId(val groupId: Int) : Intent
         data object CreateFormGroup : Intent
 
+        data class DeleteFormGroup(val subjectId: Int, val groupId: Int) : Intent
+
         data object UpdateMentors : Intent
     }
 

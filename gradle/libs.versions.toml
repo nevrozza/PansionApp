@@ -1,24 +1,28 @@
 [versions]
 # Plugins
 plugin-android = "8.3.0"
-plugin-compose = "1.6.1"
+plugin-compose = "1.6.2"
 
 # Multiplatform
-kotlin = "1.9.23"
+kotlin = "2.0.0-RC1"
 coroutines = "1.8.0"
 serialization = "1.6.3"
 datetime = "0.6.0-RC.2"
-ktor = "3.0.0-beta-2-eap-912"
+#ktor = "3.0.0-beta-2-eap-928"
+ktor = "2.3.10"
 
 
 # Libraries
 sqldelight = "2.0.1"
 settings = "1.1.1"
 di = "7.21.2"
-decompose = "3.0.0-alpha09"
+decompose = "3.0.0-beta01"
 mvikotlin = "4.0.0-alpha02" #"3.3.0" #4.0.0-alpha02
 moko = "0.24.0-alpha-4"
 mokographics = "0.9.0"
+
+# Compose Libraries
+haze = "0.7.0"
 
 # Android
 androidx-compose = "1.6.3"
@@ -62,6 +66,8 @@ settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", vers
 
 kodein-di = "org.kodein.di:kodein-di:7.21.2"
 
+compose-haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+compose-haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 
 jetbrains-compose-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "plugin-compose" }
 

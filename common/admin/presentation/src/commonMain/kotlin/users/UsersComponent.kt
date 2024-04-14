@@ -17,7 +17,9 @@ class UsersComponent(
 ) : ComponentContext by componentContext {
     private val nUsersInterface = NetworkInterface(
         componentContext,
-        storeFactory)
+        storeFactory,
+        "usersComponentNInterface"
+    )
     val nModel = nUsersInterface.networkModel
 
     private val adminRepository: AdminRepository = Inject.instance()

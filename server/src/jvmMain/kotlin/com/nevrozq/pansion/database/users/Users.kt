@@ -5,14 +5,14 @@ import server.Moderation
 import server.Roles
 import admin.users.User
 import admin.users.UserInit
-import com.nevrozq.pansion.utils.cut
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import server.DataLength
+import server.cut
 
 object Users : Table() {
-    private val login = Users.varchar("login", 30)
+    val login = Users.varchar("login", 30).uniqueIndex()
     private val password = Users.varchar("password", 50).nullable()
     private val name = Users.varchar("name", 30)
     private val surname = Users.varchar("surname", 50)

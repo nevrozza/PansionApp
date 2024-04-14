@@ -30,8 +30,13 @@ import view.dynamicDarkScheme
 import view.dynamicLightScheme
 import view.isCanInDynamic
 import androidx.compose.ui.Modifier
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+
 class Root
 
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
@@ -60,7 +65,9 @@ fun Root(
     viewManager.isDark.value =
         if (viewManager.tint.value == ThemeTint.Auto.name) isSystemInDarkTheme()
         else viewManager.tint.value == ThemeTint.Dark.name
-    val colorScheme = colorSchemeGetter(isDark = viewManager.isDark.value, color = viewManager.color.value)
+    val colorScheme =
+        colorSchemeGetter(isDark = viewManager.isDark.value, color = viewManager.color.value)
+
     if (PCChange != null) {
         LaunchedEffect(viewManager.color.value, key2 = viewManager.tint.value) {
             PCChange(viewManager.color.value, viewManager.isDark.value)
@@ -81,6 +88,14 @@ fun Root(
 ////            schemeChooser(themeManager.isDark.value, themeManager.color.value)
 ////        }
 //
+    AppTheme(colorScheme) {
+        val hazeState = remember { HazeState() }
+        val hazeStyle = HazeMaterials.thin()
+        viewManager.hazeState = mutableStateOf(hazeState)
+        viewManager.hazeStyle = mutableStateOf(hazeStyle)
+    }
+
+
     BoxWithConstraints() {
         viewManager.size = this
         viewManager.orientation.value =

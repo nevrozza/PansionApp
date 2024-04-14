@@ -20,7 +20,8 @@ class FormsComponent(
 ) : ComponentContext by componentContext {
     private val nFormGroupsInterface = NetworkInterface(
         componentContext,
-        storeFactory
+        storeFactory,
+        "FormGroupsNInterface"
     )
 
 

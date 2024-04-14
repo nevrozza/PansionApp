@@ -18,11 +18,13 @@ class StudentsComponent(
 ) : ComponentContext by componentContext {
     private val nStudentGroupsInterface = NetworkInterface(
         componentContext,
-        storeFactory
+        storeFactory,
+        "studentGroupsNInterface"
     )
     val nStudentsInterface = NetworkInterface(
         componentContext,
-        storeFactory
+        storeFactory,
+        "studentsComponentInterface"
     )
 //
     val nStudentsModel = nStudentsInterface.networkModel

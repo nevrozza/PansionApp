@@ -24,7 +24,8 @@ class GroupsComponent(
     val nGroupsInterface = NetworkInterface(
 
         componentContext,
-        storeFactory
+        storeFactory,
+        "groupsComponentNInterface"
     )
 
     // HARD
@@ -38,12 +39,14 @@ class GroupsComponent(
     val nSubjectsInterface = NetworkInterface(
 
         componentContext,
-        storeFactory
+        storeFactory,
+        "subjectsComponentNInterface"
     )
     val nFormsInterface = NetworkInterface(
 
         componentContext,
-        storeFactory
+        storeFactory,
+        "formsComponentNInterface"
     )
     private val groupsStore =
         instanceKeeper.getStore {
@@ -53,9 +56,14 @@ class GroupsComponent(
                 formListComponent = formsListComponent,
                 nGroupsInterface = nGroupsInterface,
                 nSubjectsInterface = nSubjectsInterface,
-                nFormsInterface = nFormsInterface
+                nFormsInterface = nFormsInterface,
+                updateMentorsInForms = {updateMentorsInForms()}
                 ).create()
         }
+
+    private fun updateMentorsInForms() {
+        formsComponent.onEvent(FormsStore.Intent.UpdateMentors)
+    }
 
     val model = groupsStore.asValue()
 

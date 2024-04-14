@@ -26,7 +26,8 @@ object PlatformSDK {
                     settingsModule,
                     authModule,
                     adminModule,
-                    mainModule
+                    mainModule,
+                    journalModule
                 )
             }.direct
         )

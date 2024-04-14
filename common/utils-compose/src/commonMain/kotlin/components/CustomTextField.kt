@@ -75,7 +75,8 @@ fun CustomTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.None,
     autoCorrect: Boolean = true,
-    isDateEntry: Boolean = false
+    isDateEntry: Boolean = false,
+    isSingleLine: Boolean = true
 //    onEnterClicked: (() -> Unit)? = null,
 //    onBackClicked: (() -> Unit)? = null,
 ) {
@@ -117,7 +118,7 @@ fun CustomTextField(
         ,
         shape = RoundedCornerShape(15.dp),
         value = value,
-        singleLine = true,
+        singleLine = isSingleLine,
         placeholder = { if(supText != null) Text(supText, modifier = Modifier.alpha(.7f)) },
         label = { if(text != null)Text(text) },
         onValueChange = {

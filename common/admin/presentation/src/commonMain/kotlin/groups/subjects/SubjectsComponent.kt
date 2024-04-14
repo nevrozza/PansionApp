@@ -33,10 +33,16 @@ class SubjectsComponent(
         onAcceptClick = {
             onEvent(SubjectsStore.Intent.CreateSubject)
         },
+        onDeclineClick = { dialogOnDeclineClick() }
+
 //        {
 //            createSubjectDialogOnDeclineClick()
 //        }
     )
+
+    fun dialogOnDeclineClick() {
+        onEvent(SubjectsStore.Intent.ChangeCSubjectText(""))
+    }
 
 //    private fun createSubjectDialogOnDeclineClick() {
 //        cSubjectDialog.onEvent(CAlertDialogStore.Intent.HideDialog)

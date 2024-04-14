@@ -3,6 +3,7 @@ package groups
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateValueAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -33,11 +34,14 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.surfaceColorAtElevation
@@ -55,6 +59,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -69,6 +74,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -86,6 +92,7 @@ import decomposeComponents.ListDialogContent
 import groups.forms.FormsStore
 import groups.subjects.SubjectsStore
 import view.LocalViewManager
+import view.WindowScreen
 import view.rememberImeState
 
 @OptIn(
@@ -129,6 +136,7 @@ fun GroupsContent(
             false
         },
         topBar = {
+            val isBigView = viewManager.orientation.value in listOf(WindowScreen.Expanded, WindowScreen.Horizontal)
             AppBar(
                 navigationRow = {
                     IconButton(
@@ -140,28 +148,70 @@ fun GroupsContent(
                     }
                 },
                 title = {
-                    Text(
-                        "Группы",
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                actionRow = {
+                    if(isBigView) {
+                        Text(
+                            "Группы",
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     if (isInited) {
-                        CustomTextButton(
-                            text = when (model.view) {
-                                GroupsStore.Views.Subjects -> "Предметы"
-                                GroupsStore.Views.Forms -> "Классы"
-                                GroupsStore.Views.Students -> "Ученики"
-                            },
-                            modifier = Modifier.padding(end = 7.dp)
-                        ) {
-                            component.onEvent(GroupsStore.Intent.ChangeView)
+                        val buttonsRow = listOf<Pair<String, GroupsStore.Views>>(
+                            "Предметы" to GroupsStore.Views.Subjects,
+                            "Классы" to GroupsStore.Views.Forms,
+                            "Ученики" to GroupsStore.Views.Students
+                        )
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = if(isBigView) Alignment.CenterEnd else Alignment.CenterStart) {
+                            SecondaryTabRow(
+                                selectedTabIndex = when (model.view) {
+                                    GroupsStore.Views.Subjects -> 0
+                                    GroupsStore.Views.Forms -> 1
+                                    GroupsStore.Views.Students -> 2
+                                },
+                                divider = {
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outline.copy(
+                                            alpha = .4f
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.then(
+                                    if (isBigView) Modifier.width(400.dp)
+                                    else Modifier.fillMaxWidth()
+                                ),
+                                containerColor = Color.Transparent
+                            ) {
+                                buttonsRow.forEach {
+                                    Tab(
+                                        selected = it.second == model.view,
+                                        onClick = {
+                                            component.onEvent(GroupsStore.Intent.ChangeView(it.second))
+                                        },
+                                        text = { Text(it.first) })
+                                }
+                            }
                         }
                     }
-                }
+                },
+                actionRow = {
+//                        ) {
+//                            buttonsRow.forEach {
+////                                CustomTextButton(
+////                                    text = it.first,
+////                                    modifier = Modifier.padding(end = if(it.second != GroupsStore.Views.Students) 4.dp else 7.dp),
+////                                    fontWeight = if(it.second == model.view) FontWeight.Black else FontWeight.SemiBold,
+////                                    fontSize = if(it.second == model.view) TextUnit.Unspecified else 10.sp
+////
+////                                ) {
+////                                    component.onEvent(GroupsStore.Intent.ChangeView(it.second))
+////                                }
+//                            }
+//                        }
+
+                },
+                isHaze = true
             )
         },
         floatingActionButtonPosition = FabPosition.Center,
@@ -202,61 +252,65 @@ fun GroupsContent(
 
     )
     { padding ->
-
-        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-            if (nModel.state == NetworkState.Error && !isInited) {
-                DefaultGroupsErrorScreen(
-                    isFabShowing,
-                    component.nGroupsInterface
-                )
-            } else if (isInited) {
-                Crossfade(model.view) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        when (it) {
-                            GroupsStore.Views.Subjects -> {
-                                if (subjectsModel.chosenSubjectId == 0) {
-                                    if (model.subjects.isNotEmpty()) {
-                                        component.subjectsComponent.onEvent(
-                                            SubjectsStore.Intent.ClickOnSubject(
-                                                model.subjects.last().id
+        Crossfade(isInited) {
+            Box(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()), contentAlignment = Alignment.Center) {
+                if (nModel.state == NetworkState.Error && !it) {
+                    DefaultGroupsErrorScreen(
+                        isFabShowing,
+                        component.nGroupsInterface
+                    )
+                } else if (it) {
+                    Crossfade(model.view) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            when (it) {
+                                GroupsStore.Views.Subjects -> {
+                                    if (subjectsModel.chosenSubjectId == 0) {
+                                        if (model.subjects.isNotEmpty()) {
+                                            component.subjectsComponent.onEvent(
+                                                SubjectsStore.Intent.ClickOnSubject(
+                                                    model.subjects.last().id
+                                                )
                                             )
-                                        )
-                                    } else {
-                                        component.subjectsComponent.cSubjectDialog.onEvent(
-                                            CAlertDialogStore.Intent.ShowDialog
-                                        )
+                                        } else {
+                                            component.subjectsComponent.cSubjectDialog.onEvent(
+                                                CAlertDialogStore.Intent.ShowDialog
+                                            )
+                                        }
                                     }
+                                    SubjectsContent(
+                                        component = component.subjectsComponent,
+                                        coroutineScope = coroutineScope,
+                                        topPadding = padding.calculateTopPadding(),
+                                        isFabShowing = isFabShowing
+                                    )
                                 }
-                                SubjectsContent(
-                                    component = component.subjectsComponent,
+
+                                GroupsStore.Views.Forms -> FormsContent(
+                                    component = component.formsComponent,
+                                    isFabShowing = isFabShowing,
+                                    topPadding = padding.calculateTopPadding(),
+                                    padding = padding
+                                )
+
+                                GroupsStore.Views.Students -> StudentsContent(
+                                    component = component.studentsComponent,
                                     coroutineScope = coroutineScope,
+                                    topPadding = padding.calculateTopPadding(),
                                     isFabShowing = isFabShowing
                                 )
                             }
-
-                            GroupsStore.Views.Forms -> FormsContent(
-                                component = component.formsComponent,
-                                isFabShowing = isFabShowing,
-                                padding = padding
-                            )
-
-                            GroupsStore.Views.Students -> StudentsContent(
-                                component = component.studentsComponent,
-                                coroutineScope = coroutineScope,
-                                isFabShowing = isFabShowing
-                            )
                         }
                     }
-                }
-                //                      PullRefreshIndicator(
+                    //                      PullRefreshIndicator(
 ////                modifier = Modifier.align(alignment = Alignment.TopCenter),
 ////                refreshing = model.isInProcess && model.teachers != null,
 ////                state = refreshState,
 ////            )
-            } else {
-                LoadingAnimation()
-            }
+                } else {
+                    LoadingAnimation()
+                }
 
+            }
         }
 
 
@@ -292,7 +346,7 @@ fun GroupsContent(
                         //component.onEvent(UsersStore.Intent.ChangeESurname(it))
                     },
                     modifier = if (!nexted.value) {
-                        Modifier.onPlaced {
+                        Modifier.onGloballyPositioned {
                             focusManager.moveFocus(FocusDirection.Next)
                         }.onFocusEvent {
                             if (it.isFocused) nexted.value = true

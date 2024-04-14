@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.HazeMaterials
+import view.LocalViewManager
 
 @Composable
 fun AppBar(
@@ -27,10 +33,15 @@ fun AppBar(
     title: @Composable () -> Unit = {},
     navigationRow: @Composable () -> Unit = {},
     actionRow: @Composable () -> Unit = {},
-    containerColor: Color = MaterialTheme.colorScheme.surface
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    isHaze: Boolean = false
 ) {
+    val viewManager = LocalViewManager.current
     Box(
-        Modifier.fillMaxWidth().height(60.dp).background(containerColor),
+        Modifier.fillMaxWidth().height(60.dp).background(if (isHaze) Color.Transparent else containerColor).then(
+            if(isHaze && viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(state = viewManager.hazeState!!.value, style = viewManager.hazeStyle!!.value)
+            else Modifier
+        ),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -38,14 +49,14 @@ fun AppBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 Box(Modifier.offset(y = (1).dp)) {
                     navigationRow()
                 }
                 title()
             }
 
-            Row() {
+            Row(modifier = Modifier.wrapContentSize()) {
                 actionRow()
             }
         }

@@ -27,18 +27,21 @@ class ListComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     name: String,
-    private val onItemClick: (ListItem) -> Unit
+    private val onItemClick: (ListItem) -> Unit,
+    customOnDismiss: (() -> Unit)? = null
 ) : ComponentContext by componentContext {
     val nInterface = NetworkInterface(
         componentContext,
-        storeFactory
+        storeFactory,
+        name+"NInterface"
     )
     val nModel = nInterface.networkModel
     private val listStore =
         instanceKeeper.getStore(key = name) {
             ListDialogStoreFactory(
                 storeFactory = storeFactory,
-                networkInterface = nInterface
+                networkInterface = nInterface,
+                customOnDismiss = customOnDismiss
             ).create()
         }
 

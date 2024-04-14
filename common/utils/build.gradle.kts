@@ -15,6 +15,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines)
             implementation(libs.mvikotlin.core)
             implementation(libs.mvikotlin.coroutines)
+            implementation(libs.kotlinx.datetime)
 
 //            implementation("com.arkivanov.mvikotlin:rx:4.0.0-alpha02")
 

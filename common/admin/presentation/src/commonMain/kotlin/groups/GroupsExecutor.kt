@@ -21,28 +21,30 @@ class GroupsExecutor(
     private val formListComponent: ListComponent,
     private val nGroupsInterface: NetworkInterface,
     private val nSubjectsInterface: NetworkInterface,
-    private val nFormsInterface: NetworkInterface
+    private val nFormsInterface: NetworkInterface,
+    private val updateMentorsInForms: () -> Unit
 ) :
     CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.InitList -> init()
 
-            Intent.ChangeView -> dispatch(
+            is Intent.ChangeView -> dispatch(
                 Message.ViewChanged(
-                    when (state().view) {
-                        GroupsStore.Views.Subjects -> {
-                            GroupsStore.Views.Forms
-                        }
-
-                        GroupsStore.Views.Forms -> {
-                            GroupsStore.Views.Students
-                        }
-
-                        else -> {
-                            GroupsStore.Views.Subjects
-                        }
-                    }
+                    intent.view
+//                    when (state().view) {
+//                        GroupsStore.Views.Subjects -> {
+//                            GroupsStore.Views.Forms
+//                        }
+//
+//                        GroupsStore.Views.Forms -> {
+//                            GroupsStore.Views.Students
+//                        }
+//
+//                        else -> {
+//                            GroupsStore.Views.Subjects
+//                        }
+//                    }
                 )
             )
 
@@ -108,9 +110,8 @@ class GroupsExecutor(
                 updateFormsList(formsA)
             } catch (e: Throwable) {
                 nGroupsInterface.nError("Что-то пошло не так =/") {
-
                         init()
-
+                        updateMentorsInForms()
                 }
                 println(e)
             }

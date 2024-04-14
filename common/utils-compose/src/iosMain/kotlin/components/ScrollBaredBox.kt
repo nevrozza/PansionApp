@@ -29,7 +29,7 @@ actual fun ScrollBaredBox(
         Box(
             Modifier.clip(RoundedCornerShape(15.dp)).border(
             width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
             RoundedCornerShape(15.dp)
         )) {
             content()

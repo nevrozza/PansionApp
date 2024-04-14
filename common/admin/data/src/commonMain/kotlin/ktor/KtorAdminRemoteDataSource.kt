@@ -19,11 +19,13 @@ import admin.groups.students.deep.RFetchStudentGroupsReceive
 import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
+import admin.groups.students.deep.RCreateStudentGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
 import admin.users.RFetchAllUsersResponse
+import checkOnNoOk
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post
@@ -59,24 +61,23 @@ class KtorAdminRemoteDataSource(
     }
 
     suspend fun clearUserPassword(request: RClearUserPasswordReceive) {
-        return httpClient.post {
+        httpClient.post {
             bearer()
             url {
                 path(RequestPaths.UserManage.ClearPasswordAdmin)
                 setBody(request)
             }
-        }.body()
-
+        }.status.value.checkOnNoOk()
     }
 
     suspend fun performEditUser(request: REditUserReceive) {
-        return httpClient.post {
+        httpClient.post {
             bearer()
             url {
                 path(RequestPaths.UserManage.EditUser)
                 setBody(request)
             }
-        }.body()
+        }.status.value.checkOnNoOk()
 
     }
 
@@ -113,33 +114,64 @@ class KtorAdminRemoteDataSource(
     }
 
     suspend fun createNewSubject(request: RCreateSubjectReceive) {
-        return httpClient.post {
+        httpClient.post {
             bearer()
             url {
                 path(RequestPaths.Lessons.CreateSubject)
                 setBody(request)
             }
-        }.body()
+        }.status.value.checkOnNoOk()
     }
 
-    suspend fun createFormGroup(request: RCreateFormGroupReceive) {
-        return httpClient.post {
+    suspend fun createFormGroup(request: RCreateFormGroupReceive){
+        httpClient.post {
             bearer()
             url {
                 path(RequestPaths.Lessons.CreateFormGroup)
                 setBody(request)
             }
-        }.body()
+        }.status.value.checkOnNoOk()
     }
 
-    suspend fun bindStudentToForm(request: RBindStudentToFormReceive) {
+    suspend fun deleteFormGroup(request: RCreateFormGroupReceive){
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.DeleteFormGroup)
+                setBody(request)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+    suspend fun createStudentGroup(request: RCreateStudentGroupReceive){
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.CreateStudentGroup)
+                setBody(request)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+    suspend fun deleteStudentGroup(request: RCreateStudentGroupReceive){
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.DeleteStudentGroup)
+                setBody(request)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+
+    suspend fun bindStudentToForm(request: RBindStudentToFormReceive){
         return httpClient.post {
             bearer()
             url {
                 path(RequestPaths.Lessons.BindStudentToForm)
                 setBody(request)
             }
-        }.body()
+        }.status.value.checkOnNoOk()
     }
 
     suspend fun createGroup(request: RCreateGroupReceive) {
@@ -149,7 +181,7 @@ class KtorAdminRemoteDataSource(
                 path(RequestPaths.Lessons.CreateGroup)
                 setBody(request)
             }
-        }.body()
+        }.status.value.checkOnNoOk()
     }
 
     suspend fun createForm(request: CreateFormReceive) {
@@ -159,7 +191,7 @@ class KtorAdminRemoteDataSource(
                 path(RequestPaths.Lessons.CreateForm)
                 setBody(request)
             }
-        }.body()
+        }.status.value.checkOnNoOk()
     }
 
     suspend fun performFetchGroups(request: RFetchGroupsReceive): RFetchGroupsResponse {
@@ -175,7 +207,7 @@ class KtorAdminRemoteDataSource(
         return httpClient.post {
             bearer()
             url {
-                path(RequestPaths.Lessons.FetchStudentsInGroup)
+                path(RequestPaths.Lessons.FetchStudentGroups)
                 setBody(request)
             }
         }.body()

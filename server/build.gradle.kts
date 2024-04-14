@@ -1,3 +1,5 @@
+import io.ktor.plugin.features.DockerPortMapping
+import io.ktor.plugin.features.DockerPortMappingProtocol
 
 val ktorV = "3.0.0-beta-2-eap-912"
 plugins {
@@ -13,6 +15,24 @@ application {
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+}
+
+ktor {
+    docker {
+        jreVersion.set(JavaVersion.VERSION_21)
+        localImageName.set("pansionApp-docker-image")
+        imageTag.set("1.0.01")
+
+        portMappings.set(
+            listOf(
+                DockerPortMapping(outsideDocker = 80, insideDocker = 8080, DockerPortMappingProtocol.TCP)
+            )
+        )
+    }
+
+    fatJar {
+        archiveFileName.set("fat.jar")
+    }
 }
 
 repositories {

@@ -18,6 +18,7 @@ import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.forms.RFetchCutedGroupsResponse
+import admin.groups.students.deep.RCreateStudentGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
 import com.nevrozq.pansion.database.formGroups.FormGroupDTO
@@ -31,6 +32,7 @@ import com.nevrozq.pansion.database.groups.GroupDTO
 import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
+import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.subjects.SubjectDTO
@@ -235,6 +237,83 @@ class LessonsController() {
                 call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Form already exists")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't create group: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+
+    suspend fun deleteFormGroup(call: ApplicationCall) {
+        val r = call.receive<RCreateFormGroupReceive>()
+        if (call.isModer) {
+            try {
+
+                FormGroups.delete(
+                    FormGroupDTO(
+                        formId = r.formId,
+                        groupId = r.groupId,
+                        subjectId = r.subjectId
+                    )
+                )
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "wtfIsGoingOn")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't delete: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun deleteStudentGroup(call: ApplicationCall) {
+        val r = call.receive<RCreateStudentGroupReceive>()
+        if (call.isModer) {
+            try {
+                StudentGroups.delete(
+                    StudentGroupDTO(
+                        studentLogin = r.studentLogin,
+                        groupId = r.groupId,
+                        subjectId = r.subjectId
+                    )
+                )
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "wtfIsGoingOn")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't delete: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun createStudentGroup(call: ApplicationCall) {
+        val r = call.receive<RCreateStudentGroupReceive>()
+        if (call.isModer) {
+            try {
+                StudentGroups.insert(
+                    StudentGroupDTO(
+                        studentLogin = r.studentLogin,
+                        groupId = r.groupId,
+                        subjectId = r.subjectId
+                    )
+                )
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "StudentGroup already exists")
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,

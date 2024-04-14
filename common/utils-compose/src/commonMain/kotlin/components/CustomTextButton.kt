@@ -21,6 +21,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun CustomTextButton(
@@ -28,6 +30,7 @@ fun CustomTextButton(
     modifier: Modifier = Modifier,
     fontWeight: FontWeight = FontWeight.SemiBold,
     color: Color = MaterialTheme.colorScheme.primary,
+    fontSize: TextUnit = TextUnit.Unspecified,
     onClick: () -> Unit
 ) {
     CustomTextButton(text = buildAnnotatedString {
@@ -36,7 +39,7 @@ fun CustomTextButton(
                 text
             )
         }
-    }, color = color, onClick = onClick, modifier = modifier)
+    }, color = color, onClick = onClick, modifier = modifier, fontSize = fontSize)
 }
 
 @Composable
@@ -44,6 +47,7 @@ fun CustomTextButton(
     text: AnnotatedString,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
+    fontSize: TextUnit = TextUnit.Unspecified,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -54,7 +58,7 @@ fun CustomTextButton(
         targetValue = if (isDark) color.hv() else color
     )
     Color(1.0f, 1.0f, 1.0f)
-    Text(text, color = color,
+    Text(text, color = color, fontSize = fontSize,
         modifier = modifier.then(Modifier.hoverable(interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) {
                 onClick()

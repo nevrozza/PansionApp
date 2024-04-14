@@ -1,5 +1,7 @@
 package com.nevrozq.pansion.database.groups
 
+import com.nevrozq.pansion.database.subjects.SubjectDTO
+import com.nevrozq.pansion.database.subjects.Subjects
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -7,7 +9,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Groups : Table() {
-    private val id = Groups.integer("id").autoIncrement().uniqueIndex()
+    val id = Groups.integer("id").autoIncrement().uniqueIndex()
     private val name = Groups.varchar("name", 50)
     private val teacherLogin = Groups.varchar("teacherLogin", 30)
     private val subjectId = Groups.integer("subjectId")
@@ -65,6 +67,19 @@ object Groups : Table() {
             } catch (e: Throwable) {
                 println(e)
                 listOf()
+            }
+        }
+    }
+
+    fun fetchSubjectIdOfGroup(groupId: Int): Int {
+        return transaction {
+            try {
+                val group =
+                    Groups.select { Groups.id eq groupId }.first()
+                group[subjectId]
+            } catch (e: Throwable) {
+                println(e)
+                -1
             }
         }
     }
@@ -140,6 +155,12 @@ object Groups : Table() {
                     isActive = group[isActive]
                 )
             }
+        }
+    }
+
+    fun getTeacherLogin(id: Int): String {
+        return transaction {
+            Groups.select { Groups.id eq id }.first()[teacherLogin]
         }
     }
 

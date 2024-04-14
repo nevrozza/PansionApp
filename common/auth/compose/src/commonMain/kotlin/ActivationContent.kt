@@ -43,6 +43,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.ArrowBackIos
 import androidx.compose.material.icons.rounded.AutoMode
 import androidx.compose.material.icons.rounded.Cake
@@ -74,6 +75,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onPlaced
@@ -621,6 +623,18 @@ private fun ActivationInContent(
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                             ) {}
                         }
+
+                        Row() {
+                            Icon(
+                                Icons.AutoMirrored.Rounded.Send,
+                                null,
+                                modifier = Modifier.rotate(360-45.0f)
+                            )
+                            Text(
+                                "@pansionApp"
+                            )
+                        }
+
                         AnimatedContent(
                             when (model.language) {
                                 else -> "\uD83C\uDDF7\uD83C\uDDFA"

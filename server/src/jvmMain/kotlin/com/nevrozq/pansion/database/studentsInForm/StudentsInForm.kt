@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.database.studentsInForm
 
+import com.nevrozq.pansion.database.forms.FormDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
@@ -51,6 +52,13 @@ object StudentsInForm : Table() {
                 println(e)
                 listOf()
             }
+        }
+    }
+
+    fun fetchFormIdOfLogin(studentLogin: String): Int {
+        return transaction {
+            StudentsInForm.select { StudentsInForm.login eq studentLogin }
+                .first()[StudentsInForm.formId]
         }
     }
 

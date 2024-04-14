@@ -18,6 +18,8 @@ kotlin {
                 implementation(libs.mvikotlin.core)
                 implementation(libs.mvikotlin.coroutines)
 
+                implementation(libs.kotlinx.datetime)
+
 
             }
         }

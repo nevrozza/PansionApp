@@ -15,7 +15,8 @@ class CBottomSheetComponent(
 ) : ComponentContext by componentContext {
     val nInterface = NetworkInterface(
         componentContext,
-        storeFactory
+        storeFactory,
+        name+"NInterface"
     )
     val nModel = nInterface.networkModel
     private val cBottomSheetStore =

@@ -33,15 +33,15 @@ class FormsExecutor(
             is Intent.ChangeCFormMentorLogin -> dispatch(Message.CFormMentorLoginChanged(i.mentorLogin))
             Intent.CreateFormGroup -> createFormGroup(state())
             Intent.UpdateMentors -> updateMentors()
+            is Intent.DeleteFormGroup -> deleteFormGroup(subjectId = i.subjectId, groupId = i.groupId)
         }
     }
 
     private fun changeCFormGroupSubjectId(subjectId: Int) {
-        println("updatingMentors")
         dispatch(Message.CFormGroupSubjectIdChanged(subjectId))
         scope.launch {
             try {
-                val cutedGroups = adminRepository.fetchCutedGroups(subjectId).groups
+                val cutedGroups = adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().formGroups.map { it.groupId } }
 //                println("animeGo: $mentors")
                 dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
 //                creatingFormBottomSheet.nInterface.nSuccess()
@@ -55,12 +55,10 @@ class FormsExecutor(
     }
 
     private fun updateMentors() {
-        println("updatingMentors")
         creatingFormBottomSheet.nInterface.nStartLoading()
         scope.launch {
             try {
                 val mentors = adminRepository.fetchAllMentors().mentors
-                println("animeGo: $mentors")
                 dispatch(Message.MentorsUpdated(mentors))
                 creatingFormBottomSheet.nInterface.nSuccess()
             } catch (_: Throwable) {
@@ -107,6 +105,13 @@ class FormsExecutor(
                     classNum = state.cFormClassNum.toInt(),
                     shortTitle = state.cFormShortTitle
                 )
+
+
+                dispatch(Message.CFormTitleChanged(""))
+                dispatch(Message.CFormClassNumChanged(""))
+                dispatch(Message.CFormShortTitleChanged(""))
+                dispatch(Message.CFormMentorLoginChanged(""))
+
 //                dispatch(GroupsStore.Message.FormCreated(forms))
                 creatingFormBottomSheet.fullySuccess()
                 //nInterfaceOfSheet
@@ -120,6 +125,39 @@ class FormsExecutor(
                 //nInterfaceOfSheetError
             }
             updateForms()
+        }
+    }
+
+
+    private fun deleteFormGroup(subjectId: Int, groupId: Int) {
+        scope.launch {
+//            dispatch(Message.CreatingProcessStarted)
+            nFormGroupsInterface.nStartLoading()
+            try {
+                adminRepository.deleteFormGroup(
+                    formId = state().chosenFormId,
+                    subjectId = subjectId,
+                    groupId = groupId
+                )
+//                dispatch(Message.FormGroupCreated)
+
+            } catch (_: Throwable) {
+                with(nFormGroupsInterface) {
+                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                        goToNone()
+                    })
+                }
+            }
+            try {
+                updateFormGroups(state().chosenFormId)
+            } catch (_: Throwable) {
+                nFormGroupsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+                    this.launch {
+                        updateFormGroups(state().chosenFormId)
+                    }
+                })
+            }
+
         }
     }
 

@@ -56,6 +56,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.Velocity
@@ -79,7 +80,8 @@ import view.WindowScreen
 @ExperimentalMaterial3Api
 @Composable
 fun ListDialogContent(
-    component: ListComponent
+    component: ListComponent,
+    title: String = "Выберите"
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
@@ -129,7 +131,8 @@ fun ListDialogContent(
             nModel = nModel,
             isShowingCostil = isShowingCostil,
             coroutineScope = coroutineScope,
-            modalBottomSheetState = modalBottomSheetState
+            modalBottomSheetState = modalBottomSheetState,
+            title = title
         )
     }
 
@@ -143,7 +146,8 @@ private fun BottomSheetVariant(
     nModel: NetworkInterface.NetworkModel,
     isShowingCostil: MutableState<Boolean>,
     coroutineScope: CoroutineScope,
-    modalBottomSheetState: SheetState
+    modalBottomSheetState: SheetState,
+    title: String = "Выберите"
 ) {
 
 
@@ -177,9 +181,11 @@ private fun BottomSheetVariant(
                                             fontSize = 20.sp
                                         )
                                     ) {
-                                        append("Выберите")
+                                        append(title)
                                     }
-                                }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
                             )
                             LazyColumn(
                                 Modifier.imePadding().padding(top = 5.dp)

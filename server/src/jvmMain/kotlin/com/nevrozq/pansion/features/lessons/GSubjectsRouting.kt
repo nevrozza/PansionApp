@@ -25,6 +25,19 @@ fun Application.configureLessonsRouting() {
         post(RequestPaths.Lessons.FetchStudentGroups) {
             lessonsController.fetchStudentGroups(call)
         }
+
+        post(RequestPaths.Lessons.CreateStudentGroup) {
+            lessonsController.createStudentGroup(call)
+        }
+
+        post(RequestPaths.Lessons.DeleteStudentGroup) {
+            lessonsController.deleteStudentGroup(call)
+        }
+
+        post(RequestPaths.Lessons.DeleteFormGroup) {
+            lessonsController.deleteFormGroup(call)
+        }
+
         post(RequestPaths.Lessons.FetchTeacherGroups) {
             lessonsController.fetchTeacherGroups(call)
         }

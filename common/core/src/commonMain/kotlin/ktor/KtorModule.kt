@@ -25,6 +25,7 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonBuilder
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.singleton
@@ -40,6 +41,7 @@ internal val ktorModule = DI.Module("ktorModule") {
 
             install(ContentNegotiation) {
                 json(Json {
+                    allowSpecialFloatingPointValues = true
                     isLenient = true
                     ignoreUnknownKeys = true
                     prettyPrint = true
@@ -58,7 +60,7 @@ internal val ktorModule = DI.Module("ktorModule") {
 //                header("Access-Control-Allow-Origin", true)
                 url {
                     protocol = URLProtocol.HTTP
-                    host = "127.0.0.1:8081" //192.168.137.1:8080
+                    host = "127.0.0.1:8081" //127.0.0.1:8081 //192.168.137.1
                 }
             }
         }

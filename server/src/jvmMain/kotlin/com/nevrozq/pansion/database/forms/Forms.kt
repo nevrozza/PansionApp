@@ -2,6 +2,7 @@ package com.nevrozq.pansion.database.forms
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -41,6 +42,21 @@ object Forms : Table() {
                     isActive = it[isActive]
                 )
             }
+        }
+    }
+
+    fun fetchById(formId: Int): FormDTO {
+        return transaction {
+            val it = Forms.select { Forms.id eq formId }.first()
+            FormDTO(
+                formId = it[Forms.id],
+                classNum = it[classNum],
+                title = it[title],
+                shortTitle = it[shortTitle],
+                mentorLogin = it[mentorLogin],
+                isActive = it[isActive]
+            )
+
         }
     }
 }

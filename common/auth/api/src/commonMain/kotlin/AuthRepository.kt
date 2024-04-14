@@ -9,6 +9,7 @@ interface AuthRepository {
 
     fun isUserLoggedIn(): Boolean
     fun fetchToken(): String
+    fun fetchAvatarId(): Int
     fun deleteToken()
 //    fun saveName(name: String)
     fun fetchName(): String

@@ -105,6 +105,7 @@ import server.twoNums
 import users.UsersComponent
 import users.UsersStore
 import view.LocalViewManager
+import view.LockScreenOrientation
 import view.rememberImeState
 
 @OptIn(
@@ -116,6 +117,7 @@ import view.rememberImeState
 fun UsersContent(
     component: UsersComponent
 ) {
+    LockScreenOrientation(-1)
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
     val viewManager = LocalViewManager.current
@@ -743,7 +745,9 @@ private fun editUserSheet(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalFoundationApi::class, ExperimentalFoundationApi::class
+)
 @Composable
 private fun createUserSheet(
     component: UsersComponent,
@@ -1203,7 +1207,7 @@ fun TableScreen(
                 columnNames.onEachIndexed { index, i ->
                     if (index != widths.size - 1) {
                         Spacer(Modifier.width(widths[i]!! - 0.5.dp))
-                        Divider(Modifier.height(allHeight.value).width(1.dp))
+                        Divider(Modifier.height(allHeight.value).width(1.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = .4f))
                     }
                 }
 
@@ -1262,7 +1266,7 @@ fun TableScreen(
 
 
                 Divider(
-                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp).height(1.dp)
+                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp).height(1.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
                 )
                 LazyColumn(
                     modifier = Modifier,
@@ -1319,7 +1323,7 @@ fun TableScreen(
                             if (index != rows.lastIndex) {
                                 Divider(
                                     Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp)
-                                        .height(1.dp)
+                                        .height(1.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
                                 )
                             }
                         }

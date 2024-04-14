@@ -8,7 +8,7 @@ object FormsReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
 
-            is Message.ChosenFormIdChanged -> copy(chosenFormId = msg.formId)
+            is Message.ChosenFormIdChanged -> copy(formGroups = listOf(), chosenFormId = msg.formId, isFormGroupCreatingMenu = false, cFormGroupGroupId = 0, cFormGroupSubjectId = 0)
 
             is Message.CFormClassNumChanged -> copy(cFormClassNum = msg.classNum)
             is Message.CFormGroupGroupIdChanged -> copy(cFormGroupGroupId = msg.groupId)

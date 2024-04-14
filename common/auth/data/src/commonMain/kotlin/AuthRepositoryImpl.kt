@@ -30,7 +30,8 @@ class AuthRepositoryImpl(
             praname = r.activation.user.fio.praname,
             role = r.activation.user.role,
             moderation = r.activation.user.moderation,
-            login = r.activation.login
+            login = r.activation.login,
+            avatarId = r.avatarId
         )
         return r
     }
@@ -54,7 +55,8 @@ class AuthRepositoryImpl(
             praname = r.user.fio.praname,
             role = r.user.role,
             moderation = r.user.moderation,
-            login = r.login
+            login = r.login,
+            avatarId = 0
         )
         return r
     }
@@ -130,6 +132,10 @@ class AuthRepositoryImpl(
 
     override fun fetchToken(): String {
         return cacheDataSource.fetchToken()
+    }
+
+    override fun fetchAvatarId(): Int {
+        return cacheDataSource.fetchAvatarId()
     }
 
     override fun deleteToken() {

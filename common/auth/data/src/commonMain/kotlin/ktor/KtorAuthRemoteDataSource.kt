@@ -4,6 +4,7 @@ import RequestPaths
 import auth.ActivationReceive
 import auth.ActivationResponse
 import auth.*
+import checkOnNoOk
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -22,7 +23,7 @@ class KtorAuthRemoteDataSource(
                 header("Bearer-Authorization", token)
                 path(RequestPaths.Tokens.logout)
             }
-        }
+        }.status.value.checkOnNoOk()
     }
     suspend fun performLogin(request: LoginReceive) : LoginResponse {
         return httpClient.post {

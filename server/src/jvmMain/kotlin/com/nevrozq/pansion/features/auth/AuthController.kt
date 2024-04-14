@@ -19,10 +19,10 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.tokens.TokenDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
-import com.nevrozq.pansion.utils.cut
 import com.nevrozq.pansion.utils.nullUUID
 import com.nevrozq.pansion.utils.toId
 import server.DataLength
+import server.cut
 import java.util.UUID
 
 class AuthController {

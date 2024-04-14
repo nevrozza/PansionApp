@@ -29,7 +29,8 @@ class CAlertDialogComponent(
 ) : ComponentContext by componentContext {
     val nInterface = NetworkInterface(
         componentContext,
-        storeFactory
+        storeFactory,
+        name+"NInterface"
     )
     val nModel = nInterface.networkModel
 
@@ -41,7 +42,7 @@ class CAlertDialogComponent(
                 onDeclineClick = if (onDeclineClick != null) {
                     {
                         this.onEvent(CAlertDialogStore.Intent.HideDialog)
-                        onDeclineClick
+                        onDeclineClick!!()
                     }
 
                 } else {

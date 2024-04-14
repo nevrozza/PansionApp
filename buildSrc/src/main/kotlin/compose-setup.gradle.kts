@@ -31,10 +31,11 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
+            implementation("dev.chrisbanes.haze:haze:0.7.0")
+            implementation("dev.chrisbanes.haze:haze-materials:0.7.0")
 //            implementation("org.jetbrains.compose.annotation-internal:annotation:1.6.0-beta02")
         }
         jvmMain.dependencies {
-
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)
 

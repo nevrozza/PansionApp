@@ -5,10 +5,10 @@ Pod::Spec.new do |spec|
     spec.source                   = { :http=> ''}
     spec.authors                  = ''
     spec.license                  = ''
-    spec.summary                  = 'PlayZone iOS SDK'
+    spec.summary                  = 'PansionApp iOS SDK'
     spec.vendored_frameworks      = 'build/cocoapods/framework/SharedSDK.framework'
     spec.libraries                = 'c++'
-    spec.ios.deployment_target = '16.0'
+    spec.ios.deployment_target    = '16.0'
                 
                 
     if !Dir.exist?('build/cocoapods/framework/SharedSDK.framework') || Dir.empty?('build/cocoapods/framework/SharedSDK.framework')
@@ -21,6 +21,10 @@ Pod::Spec.new do |spec|
 
         Alternatively, proper pod installation is performed during Gradle sync in the IDE (if Podfile location is set)"
     end
+                
+    spec.xcconfig = {
+        'ENABLE_USER_SCRIPT_SANDBOXING' => 'NO',
+    }
                 
     spec.pod_target_xcconfig = {
         'KOTLIN_PROJECT_PATH' => ':composeApp',

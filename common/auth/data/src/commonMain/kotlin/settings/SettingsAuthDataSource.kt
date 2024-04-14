@@ -16,6 +16,7 @@ class SettingsAuthDataSource(
         settings[pranameKey] = ""
         settings[roleKey] = ""
         settings[moderationKey] = ""
+        settings[avatarKey] = 0
     }
 
     fun saveToken(token: String) {
@@ -35,6 +36,10 @@ class SettingsAuthDataSource(
         settings[tokenKey] = ""
     }
 
+    fun fetchAvatarId(): Int {
+        return settings[avatarKey, 0]
+    }
+
     fun fetchName(): String {
         return settings[nameKey, ""]
     }
@@ -43,7 +48,7 @@ class SettingsAuthDataSource(
         return settings[surnameKey, ""]
     }
 
-    fun saveUser(token: String, login: String, name: String, surname: String, praname: String?, role: String, moderation: String) {
+    fun saveUser(token: String, login: String, name: String, surname: String, praname: String?, role: String, moderation: String, avatarId: Int) {
         settings[loginKey] = login
         settings[tokenKey] = token
         settings[nameKey] = name
@@ -51,6 +56,7 @@ class SettingsAuthDataSource(
         settings[pranameKey] = praname
         settings[roleKey] = role
         settings[moderationKey] = moderation
+        settings[avatarKey] = avatarId
     }
 
     fun fetchPraname(): String {
@@ -74,5 +80,6 @@ class SettingsAuthDataSource(
         const val pranameKey = "pranameKey"
         const val roleKey = "roleKey"
         const val moderationKey = "moderationKey"
+        const val avatarKey = "avatarKey"
     }
 }

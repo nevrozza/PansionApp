@@ -110,9 +110,9 @@ import server.DeviceTypex
 @ExperimentalFoundationApi
 @OptIn(ExperimentalDecomposeApi::class)
 fun main() {
-    GlobalScope.launch(Dispatchers.IO) {
-        com.nevrozq.pansion.main()
-    }
+//    GlobalScope.launch(Dispatchers.IO) {
+//        com.nevrozq.pansion.main()
+//    }
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
@@ -149,7 +149,7 @@ fun main() {
             DecoratedWindow(
                 onCloseRequest = { exitApplication() },
                 state = windowState,
-                title = "Классический пансион МГУ",
+                title = "PansionApp",
                 visible = isVisible,
                 icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 

@@ -16,11 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.materials.HazeMaterials
 
 class ViewManager(
     var tint: MutableState<String> = mutableStateOf(ThemeTint.Auto.name),
     var color: MutableState<String> = mutableStateOf(ThemeColors.Default.name),
     var isDark: MutableState<Boolean> = mutableStateOf(false),
+    var hazeState: MutableState<HazeState>? = null,
+    var hazeStyle: MutableState<HazeStyle>? = null,
     var size: BoxWithConstraintsScope? = null,
     var orientation: MutableState<WindowScreen> = mutableStateOf(WindowScreen.Vertical)
 )

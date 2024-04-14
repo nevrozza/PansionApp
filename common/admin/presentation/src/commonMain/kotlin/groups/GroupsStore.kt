@@ -30,7 +30,7 @@ interface GroupsStore : Store<Intent, State, Label> {
         data object InitList : Intent
 //        data object TryInitAgain : Intent
 
-        data object ChangeView : Intent
+        data class ChangeView(val view: Views) : Intent
     }
 
     sealed interface Message {

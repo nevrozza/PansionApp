@@ -25,15 +25,15 @@ kotlin {
 //    iosArm64()
 //    iosSimulatorArm64()
 
-    js(IR) {
-        browser()
-        binaries.executable()
-    }
-    wasmJs {
-        browser()
-//        useCommonJs()
-        binaries.executable()
-    }
+//    js(IR) {
+//        browser()
+//        binaries.executable()
+//    }
+//    wasmJs {
+//        browser()
+////        useCommonJs()
+//        binaries.executable()
+//    }
 
     sourceSets {
 //        val commonMain by getting

@@ -1,6 +1,8 @@
 package journal
 
+import AuthRepository
 import MainRepository
+import ReportData
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
@@ -10,9 +12,18 @@ import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
+import components.networkInterface.NetworkInterface
 import di.Inject
+import io.ktor.client.plugins.cache.storage.CachedResponseData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
+import report.ReportHeader
+import server.getDate
+import server.getSixTime
+
+//data class JournalComponentData(
+//    val header: ReportHeader
+//)
 
 class JournalComponent(
     componentContext: ComponentContext,
@@ -20,8 +31,10 @@ class JournalComponent(
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
-//    private val authRepository: AuthRepository = Inject.instance()
+    private val authRepository: AuthRepository = Inject.instance()
     private val mainRepository: MainRepository = Inject.instance()
+    val nInterface = NetworkInterface(componentContext, storeFactory, "journalCComponent")
+    val nOpenReportInterface = NetworkInterface(componentContext, storeFactory, "nOpenReportComponent")
     val groupListComponent = ListComponent(
         componentContext,
         storeFactory,
@@ -48,9 +61,40 @@ class JournalComponent(
         studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
     }
 
-    private fun createReport() {
+    fun createReport() {
         hideStudentAlarm()
-        onOutput(Output.NavigateToLessonReport(model.value.currentGroupId))
+        val group = state.value.teacherGroups.first { it.cutedGroup.groupId == state.value.currentGroupId }
+        val header = ReportHeader(
+            reportId = model.value.creatingReportId,
+            subjectName = group.subjectName,
+            subjectId = group.subjectId, //не нужное
+            groupName = group.cutedGroup.groupName,
+            groupId = state.value.currentGroupId,
+            teacherName = "${authRepository.fetchSurname()} ${authRepository.fetchName()[0]}. ${authRepository.fetchPraname()[0]}.",
+            teacherLogin = authRepository.fetchLogin(),
+            date = getDate(),
+            time = getSixTime(),
+            status = "0",
+        )
+        val data = ReportData(
+            header = header,
+            topic = "",
+            description = "",
+            editTime = "",
+            ids = 0,
+            isMentorWas = false,
+            isEditable = true,
+            customColumns = emptyList()
+        )
+        openReport(data)
+    }
+
+    fun openReport(reportData: ReportData) {
+        onOutput(
+            Output.NavigateToLessonReport(
+                reportData
+            )
+        )
     }
 
     private val journalStore =
@@ -59,7 +103,9 @@ class JournalComponent(
                 storeFactory = storeFactory,
                 mainRepository = mainRepository,
                 groupListComponent = groupListComponent,
-                studentsInGroupCAlertDialogComponent = studentsInGroupCAlertDialogComponent
+                studentsInGroupCAlertDialogComponent = studentsInGroupCAlertDialogComponent,
+                nInterface = nInterface,
+                nOpenReportInterface = nOpenReportInterface
 //                authRepository = authRepository
             ).create()
         }
@@ -71,7 +117,7 @@ class JournalComponent(
 
 
     init {
-        onEvent(JournalStore.Intent.Init)
+        onEvent(JournalStore.Intent.Init )
     }
 
     fun onEvent(event: JournalStore.Intent) {
@@ -84,6 +130,6 @@ class JournalComponent(
 
     sealed class Output {
         data object NavigateToSettings : Output()
-        data class NavigateToLessonReport(val lessonReportId: Int) : Output()
+        data class NavigateToLessonReport(val reportData: ReportData) : Output()
     }
 }

@@ -4,15 +4,21 @@ import FIO
 import Person
 import com.nevrozq.pansion.database.groups.GroupDTO
 import com.nevrozq.pansion.database.groups.Groups
+import com.nevrozq.pansion.database.subjects.SubjectDTO
+import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object StudentGroups : Table() {
     private val groupId = StudentGroups.integer("groupId")
-    private val studentLogin = StudentGroups.varchar("studentLogin", 30).uniqueIndex()
+    private val subjectId = StudentGroups.integer("subjectId")
+    private val studentLogin = StudentGroups.varchar("studentLogin", 30)
 
 //    init {
 //        index(true, studentLogin)
@@ -30,7 +36,20 @@ object StudentGroups : Table() {
                 StudentGroups.insert {
                     it[groupId] = studentLessons.groupId
                     it[studentLogin] = studentLessons.studentLogin
+                    it[subjectId] = studentLessons.subjectId
                 }
+            }
+        } catch (e: Throwable) {
+            println(e)
+        }
+    }
+
+    fun delete(studentLessons: StudentGroupDTO) {
+        try {
+            transaction {
+                StudentGroups.deleteWhere { (StudentGroups.groupId eq studentLessons.groupId) and
+                        (StudentGroups.subjectId eq studentLessons.subjectId) and
+                        (StudentGroups.studentLogin eq studentLessons.studentLogin) }
             }
         } catch (e: Throwable) {
             println(e)
@@ -44,6 +63,23 @@ object StudentGroups : Table() {
                 val groupsIds = StudentGroups.select { StudentGroups.studentLogin eq studentLogin }
                 groupsIds.mapNotNull {
                     Groups.getGroupById(it[groupId])
+                }
+            } catch (e: Throwable) {
+                println(e)
+                listOf()
+            }
+        }
+    }
+
+
+    fun fetchSubjectsOfStudent(studentLogin: String): List<SubjectDTO> {
+        return transaction {
+            try {
+
+                val groupsIds = StudentGroups.select { StudentGroups.studentLogin eq studentLogin }
+                groupsIds.mapNotNull {
+                    println("testik ${it[StudentGroups.studentLogin]}")
+                    Subjects.getSubjectById(it[subjectId])
                 }
             } catch (e: Throwable) {
                 println(e)

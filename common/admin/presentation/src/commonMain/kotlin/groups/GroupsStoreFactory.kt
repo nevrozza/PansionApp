@@ -16,7 +16,8 @@ class GroupsStoreFactory(
     private val formListComponent: ListComponent,
     private val nGroupsInterface: NetworkInterface,
     private val nSubjectsInterface: NetworkInterface,
-    private val nFormsInterface: NetworkInterface
+    private val nFormsInterface: NetworkInterface,
+    private val updateMentorsInForms: () -> Unit
 ) {
 
     fun create(): GroupsStore {
@@ -34,7 +35,8 @@ class GroupsStoreFactory(
                     formListComponent = formListComponent,
                     nGroupsInterface = nGroupsInterface,
                     nSubjectsInterface = nSubjectsInterface,
-                    nFormsInterface = nFormsInterface
+                    nFormsInterface = nFormsInterface,
+                    updateMentorsInForms = updateMentorsInForms
                 )
             },
             reducer = GroupsReducer

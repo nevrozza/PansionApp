@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -34,6 +35,7 @@ import components.cAlertDialog.CAlertDialogComponent
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import components.networkInterface.NetworkState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,8 +44,10 @@ fun CAlertDialogContent(
     component: CAlertDialogComponent,
     customIf: Boolean? = null,
     isCustomButtons: Boolean = true,
+    standardCustomButton: @Composable (() -> Unit)? = null,
     acceptColor: Color = MaterialTheme.colorScheme.primary,
     title: String = "",
+    titleXOffset: Dp = 0.dp,
     acceptText: String = "Ок",
     declineText: String = "Отмена",
     content: @Composable (() -> Unit)
@@ -70,7 +74,7 @@ fun CAlertDialogContent(
                             title,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                            modifier = Modifier.fillMaxWidth().offset(x = titleXOffset).padding(top = 20.dp),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -87,26 +91,27 @@ fun CAlertDialogContent(
                                         content()
                                     }
                                     if (!isCustomButtons) {
-                                        Row(
-                                            Modifier.fillMaxWidth()
-                                                .padding(vertical = 10.dp)
-                                                .padding(end = 20.dp),
-                                            horizontalArrangement = Arrangement.End
-                                        ) {
-                                            CustomTextButton(
-                                                acceptText,
-                                                modifier = Modifier.padding(
-                                                    end = 20.dp
-                                                ),
-                                                color = acceptColor
+                                        when(standardCustomButton) {
+                                            null -> Row(
+                                                Modifier.fillMaxWidth()
+                                                    .padding(vertical = 10.dp)
+                                                    .padding(end = 20.dp),
+                                                horizontalArrangement = Arrangement.End
                                             ) {
-                                                model.onAcceptClick?.invoke()
-                                            }
-                                            CustomTextButton(
-                                                declineText
-                                            ) {
-                                                model.onDeclineClick?.invoke()
-                                            }
+                                                CustomTextButton(
+                                                    acceptText,
+                                                    modifier = Modifier.padding(
+                                                        end = 20.dp
+                                                    ),
+                                                    color = acceptColor
+                                                ) {
+                                                    model.onAcceptClick?.invoke()
+                                                }
+                                                CustomTextButton(
+                                                    declineText
+                                                ) {
+                                                    model.onDeclineClick?.invoke()
+                                                }
 //                                    AnimatedCommonButton(
 //                                        text = "Создать",
 //                                        isEnabled = model.isButtonEnabled,
@@ -116,7 +121,10 @@ fun CAlertDialogContent(
 //                                            model.onAcceptClick?.invoke()
 //                                        }
 //                                    }
+                                            }
+                                            else -> standardCustomButton()
                                         }
+
                                     }
 
                                 }

@@ -4,6 +4,7 @@ import AdminRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import components.cAlertDialog.CAlertDialogComponent
+import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetComponent
 import groups.subjects.SubjectsStore.Intent
 import groups.subjects.SubjectsStore.Label
@@ -37,7 +38,16 @@ class SubjectsExecutor(
             cSubjectDialog.nInterface.nStartLoading()
             try {
                 adminRepository.createSubject(state.cSubjectText)
+                cSubjectDialog.fullySuccess()
+                dispatch(Message.CSubjectTextChanged(""))
 
+                try {
+                    updateSubjects()
+                } catch (_: Throwable) {
+                    cSubjectDialog.nInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+                        updateSubjects()
+                    })
+                }
             } catch (e: Throwable) {
                 with(cSubjectDialog.nInterface) {
                     nError("Что-то пошло не так =/", onFixErrorClick = {
@@ -46,14 +56,6 @@ class SubjectsExecutor(
                 }
                 println(e)
             }
-            try {
-                updateSubjects()
-            } catch (_: Throwable) {
-                cSubjectDialog.nInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
-                    updateSubjects()
-                })
-            }
-            cSubjectDialog.fullySuccess()
         }
     }
 
@@ -76,6 +78,11 @@ class SubjectsExecutor(
                     difficult = state.cDifficult
                 )
                 cGroupBottomSheet.fullySuccess()
+                dispatch(Message.CNameChanged(""))
+                dispatch(Message.CDifficultChanged(""))
+                dispatch(Message.CTeacherLoginChanged(""))
+
+                updateGroups(state.chosenSubjectId)
 //                dispatch(GroupsStore.Message.GroupCreated(groups))
             } catch (_: Throwable) {
                 with(cGroupBottomSheet.nInterface) {
@@ -85,7 +92,6 @@ class SubjectsExecutor(
                 }
 //                nSubjectsInterface.nError("Что-то пошло не так =/")
             }
-            updateGroups(state.chosenSubjectId)
         }
 
     }
@@ -94,8 +100,10 @@ class SubjectsExecutor(
         nSubjectsInterface.nStartLoading()
         try {
             val groups = adminRepository.fetchGroups(subjectId).groups
-            dispatch(Message.GroupsUpdated(groups))
-            nSubjectsInterface.nSuccess()
+            if(state().chosenSubjectId == subjectId) {
+                dispatch(Message.GroupsUpdated(groups))
+                nSubjectsInterface.nSuccess()
+            }
         } catch (_: Throwable) {
             nSubjectsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
                 scope.launch {

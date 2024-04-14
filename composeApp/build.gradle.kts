@@ -36,7 +36,7 @@ kotlin {
 //    }
 
     cocoapods {
-        summary = "PlayZone iOS SDK"
+        summary = "PansionApp iOS SDK"
         homepage = "https://google.com"
         ios.deploymentTarget = "16.0"
 
@@ -74,27 +74,27 @@ kotlin {
 //    iosArm64()
 //    iosSimulatorArm64()
 
-    js(IR) {
-        moduleName = "composeApp"
-        browser {
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-            }
-        }
-//        browser()
-        binaries.executable()
-    }
+//    js(IR) {
+//        moduleName = "composeApp"
+//        browser {
+//            commonWebpackConfig {
+//                outputFileName = "composeApp.js"
+//            }
+//        }
+////        browser()
+//        binaries.executable()
+//    }
 
-    wasmJs {
-        moduleName = "composeApp"
-        browser {
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-            }
-        }
-        useCommonJs()
-        binaries.executable()
-    }
+//    wasmJs {
+//        moduleName = "composeApp"
+//        browser {
+//            commonWebpackConfig {
+//                outputFileName = "composeApp.js"
+//            }
+//        }
+//        useCommonJs()
+//        binaries.executable()
+//    }
 
 //    wasmJs {
 //        moduleName = "composeApp"
@@ -165,6 +165,9 @@ kotlin {
             implementation(project(":common:settings:compose"))
             implementation(project(":common:settings:presentation"))
 
+            implementation(libs.compose.haze.core)
+            implementation(libs.compose.haze.materials)
+
         }
 
         androidMain.dependencies {
@@ -177,7 +180,7 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation(project(":server"))
+//            implementation(project(":server"))
 //            implementation(compose.desktop.common)
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)
@@ -238,7 +241,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        compileSdkPreview = "UpsideDownCake"
     }
     buildFeatures {
         compose = true
@@ -269,19 +271,35 @@ compose.desktop {
             targetFormats(
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,
-                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb,
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Exe
             )
 
             packageName = "PansionApp"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.01"
             windows {
                 menuGroup = "PansionApp"
-                upgradeUuid = "134213"
+                upgradeUuid = "f11ae455-b203-4ff9-9a63-e28e6d7a4bdf"
                 this.iconFile.set(File("icon.png"))
             }
+
+            buildTypes.release.proguard {
+                obfuscate.set(true)
+                configurationFiles.from("src/jvmMain/compose-desktop.pro")
+            }
+
+//            buildTypes.release.proguard {
+////                version.set("7.3.2")
+//                configurationFiles.from(project.file("compose-desktop.pro"))
+//                isEnabled.set(false)
+//                obfuscate.set(false)
+//            }
+
         }
     }
 }
+
+
 
 compose.experimental {
     web.application {}
