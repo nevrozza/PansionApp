@@ -8,7 +8,6 @@ object ActivationReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
             is Message.LoginChanged -> copy(login = msg.login, isErrorShown = false)
-            is Message.PasswordChanged -> copy(password = msg.password, isErrorShown = false)
             //is Message.StepChanged -> if(msg.step == ActivationStore.Step.Activation) copy(name = "Александра", step = msg.step) else copy(step = msg.step, name = null)
             is Message.ThemeTintChanged -> copy(themeTint = msg.tint.name)
             is Message.LanguageChanged -> copy(language = msg.language.name)
@@ -25,7 +24,8 @@ object ActivationReducer : Reducer<State, Message> {
 
             is Message.GoToActivationStep -> copy(name = msg.name, step = ActivationStore.Step.Activation, isErrorShown = false, isInProcess = false)
             Message.Activated -> copy(activated = true, isInProcess = false)
-            is Message.StepChanged -> copy(step = msg.step)
+            is Message.StepChanged -> copy(step = msg.step, name = null)
+            is Message.PasswordChanged -> copy(password = msg.password, isErrorShown = false)
         }
     }
 }

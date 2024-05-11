@@ -1,4 +1,4 @@
-package decomposeComponents
+package decomposeComponents.listDialogComponent
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -92,55 +91,56 @@ fun ListDialogContent(
 //    if(model.isDialogShowing) {
 //        AlertDialog({}){}
 //    }
-    if(isTooltip) {
-        DropdownVariant(
-            component = component,
-            viewManager = viewManager,
-            model = model,
-            nModel = nModel,
-            isTooltip = isTooltip
-        )
-    }
+//    if(isTooltip) {
+//        DropdownVariant(
+//            component = component,
+//            viewManager = viewManager,
+//            model = model,
+//            nModel = nModel,
+//            isTooltip = isTooltip,
+//            offset =
+//        )
+//    }
 
 
 
 
-    else {
-        val modalBottomSheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true
-        )
-
-        DisposableEffect(model.isDialogShowing) {
-            onDispose {
-                if (!model.isDialogShowing) {
-                    coroutineScope.launch {
-                        modalBottomSheetState.hide()
-                    }.invokeOnCompletion {
-                        isShowingCostil.value = false
-                    }
-                } else {
-                    isShowingCostil.value = true
-                }
-            }
-
-        }
-
-        BottomSheetVariant(
-            component = component,
-            model = model,
-            nModel = nModel,
-            isShowingCostil = isShowingCostil,
-            coroutineScope = coroutineScope,
-            modalBottomSheetState = modalBottomSheetState,
-            title = title
-        )
-    }
+//    else {
+//        val modalBottomSheetState = rememberModalBottomSheetState(
+//            skipPartiallyExpanded = true
+//        )
+//
+//        DisposableEffect(model.isDialogShowing) {
+//            onDispose {
+//                if (!model.isDialogShowing) {
+//                    coroutineScope.launch {
+//                        modalBottomSheetState.hide()
+//                    }.invokeOnCompletion {
+//                        isShowingCostil.value = false
+//                    }
+//                } else {
+//                    isShowingCostil.value = true
+//                }
+//            }
+//
+//        }
+//
+//        BottomSheetVariant(
+//            component = component,
+//            model = model,
+//            nModel = nModel,
+//            isShowingCostil = isShowingCostil,
+//            coroutineScope = coroutineScope,
+//            modalBottomSheetState = modalBottomSheetState,
+//            title = title
+//        )
+//    }
 
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BottomSheetVariant(
+fun BottomSheetVariant(
     component: ListComponent,
     model: ListDialogStore.State,
     nModel: NetworkInterface.NetworkModel,
@@ -266,37 +266,27 @@ private fun BottomSheetVariant(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DropdownVariant(
+fun DropdownVariant(
     component: ListComponent,
     viewManager: ViewManager,
     model: ListDialogStore.State,
     nModel: NetworkInterface.NetworkModel,
-    isTooltip: Boolean
+    isTooltip: Boolean,
+    isFullHeight: Boolean,
+    offset: DpOffset
 ) {
-
-    val density = LocalDensity.current
     DropdownMenu(
         expanded = model.isDialogShowing && isTooltip,
         onDismissRequest = {
-//            if(!model.isInProcess && model.error.isBlank()) {
             component.onEvent(ListDialogStore.Intent.HideDialog)
-//            }
         },
-        modifier = Modifier.sizeIn(maxHeight = 200.dp).animateContentSize(),
-        offset = DpOffset(
-            x = with(density) { model.x.toDp() + 50.dp; },
-            y = with(density) {
-                if (viewManager.size!!.maxHeight - model.y.toDp() >= 250.dp) -(viewManager.size!!.maxHeight - model.y.toDp())
-                else {
-                    0.dp
-                }
-            }
-        )
+        modifier = Modifier.then(if (!isFullHeight) Modifier.sizeIn(maxHeight = 200.dp) else Modifier).animateContentSize(),
+        offset = offset
     ) {
         Crossfade(
             nModel
         ) {
-            Column {
+            Column() {
                 when (it.state) {
                     NetworkState.None -> {
 
@@ -305,7 +295,6 @@ private fun DropdownVariant(
                                 text = { Text(selectionOption.text) },
                                 onClick = {
                                     component.onClick(selectionOption)
-//                    component.onEvent(ListDialogStore.Intent.HideDialog)
                                 },
                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                             )

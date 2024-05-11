@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 
 data class ListItem(
-    val id: Int,
+    val id: String,
     val text: String,
     val isClickable: Boolean = true
 )
@@ -40,6 +40,7 @@ class ListComponent(
         instanceKeeper.getStore(key = name) {
             ListDialogStoreFactory(
                 storeFactory = storeFactory,
+                name = name,
                 networkInterface = nInterface,
                 customOnDismiss = customOnDismiss
             ).create()

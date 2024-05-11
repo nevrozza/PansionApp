@@ -49,7 +49,7 @@ class StudentsExecutor(
 //                adminRepository.createFormGroup(
 //                    formId = state.chosenFormId,
 //                    subjectId = state.cFormGroupSubjectId,
-//                    groupId = state.cFormGroupGroupId
+//                    eiGroupId = state.cFormGroupGroupId
 //                )
                 dispatch(Message.FormGroupCreated)
 
@@ -86,7 +86,7 @@ class StudentsExecutor(
 //                adminRepository.createFormGroup(
 //                    formId = state.chosenFormId,
 //                    subjectId = state.cFormGroupSubjectId,
-//                    groupId = state.cFormGroupGroupId
+//                    eiGroupId = state.cFormGroupGroupId
 //                )
                 dispatch(Message.FormGroupCreated)
 

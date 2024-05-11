@@ -36,11 +36,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.EditCalendar
 import androidx.compose.material.icons.rounded.Fax
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryBooks
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -201,6 +204,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             is Child.HomeDnevnikRuMarks -> if (isExpanded) fade() else slide()
                             is Child.HomeDetailedStups -> if (isExpanded) fade() else slide()
                             is Child.HomeAllGroupMarks -> if (isExpanded) fade() else slide()
+                            is Child.AdminSchedule -> slide()
+                            is Child.HomeProfile -> TODO()
+                            is Child.AdminCabinets ->  if (isExpanded) fade() else slide()
                         }
                     }
                 )
@@ -242,32 +248,52 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
 
                     is MainAdmin ->
-                        MultiPaneSplit(
-                            isExpanded = isExpanded,
-                            currentScreen = {
-                                AdminContent(
-                                    child.adminComponent,
-                                    isActive = true
-                                )
-                            },
-                            firstScreen = {
-                                AdminContent(
-                                    child.adminComponent,
-                                    isActive = true
-                                )
-                            },
-                            secondScreen = {
-                                Box(
-                                    Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
+                        Scaffold(
+                            floatingActionButtonPosition = if(isExpanded) FabPosition.Center else FabPosition.End,
+                            floatingActionButton = {
+                                ExtendedFloatingActionButton(
+                                    onClick = {
+                                              component.onOutput(RootComponent.Output.NavigateToSchedule)
+                                    },
+                                    modifier = Modifier.padding(bottom = if(!isExpanded) 80.dp else 10.dp)
                                 ) {
-                                    Text(
-                                        "Выберите категорию"
+                                    Icon(
+                                        Icons.Rounded.EditCalendar,
+                                        null
                                     )
-
+                                    Spacer(Modifier.width(10.dp))
+                                    Text("Расписание")
                                 }
                             }
-                        )
+                        ) {
+                            MultiPaneSplit(
+                                isExpanded = isExpanded,
+                                currentScreen = {
+                                    AdminContent(
+                                        child.adminComponent,
+                                        isActive = true
+                                    )
+                                },
+                                firstScreen = {
+                                    AdminContent(
+                                        child.adminComponent,
+                                        isActive = true
+                                    )
+                                },
+                                secondScreen = {
+                                    Box(
+                                        Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            "Выберите категорию"
+                                        )
+
+                                    }
+                                }
+                            )
+                        }
+
 
                     /*is AdminMentors ->
                         MultiPaneAdmin(
@@ -317,6 +343,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = { JournalContent(child.journalComponent, role = model.role, moderation = model.moderation) }
                         )
 
+                    is Child.AdminSchedule -> ScheduleContent(child.scheduleComponent)
+                    is Child.HomeProfile -> TODO()
+                    is Child.AdminCabinets -> MultiPaneAdmin(
+                        isExpanded,
+                        adminComponent = child.adminComponent,
+                        currentRouting = AdminComponent.Output.NavigateToCabinets,
+                        secondScreen = { CabinetsContent(child.cabinetsComponent) }
+                    )
                 }
 
 

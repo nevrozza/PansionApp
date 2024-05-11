@@ -1,3 +1,6 @@
+import admin.cabinets.CabinetItem
+import admin.cabinets.RFetchCabinetsResponse
+import admin.cabinets.RUpdateCabinetsReceive
 import admin.groups.GroupInit
 import admin.groups.forms.FormInit
 import admin.groups.forms.RCreateFormGroupReceive
@@ -21,15 +24,34 @@ import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
+import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
 import admin.users.RFetchAllUsersResponse
 import admin.users.UserInit
 import ktor.KtorAdminRemoteDataSource
+import schedule.RFetchScheduleDateReceive
+import schedule.RScheduleList
 
 class AdminRepositoryImpl(
     private val remoteDataSource: KtorAdminRemoteDataSource
 ) : AdminRepository {
+    override suspend fun fetchInitSchedule(): RFetchInitScheduleResponse {
+        return remoteDataSource.fetchInitSchedule()
+    }
+
+    override suspend fun fetchCabinets(): RFetchCabinetsResponse {
+        return remoteDataSource.fetchCabinets()
+    }
+
+    override suspend fun updateCabinets(cabinets: List<CabinetItem>) {
+        remoteDataSource.updateCabinets(
+            RUpdateCabinetsReceive(
+                cabinets = cabinets
+            )
+        )
+    }
+
     override suspend fun registerUser(user: UserInit): RCreateUserResponse {
         return remoteDataSource.performRegistrationUser(
             RRegisterUserReceive(
@@ -232,5 +254,18 @@ class AdminRepositoryImpl(
 
     override suspend fun fetchAllMentors(): RFetchMentorsResponse {
         return remoteDataSource.performFetchMentorsForGroups()
+    }
+
+    override suspend fun fetchSchedule(dayOfWeek: String, date: String): RScheduleList {
+        return remoteDataSource.fetchSchedule(
+            RFetchScheduleDateReceive(
+                dayOfWeek = dayOfWeek,
+                day = date
+            )
+        )
+    }
+
+    override suspend fun saveSchedule(list: RScheduleList) {
+        remoteDataSource.saveSchedule(list)
     }
 }

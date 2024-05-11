@@ -12,7 +12,7 @@ interface ActivationStore : Store<Intent, State, Nothing> {
         val login: String = "",
         val name: String? = null,
         val password: String = "",
-        val step: Step = Step.Choice,
+        val step: Step = Step.Login,
         val isInProcess: Boolean = false,
         val error: String = "",
         val isErrorShown: Boolean = false,

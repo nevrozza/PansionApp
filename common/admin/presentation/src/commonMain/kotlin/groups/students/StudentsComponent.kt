@@ -35,7 +35,7 @@ class StudentsComponent(
         storeFactory,
         name = "formListInGroups",
         onItemClick = {
-            onEvent(StudentsStore.Intent.BindStudentToForm(it.id))
+            onEvent(StudentsStore.Intent.BindStudentToForm(it.id.toInt()))
         })
 
     private val studentsStore =

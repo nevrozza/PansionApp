@@ -79,10 +79,7 @@ class LessonReportExecutor(
                     )
                 )
                 setMarkMenuComponent.onEvent(
-                    ListDialogStore.Intent.ShowDialog(
-                        x = intent.x,
-                        y = intent.y
-                    )
+                    ListDialogStore.Intent.ShowDialog
                 )
             }
 
@@ -95,10 +92,7 @@ class LessonReportExecutor(
                     )
                 )
                 deleteMarkMenuComponent.onEvent(
-                    ListDialogStore.Intent.ShowDialog(
-                        x = intent.x,
-                        y = intent.y
-                    )
+                    ListDialogStore.Intent.ShowDialog
                 )
             }
 
@@ -264,10 +258,7 @@ class LessonReportExecutor(
                     )
                 )
                 setLateTimeMenuComponent.onEvent(
-                    ListDialogStore.Intent.ShowDialog(
-                        x = intent.x,
-                        y = intent.y
-                    )
+                    ListDialogStore.Intent.ShowDialog
                 )
             }
 

@@ -1,6 +1,8 @@
 package ktor
 
 import RequestPaths
+import admin.cabinets.RFetchCabinetsResponse
+import admin.cabinets.RUpdateCabinetsReceive
 import admin.groups.forms.RCreateFormGroupReceive
 import admin.groups.forms.RFetchCutedGroupsResponse
 import admin.users.RClearUserPasswordReceive
@@ -22,6 +24,7 @@ import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
+import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
 import admin.users.RFetchAllUsersResponse
@@ -33,10 +36,33 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.path
+import schedule.RFetchScheduleDateReceive
+import schedule.RScheduleList
 
 class KtorAdminRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun fetchSchedule(r: RFetchScheduleDateReceive) : RScheduleList {
+        return httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.FetchSchedule)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun saveSchedule(r: RScheduleList) {
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.SaveSchedule)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
     suspend fun performRegistrationUser(request: RRegisterUserReceive): RCreateUserResponse {
         val response = httpClient.post {
             bearer()
@@ -79,6 +105,34 @@ class KtorAdminRemoteDataSource(
             }
         }.status.value.checkOnNoOk()
 
+    }
+
+    suspend fun updateCabinets(r: RUpdateCabinetsReceive) {
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.UpdateCabinets)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+    suspend fun fetchCabinets() : RFetchCabinetsResponse {
+        return httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.FetchCabinets)
+            }
+        }.body()
+    }
+
+    suspend fun fetchInitSchedule() : RFetchInitScheduleResponse {
+        return httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.FetchInitSchedule)
+            }
+        }.body()
     }
 
 

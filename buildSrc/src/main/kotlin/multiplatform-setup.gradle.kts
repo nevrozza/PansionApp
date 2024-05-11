@@ -15,48 +15,24 @@ android {
 }
 
 kotlin {
-
+    //Targets
     jvm()
-
     androidTarget()
-
     ios()
-//    iosX64()
-//    iosArm64()
-//    iosSimulatorArm64()
 
-//    js(IR) {
+//        js(IR) {
 //        browser()
 //        binaries.executable()
 //    }
-//    wasmJs {
-//        browser()
-////        useCommonJs()
-//        binaries.executable()
-//    }
 
-    sourceSets {
-//        val commonMain by getting
-//        val iosX64Main by getting
-//        val iosArm64Main by getting
-//        val iosSimulatorArm64Main by getting
-//
-//        val iosMain by creating {
-//            dependsOn(commonMain)
-//            iosX64Main.dependsOn(this)
-//            iosArm64Main.dependsOn(this)
-//            iosSimulatorArm64Main.dependsOn(this)
-//        }
+    wasmJs {
+        browser()
+//        useCommonJs()
+        binaries.executable()
     }
 
-//    wasmJs {
-//        browser()
-//        useCommonJs()
-//        binaries.executable()
-//    }
-
+    //JVM
     jvmToolchain(17)
-
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
     }

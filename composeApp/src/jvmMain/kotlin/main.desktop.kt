@@ -41,10 +41,13 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerIcon.Companion.Text
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.res.loadImageBitmap
@@ -55,6 +58,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.FrameWindowScope
+import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
@@ -105,14 +109,13 @@ import javax.swing.WindowConstants
 import server.DeviceTypex
 
 
-
 // c53379fe-19a7-3f07-911c-0c9d195b1925
 @ExperimentalFoundationApi
-@OptIn(ExperimentalDecomposeApi::class)
+@OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class)
 fun main() {
-//    GlobalScope.launch(Dispatchers.IO) {
-//        com.nevrozq.pansion.main()
-//    }
+    GlobalScope.launch(Dispatchers.IO) {
+        com.nevrozq.pansion.main()
+    }
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
@@ -140,56 +143,79 @@ fun main() {
         windowState.size = DpSize(480.dp, 800.dp)
         var isVisible by remember { mutableStateOf(true) }
         val themeDefinition = JewelTheme.darkThemeDefinition()
-        IntUiTheme(
-            themeDefinition,
-            styling = ComponentStyling.decoratedWindow(
-                titleBarStyle = TitleBarStyle.light()
-            )
-        ) {
-            DecoratedWindow(
-                onCloseRequest = { exitApplication() },
-                state = windowState,
-                title = "PansionApp",
-                visible = isVisible,
-                icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
+
+        Tray(
+            icon = TrayIcon,
+            menu = {
+                Item(
+                    "Показать",
+                    onClick = { isVisible = true }
+                )
+                Item(
+                    "Выход",
+                    onClick = ::exitApplication
+                )
+            },
+            tooltip = "PansionApp",
+            onAction = {
+                isVisible = true
+            }
+        )
+        if (isVisible) {
+            IntUiTheme(
+                themeDefinition,
+                styling = ComponentStyling.decoratedWindow(
+                    titleBarStyle = TitleBarStyle.light()
+                )
+            ) {
+                DecoratedWindow(
+                    onCloseRequest = { isVisible = false },
+                    state = windowState,
+                    title = "PansionApp",
+                    visible = isVisible,
+                    icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 
                 ) {
-                val color = remember { mutableStateOf(ThemeColors.Default.name) }
-                val isDark = remember { mutableStateOf(true) }
-                val colorScheme = colorSchemeGetter(isDark.value, color.value)
-                val l = LocalTitleBarStyle.current
-
-                TitleBar(
-                    Modifier.newFullscreenControls(),
-                    style = TitleBarStyle(
-                        colors = TitleBarColors(
-                            background = colorScheme.surfaceColorAtElevation(2.dp),
-                            inactiveBackground = colorScheme.background,
-                            content = colorScheme.onBackground,
-                            border = l.colors.border,
-                            fullscreenControlButtonsBackground = l.colors.fullscreenControlButtonsBackground,
-                            titlePaneButtonHoveredBackground = l.colors.titlePaneButtonHoveredBackground,
-                            titlePaneButtonPressedBackground = l.colors.titlePaneButtonPressedBackground,
-                            titlePaneCloseButtonHoveredBackground = l.colors.titlePaneCloseButtonHoveredBackground,
-                            titlePaneCloseButtonPressedBackground = l.colors.titlePaneCloseButtonPressedBackground,
-                            iconButtonHoveredBackground = l.colors.iconButtonHoveredBackground,
-                            iconButtonPressedBackground = l.colors.iconButtonPressedBackground,
-                            dropdownHoveredBackground = l.colors.dropdownHoveredBackground,
-                            dropdownPressedBackground = l.colors.dropdownPressedBackground
+                    val color = remember { mutableStateOf(ThemeColors.Default.name) }
+                    val isDark = remember { mutableStateOf(true) }
+                    val colorScheme = colorSchemeGetter(isDark.value, color.value)
+                    val l = LocalTitleBarStyle.current
+                    TitleBar(
+                        Modifier.newFullscreenControls(),
+                        style = TitleBarStyle(
+                            colors = TitleBarColors(
+                                background = colorScheme.surfaceColorAtElevation(2.dp),
+                                inactiveBackground = colorScheme.background,
+                                content = colorScheme.onBackground,
+                                border = l.colors.border,
+                                fullscreenControlButtonsBackground = l.colors.fullscreenControlButtonsBackground,
+                                titlePaneButtonHoveredBackground = l.colors.titlePaneButtonHoveredBackground,
+                                titlePaneButtonPressedBackground = l.colors.titlePaneButtonPressedBackground,
+                                titlePaneCloseButtonHoveredBackground = l.colors.titlePaneCloseButtonHoveredBackground,
+                                titlePaneCloseButtonPressedBackground = l.colors.titlePaneCloseButtonPressedBackground,
+                                iconButtonHoveredBackground = l.colors.iconButtonHoveredBackground,
+                                iconButtonPressedBackground = l.colors.iconButtonPressedBackground,
+                                dropdownHoveredBackground = l.colors.dropdownHoveredBackground,
+                                dropdownPressedBackground = l.colors.dropdownPressedBackground
+                            ),
+                            metrics = l.metrics,
+                            icons = l.icons,
+                            dropdownStyle = l.dropdownStyle,
+                            iconButtonStyle = l.iconButtonStyle,
+                            paneButtonStyle = l.paneButtonStyle,
+                            paneCloseButtonStyle = l.paneCloseButtonStyle,
                         ),
-                        metrics = l.metrics,
-                        icons = l.icons,
-                        dropdownStyle = l.dropdownStyle,
-                        iconButtonStyle = l.iconButtonStyle,
-                        paneButtonStyle = l.paneButtonStyle,
-                        paneCloseButtonStyle = l.paneCloseButtonStyle,
-                    ),
-                    gradientStartColor = colorScheme.surfaceColorAtElevation(26.dp)
-                ) {
-                    Text(text = title, color = colorScheme.onBackground, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start).padding(start = 15.dp),)
+                        gradientStartColor = colorScheme.surfaceColorAtElevation(26.dp)
+                    ) {
+                        Text(
+                            text = title,
+                            color = colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.align(Alignment.Start).padding(start = 15.dp),
+                        )
 
-                }
-                this.window.setMinSize(400, 600)
+                    }
+                    this.window.setMinSize(400, 600)
 
 
 //                Row(
@@ -241,6 +267,7 @@ fun main() {
                     }
 
 
+                }
             }
         }
     }
@@ -249,6 +276,14 @@ fun main() {
 //    JFrame().init(root)
 }
 
+
+object TrayIcon : Painter() {
+    override val intrinsicSize = Size(256f, 256f)
+
+    override fun DrawScope.onDraw() {
+        drawOval(Color(0xFFFFA500))
+    }
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable

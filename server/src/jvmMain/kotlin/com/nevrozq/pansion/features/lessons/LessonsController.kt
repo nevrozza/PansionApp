@@ -2,42 +2,53 @@ package com.nevrozq.pansion.features.lessons
 
 import FIO
 import Person
+import admin.cabinets.CabinetItem
+import admin.cabinets.RFetchCabinetsResponse
+import admin.cabinets.RUpdateCabinetsReceive
 import admin.groups.forms.RCreateFormGroupReceive
-import admin.groups.subjects.RCreateGroupReceive
-import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
-import admin.groups.subjects.RFetchTeachersResponse
-import admin.groups.forms.outside.CreateFormReceive
-import admin.groups.students.RBindStudentToFormReceive
-import admin.groups.forms.outside.RFetchFormsResponse
-import admin.groups.forms.outside.RFetchMentorsResponse
-import admin.groups.subjects.RFetchGroupsReceive
+import admin.groups.forms.RFetchCutedGroupsResponse
 import admin.groups.forms.RFetchFormGroupsReceive
 import admin.groups.forms.RFetchFormGroupsResponse
-import admin.groups.students.deep.RFetchStudentGroupsReceive
-import admin.groups.students.deep.RFetchStudentGroupsResponse
+import admin.groups.forms.outside.CreateFormReceive
+import admin.groups.forms.outside.RFetchFormsResponse
+import admin.groups.forms.outside.RFetchMentorsResponse
+import admin.groups.students.RBindStudentToFormReceive
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
-import admin.groups.forms.RFetchCutedGroupsResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
+import admin.groups.students.deep.RFetchStudentGroupsReceive
+import admin.groups.students.deep.RFetchStudentGroupsResponse
+import admin.groups.subjects.RCreateGroupReceive
+import admin.groups.subjects.RFetchGroupsReceive
 import admin.groups.subjects.RFetchGroupsResponse
+import admin.groups.subjects.RFetchTeachersResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
+import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
+import admin.schedule.RFetchInitScheduleResponse
+import admin.schedule.ScheduleGroup
+import admin.schedule.SchedulePerson
+import admin.schedule.ScheduleSubject
+import com.nevrozq.pansion.database.cabinets.Cabinets
+import com.nevrozq.pansion.database.cabinets.CabinetsDTO
 import com.nevrozq.pansion.database.formGroups.FormGroupDTO
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.formGroups.mapToFormGroup
-import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.forms.FormDTO
+import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.forms.mapToForm
-import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.groups.GroupDTO
+import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
+import com.nevrozq.pansion.database.schedule.Schedule
+import com.nevrozq.pansion.database.schedule.ScheduleDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
-import com.nevrozq.pansion.database.subjects.Subjects
-import com.nevrozq.pansion.database.subjects.SubjectDTO
-import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
+import com.nevrozq.pansion.database.subjects.SubjectDTO
+import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.subjects.mapToSubject
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.isMember
@@ -52,8 +63,74 @@ import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.deleteAll
+import org.jetbrains.exposed.sql.transactions.transaction
+import schedule.RFetchScheduleDateReceive
+import schedule.RScheduleList
 
 class LessonsController() {
+
+    suspend fun fetchSchedule(call: ApplicationCall) {
+        if (call.isMember) {
+            val r = call.receive<RFetchScheduleDateReceive>()
+            println(r.day)
+            try {
+                var items = Schedule.getOnDate(r.day)
+//                println(items.isEmpty())
+                if(items.isEmpty()) {
+                    items = Schedule.getOnDate(r.dayOfWeek)
+                }
+                call.respond(
+                    RScheduleList(listOf(Pair(r.day, items)))
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch scheduleItems: ${e.message}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun saveSchedule(call: ApplicationCall) {
+        if (call.isModer) {
+            val r = call.receive<RScheduleList>()
+            try {
+                val list = r.list.map { item ->
+                    val date = item.first
+                    item.second.map {
+                        ScheduleDTO(
+                            date = date,
+                            teacherLogin = it.teacherLogin,
+                            groupId = it.groupId,
+                            start = it.t.start,
+                            end = it.t.end,
+                            cabinet = it.cabinet.toString()
+                        )
+                    }
+                }
+                transaction {
+                    Schedule.deleteAll()
+                    list.forEach {
+                        Schedule.insertList(
+                            it
+                        )
+                    }
+                }
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Schedules already exists")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't create schedule: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
+
     suspend fun fetchAllSubjects(call: ApplicationCall) {
         if (call.isMember) {
             try {
@@ -119,13 +196,94 @@ class LessonsController() {
                     )
                 }
                 println("fuck2: $result")
-                call.respond(RFetchMentorsResponse(
-                    result
-                ))
+                call.respond(
+                    RFetchMentorsResponse(
+                        result
+                    )
+                )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Can't fetch mentors: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+
+    suspend fun fetchInitSchedule(call: ApplicationCall) {
+        if (call.isModer) {
+            try {
+                val teachers = mutableListOf<SchedulePerson>()
+                val students = mutableListOf<SchedulePerson>()
+
+                val tt = Users.fetchAllTeachers().filter { it.isActive }
+                val ss = Users.fetchAllStudents().filter { it.isActive }
+                val gg = Groups.getAllGroups().filter { it.isActive }
+                val gs = StudentGroups.fetchAll()
+                val subjects = Subjects.fetchAllSubjects()
+
+                tt.forEach { t ->
+                    val groups = gg.filter { it.teacherLogin == t.login }.map { it.id }
+                    teachers.add(
+                        SchedulePerson(
+                            login = t.login,
+                            fio = FIO(
+                                name = t.name,
+                                surname = t.surname,
+                                praname = t.praname
+                            ),
+                            groups = groups
+                        )
+                    )
+                }
+
+                ss.forEach { s ->
+                    val groups =
+                        gs.filter { it.studentLogin == s.login }.filter {
+                            val id = it.groupId
+                            gg.first { it.id == id }.isActive
+                        }.map { it.groupId }
+
+                    students.add(
+                        SchedulePerson(
+                            login = s.login,
+                            fio = FIO(
+                                name = s.name,
+                                surname = s.surname,
+                                praname = s.praname
+                            ),
+                            groups = groups
+                        )
+                    )
+                }
+
+                call.respond(
+                    RFetchInitScheduleResponse(
+                        teachers = teachers.filter { it.groups.isNotEmpty() },
+                        students = students.filter { it.groups.isNotEmpty() },
+                        groups = gg.map {
+                            ScheduleGroup(
+                                id = it.id,
+                                subjectId = it.subjectId,
+                                name = it.name
+                            )
+                        },
+                        subjects = subjects.filter { it.isActive }.map {
+                            ScheduleSubject(
+                                id = it.id,
+                                name = it.name
+                            )
+                        }
+                    )
+                )
+
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch schedule: ${e.localizedMessage}"
                 )
             }
         } else {
@@ -173,6 +331,31 @@ class LessonsController() {
         }
     }
 
+
+    suspend fun fetchAllCabinets(call: ApplicationCall) {
+        if(call.isMember) {
+            try {
+                val cabinets = Cabinets.getAllCabinets()
+                call.respond(RFetchCabinetsResponse(
+                    cabinets.map {
+                        CabinetItem(
+                            login = it.login,
+                            cabinet = it.cabinet
+                        )
+                    }
+                ))
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch cabinets: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+
     suspend fun fetchAllForms(call: ApplicationCall) {
         if (call.isMember) {
             try {
@@ -189,6 +372,28 @@ class LessonsController() {
             }
         } else {
             call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun updateCabinets(call: ApplicationCall) {
+        if (call.isModer) {
+            val r = call.receive<RUpdateCabinetsReceive>()
+            try {
+                Cabinets.insertList(r.cabinets.map {
+                    CabinetsDTO(
+                        login = it.login,
+                        cabinet = it.cabinet
+                    )
+                })
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Cabinet already exists")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't create cabinet: ${e.localizedMessage}"
+                )
+            }
         }
     }
 

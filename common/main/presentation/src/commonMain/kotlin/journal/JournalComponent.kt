@@ -41,7 +41,7 @@ class JournalComponent(
         name = "groupListInMainJournal",
         onItemClick = {
 //            onEvent(JournalStore.Intent.CreateUserForm(it.id))
-            onEvent(JournalStore.Intent.OnGroupClicked(it.id))
+            onEvent(JournalStore.Intent.OnGroupClicked(it.id.toInt()))
         })
     val studentsInGroupCAlertDialogComponent = CAlertDialogComponent(
         componentContext,
@@ -52,7 +52,7 @@ class JournalComponent(
         },
         onDeclineClick = {
             //some magic..
-            groupListComponent.onEvent(ListDialogStore.Intent.ShowDialog(65566556f, 65566556f))
+            groupListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
             hideStudentAlarm()
         }
     )

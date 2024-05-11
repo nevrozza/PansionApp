@@ -155,7 +155,7 @@ class JournalExecutor(
                 groupListComponent.onEvent(ListDialogStore.Intent.InitList(
                     groups.filter { it.cutedGroup.isActive }.sortedBy { it.subjectId }.map {
                         ListItem(
-                            id = it.cutedGroup.groupId,
+                            id = it.cutedGroup.groupId.toString(),
                             text = "${it.subjectName} ${it.cutedGroup.groupName}"
                         )
                     }

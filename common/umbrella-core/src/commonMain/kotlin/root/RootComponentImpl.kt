@@ -9,6 +9,7 @@ import admin.AdminComponent
 import admin.AdminStore
 import allGroupMarks.AllGroupMarksComponent
 import asValue
+import cabinets.CabinetsComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -39,26 +40,13 @@ import login.LoginComponent
 import report.ReportHeader
 //import mentors.MentorsComponent
 import root.RootComponent.Child
-import root.RootComponent.Companion.WEB_PATH_ADMIN_GROUPS
-//import root.RootComponent.Companion.WEB_PATH_ADMIN_MENTORS
-//import root.RootComponent.Companion.WEB_PATH_ADMIN_STUDENTS
-import root.RootComponent.Companion.WEB_PATH_ADMIN_USERS
-import root.RootComponent.Companion.WEB_PATH_AUTH_ACTIVATION
 import root.RootComponent.Config
-import root.RootComponent.Companion.WEB_PATH_AUTH_LOGIN
-import root.RootComponent.Companion.WEB_PATH_HOME_ALL_GROUP_MARKS
-import root.RootComponent.Companion.WEB_PATH_HOME_DETAILED_STUPS
-import root.RootComponent.Companion.WEB_PATH_HOME_DNEVNIK_RU_MARKS
-import root.RootComponent.Companion.WEB_PATH_HOME_SETTINGS
-import root.RootComponent.Companion.WEB_PATH_JOURNAL_LESSON_REPORT
-import root.RootComponent.Companion.WEB_PATH_MAIN_ADMIN
-import root.RootComponent.Companion.WEB_PATH_MAIN_HOME
-import root.RootComponent.Companion.WEB_PATH_MAIN_JOURNAL
 import root.RootComponent.RootCategories.Admin
 import root.RootComponent.RootCategories.Home
 import root.RootComponent.RootCategories.Journal
 import root.store.RootStore
 import root.store.RootStoreFactory
+import schedule.ScheduleComponent
 //import students.StudentsComponent
 import users.UsersComponent
 
@@ -66,9 +54,9 @@ import users.UsersComponent
 class RootComponentImpl(
     componentContext: ComponentContext,
     private val storeFactory: StoreFactory,
-    deepLink: DeepLink = DeepLink.None,
-    private val path: String = "",
-    private val webHistoryController: WebHistoryController? = null,
+//    deepLink: DeepLink = DeepLink.None,
+//    private val path: String = "",
+//    private val webHistoryController: WebHistoryController? = null,
 ) : RootComponent, ComponentContext by componentContext {
 
     private val authRepository: AuthRepository = Inject.instance()
@@ -99,8 +87,8 @@ class RootComponentImpl(
         source = navigation,
         initialStack = {
             getInitialStack(
-                webHistoryPaths = webHistoryController?.historyPaths,
-                deepLink = deepLink
+//                webHistoryPaths = null,// webHistoryController?.historyPaths,
+                deepLink = DeepLink.None//deepLink
             )
         },
         serializer = Config.serializer(),
@@ -117,23 +105,33 @@ class RootComponentImpl(
     private var mainAdminComponent: AdminComponent? = null
 
     private fun child(config: Config, componentContext: ComponentContext): Child {
-        if (model.value.isGreetingsShowing) {
-            mainHomeComponent = HomeComponent(
-                componentContext = componentContext,
-                storeFactory = storeFactory,
-                output = ::onHomeOutput
-            )
-            mainJournalComponent = JournalComponent(
-                componentContext = componentContext,
-                storeFactory = storeFactory,
-                output = ::onJournalOutput
-            )
-            mainAdminComponent = AdminComponent(
-                componentContext = componentContext,
-                storeFactory = storeFactory,
-                output = ::onAdminOutput
-            )
-        } else if(mainHomeComponent!!.getLogin() != Inject.instance<AuthRepository>().fetchLogin()) {
+        if (mainHomeComponent == null || mainJournalComponent == null || mainAdminComponent == null) {
+            if (mainHomeComponent == null) {
+                mainHomeComponent = HomeComponent(
+                    componentContext = componentContext,
+                    storeFactory = storeFactory,
+                    output = ::onHomeOutput
+                )
+            }
+
+            if (mainJournalComponent == null) {
+                mainJournalComponent = JournalComponent(
+                    componentContext = componentContext,
+                    storeFactory = storeFactory,
+                    output = ::onJournalOutput
+                )
+            }
+            if (mainAdminComponent == null) {
+                mainAdminComponent = AdminComponent(
+                    componentContext = componentContext,
+                    storeFactory = storeFactory,
+                    output = ::onAdminOutput
+                )
+            }
+
+        } else if (mainHomeComponent!!.getLogin() != Inject.instance<AuthRepository>()
+                .fetchLogin()
+        ) {
             mainHomeComponent = HomeComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
@@ -286,8 +284,40 @@ class RootComponentImpl(
                     )
                 )
             }
+
+            is Config.HomeProfile -> TODO()
+            Config.AdminSchedule -> Child.AdminSchedule(
+                scheduleComponent = ScheduleComponent(
+                    componentContext,
+                    storeFactory,
+                    output = ::onAdminScheduleOutput
+                )
+            )
+
+            Config.AdminCabinets -> Child.AdminCabinets(
+                adminComponent = mainAdminComponent!!,
+                cabinetsComponent = CabinetsComponent(
+                    componentContext,
+                    storeFactory,
+                    output = ::onAdminCabinetsOutput
+                )
+            )
         }
     }
+
+    private fun onAdminCabinetsOutput(output: CabinetsComponent.Output): Unit =
+        when (output) {
+            CabinetsComponent.Output.BackToAdmin -> navigateToAdmin {
+                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
+            }
+        }
+
+    private fun onAdminScheduleOutput(output: ScheduleComponent.Output): Unit =
+        when (output) {
+            ScheduleComponent.Output.BackToAdmin -> navigateToAdmin {
+                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
+            }
+        }
 
     private fun onLessonReportOutput(output: LessonReportComponent.Output): Unit =
         when (output) {
@@ -383,7 +413,9 @@ class RootComponentImpl(
 //            AdminComponent.Output.NavigateToStudents -> navigateToAdminStudents {
 //                navigation.bringToFront(it)
 //            }
-            else -> {}
+            AdminComponent.Output.NavigateToCabinets -> navigateToAdminCabinets {
+                navigation.bringToFront(it)
+            }
         }
 
 //    private fun onAdminMentorsOutput(output: MentorsComponent.Output): Unit =
@@ -449,6 +481,10 @@ class RootComponentImpl(
                 navigateToAdmin {
                     navigation.bringToFront(it)
                 }
+            }
+
+            RootComponent.Output.NavigateToSchedule -> navigateToSchedule {
+                navigation.bringToFront(it)
             }
         }
 
@@ -551,6 +587,13 @@ class RootComponentImpl(
         post(d)
     }
 
+    private fun navigateToAdminCabinets(post: (Config) -> Unit) {
+        val d = Config.AdminCabinets
+        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
+        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
+        post(d)
+    }
+
     private fun navigateToAdminGroups(post: (Config) -> Unit) {
         val d = Config.AdminGroups
         rootStore.accept(RootStore.Intent.BottomBarShowing(false))
@@ -572,6 +615,13 @@ class RootComponentImpl(
         post(d)
     }
 
+    private fun navigateToSchedule(post: (Config) -> Unit) {
+        val d = Config.AdminSchedule
+        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
+        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
+        post(d)
+    }
+
     sealed interface DeepLink {
         data object None : DeepLink
         class Web(val path: String) : DeepLink
@@ -580,108 +630,109 @@ class RootComponentImpl(
 
     init {
 //        authRepository.deleteToken()
-        webHistoryController?.attach(
-            navigator = navigation,
-            stack = stack,
-            getPath = ::getPathForConfig,
-            getConfiguration = ::getConfigForPath,
-            serializer = Config.serializer()
-        )
+//        webHistoryController?.attach(
+//            navigator = navigation,
+//            stack = stack,
+//            getPath = ::getPathForConfig,
+//            getConfiguration = ::getConfigForPath,
+//            serializer = Config.serializer()
+//        )
 
         rootStore.accept(RootStore.Intent.HideGreetings())
     }
 
-    private fun getInitialStack(webHistoryPaths: List<String>?, deepLink: DeepLink): List<Config> =
-        webHistoryPaths
-            ?.takeUnless(List<*>::isEmpty)
-            ?.map(::getConfigForPath)
-            ?: getInitialStack(deepLink)
+//    private fun getInitialStack(webHistoryPaths: List<String>?, deepLink: DeepLink): List<Config> =
+//        webHistoryPaths
+//            ?.takeUnless(List<*>::isEmpty)
+//            ?.map(::getConfigForPath)
+//            ?: getInitialStack(deepLink)
 
-    private fun getInitialStack(deepLink: DeepLink): List<Config> =
-        when (deepLink) {
-            is DeepLink.None -> listOf(getFirstScreen())
-            is DeepLink.Web -> listOf(getConfigForPath(deepLink.path))
-        }
+    private fun getInitialStack(deepLink: DeepLink): List<Config> = listOf(getFirstScreen())
+//        when (deepLink) {
+//            is DeepLink.None -> listOf(getFirstScreen())
+//            //is DeepLink.Web -> listOf(getConfigForPath(deepLink.path))
+//        }
 
-    private fun getPathForConfig(config: Config): String =
-        when (config) {
-            Config.AuthLogin -> "/$WEB_PATH_AUTH_LOGIN"
-            Config.AuthActivation -> {
-                println("gogo"); "/$WEB_PATH_AUTH_ACTIVATION"
-            }
+//    private fun getPathForConfig(config: Config): String =
+//        when (config) {
+//            Config.AuthLogin -> "/$WEB_PATH_AUTH_LOGIN"
+//            Config.AuthActivation -> {
+//                println("gogo"); "/$WEB_PATH_AUTH_ACTIVATION"
+//            }
+//
+//            Config.MainHome -> "/$WEB_PATH_MAIN_HOME"
+//            Config.MainJournal -> "/$WEB_PATH_MAIN_JOURNAL"
+//            Config.MainAdmin -> "/$WEB_PATH_MAIN_ADMIN"
+//
+////            Config.AdminMentors -> "/$WEB_PATH_ADMIN_MENTORS"
+//            Config.AdminUsers -> "/$WEB_PATH_ADMIN_USERS"
+//            Config.AdminGroups -> "/$WEB_PATH_ADMIN_GROUPS"
+////            Config.AdminStudents -> "/$WEB_PATH_ADMIN_STUDENTS"
+//            is Config.LessonReport -> "/$WEB_PATH_JOURNAL_LESSON_REPORT/${config.reportData.header.reportId}"
+//            Config.HomeSettings -> "/$WEB_PATH_HOME_SETTINGS"
+//            is Config.HomeDnevnikRuMarks -> "/$WEB_PATH_HOME_SETTINGS/${config.studentLogin}"
+//            is Config.HomeDetailedStups -> "/$WEB_PATH_HOME_DETAILED_STUPS/${config.studentLogin}/${config.reason}"
+//            is Config.HomeAllGroupMarks -> "/$WEB_PATH_HOME_DETAILED_STUPS/${config.subjectId}/${config.eiGroupId}"
+//            else -> "/"
+//        }
 
-            Config.MainHome -> "/$WEB_PATH_MAIN_HOME"
-            Config.MainJournal -> "/$WEB_PATH_MAIN_JOURNAL"
-            Config.MainAdmin -> "/$WEB_PATH_MAIN_ADMIN"
-
-//            Config.AdminMentors -> "/$WEB_PATH_ADMIN_MENTORS"
-            Config.AdminUsers -> "/$WEB_PATH_ADMIN_USERS"
-            Config.AdminGroups -> "/$WEB_PATH_ADMIN_GROUPS"
-//            Config.AdminStudents -> "/$WEB_PATH_ADMIN_STUDENTS"
-            is Config.LessonReport -> "/$WEB_PATH_JOURNAL_LESSON_REPORT/${config.reportData.header.reportId}"
-            Config.HomeSettings -> "/$WEB_PATH_HOME_SETTINGS"
-            is Config.HomeDnevnikRuMarks -> "/$WEB_PATH_HOME_SETTINGS/${config.studentLogin}"
-            is Config.HomeDetailedStups -> "/$WEB_PATH_HOME_DETAILED_STUPS/${config.studentLogin}/${config.reason}"
-            is Config.HomeAllGroupMarks -> "/$WEB_PATH_HOME_DETAILED_STUPS/${config.subjectId}/${config.groupId}"
-        }
-
-    private fun getConfigForPath(path: String): Config {
-        return when (path.removePrefix("/")) {
-            WEB_PATH_AUTH_LOGIN -> Config.AuthLogin
-            WEB_PATH_AUTH_ACTIVATION -> Config.AuthActivation
-
-
-            WEB_PATH_MAIN_HOME -> Config.MainHome
-            WEB_PATH_MAIN_JOURNAL -> Config.MainJournal
-            WEB_PATH_MAIN_ADMIN -> Config.MainAdmin
-
-//            WEB_PATH_ADMIN_MENTORS -> Config.AdminMentors
-            WEB_PATH_ADMIN_USERS -> Config.AdminUsers
-            WEB_PATH_ADMIN_GROUPS -> Config.AdminGroups
-            WEB_PATH_HOME_DNEVNIK_RU_MARKS.split("/")[0] -> Config.HomeDnevnikRuMarks(
-                studentLogin = path.split("/").last()
-            )
-
-            WEB_PATH_HOME_DETAILED_STUPS.split("/")[0] -> Config.HomeDetailedStups(
-                studentLogin = path.split("/").last(),
-                reason = path.split("/").last()
-            )
-
-            WEB_PATH_HOME_ALL_GROUP_MARKS.split("/")[0] -> Config.HomeAllGroupMarks(
-                groupId = 0,
-                groupName = "",
-                subjectId = 0,
-                subjectName = ""
-            )
-
-//            WEB_PATH_ADMIN_STUDENTS -> Config.AdminStudents
-            WEB_PATH_JOURNAL_LESSON_REPORT.split("/")[0] -> Config.LessonReport(
-                ReportData(
-                    ReportHeader(
-                        reportId = path.removePrefix("/").split("/")[1].toInt(),
-                        subjectName = "",
-                        subjectId = 0,
-                        groupName = "",
-                        groupId = 0,
-                        teacherName = "",
-                        teacherLogin = "",
-                        date = "",
-                        time = "",
-                        status = ""
-                    ),
-                    topic = "",
-                    description = "",
-                    ids = 0,
-                    isMentorWas = false,
-                    editTime = "",
-                    isEditable = false,
-                    customColumns = emptyList()
-                )
-            )
-
-            WEB_PATH_HOME_SETTINGS -> Config.HomeSettings
-            else -> Config.AuthActivation
-        }
-    }
+//    private fun getConfigForPath(path: String): Config {
+//        return when (path.removePrefix("/")) {
+//            WEB_PATH_AUTH_LOGIN -> Config.AuthLogin
+//            WEB_PATH_AUTH_ACTIVATION -> Config.AuthActivation
+//
+//
+//            WEB_PATH_MAIN_HOME -> Config.MainHome
+//            WEB_PATH_MAIN_JOURNAL -> Config.MainJournal
+//            WEB_PATH_MAIN_ADMIN -> Config.MainAdmin
+//
+////            WEB_PATH_ADMIN_MENTORS -> Config.AdminMentors
+//            WEB_PATH_ADMIN_USERS -> Config.AdminUsers
+//            WEB_PATH_ADMIN_GROUPS -> Config.AdminGroups
+//            WEB_PATH_HOME_DNEVNIK_RU_MARKS.split("/")[0] -> Config.HomeDnevnikRuMarks(
+//                studentLogin = path.split("/").last()
+//            )
+//
+//            WEB_PATH_HOME_DETAILED_STUPS.split("/")[0] -> Config.HomeDetailedStups(
+//                studentLogin = path.split("/").last(),
+//                reason = path.split("/").last()
+//            )
+//
+//            WEB_PATH_HOME_ALL_GROUP_MARKS.split("/")[0] -> Config.HomeAllGroupMarks(
+//                eiGroupId = 0,
+//                groupName = "",
+//                subjectId = 0,
+//                subjectName = ""
+//            )
+//
+////            WEB_PATH_ADMIN_STUDENTS -> Config.AdminStudents
+//            WEB_PATH_JOURNAL_LESSON_REPORT.split("/")[0] -> Config.LessonReport(
+//                ReportData(
+//                    ReportHeader(
+//                        reportId = path.removePrefix("/").split("/")[1].toInt(),
+//                        subjectName = "",
+//                        subjectId = 0,
+//                        groupName = "",
+//                        eiGroupId = 0,
+//                        teacherName = "",
+//                        teacherLogin = "",
+//                        date = "",
+//                        time = "",
+//                        status = ""
+//                    ),
+//                    topic = "",
+//                    description = "",
+//                    ids = 0,
+//                    isMentorWas = false,
+//                    editTime = "",
+//                    isEditable = false,
+//                    customColumns = emptyList()
+//                )
+//            )
+//
+//            WEB_PATH_HOME_SETTINGS -> Config.HomeSettings
+//            else -> Config.AuthActivation
+//        }
+//    }
 
 }

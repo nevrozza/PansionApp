@@ -1,22 +1,22 @@
 [versions]
 # Plugins
 plugin-android = "8.3.0"
-plugin-compose = "1.6.2"
+plugin-compose = "1.6.10-rc01"
 
 # Multiplatform
-kotlin = "2.0.0-RC1"
+kotlin = "2.0.0-RC2"
 coroutines = "1.8.0"
 serialization = "1.6.3"
 datetime = "0.6.0-RC.2"
-#ktor = "3.0.0-beta-2-eap-928"
-ktor = "2.3.10"
+ktor = "3.0.0-beta-2-eap-928"
+#ktor = "2.3.10"
 
 
 # Libraries
 sqldelight = "2.0.1"
 settings = "1.1.1"
 di = "7.21.2"
-decompose = "3.0.0-beta01"
+decompose = "3.0.0"
 mvikotlin = "4.0.0-alpha02" #"3.3.0" #4.0.0-alpha02
 moko = "0.24.0-alpha-4"
 mokographics = "0.9.0"
@@ -30,11 +30,13 @@ androidx-compiler = "1.5.10"
 androidx-material3 = "1.2.1"
 androidx-activityCompose = "1.8.2"
 androidx-appCompat = "1.6.1"
+coreI18n = "1.0.0-alpha01"
 
 [libraries]
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 plugin-android = { module = "com.android.tools.build:gradle", version.ref = "plugin-android" }
 plugin-compose = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "plugin-compose" }
+plugin-compose-compiler = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
 plugin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 plugin-sqldelight = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqldelight" }
 plugin-moko = { module = "dev.icerock.moko:resources-generator", version.ref = "moko" }
@@ -91,14 +93,15 @@ mvikotlin-coroutines = { module = "com.arkivanov.mvikotlin:mvikotlin-extensions-
 moko-resources-core = { module = "dev.icerock.moko:resources", version.ref = "moko" }
 moko-resources-compose = { module = "dev.icerock.moko:resources-compose", version.ref = "moko" }
 moko-graphics = { module = "dev.icerock.moko:graphics", version.ref = "mokographics" }
+androidx-core-i18n = { group = "androidx.core", name = "core-i18n", version.ref = "coreI18n" }
 
 
 [plugins]
 android = { id = "com.android.application", version.ref = "plugin-android" }
 kotlin = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-compose = { id = "org.jetbrains.compose", version.ref = "plugin-compose" }
+compose-plugin = { id = "org.jetbrains.compose", version.ref = "plugin-compose" }
 cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods" }
-
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 moko = { id = "dev.icerock.mobile.multiplatform-resources", version.ref = "moko" }

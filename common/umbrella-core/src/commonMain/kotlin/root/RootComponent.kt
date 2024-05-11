@@ -1,12 +1,14 @@
 package root
 
 
+import FIO
 import lessonReport.LessonReportComponent
 import ReportData
 import SettingsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
 import allGroupMarks.AllGroupMarksComponent
+import cabinets.CabinetsComponent
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
@@ -18,7 +20,9 @@ import login.LoginComponent
 import home.HomeComponent
 import journal.JournalComponent
 import kotlinx.serialization.Serializable
+import profile.ProfileComponent
 import root.store.RootStore
+import schedule.ScheduleComponent
 import users.UsersComponent
 
 
@@ -71,6 +75,20 @@ interface RootComponent : BackHandlerOwner {
             val journalComponent: JournalComponent,
             val allGroupMarksComponent: AllGroupMarksComponent
         ) : Child()
+
+        class HomeProfile(
+            val homeComponent: HomeComponent,
+            val profileComponent: ProfileComponent
+        ) : Child()
+
+        class AdminSchedule(
+            val scheduleComponent: ScheduleComponent
+        ) : Child()
+
+        class AdminCabinets(
+            val adminComponent: AdminComponent,
+            val cabinetsComponent: CabinetsComponent
+        ) : Child()
     }
 
     fun onOutput(output: Output)
@@ -81,6 +99,9 @@ interface RootComponent : BackHandlerOwner {
         data object NavigateToHome : Output()
         data object NavigateToJournal : Output()
         data object NavigateToAdmin : Output()
+
+        data object NavigateToSchedule : Output()
+
     }
 
     @Serializable
@@ -111,6 +132,9 @@ interface RootComponent : BackHandlerOwner {
         @Serializable
         data object AdminGroups : Config
 
+        @Serializable
+        data object AdminSchedule : Config
+
         //        @Serializable
 //        data object AdminStudents : Config
         @Serializable
@@ -118,6 +142,10 @@ interface RootComponent : BackHandlerOwner {
 
         @Serializable
         data class HomeDnevnikRuMarks(val studentLogin: String) : Config
+
+        @Serializable
+        data class HomeProfile(val studentLogin: String, val fio: FIO) : Config
+
 
         @Serializable
         data class HomeDetailedStups(val studentLogin: String, val reason: String) : Config
@@ -129,26 +157,30 @@ interface RootComponent : BackHandlerOwner {
             val subjectId: Int,
             val subjectName: String,
         ) : Config
+
+        @Serializable
+        data object AdminCabinets: Config
     }
 
-    companion object {
-        const val WEB_PATH_AUTH_LOGIN = "auth/login"
-        const val WEB_PATH_AUTH_ACTIVATION = "auth/activation"
-        const val WEB_PATH_MAIN_HOME = "main/home"
-        const val WEB_PATH_HOME_SETTINGS = "main/home/settings"
-        const val WEB_PATH_MAIN_JOURNAL = "main/journal"
-        const val WEB_PATH_MAIN_ADMIN = "main/admin"
-
-        //        const val WEB_PATH_ADMIN_MENTORS = "main/admin/teachers"
-        const val WEB_PATH_ADMIN_USERS = "main/admin/teachers"
-        const val WEB_PATH_ADMIN_GROUPS = "main/admin/students"
-
-        //        const val WEB_PATH_ADMIN_STUDENTS = "main/admin/students"
-        const val WEB_PATH_JOURNAL_LESSON_REPORT = "main/journal/lesson_report"
-        const val WEB_PATH_HOME_DNEVNIK_RU_MARKS = "main/home/marks"
-        const val WEB_PATH_HOME_DETAILED_STUPS = "main/home/stups"
-        const val WEB_PATH_HOME_ALL_GROUP_MARKS = "main/home/allGroupMarks"
-    }
+//    companion object {
+//        const val WEB_PATH_AUTH_LOGIN = "auth/login"
+//        const val WEB_PATH_AUTH_ACTIVATION = "auth/activation"
+//        const val WEB_PATH_MAIN_HOME = "main/home"
+//        const val WEB_PATH_HOME_SETTINGS = "main/home/settings"
+//        const val WEB_PATH_MAIN_JOURNAL = "main/journal"
+//        const val WEB_PATH_MAIN_ADMIN = "main/admin"
+//
+//        //        const val WEB_PATH_ADMIN_MENTORS = "main/admin/teachers"
+//        const val WEB_PATH_ADMIN_USERS = "main/admin/teachers"
+//        const val WEB_PATH_ADMIN_GROUPS = "main/admin/students"
+//
+//        //        const val WEB_PATH_ADMIN_STUDENTS = "main/admin/students"
+//        const val WEB_PATH_JOURNAL_LESSON_REPORT = "main/journal/lesson_report"
+//        const val WEB_PATH_HOME_DNEVNIK_RU_MARKS = "main/home/marks"
+//        const val WEB_PATH_HOME_DETAILED_STUPS = "main/home/stups"
+//        const val WEB_PATH_HOME_ALL_GROUP_MARKS = "main/home/allGroupMarks"
+//        const val WEB_PATH_HOME_PROFILE = "main/home/profile"
+//    }
 
     sealed interface RootCategories {
         data object Home : RootCategories

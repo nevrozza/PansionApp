@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object StudentGroups : Table() {
@@ -53,6 +54,19 @@ object StudentGroups : Table() {
             }
         } catch (e: Throwable) {
             println(e)
+        }
+    }
+
+    fun fetchAll(): List<StudentGroupDTO> {
+        return transaction {
+            StudentGroups.selectAll().map {
+                StudentGroupDTO(
+                    groupId = it[StudentGroups.groupId],
+                    subjectId = it[StudentGroups.subjectId],
+                    studentLogin = it[StudentGroups.studentLogin]
+                )
+
+            }
         }
     }
 

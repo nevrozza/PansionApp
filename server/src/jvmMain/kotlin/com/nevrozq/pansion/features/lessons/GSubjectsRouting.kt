@@ -7,6 +7,29 @@ import io.ktor.server.routing.*
 fun Application.configureLessonsRouting() {
     routing {
         val lessonsController = LessonsController()
+
+
+        post(RequestPaths.Lessons.FetchSchedule) {
+            lessonsController.fetchSchedule(call)
+        }
+
+        post(RequestPaths.Lessons.SaveSchedule) {
+            lessonsController.saveSchedule(call)
+        }
+
+        post(RequestPaths.Lessons.FetchCabinets) {
+            lessonsController.fetchAllCabinets(call)
+        }
+
+        post(RequestPaths.Lessons.UpdateCabinets) {
+            lessonsController.updateCabinets(call)
+        }
+
+
+        post(RequestPaths.Lessons.FetchInitSchedule) {
+            lessonsController.fetchInitSchedule(call)
+        }
+
         post(RequestPaths.Lessons.FetchAllSubjects) {
             lessonsController.fetchAllSubjects(call)
         }

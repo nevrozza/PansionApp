@@ -1,3 +1,5 @@
+import admin.cabinets.CabinetItem
+import admin.cabinets.RFetchCabinetsResponse
 import admin.groups.forms.RFetchCutedGroupsResponse
 import admin.groups.forms.outside.RFetchFormsResponse
 import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
@@ -7,12 +9,20 @@ import admin.groups.forms.RFetchFormGroupsResponse
 import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.subjects.RFetchGroupsResponse
+import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RCreateUserResponse
 import admin.users.RFetchAllUsersResponse
 import admin.users.UserInit
+import schedule.RScheduleList
 
 interface AdminRepository {
 
+    suspend fun fetchInitSchedule() : RFetchInitScheduleResponse
+
+
+    suspend fun fetchCabinets() : RFetchCabinetsResponse
+
+    suspend fun updateCabinets(cabinets: List<CabinetItem>)
 
     suspend fun registerUser(user: UserInit): RCreateUserResponse
     suspend fun fetchAllUsers(): RFetchAllUsersResponse
@@ -70,4 +80,7 @@ interface AdminRepository {
 
     suspend fun fetchAllTeachers(): RFetchTeachersResponse
     suspend fun fetchAllMentors(): RFetchMentorsResponse
+
+    suspend fun fetchSchedule(dayOfWeek: String, date: String) : RScheduleList
+    suspend fun saveSchedule(list: RScheduleList)
 }

@@ -83,7 +83,7 @@ class LessonReportComponent(
         onItemClick = {
             try {
 //                onSetMarkMenuItemClick(it.text)
-                onDeleteMarkMenuItemClick(it.id)
+                onDeleteMarkMenuItemClick(it.id.toInt())
             } catch (_: Throwable) {
 
             }
@@ -166,19 +166,19 @@ class LessonReportComponent(
             ListDialogStore.Intent.InitList(
                 listOf(
                     ListItem(
-                        id = 5,
+                        id = "5",
                         text = "5"
                     ),
                     ListItem(
-                        id = 4,
+                        id = "4",
                         text = "4"
                     ),
                     ListItem(
-                        id = 3,
+                        id = "3",
                         text = "3"
                     ),
                     ListItem(
-                        id = 2,
+                        id = "2",
                         text = "2"
                     ),
                 )
@@ -190,7 +190,7 @@ class LessonReportComponent(
             ListDialogStore.Intent.InitList(
                 listOf(
                     ListItem(
-                        5,
+                        "5",
                         "Удалить"
                     )
                 )
@@ -199,9 +199,9 @@ class LessonReportComponent(
         setLateTimeMenuComponent.onEvent(
             ListDialogStore.Intent.InitList(
                 listOf(
-                    ListItem(id = 1, text = ">2"),
-                    ListItem(id = 2, text = ">5"),
-                    ListItem(id = 3, text = ">10")
+                    ListItem(id = "1", text = ">2"),
+                    ListItem(id = "2", text = ">5"),
+                    ListItem(id = "3", text = ">10")
                 )
             )
         )

@@ -380,7 +380,7 @@ private fun ActivationInContent(
                                 )
 
                                 else -> Text(
-                                    "Здравствуйте,\n$name!",
+                                    "Здравствуйте\n$name!",
                                     lineHeight = 33.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     textAlign = TextAlign.Center,
@@ -399,9 +399,7 @@ private fun ActivationInContent(
                         ) {
                             when (label) {
                                 ActivationStore.Step.Choice -> {
-                                    Spacer(Modifier.height(20.dp))
-                                    CustomTextButton("Через QR-код") {}
-                                    Spacer(Modifier.height(20.dp))
+                                    Spacer(Modifier.height(50.dp))
                                     CustomTextButton("Через логин") {
                                         component.onEvent(
                                             ActivationStore.Intent.ChangeStep(
@@ -409,6 +407,7 @@ private fun ActivationInContent(
                                             )
                                         )
                                     }
+
                                 }
 
                                 ActivationStore.Step.Login -> {
@@ -447,6 +446,10 @@ private fun ActivationInContent(
                                         },
                                         keyboardType = KeyboardType.Password
                                     )
+                                    Spacer(Modifier.height(10.dp))
+                                    CustomTextButton("Уже активирован") {
+                                        component.onOutput(ActivationComponent.Output.NavigateToLogin)
+                                    }
                                     AnimatedVisibility(
                                         model.isInProcess
                                     ) {
@@ -522,30 +525,34 @@ private fun ActivationInContent(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             when (label) {
-                                ActivationStore.Step.Choice -> OutlinedButton(
-                                    contentPadding = PaddingValues(horizontal = 15.dp),
-                                    onClick = {
-                                        component.onOutput(ActivationComponent.Output.NavigateToLogin)
-                                    }) {
-                                    Text("Уже активирован")
+                                ActivationStore.Step.Choice -> Column(horizontalAlignment = Alignment.CenterHorizontally){
+                                    CustomTextButton("QR-код") {}
+                                    Spacer(Modifier.height(10.dp))
+                                    OutlinedButton(
+                                        contentPadding = PaddingValues(horizontal = 15.dp),
+                                        onClick = {
+                                            component.onOutput(ActivationComponent.Output.NavigateToLogin)
+                                        }) {
+                                        Text("Уже активирован")
+                                    }
                                 }
 
                                 ActivationStore.Step.Login -> {
-                                    IconButton(
-                                        onClick = {
-                                            component.onEvent(
-                                                ActivationStore.Intent.ChangeStep(
-                                                    ActivationStore.Step.Choice
-                                                )
-                                            )
-                                        }
-                                    ) {
-                                        Icon(
-                                            Icons.Rounded.ArrowBackIos,
-                                            null
-                                        )
-                                    }
-                                    Spacer(Modifier.width(5.dp))
+//                                    IconButton(
+//                                        onClick = {
+//                                            component.onEvent(
+//                                                ActivationStore.Intent.ChangeStep(
+//                                                    ActivationStore.Step.Choice
+//                                                )
+//                                            )
+//                                        }
+//                                    ) {
+//                                        Icon(
+//                                            Icons.Rounded.ArrowBackIos,
+//                                            null
+//                                        )
+//                                    }
+//                                    Spacer(Modifier.width(5.dp))
                                     AnimatedElevatedButton(
                                         text = "Далее",
                                         isEnabled = isLoginButtonEnabled

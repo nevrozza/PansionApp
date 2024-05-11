@@ -161,10 +161,7 @@ fun StudentsContent(
                                                 },
                                                 onClick = {
                                                     component.formsListComponent.onEvent(
-                                                        ListDialogStore.Intent.ShowDialog(
-                                                            x = x,
-                                                            y = y
-                                                        )
+                                                        ListDialogStore.Intent.ShowDialog
                                                     )
                                                     component.onEvent(
                                                         StudentsStore.Intent.ClickOnStudentPlus(

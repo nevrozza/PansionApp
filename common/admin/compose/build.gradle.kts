@@ -17,6 +17,7 @@ kotlin {
                 //implementation(Deps.Moko.Resources.compose)
                 implementation(project(":common:utils"))
                 implementation(project(":common:utils-compose"))
+                implementation("com.mohamedrejeb.dnd:compose-dnd:0.2.0")
                 implementation(libs.kotlinx.datetime)
 
                 implementation(libs.decompose.core)

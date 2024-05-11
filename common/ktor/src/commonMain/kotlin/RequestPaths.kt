@@ -36,6 +36,12 @@ object RequestPaths {
     }
 
     object Lessons {
+        const val FetchSchedule = "server/admin/schedule/fetch"
+        const val SaveSchedule = "server/admin/schedule/save"
+
+
+        const val FetchCabinets = "server/admin/fetchCabinets"
+        const val UpdateCabinets = "server/admin/updateCabinets"
         const val FetchAllSubjects = "server/lessons/fetchAllSubjects"
         const val CreateSubject = "server/lessons/createSubject"
         const val FetchGroups = "server/lessons/fetchGroups"
@@ -55,5 +61,7 @@ object RequestPaths {
         const val FetchAllForms = "server/lessons/fetchAllForms"
         const val DeleteStudentGroup = "server/lessons/deleteStudentGroup"
         const val DeleteFormGroup = "server/lessons/deleteFormGroup"
+
+        const val FetchInitSchedule = "server/lessons/fetchInitSchedule"
     }
 }

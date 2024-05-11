@@ -12,6 +12,19 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
+
+fun String.toMinutes(): Int {
+    val parts = this.split(":")
+    return parts[0].toInt() * 60 + parts[1].toInt()
+}
+
+fun isTimeFormat(str: String): Boolean {
+    val pattern = """\b([01]?[0-9]|2[0-3]):[0-5][0-9]-([01]?[0-9]|2[0-3]):[0-5][0-9]\b""".toRegex()
+    val parts = str.split("-")
+    val start = parts[0].toMinutes()
+    val end = parts[1].toMinutes()
+    return (pattern.matches(str) && start < end)
+}
 fun getWeekDays(): List<String> {
     val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).date
     val days = mutableListOf<LocalDate>()

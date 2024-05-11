@@ -24,6 +24,7 @@ fun getItems(): List<AdminItem> {
     return listOf(
         AdminItem(title = "Пользователи", routing = AdminComponent.Output.NavigateToUsers),
         AdminItem(title = "Группы", routing = AdminComponent.Output.NavigateToGroups),
+        AdminItem(title = "Кабинеты", routing = AdminComponent.Output.NavigateToCabinets),
 //        AdminItem(title = "Ученики", routing = AdminComponent.Output.NavigateToUsers),
 //        AdminItem(title = "Наставники", routing = AdminComponent.Output.NavigateToMentors),
     )

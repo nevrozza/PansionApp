@@ -1,11 +1,13 @@
 package com.nevrozq.pansion
 
+import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
+import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.subjects.Subjects
@@ -39,11 +41,15 @@ import server.Roles
 // уроки +направление, группы +обязательность к классам, +проверка есть ли такой урок в классе
 fun main() {
     Database.connect(
-        url = System.getenv("DATABASE_CONNECTION_STRING"),
-        driver = "org.postgresql.Driver",
-        user = System.getenv("POSTGRES_USER"),
-        password = System.getenv("POSTGRES_PASSWORD")
+        "jdbc:postgresql://localhost:5432/pansionApp", driver = "org.postgresql.Driver",
+        user = "postgres", password = "6556"
     )
+//    Database.connect(
+//        url = System.getenv("DATABASE_CONNECTION_STRING"),
+//        driver = "org.postgresql.Driver",
+//        user = System.getenv("POSTGRES_USER"),
+//        password = System.getenv("POSTGRES_PASSWORD")
+//    )
     transaction {
         SchemaUtils.create(
             Users,
@@ -57,8 +63,12 @@ fun main() {
             StudentLines,
             ReportHeaders,
             Marks,
-            Stups
+            Stups,
+            Cabinets,
+            Schedule
         )
+
+//        Schedule.deleteAll()
 
 //        Users.deleteAll()
 //        Tokens.deleteAll()
@@ -94,7 +104,7 @@ fun main() {
 //    }
 
     embeddedServer(Netty,
-        port = System.getenv("SERVER_PORT").toInt(),
+        port = 8081,//System.getenv("SERVER_PORT").toInt(),
         module = Application::module)
         .start(wait = true)
 }

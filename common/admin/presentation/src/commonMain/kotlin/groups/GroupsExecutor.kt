@@ -123,7 +123,7 @@ class GroupsExecutor(
         println("sad:$forms")
         formListComponent.onEvent(ListDialogStore.Intent.InitList(forms.map {
             ListItem(
-                id = it.id,
+                id = it.id.toString(),
                 text = "${it.form.classNum}${if (it.form.title.length < 2) "-" else " "}${it.form.title} класс"
             )
         }))

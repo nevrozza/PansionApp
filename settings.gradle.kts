@@ -3,7 +3,7 @@ pluginManagement {
         google()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
         gradlePluginPortal()
         mavenLocal()
         maven("https://packages.jetbrains.team/maven/p/kpm/public/")
@@ -16,6 +16,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
         mavenLocal()
         maven("https://packages.jetbrains.team/maven/p/kpm/public/")
         maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
@@ -23,9 +24,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Pansion"
-//include(":androidApp")
-//include(":desktopApp")
-//include(":jsApp")
 include(":composeApp")
 include(":server")
 

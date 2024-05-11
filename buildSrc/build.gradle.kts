@@ -16,16 +16,8 @@ dependencies {
     implementation(libs.plugin.android)
     implementation(libs.plugin.kotlin)
     implementation(libs.plugin.compose)
+    implementation(libs.plugin.compose.compiler)
     implementation(libs.plugin.serialization)
-//    implementation(libs.plugin.sqldelight)
-//    implementation(libs.plugin.moko)
-
-    //implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
-//    implementation(Deps.Kotlin.gradlePlugin)
-//    implementation(Deps.Compose.gradlePlugin)
-//    implementation(Deps.Android.gradlePlugin)
-//    implementation(Deps.Kotlin.Serialization.gradlePlugin)
-//    implementation(Deps.Moko.Resources.gradlePlugin)
 }
 
 kotlin {

@@ -6,9 +6,11 @@ plugins {
 //    id("compose-setup")
     id(libs.plugins.android.get().pluginId)
     id(libs.plugins.kotlin.get().pluginId)
-    id(libs.plugins.compose.get().pluginId)
+    id(libs.plugins.compose.plugin.get().pluginId)
     id(libs.plugins.cocoapods.get().pluginId)
     id(libs.plugins.serialization.get().pluginId)
+    id(libs.plugins.compose.compiler.get().pluginId)
+//    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 version = "0.0.1"
@@ -86,16 +88,16 @@ kotlin {
 //        binaries.executable()
 //    }
 
-//    wasmJs {
-//        moduleName = "composeApp"
-//        browser {
-//            commonWebpackConfig {
-//                outputFileName = "composeApp.js"
-//            }
-//        }
-//        useCommonJs()
-//        binaries.executable()
-//    }
+    wasmJs {
+        moduleName = "composeApp"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+        useCommonJs()
+        binaries.executable()
+    }
 
 //    wasmJs {
 //        moduleName = "composeApp"
@@ -182,7 +184,7 @@ kotlin {
         }
 
         jvmMain.dependencies {
-//            implementation(project(":server"))
+            implementation(project(":server"))
 //            implementation(compose.desktop.common)
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)
@@ -247,9 +249,12 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.androidx.compiler.get()
+    compose {
+        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0-RC2"
     }
+//    composeOptions {
+//        kotlinCompilerExtensionVersion = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0-RC2"
+//    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
