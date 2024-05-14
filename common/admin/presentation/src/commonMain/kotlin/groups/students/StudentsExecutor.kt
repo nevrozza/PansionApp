@@ -130,8 +130,12 @@ class StudentsExecutor(
     private fun changeStudent(login: String) {
 
         scope.launch {
-            dispatch(Message.OnStudentClicked(login))
-            updateStudentsGroups(login)
+            if(login != state().chosenStudentLogin) {
+                dispatch(Message.OnStudentClicked(login))
+                updateStudentsGroups(login)
+            } else {
+                dispatch(Message.OnStudentClicked(""))
+            }
         }
 
     }

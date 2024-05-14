@@ -59,8 +59,7 @@ import view.LocalViewManager
 fun SubjectsContent(
     component: SubjectsComponent,
     coroutineScope: CoroutineScope,
-    topPadding: Dp,
-    isFabShowing: MutableState<Boolean>
+    topPadding: Dp
 ) {
     val gModel = component.groupModel.subscribeAsState().value
     val model = component.model.subscribeAsState().value
@@ -75,15 +74,12 @@ fun SubjectsContent(
                         Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-
-                        isFabShowing.value = false
                         LoadingAnimation()
                     }
                 }
 
                 it == NetworkState.Error -> {
                     DefaultGroupsErrorScreen(
-                        isFabShowing,
                         component.nSubjectsInterface
                     )
                 }
@@ -91,8 +87,7 @@ fun SubjectsContent(
                 else -> {
                     if (model.groups.isNotEmpty()) {
                         Spacer(Modifier.height(7.dp))
-                        CLazyColumn(padding = PaddingValues(top = topPadding + 45.dp)) {
-                            isFabShowing.value = true
+                        CLazyColumn(padding = PaddingValues(top = topPadding)) {
                             items(model.groups) { group ->
                                 val mentor =
                                     gModel.teachers.find { it.login == group.group.teacherLogin }
@@ -104,7 +99,7 @@ fun SubjectsContent(
                                     }
                                 ElevatedCard(
                                     Modifier.heightIn(TextFieldDefaults.MinHeight)
-                                        .fillMaxWidth().padding(horizontal = 10.dp)
+                                        .fillMaxWidth()//.padding(horizontal = 10.dp)
                                         .padding(bottom = 5.dp)
                                 ) {
                                     Column(
@@ -140,66 +135,10 @@ fun SubjectsContent(
                             Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (gModel.subjects.isNotEmpty()) {
-                                isFabShowing.value = true
-                            }
                             Text("Здесь пустовато =)")
                         }
                     }
                 }
-            }
-        }
-
-        LazyRow(
-            Modifier.fillMaxWidth()
-                .then(
-                    if(viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(state = viewManager.hazeState!!.value, style = viewManager.hazeStyle!!.value)
-                    else Modifier
-                )
-                .padding(top = topPadding).padding(horizontal = 10.dp)
-                .height(35.dp),
-//            verticalAlignment = Alignment.CenterVertically
-        ) {
-            item {
-
-                FilledTonalIconButton(
-                    onClick = {
-                        component.cSubjectDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                    },
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                            2.dp
-                        )
-                    ),
-                    modifier = Modifier.height(30.dp)
-                ) {
-                    Icon(
-                        Icons.Rounded.Add,
-                        null
-                    )
-                }
-
-                Spacer(Modifier.width(5.dp))
-            }
-            items(gModel.subjects.filter { it.isActive }
-                .reversed()) {
-                val bringIntoViewRequester = BringIntoViewRequester()
-                Box(
-                    Modifier.bringIntoViewRequester(
-                        bringIntoViewRequester
-                    ).height(30.dp)
-                ) {
-                    SubjectItem(
-                        title = it.name,
-                        isChosen = it.id == model.chosenSubjectId
-                    ) {
-                        component.onEvent(SubjectsStore.Intent.ClickOnSubject(it.id))
-                        coroutineScope.launch {
-                            bringIntoViewRequester.bringIntoView()
-                        }
-                    }
-                }
-                Spacer(Modifier.width(5.dp))
             }
         }
     }
@@ -209,7 +148,7 @@ fun SubjectsContent(
 
 @Composable
 fun DefaultGroupsErrorScreen(
-    isFabShowing: MutableState<Boolean>,
+//    isFabShowing: MutableState<Boolean>,
     nInterface: NetworkInterface
 ) {
 //    val coroutineScope = rememberCoroutineScope()
@@ -219,7 +158,6 @@ fun DefaultGroupsErrorScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        isFabShowing.value = false
         Text(nInterface.networkModel.value.error)
         Spacer(Modifier.height(7.dp))
         CustomTextButton("Попробовать ещё раз") {

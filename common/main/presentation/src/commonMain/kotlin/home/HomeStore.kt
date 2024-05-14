@@ -6,6 +6,11 @@ import home.HomeStore.Label
 import home.HomeStore.State
 import journal.init.TeacherGroup
 import report.Grade
+import schedule.PersonScheduleItem
+import schedule.ScheduleItem
+import server.getCurrentDate
+import server.getDate
+import server.getDates
 
 interface HomeStore : Store<Intent, State, Label> {
     data class State(
@@ -29,11 +34,23 @@ interface HomeStore : Store<Intent, State, Label> {
             Period.HALF_YEAR to null,
             Period.YEAR to null
         ),
-        val homeWorkEmoji: String? = null
+        val homeWorkEmoji: String? = null,
+
+        val items: HashMap<String, List<PersonScheduleItem>> = hashMapOf(),
+        val currentDate: Pair<Int, String> = getCurrentDate(),
+        val today: String = getCurrentDate().second,
+        val dates: List<Pair<Int, String>> = getDates(4, 4),
+        val isDatesShown: Boolean = false
     )
 
     sealed interface Intent {
         data object Init : Intent
+
+        data object ChangeIsDatesShown : Intent
+
+        data class ChangeDate(val date: Pair<Int, String>) : Intent
+
+//        data class ChangeDate()
         //val avatarId: Int,
         //                        val login: String,
         //                        val name: String,
@@ -51,6 +68,12 @@ interface HomeStore : Store<Intent, State, Label> {
 //                          val praname: String) : Message
 
         data class GradesUpdated(val grades: List<Grade>) : Message
+
+        data class ItemsUpdated(val items: HashMap<String, List<PersonScheduleItem>>) : Message
+
+        data class DateChanged(val date: Pair<Int, String>) : Message
+
+        data object IsDatesShownChanged : Message
     }
 
     sealed interface Label

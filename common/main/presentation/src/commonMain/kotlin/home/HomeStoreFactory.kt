@@ -18,6 +18,7 @@ class HomeStoreFactory(
     private val quickTabNInterface: NetworkInterface,
     private val teacherNInterface: NetworkInterface,
     private val gradesNInterface: NetworkInterface,
+    private val scheduleNInterface: NetworkInterface,
 ) {
 
     fun create(): HomeStore {
@@ -40,7 +41,8 @@ class HomeStoreFactory(
                 mainRepository = mainRepository,
                 quickTabNInterface = quickTabNInterface,
                 teacherNInterface = teacherNInterface,
-                gradesNInterface = gradesNInterface
+                gradesNInterface = gradesNInterface,
+                scheduleNInterface = scheduleNInterface
             ) },
             reducer = HomeReducer
         )

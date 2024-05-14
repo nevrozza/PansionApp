@@ -14,14 +14,14 @@ import server.cut
 object Users : Table() {
     val login = Users.varchar("login", 30).uniqueIndex()
     private val password = Users.varchar("password", 50).nullable()
-    private val name = Users.varchar("name", 30)
-    private val surname = Users.varchar("surname", 50)
-    private val praname = Users.varchar("praname", 30).nullable()
+    val name = Users.varchar("name", 30)
+    val surname = Users.varchar("surname", 50)
+    val praname = Users.varchar("praname", 30).nullable()
     private val birthday = Users.varchar("birthday", 8)
     private val role = Users.varchar("role", 1)
     private val moderation = Users.varchar("moderation", 1)
     private val isParent = Users.bool("isParent")
-    private val avatarId = Users.integer("avatarId")
+    val avatarId = Users.integer("avatarId")
     private val isActive = Users.bool("isActive")
 
     fun insert(userDTO: UserDTO) {

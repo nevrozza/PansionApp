@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -69,6 +70,8 @@ import components.networkInterface.NetworkState
 import components.listDialog.ListDialogStore
 import components.nSCutedGroup
 import components.nSSubject
+import decomposeComponents.listDialogComponent.ListDialogDesktopContent
+import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import dev.chrisbanes.haze.hazeChild
 import groups.forms.FormsStore
 import groups.students.StudentsComponent
@@ -77,19 +80,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import view.LocalViewManager
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentsContent(
     component: StudentsComponent,
-    coroutineScope: CoroutineScope,
-    topPadding: Dp,
-    isFabShowing: MutableState<Boolean>
+    topPadding: Dp
 ) {
     val gModel = component.groupModel.subscribeAsState().value
     val model = component.model.subscribeAsState().value
     val nSModel = component.nStudentsModel.subscribeAsState().value
     val nSGModel = component.nStudentGroupsModel.subscribeAsState().value
     val viewManager = LocalViewManager.current
-    println(component.formsListComponent.model.subscribeAsState().value.isDialogShowing)
     Box(Modifier.fillMaxSize()) {
 
         Crossfade(nSModel.state) {
@@ -99,8 +100,6 @@ fun StudentsContent(
                         Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-
-                        isFabShowing.value = false
                         LoadingAnimation()
                     }
                 }
@@ -108,17 +107,13 @@ fun StudentsContent(
                 NetworkState.None -> {
                     if (model.studentsInForm.isNotEmpty()) {
 
-                        CLazyColumn(padding = PaddingValues(top = topPadding + 45.dp)) {
-                            isFabShowing.value = false
+                        CLazyColumn(padding = PaddingValues(top = topPadding)) { // + 45.dp
                             item {
                                 Spacer(Modifier.height(7.dp))
                             }
                             items(model.studentsInForm) { student ->
-                                var x by remember { mutableStateOf(0.0f) }
-                                var y by remember { mutableStateOf(0.0f) }
-
                                 Column(
-                                    Modifier.padding(horizontal = 10.dp)
+                                    Modifier//.padding(horizontal = 10.dp)
                                         .padding(bottom = if (student.login != model.studentsInForm.last().login) 7.dp else 80.dp)
                                         .clip(CardDefaults.elevatedShape)
                                         .animateContentSize()
@@ -154,45 +149,48 @@ fun StudentsContent(
                                                 fontSize = 20.sp,
                                                 fontWeight = FontWeight.SemiBold
                                             )
-                                            IconButton(
-                                                modifier = Modifier.onGloballyPositioned {
-                                                    x = it.positionInParent().x
-                                                    y = it.positionInRoot().y
-                                                },
-                                                onClick = {
-                                                    component.formsListComponent.onEvent(
-                                                        ListDialogStore.Intent.ShowDialog
-                                                    )
-                                                    component.onEvent(
-                                                        StudentsStore.Intent.ClickOnStudentPlus(
-                                                            student.login
+                                            Box() {
+                                                IconButton(
+                                                    onClick = {
+                                                        component.formsListComponent.onEvent(
+                                                            ListDialogStore.Intent.ShowDialog
                                                         )
-                                                    )
-                                                }
-                                            ) {
-                                                Crossfade(model.chosenFormTabId != 0) {
-                                                    Box(
-                                                        modifier = Modifier.size(25.dp),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        if (it) Crossfade(nSGModel.state == NetworkState.Loading) { state ->
-                                                            if (state && student.login == model.chosenStudentLogin) {
-                                                                CircularProgressIndicator(
-                                                                    modifier = Modifier.size(
-                                                                        20.dp
+                                                        component.onEvent(
+                                                            StudentsStore.Intent.ClickOnStudentPlus(
+                                                                student.login
+                                                            )
+                                                        )
+                                                    }
+                                                ) {
+                                                    Crossfade(model.chosenFormTabId != 0) {
+                                                        Box(
+                                                            modifier = Modifier.size(25.dp),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            if (it) Crossfade(nSGModel.state == NetworkState.Loading) { state ->
+                                                                if (state && student.login == model.chosenStudentLogin) {
+                                                                    CircularProgressIndicator(
+                                                                        modifier = Modifier.size(
+                                                                            20.dp
+                                                                        )
                                                                     )
-                                                                )
-                                                            } else {
-                                                                Icon(
-                                                                    Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                                                    null
-                                                                )
+                                                                } else {
+                                                                    Icon(
+                                                                        Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                                                        null
+                                                                    )
+                                                                }
+                                                            }
+                                                            else {
+                                                                Icon(Icons.Rounded.Add, null)
                                                             }
                                                         }
-                                                        else {
-                                                            Icon(Icons.Rounded.Add, null)
-                                                        }
                                                     }
+                                                }
+                                                if(student.login == model.chosenStudentPlusLogin) {
+                                                    ListDialogDesktopContent(
+                                                        component.formsListComponent
+                                                    )
                                                 }
                                             }
                                         }
@@ -340,73 +338,13 @@ fun StudentsContent(
 
                 NetworkState.Error -> {
                     DefaultGroupsErrorScreen(
-                        isFabShowing,
                         component.nStudentsInterface
                     )
                 }
             }
         }
-
-
-        LazyRow(
-            Modifier.fillMaxWidth()
-                .then(
-                    if(viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(state = viewManager.hazeState!!.value, style = viewManager.hazeStyle!!.value)
-                    else Modifier
-                )
-                .padding(top = topPadding).padding(horizontal = 10.dp)
-                .height(35.dp)
-        ) {
-            item {
-                val bringIntoViewRequester =
-                    BringIntoViewRequester()
-                Box(
-                    Modifier.bringIntoViewRequester(
-                        bringIntoViewRequester
-                    ).height(30.dp)
-                ) {
-                    SubjectItem(
-                        title = "без класса",
-                        isChosen = 0 == model.chosenFormTabId
-                    ) {
-                        component.onEvent(
-//                            GroupsStore.Intent.ChangeCurrentClass(
-//                                0
-//                            )
-                            StudentsStore.Intent.ClickOnFormTab(0)
-                        )
-                        coroutineScope.launch {
-                            bringIntoViewRequester.bringIntoView()
-                        }
-                    }
-                }
-                Spacer(Modifier.width(5.dp))
-
-            }
-            items(gModel.forms) {
-                val bringIntoViewRequester =
-                    BringIntoViewRequester()
-                Box(
-                    Modifier.bringIntoViewRequester(
-                        bringIntoViewRequester
-                    ).height(30.dp)
-                ) {
-                    SubjectItem(
-                        title = "${it.form.classNum}${if (it.form.shortTitle.length < 2) "-" else " "}${it.form.shortTitle} класс",
-                        isChosen = it.id == model.chosenFormTabId
-                    ) {
-                        component.onEvent(
-                            StudentsStore.Intent.ClickOnFormTab(it.id)
-                        )
-                        coroutineScope.launch {
-                            bringIntoViewRequester.bringIntoView()
-                        }
-                    }
-                }
-                Spacer(Modifier.width(5.dp))
-            }
-        }
-        isFabShowing.value = false
-
+        ListDialogMobileContent(
+            component.formsListComponent
+        )
     }
 }

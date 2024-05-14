@@ -12,6 +12,9 @@ object RequestPaths {
 
     object Main {
         const val FetchMainAVG = "server/main/fetchAVG"
+
+        const val FetchScheduleSubjects = "server/main/fetchSubjects"
+        const val FetchSubjectRating = "server/main/fetchSubjectRating"
     }
 
     object Reports {
@@ -38,6 +41,8 @@ object RequestPaths {
     object Lessons {
         const val FetchSchedule = "server/admin/schedule/fetch"
         const val SaveSchedule = "server/admin/schedule/save"
+        const val FetchPersonSchedule = "server/PersonSchedule"
+
 
 
         const val FetchCabinets = "server/admin/fetchCabinets"

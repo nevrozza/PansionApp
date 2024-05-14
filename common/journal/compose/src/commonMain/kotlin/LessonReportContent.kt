@@ -1297,7 +1297,10 @@ fun LessonTable(
                                                                         if (model.selectedLogin == student.login) {
                                                                             ListDialogDesktopContent(
                                                                                 component.setLateTimeMenuComponent,
-                                                                                offset = DpOffset(x = 27.dp, y = -18.dp),
+                                                                                offset = DpOffset(
+                                                                                    x = 27.dp,
+                                                                                    y = -18.dp
+                                                                                ),
                                                                                 isFullHeight = true
                                                                             )
                                                                         }
@@ -1414,10 +1417,16 @@ fun LessonTable(
                                                                     },
                                                                 paddingValues = PaddingValues(end = if (index != 3) 5.dp else 0.dp)
                                                             )
-                                                            if (model.selectedMarkValue == index.toString()) {
+                                                            if (model.selectedMarkValue == index.toString()
+                                                                && (model.selectedLogin == student.login)
+                                                                && (model.selectedMarkReason == column.type)
+                                                            ) {
                                                                 ListDialogDesktopContent(
                                                                     component.deleteMarkMenuComponent,
-                                                                    offset = DpOffset(x = 27.dp, y = -18.dp),
+                                                                    offset = DpOffset(
+                                                                        x = 27.dp,
+                                                                        y = -18.dp
+                                                                    ),
                                                                     isFullHeight = true
                                                                 )
                                                             }
@@ -1474,7 +1483,10 @@ fun LessonTable(
                                                             if (model.selectedMarkReason == column.type && model.selectedLogin == student.login) {
                                                                 ListDialogDesktopContent(
                                                                     component.setMarkMenuComponent,
-                                                                    offset = DpOffset(x = 27.dp, y = -18.dp),
+                                                                    offset = DpOffset(
+                                                                        x = 27.dp,
+                                                                        y = -18.dp
+                                                                    ),
                                                                     isFullHeight = true
                                                                 )
                                                             }
@@ -1538,11 +1550,9 @@ fun LessonTable(
 
 
     }
-    val detailedMarksName = try {
-        model.students.first { it.login == model.detailedMarksLogin }.shortFio
-    } catch (_: Throwable) {
-        "null"
-    }
+    val detailedMarksName =
+        model.students.firstOrNull { it.login == model.detailedMarksLogin }?.shortFio ?: "null"
+
     CAlertDialogContent(
         component = component.marksDialogComponent,
         title = "Оценки: $detailedMarksName",

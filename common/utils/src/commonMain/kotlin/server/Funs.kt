@@ -9,6 +9,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.todayIn
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -16,6 +17,11 @@ import kotlin.math.roundToInt
 fun String.toMinutes(): Int {
     val parts = this.split(":")
     return parts[0].toInt() * 60 + parts[1].toInt()
+}
+
+fun getCurrentDayTime() : String {
+    val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
+    return "${today.time.hour.twoNums()}:${today.time.minute.twoNums()}"
 }
 
 fun isTimeFormat(str: String): Boolean {
@@ -192,3 +198,52 @@ fun String.latin() = this.replace("а", "a")
     .replace("ю", "yu")
     .replace("я", "ya")
     .replace("й", "y")
+
+fun getCurrentDate(): Pair<Int, String> {
+    val today = Clock.System.todayIn(TimeZone.of("UTC+3"))
+    val dayOfWeek = when (today.dayOfWeek) {
+        DayOfWeek.MONDAY -> 1
+        DayOfWeek.TUESDAY -> 2
+        DayOfWeek.WEDNESDAY -> 3
+        DayOfWeek.THURSDAY -> 4
+        DayOfWeek.FRIDAY -> 5
+        DayOfWeek.SATURDAY -> 6
+        DayOfWeek.SUNDAY -> 7
+        else -> 1
+    }
+    return Pair(
+        dayOfWeek,
+        "${today.dayOfMonth.twoNums()}.${today.monthNumber.twoNums()}.${today.year}"
+    )
+
+}
+
+fun getDates(minus: Int = 0, plus: Int = 7): List<Pair<Int, String>> {
+    val dates = mutableListOf<Pair<Int, String>>()
+    val today = Clock.System.todayIn(TimeZone.of("UTC+3"))
+    val startDate = today.minus(minus, DateTimeUnit.DAY)// сегодняшняя дата //минус 7 дней
+    val endDate = today.plus(plus, DateTimeUnit.DAY) // сегодняшняя дата плюс 7 дней
+
+    var currentDate = startDate
+    while (currentDate <= endDate) {
+        val dayOfWeek = when (currentDate.dayOfWeek) {
+            DayOfWeek.MONDAY -> 1
+            DayOfWeek.TUESDAY -> 2
+            DayOfWeek.WEDNESDAY -> 3
+            DayOfWeek.THURSDAY -> 4
+            DayOfWeek.FRIDAY -> 5
+            DayOfWeek.SATURDAY -> 6
+            DayOfWeek.SUNDAY -> 7
+            else -> 1
+        }
+        dates.add(
+            Pair(
+                dayOfWeek,
+                "${currentDate.dayOfMonth.twoNums()}.${currentDate.monthNumber.twoNums()}.${currentDate.year}"
+            )
+        )
+        currentDate = currentDate.plus(1, DateTimeUnit.DAY)
+    }
+    return dates
+}
+

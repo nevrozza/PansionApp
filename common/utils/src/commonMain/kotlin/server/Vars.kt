@@ -33,3 +33,14 @@ object IsParentStatus {
 object DataLength {
     const val passwordLength = 50
 }
+
+
+val weekPairs = hashMapOf(
+    1 to "Пн",
+    2 to "Вт",
+    3 to "Ср",
+    4 to "Чт",
+    5 to "Пт",
+    6 to "Сб",
+    7 to "Вс",
+)

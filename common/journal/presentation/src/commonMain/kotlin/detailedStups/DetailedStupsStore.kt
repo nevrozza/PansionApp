@@ -17,10 +17,12 @@ interface DetailedStupsStore : Store<Intent, State, Label> {
 
     sealed interface Intent {
         data object Init : Intent
+        data object ChangeReason : Intent
     }
 
     sealed interface Message {
         data class SubjectsUpdated(val subjects: List<DetailedStupsSubject>) : Message
+        data object ReasonChanged : Message
     }
 
     sealed interface Label

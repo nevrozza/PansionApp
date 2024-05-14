@@ -151,6 +151,33 @@ open class RatingEntity : Table() {
         }
     }
 
+    fun fetchUserByDate(login: String, date: String) : List<RatingEntityDTO> {
+        return transaction {
+            try {
+
+                val ratingEntities =
+                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.isGoToAvg eq true) and (this@RatingEntity.date eq date) }.reversed()
+                ratingEntities.map {
+                    RatingEntityDTO(
+                        groupId = it[groupId],
+                        reportId = it[this@RatingEntity.reportId],
+                        login = it[this@RatingEntity.login],
+                        content = it[content],
+                        reason = it[reason],
+                        id = it[this@RatingEntity.id],
+                        part = it[part],
+                        isGoToAvg = it[isGoToAvg],
+                        subjectId = it[subjectId],
+                        date = it[this@RatingEntity.date]
+                    )
+                }
+            } catch (e: Throwable) {
+                println(e)
+                listOf()
+            }
+        }
+    }
+
 
     fun fetchRecentForUser(login: String, limit: Int) : List<RatingEntityDTO> {
         return transaction {

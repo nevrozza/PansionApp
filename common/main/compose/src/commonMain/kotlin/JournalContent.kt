@@ -59,6 +59,8 @@ import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogContent
+import decomposeComponents.listDialogComponent.ListDialogDesktopContent
+import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import journal.JournalComponent
 import journal.JournalStore
@@ -155,26 +157,21 @@ private fun TrueJournalContent(
                 },
                 actionRow = {
 //                    var x by remember { mutableStateOf(0.0f) }
-                    IconButton(
+                    Box() {
+                        IconButton(
 
-                        onClick = {
-                            component.groupListComponent.onEvent(
-                                ListDialogStore.Intent.ShowDialog
-//                                    (
-//                                    x = if (viewManager.size!!.maxWidth - (viewManager.size!!.maxWidth / 4 + viewManager.size!!.maxWidth / 2) >= 250.dp) viewManager.size!!.maxWidth.value / 4 else viewManager.size!!.maxWidth.value / 5,
-//                                    y = 50.0f
-//                                )
+                            onClick = {
+                                component.groupListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.Add, null
                             )
                         }
-                    ) {
-                        Icon(
-                            Icons.Rounded.Add, null,
-//                            modifier = Modifier.onGloballyPositioned {
-//                                x =
-//                            }
+                        ListDialogDesktopContent(
+                            component = component.groupListComponent
                         )
                     }
-
                     IconButton(
                         onClick = { component.onEvent(JournalStore.Intent.Refresh) }
                     ) {
@@ -257,7 +254,7 @@ private fun TrueJournalContent(
                 refreshing = nModel.state == NetworkState.Loading && model.headers.isNotEmpty(),
                 state = refreshState,
             )
-            ListDialogContent(component.groupListComponent)
+            ListDialogMobileContent(component.groupListComponent)
             CAlertDialogContent(
                 component.studentsInGroupCAlertDialogComponent,
                 title = "Ученики",

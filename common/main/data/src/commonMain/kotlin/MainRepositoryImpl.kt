@@ -4,6 +4,9 @@ import journal.init.RFetchTeacherGroupsResponse
 import ktor.KtorMainRemoteDataSource
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
+import rating.RFetchScheduleSubjectsResponse
+import rating.RFetchSubjectRatingReceive
+import rating.RFetchSubjectRatingResponse
 import report.RCreateReportReceive
 import report.RCreateReportResponse
 import report.RFetchHeadersResponse
@@ -11,6 +14,9 @@ import report.RFetchRecentGradesReceive
 import report.RFetchRecentGradesResponse
 import report.RFetchReportDataReceive
 import report.RFetchReportDataResponse
+import schedule.RFetchScheduleDateReceive
+import schedule.RPersonScheduleList
+import schedule.RScheduleList
 
 class MainRepositoryImpl(
     private val remoteDataSource: KtorMainRemoteDataSource
@@ -50,5 +56,32 @@ class MainRepositoryImpl(
 
     override suspend fun fetchRecentGrades(login: String): RFetchRecentGradesResponse {
         return remoteDataSource.fetchRecentGrades(RFetchRecentGradesReceive(login))
+    }
+
+    override suspend fun fetchPersonSchedule(dayOfWeek: String, date: String): RPersonScheduleList {
+        return remoteDataSource.fetchPersonSchedule(
+            RFetchScheduleDateReceive(
+                dayOfWeek = dayOfWeek,
+                day = date
+            )
+        )
+    }
+
+    override suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse {
+        return remoteDataSource.fetchScheduleSubjects()
+    }
+
+    override suspend fun fetchSubjectRating(
+        login: String,
+        subjectId: Int,
+        period: Int
+    ): RFetchSubjectRatingResponse {
+        return remoteDataSource.fetchSubjectRating(
+            RFetchSubjectRatingReceive(
+                login = login,
+                subjectId = subjectId,
+                period = period
+            )
+        )
     }
 }

@@ -10,7 +10,7 @@ import schedule.ScheduleItem
 
 object Schedule : Table() {
     private val id = Schedule.integer("id").autoIncrement().uniqueIndex()
-    private val date = Schedule.varchar("date", 8) //12.45.78
+    private val date = Schedule.varchar("date", 10) //12.45.78
     private val teacherLogin = Schedule.varchar("teacherLogin", 30)
     private val groupId = Schedule.integer("groupId")
     private val start = Schedule.varchar("start", 5)

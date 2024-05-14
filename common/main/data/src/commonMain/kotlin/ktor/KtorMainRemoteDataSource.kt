@@ -13,6 +13,9 @@ import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
+import rating.RFetchScheduleSubjectsResponse
+import rating.RFetchSubjectRatingReceive
+import rating.RFetchSubjectRatingResponse
 import report.RCreateReportReceive
 import report.RCreateReportResponse
 import report.RFetchHeadersResponse
@@ -20,12 +23,46 @@ import report.RFetchRecentGradesReceive
 import report.RFetchRecentGradesResponse
 import report.RFetchReportDataReceive
 import report.RFetchReportDataResponse
+import schedule.RFetchScheduleDateReceive
+import schedule.RPersonScheduleList
+import schedule.RScheduleList
 
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
 
-    suspend fun fetchRecentGrades(r: RFetchRecentGradesReceive) : RFetchRecentGradesResponse {
+
+    suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchScheduleSubjects)
+            }
+        }.body()
+    }
+
+    suspend fun fetchSubjectRating(r: RFetchSubjectRatingReceive): RFetchSubjectRatingResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchSubjectRating)
+                setBody(r)
+            }
+        }.body()
+    }
+
+
+    suspend fun fetchPersonSchedule(r: RFetchScheduleDateReceive): RPersonScheduleList {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Lessons.FetchPersonSchedule)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun fetchRecentGrades(r: RFetchRecentGradesReceive): RFetchRecentGradesResponse {
         return httpClient.post {
             url {
                 bearer()
@@ -34,6 +71,7 @@ class KtorMainRemoteDataSource(
             }
         }.body()
     }
+
     suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse {
         val response = httpClient.post {
             bearer()

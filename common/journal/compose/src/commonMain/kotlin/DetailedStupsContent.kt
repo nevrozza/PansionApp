@@ -3,6 +3,7 @@
     ExperimentalMaterial3Api::class
 )
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -10,10 +11,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,8 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +32,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,10 +53,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
+import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
+import components.StupsButtons
 import components.networkInterface.NetworkState
 import detailedStups.DetailedStupsComponent
+import detailedStups.DetailedStupsStore
 import report.UserMark
 import server.fetchReason
 import view.LocalViewManager
@@ -111,6 +110,18 @@ fun DetailedStupsContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
+                actionRow = {
+                    AnimatedContent(
+                        if (model.reason == "0") "За неделю" else "За год",
+                        modifier = Modifier.padding(end = 5.dp)
+                    ) {
+                        CustomTextButton(
+                            text = it
+                        ) {
+                            component.onEvent(DetailedStupsStore.Intent.ChangeReason)
+                        }
+                    }
+                },
                 isHaze = true
             )
             //LessonReportTopBar(component, isFullView) //, scrollBehavior
@@ -120,22 +131,23 @@ fun DetailedStupsContent(
             Crossfade(nModel.state) { state ->
                 when (state) {
                     NetworkState.None -> CLazyColumn(padding) {
-                        items(model.subjects) { s ->
-                            val showDs = remember { mutableStateOf(true) }
-                            val stupsCount = s.stups.sumOf { it.content.toInt() }
-                            val sStups = s.stups
+                        items(model.subjects.sortedBy {
+                            it.stups.filter {
+                                it.reason.subSequence(
+                                    0,
+                                    3
+                                ) != "!ds"
+                            }
                                 .filter { if (model.reason == "0") it.date in model.weekDays else true }
-                                .filter {
-                                    if (!showDs.value) it.reason.subSequence(
-                                        0,
-                                        3
-                                    ) != "!ds" else true
-                                }
-                            if (stupsCount != 0) {
+                                .sumOf { it.content.toInt() }
+                        }.reversed()) { s ->
+                            val showDs = remember { mutableStateOf(true) }
+                            val stups = s.stups
+                                .filter { if (model.reason == "0") it.date in model.weekDays else true }
+                            if (stups.isNotEmpty()) {
                                 DetailedStupsSubjectItem(
                                     title = s.subjectName,
-                                    stupsCount = stupsCount,
-                                    marks = sStups,
+                                    stups = stups,
                                     showDs = showDs
                                 )
                             }
@@ -172,15 +184,13 @@ fun DetailedStupsContent(
 @Composable
 private fun DetailedStupsSubjectItem(
     title: String,
-    stupsCount: Int,
-    marks: List<UserMark>,
+    stups: List<UserMark>,
     showDs: MutableState<Boolean>,
-
-    ) {
+) {
     val isFullView = remember { mutableStateOf(false) }
 
     ElevatedCard(
-        Modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(top = 10.dp)
+        Modifier.fillMaxWidth().padding(top = 10.dp) //.padding(horizontal = 10.dp)
             .animateContentSize().clip(CardDefaults.elevatedShape).clickable {
                 isFullView.value = !isFullView.value
             }) {
@@ -195,14 +205,11 @@ private fun DetailedStupsSubjectItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(title, fontWeight = FontWeight.Bold, fontSize = 25.sp)
-                    Spacer(Modifier.width(5.dp))
-                    FilledTonalButton(
-                        onClick = {},
-                        contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(20.dp).offset(y = 2.dp)
-                    ) {
-                        Text("+$stupsCount", modifier = Modifier.offset(x = -2.dp))
-                    }
+                    StupsButtons(
+                        stups = stups.map {
+                            Pair(it.content.toInt(), it.reason)
+                        }
+                    )
                 }
 
                 IconButton(
@@ -215,26 +222,24 @@ private fun DetailedStupsSubjectItem(
             }
             if (isFullView.value) {
                 Column(Modifier.padding(end = 10.dp)) {
-                    marks.sortedBy { it.date }.reversed().forEach {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-                                .padding(horizontal = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(it.date)
-                            Text(fetchReason(it.reason))
-                            Box(
-                                Modifier.size(25.dp).border(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outline.copy(1f),
-                                    shape = RoundedCornerShape(30)
-                                ).clip(RoundedCornerShape(30)), contentAlignment = Alignment.Center
+                    stups.filter {
+                        if (!showDs.value) it.reason.subSequence(
+                            0,
+                            3
+                        ) != "!ds" else true
+                    }
+                        .sortedBy { it.date }.reversed().forEach {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+                                    .padding(horizontal = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("+${it.content}")
+                                Text(it.date)
+                                Text(fetchReason(it.reason))
+                                BorderStup(it.content)
                             }
                         }
-                    }
                 }
             }
 

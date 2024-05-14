@@ -37,6 +37,7 @@ import journal.JournalStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import login.LoginComponent
+import rating.RatingComponent
 import report.ReportHeader
 //import mentors.MentorsComponent
 import root.RootComponent.Child
@@ -44,6 +45,7 @@ import root.RootComponent.Config
 import root.RootComponent.RootCategories.Admin
 import root.RootComponent.RootCategories.Home
 import root.RootComponent.RootCategories.Journal
+import root.RootComponent.RootCategories.Rating
 import root.store.RootStore
 import root.store.RootStoreFactory
 import schedule.ScheduleComponent
@@ -99,55 +101,67 @@ class RootComponentImpl(
 
 
     private var mainHomeComponent: HomeComponent? = null
-
     private var mainJournalComponent: JournalComponent? = null
-
     private var mainAdminComponent: AdminComponent? = null
+    private var mainRatingComponent: RatingComponent? = null
 
-    private fun child(config: Config, componentContext: ComponentContext): Child {
-        if (mainHomeComponent == null || mainJournalComponent == null || mainAdminComponent == null) {
-            if (mainHomeComponent == null) {
-                mainHomeComponent = HomeComponent(
-                    componentContext = componentContext,
-                    storeFactory = storeFactory,
-                    output = ::onHomeOutput
-                )
-            }
-
-            if (mainJournalComponent == null) {
-                mainJournalComponent = JournalComponent(
-                    componentContext = componentContext,
-                    storeFactory = storeFactory,
-                    output = ::onJournalOutput
-                )
-            }
-            if (mainAdminComponent == null) {
-                mainAdminComponent = AdminComponent(
-                    componentContext = componentContext,
-                    storeFactory = storeFactory,
-                    output = ::onAdminOutput
-                )
-            }
-
-        } else if (mainHomeComponent!!.getLogin() != Inject.instance<AuthRepository>()
-                .fetchLogin()
-        ) {
-            mainHomeComponent = HomeComponent(
-                componentContext = componentContext,
-                storeFactory = storeFactory,
-                output = ::onHomeOutput
-            )
-            mainJournalComponent = JournalComponent(
-                componentContext = componentContext,
-                storeFactory = storeFactory,
-                output = ::onJournalOutput
-            )
+    private fun getMainAdminComponent(
+        componentContext: ComponentContext,
+        getOld: Boolean = false
+    ) : AdminComponent {
+        return if(getOld && mainAdminComponent != null) mainAdminComponent!! else {
             mainAdminComponent = AdminComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
                 output = ::onAdminOutput
             )
+            mainAdminComponent!!
         }
+    }
+
+    private fun getMainJournalComponent(
+        componentContext: ComponentContext,
+        getOld: Boolean = false
+    ) : JournalComponent {
+        return if(getOld && mainJournalComponent != null) mainJournalComponent!! else {
+            mainJournalComponent = JournalComponent(
+                componentContext = componentContext,
+                storeFactory = storeFactory,
+                output = ::onJournalOutput
+            )
+            mainJournalComponent!!
+        }
+    }
+
+    private fun getMainHomeComponent(
+        componentContext: ComponentContext,
+        getOld: Boolean = false
+    ): HomeComponent {
+        return if(getOld && mainHomeComponent != null) mainHomeComponent!! else {
+            mainHomeComponent = HomeComponent(
+                componentContext = componentContext,
+                storeFactory = storeFactory,
+                output = ::onHomeOutput
+            )
+            mainHomeComponent!!
+        }
+    }
+
+    private fun getMainRatingComponent(
+        componentContext: ComponentContext,
+        getOld: Boolean = false
+    ) : RatingComponent {
+        return if(getOld && mainRatingComponent != null) mainRatingComponent!! else {
+            mainRatingComponent = RatingComponent(
+                componentContext = componentContext,
+                storeFactory = storeFactory,
+                output = ::onRatingOutput
+            )
+            mainRatingComponent!!
+        }
+    }
+
+    private fun child(config: Config, componentContext: ComponentContext): Child {
         return when (config) {
             is Config.AuthLogin -> {
                 Child.AuthLogin(
@@ -171,21 +185,22 @@ class RootComponentImpl(
 
             is Config.MainHome -> {
                 Child.MainHome(
-                    homeComponent = mainHomeComponent!!,
-                    mainJournalComponent!!
+                    homeComponent = getMainHomeComponent(componentContext),
+                    journalComponent = getMainJournalComponent(componentContext),
+                    ratingComponent = getMainRatingComponent(componentContext)
                 )
             }
 
             is Config.MainJournal -> {
                 Child.MainJournal(
-                    mainHomeComponent!!,
-                    mainJournalComponent!!
+                    getMainHomeComponent(componentContext, true),
+                    getMainJournalComponent(componentContext, true)
                 )
             }
 
             is Config.MainAdmin -> {
                 Child.MainAdmin(
-                    mainAdminComponent!!
+                    getMainAdminComponent(componentContext)
                 )
             }
 //
@@ -202,7 +217,7 @@ class RootComponentImpl(
 
             is Config.AdminUsers -> {
                 Child.AdminUsers(
-                    adminComponent = mainAdminComponent!!,
+                    adminComponent = getMainAdminComponent(componentContext, true),
                     UsersComponent(
                         componentContext = componentContext,
                         storeFactory = storeFactory,
@@ -213,7 +228,7 @@ class RootComponentImpl(
 
             Config.AdminGroups -> {
                 Child.AdminGroups(
-                    adminComponent = mainAdminComponent!!,
+                    adminComponent = getMainAdminComponent(componentContext, true),
                     GroupsComponent(
                         componentContext = componentContext,
                         storeFactory = storeFactory,
@@ -231,7 +246,7 @@ class RootComponentImpl(
                         output = ::onLessonReportOutput,
                         reportData = config.reportData
                     ),
-                    journalComponent = mainJournalComponent!!
+                    journalComponent = getMainJournalComponent(componentContext, true)
                 )
             }
 
@@ -247,7 +262,7 @@ class RootComponentImpl(
 
             is Config.HomeDnevnikRuMarks -> {
                 Child.HomeDnevnikRuMarks(
-                    homeComponent = mainHomeComponent!!,
+                    homeComponent = getMainHomeComponent(componentContext, true),
                     dnevnikRuMarksComponent = DnevnikRuMarksComponent(
                         componentContext = componentContext,
                         storeFactory = storeFactory,
@@ -259,7 +274,7 @@ class RootComponentImpl(
 
             is Config.HomeDetailedStups -> {
                 Child.HomeDetailedStups(
-                    homeComponent = mainHomeComponent!!,
+                    homeComponent = getMainHomeComponent(componentContext, true),
                     detailedStups = DetailedStupsComponent(
                         componentContext = componentContext,
                         storeFactory = storeFactory,
@@ -272,7 +287,7 @@ class RootComponentImpl(
 
             is Config.HomeAllGroupMarks -> {
                 Child.HomeAllGroupMarks(
-                    journalComponent = mainJournalComponent!!,
+                    journalComponent = getMainJournalComponent(componentContext, true),
                     allGroupMarksComponent = AllGroupMarksComponent(
                         componentContext = componentContext,
                         storeFactory = storeFactory,
@@ -295,12 +310,17 @@ class RootComponentImpl(
             )
 
             Config.AdminCabinets -> Child.AdminCabinets(
-                adminComponent = mainAdminComponent!!,
+                adminComponent = getMainAdminComponent(componentContext, true),
                 cabinetsComponent = CabinetsComponent(
                     componentContext,
                     storeFactory,
                     output = ::onAdminCabinetsOutput
                 )
+            )
+
+            Config.MainRating -> Child.MainRating(
+                homeComponent = getMainHomeComponent(componentContext, true),
+                ratingComponent = getMainRatingComponent(componentContext, true)
             )
         }
     }
@@ -311,6 +331,8 @@ class RootComponentImpl(
                 navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
             }
         }
+
+
 
     private fun onAdminScheduleOutput(output: ScheduleComponent.Output): Unit =
         when (output) {
@@ -382,6 +404,13 @@ class RootComponentImpl(
         when (output) {
             UsersComponent.Output.BackToAdmin -> navigateToAdmin {
                 navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
+            }
+        }
+
+    private fun onRatingOutput(output: RatingComponent.Output): Unit =
+        when (output) {
+            RatingComponent.Output.NavigateToSettings -> navigateToHomeSettings {
+                navigation.bringToFront(it)
             }
         }
 
@@ -484,6 +513,10 @@ class RootComponentImpl(
             }
 
             RootComponent.Output.NavigateToSchedule -> navigateToSchedule {
+                navigation.bringToFront(it)
+            }
+
+            RootComponent.Output.NavigateToRating -> navigateToRating {
                 navigation.bringToFront(it)
             }
         }
@@ -612,6 +645,13 @@ class RootComponentImpl(
         val d = Config.MainAdmin
         rootStore.accept(RootStore.Intent.BottomBarShowing(true))
         rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
+        post(d)
+    }
+
+    private fun navigateToRating(post: (Config) -> Unit) {
+        val d = Config.MainRating
+        rootStore.accept(RootStore.Intent.BottomBarShowing(true))
+        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Rating, d))
         post(d)
     }
 

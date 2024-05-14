@@ -45,8 +45,8 @@ class ScheduleComponent(
 
     private fun onCreateTeacherClick(login: String) {
         val state = model.value
-        if (login !in (state.activeTeachers.firstOrNull { it.first == if (state.isDefault) state.defaultDate.toString() else state.currentDate.second }?.second
-                ?: emptyList())
+        val key = if (state.isDefault) state.defaultDate.toString() else state.currentDate.second
+        if (login !in (state.activeTeachers[key] ?: emptyList())
         ) {
             onEvent(
                 ScheduleStore.Intent.CreateTeacher(login)

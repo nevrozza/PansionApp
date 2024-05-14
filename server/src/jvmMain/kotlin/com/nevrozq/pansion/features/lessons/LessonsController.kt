@@ -41,6 +41,9 @@ import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
+import com.nevrozq.pansion.database.ratingEntities.Marks
+import com.nevrozq.pansion.database.ratingEntities.Stups
+import com.nevrozq.pansion.database.ratingTable.RatingWeekTable
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.schedule.ScheduleDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
@@ -65,23 +68,100 @@ import journal.init.RFetchTeacherGroupsResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import rating.RFetchScheduleSubjectsResponse
+import rating.RFetchSubjectRatingReceive
+import rating.RFetchSubjectRatingResponse
+import rating.RatingItem
+import schedule.PersonScheduleItem
 import schedule.RFetchScheduleDateReceive
+import schedule.RPersonScheduleList
 import schedule.RScheduleList
 
 class LessonsController() {
 
+
+    suspend fun fetchRating(call: ApplicationCall) {
+        if (call.isMember) {
+            val r = call.receive<RFetchSubjectRatingReceive>()
+            try {
+                val table = when (r.period) {
+//                    0 -> RatingWeekTable
+//                    1 -> RatingModuleTable
+//                    2 -> RatingYearTable
+                    else -> RatingWeekTable
+                }
+                val allItems = table.fetchAllRatings()
+                val items = allItems.filter { it.subjectId == r.subjectId }
+                val me = items.firstOrNull { it.login == r.login }
+                call.respond(RFetchSubjectRatingResponse(
+                    hashMapOf(
+                        r.subjectId to items.map {
+                            RatingItem(
+                                login = it.login,
+                                fio = FIO(
+                                    name = it.name,
+                                    surname = it.surname,
+                                    praname = it.praname
+                                ),
+                                avatarId = it.avatarId,
+                                stups = it.stups,
+                                top = it.top,
+                                groupName = it.groupName,
+                                formNum = it.formNum,
+                                formShortTitle = it.formShortTitle,
+                                avg = it.avg
+                            )
+                        }
+                    ),
+                    me = hashMapOf(
+                        r.subjectId to if (me != null) Pair(me.top, me.stups) else null
+                    )
+                ))
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch rating: ${e.message}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun fetchScheduleSubjects(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+                val subjects = Subjects.fetchAllSubjects()
+                call.respond(
+                    RFetchScheduleSubjectsResponse(subjects.map {
+                        ScheduleSubject(
+                            id = it.id,
+                            name = it.name
+                        )
+                    })
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch subjects: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
     suspend fun fetchSchedule(call: ApplicationCall) {
         if (call.isMember) {
             val r = call.receive<RFetchScheduleDateReceive>()
-            println(r.day)
             try {
                 var items = Schedule.getOnDate(r.day)
 //                println(items.isEmpty())
-                if(items.isEmpty()) {
+                if (items.isEmpty()) {
                     items = Schedule.getOnDate(r.dayOfWeek)
                 }
                 call.respond(
-                    RScheduleList(listOf(Pair(r.day, items)))
+                    RScheduleList(hashMapOf(r.day to items))
                 )
             } catch (e: Throwable) {
                 call.respond(
@@ -94,13 +174,80 @@ class LessonsController() {
         }
     }
 
+//    suspend fun fetchPersonMarks
+
+    suspend fun fetchPersonSchedule(call: ApplicationCall) {
+        if (call.isMember) {
+            val r = call.receive<RFetchScheduleDateReceive>()
+
+            try {
+                var items = Schedule.getOnDate(r.day)
+                if (items.isEmpty()) {
+                    items = Schedule.getOnDate(r.dayOfWeek)
+                }
+
+                items = if (call.isTeacher) {
+                    items.filter { it.teacherLogin == call.login }
+                } else {
+                    val idList = StudentGroups.fetchGroupsOfStudent(call.login)
+
+//                    val parts = r.day.split(".")
+//                    val date = "${parts[0]}.${parts[1]}.${parts[2]}"
+//                    val marks = Marks.fetchUserByDate(login = call.login, date = date)
+//                    val stups = Stups.fetchUserByDate(login = call.login, date = date)
+                    items.filter { it.groupId in idList.filter { it.isActive }.map { it.id } }
+                }
+
+                val subjects = Subjects.fetchAllSubjects()
+                val groups = Groups.getAllGroups()
+                val teachers = Users.fetchAllTeachers()
+
+                val personItems = items.mapNotNull {
+                    val group = groups.firstOrNull { group -> group.id == it.groupId }
+                    val teacher =
+                        teachers.firstOrNull { teacher -> teacher.login == it.teacherLogin }
+                    val fio = FIO(
+                        name = teacher?.name ?: "null",
+                        surname = teacher?.surname ?: "null",
+                        praname = teacher?.praname
+                    )
+                    if (group != null) {
+                        PersonScheduleItem(
+                            groupId = it.groupId,
+                            cabinet = it.cabinet,
+                            start = it.t.start,
+                            end = it.t.end,
+                            subjectName = subjects.first { it.id == group.subjectId }.name,
+                            groupName = group.name,
+                            teacherFio = fio
+                        )
+                    } else {
+                        null
+                    }
+                }
+
+                call.respond(RPersonScheduleList((hashMapOf(r.day to personItems))))
+
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch personScheduleItems: ${e.message}"
+                )
+            }
+        } else {
+            call.respond(
+                HttpStatusCode.OK, "No permission"
+            )
+        }
+    }
+
     suspend fun saveSchedule(call: ApplicationCall) {
         if (call.isModer) {
             val r = call.receive<RScheduleList>()
             try {
                 val list = r.list.map { item ->
-                    val date = item.first
-                    item.second.map {
+                    val date = item.key
+                    item.value.map {
                         ScheduleDTO(
                             date = date,
                             teacherLogin = it.teacherLogin,
@@ -333,7 +480,7 @@ class LessonsController() {
 
 
     suspend fun fetchAllCabinets(call: ApplicationCall) {
-        if(call.isMember) {
+        if (call.isMember) {
             try {
                 val cabinets = Cabinets.getAllCabinets()
                 call.respond(RFetchCabinetsResponse(

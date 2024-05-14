@@ -62,14 +62,13 @@ class ScheduleExecutor(
 
             Intent.UpdateCTeacherList -> updateCreateTeacherList()
             is Intent.CreateTeacher -> scope.launch(CDispatcher) {
-                val newList =
-                    (state().activeTeachers.firstOrNull { it.first == if (state().isDefault) state().defaultDate.toString() else state().currentDate.second }?.second
-                        ?: emptyList()).toMutableList()
-                newList.add(
-                    intent.login
-                )
+                val key =
+                    if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+                val new = state().activeTeachers.toMutableMap()
+                new[key] =
+                    (state().activeTeachers[key]?: emptyList()).plus(intent.login)
                 scope.launch {
-                    dispatch(Message.TeacherCreated(newList))
+                    dispatch(Message.TeacherCreated(new.toMap(HashMap())))
                     updateCreateTeacherList()
                 }
             }
@@ -112,20 +111,24 @@ class ScheduleExecutor(
 
             is Intent.eiSave -> {
                 scope.launch(CDispatcher) {
-                    val newList =
-                        state().items.first { it.first == if (state().isDefault) state().defaultDate.toString() else state().currentDate.second }.second.toMutableList()
-                    newList.removeAt(intent.index)
-                    newList.add(
-                        intent.index,
-                        ScheduleItem(
-                            teacherLogin = intent.login,
-                            groupId = intent.id,
-                            t = ScheduleTiming(start = intent.s.first, end = intent.s.second),
-                            cabinet = intent.cabinet
-                        )
+                    val key =
+                        if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+                    val newItems = (state().items[key] ?: emptyList()).toMutableList()
+                    newItems[intent.index] = ScheduleItem(
+                        teacherLogin = intent.login,
+                        groupId = intent.id,
+                        t = ScheduleTiming(
+                            start = intent.s.first,
+                            end = intent.s.second
+                        ),
+                        cabinet = intent.cabinet
                     )
                     scope.launch {
-                        dispatch(Message.ItemsUpdated(newList))
+                        dispatch(
+                            Message.ItemsUpdated(
+                                newItems
+                            )
+                        )
                         mpEditItem.onEvent(mpChoseStore.Intent.HideDialog)
                     }
                 }
@@ -133,11 +136,11 @@ class ScheduleExecutor(
 
             is Intent.eiDelete -> {
                 scope.launch(CDispatcher) {
-                    val newItemsIn =
-                        state().items.first { it.first == if (state().isDefault) state().defaultDate.toString() else state().currentDate.second }.second.toMutableList()
-                    newItemsIn.removeAt(intent.index)
+                    val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+                    val list = (state().items[key] ?: emptyList()).toMutableList()
+                    list.removeAt(intent.index)
                     scope.launch {
-                        dispatch(Message.ItemsUpdated(newItemsIn))
+                        dispatch(Message.ItemsUpdated(list))
                         mpEditItem.onEvent(mpChoseStore.Intent.HideDialog)
                     }
                 }
@@ -195,8 +198,9 @@ class ScheduleExecutor(
             dispatch(Message.ciReset)
         }
         scope.launch(CDispatcher) {
-            if ((state().items.find { it.first == date }?.second ?: listOf()).isEmpty()) {
-                val commonList : MutableList<Pair<String, List<String>>> = state().activeTeachers.toMutableList()
+            if ((state().items[date] ?: listOf()).isEmpty()) {
+                val commonList =
+                    state().activeTeachers.toMutableMap()
                 try {
                     nInterface.nStartLoading()
                     val items = adminRepository.fetchSchedule(
@@ -204,25 +208,21 @@ class ScheduleExecutor(
                         date = date
                     ).list
                     items.forEach {
-                        it.second.forEach { item ->
+                        it.value.forEach { item ->
                             val teacher =
                                 state().teachers.firstOrNull { item.groupId in it.groups }?.login
-                            if(teacher != null) {
+                            if (teacher != null) {
                                 val list =
-                                    (commonList.firstOrNull { it.first == date }?.second)
+                                    (commonList[date])
                                         ?: emptyList()
 
                                 if (teacher !in list) {
                                     val newList = list.toMutableList()
                                     newList.add(teacher)
 
-
-                                    val old = (commonList.firstOrNull { it.first == date }?.second
+                                    val old = (commonList[date]
                                         ?: emptyList())
-                                    commonList.removeAll { it.first == date }
-                                    commonList.add(Pair(date, old + teacher))
-                                    print("sad ")
-                                    println(commonList)
+                                    commonList[date] = old + teacher
                                 }
                             }
                         }
@@ -231,12 +231,12 @@ class ScheduleExecutor(
                         scope.launch {
                             dispatch(
                                 Message.TeacherListUpdated(
-                                    activeTeachers = commonList
+                                    activeTeachers = commonList.toMap(HashMap())
                                 )
                             )
 
                         }
-                        dispatch(Message.ListUpdated(state().items + items))
+                        dispatch(Message.ListUpdated((state().items + items).toMap(HashMap())))
                         nInterface.nSuccess()
                         updateCreateTeacherList()
                     }
@@ -260,10 +260,11 @@ class ScheduleExecutor(
     private fun updateCreateTeacherList(isError: Boolean = false) {
         scope.launch(CDispatcher) {
             if (!isError) {
+                val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                 val activeTeachers =
-                    state().activeTeachers.firstOrNull { it.first == if (state().isDefault) state().defaultDate.toString() else state().currentDate.second }
+                    state().activeTeachers[key]
                 val newList =
-                    state().teachers.filter { if (activeTeachers != null) it.login !in activeTeachers.second else true }
+                    state().teachers.filter { if (activeTeachers != null) it.login !in activeTeachers else true }
                         .map {
                             ListItem(
                                 id = it.login,
@@ -289,10 +290,10 @@ class ScheduleExecutor(
             cabinet = state().ciCabinet
         )
         scope.launch(CDispatcher) {
+            val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
             val items =
-                (state().items.firstOrNull { it.first == if (state().isDefault) state().defaultDate.toString() else state().currentDate.second }?.second
+                (state().items[key]
                     ?: emptyList()).toMutableList()
-
 
             items.add(
                 item
@@ -335,8 +336,9 @@ class ScheduleExecutor(
         s: Pair<String, String>
     ) {
         scope.launch(CDispatcher) {
+            val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
             val trueItems =
-                state().items.firstOrNull { it.first == if (state().isDefault) state().defaultDate.toString() else state().currentDate.second }?.second
+                state().items[key]
                     ?: emptyList()
             val coItems =
                 (trueItems - trueItems[state().eiIndex!!]).filter {
@@ -387,8 +389,9 @@ class ScheduleExecutor(
     }
 
     private fun getScheduleTiming(s: Pair<String, String>): ScheduleTiming {
+        val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
         val trueItems =
-            state().items.firstOrNull { it.first == if (state().isDefault) state().defaultDate.toString() else state().currentDate.second }?.second
+            state().items[key]
                 ?: emptyList()
         val coItems =
             trueItems.filter {

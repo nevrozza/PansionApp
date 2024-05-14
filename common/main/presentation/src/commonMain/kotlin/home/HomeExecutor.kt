@@ -1,6 +1,7 @@
 package home
 
 import AuthRepository
+import CDispatcher
 import MainRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.listDialog.ListDialogStore
@@ -14,6 +15,7 @@ import home.HomeStore.Message
 import journal.JournalStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import schedule.PersonScheduleItem
 
 class HomeExecutor(
     private val authRepository: AuthRepository,
@@ -21,36 +23,58 @@ class HomeExecutor(
     private val quickTabNInterface: NetworkInterface,
     private val teacherNInterface: NetworkInterface,
     private val gradesNInterface: NetworkInterface,
+    private val scheduleNInterface: NetworkInterface,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
-            is Intent.Init -> {
-//                val a: AuthRepository = Inject.instance()
-//                dispatch(Message.Inited(
-//                    avatarId = a.fetchAvatarId(),
-//                    login = a.fetchLogin(),
-//                    name = a.fetchName(),
-//                    surname = a.fetchSurname(),
-//                    praname = a.fetchSurname()
-//                ))
-                scope.launch {
-                    async { fetchQuickTab(period = state().period)  }
-                    async { fetchGrades() }
-                    async { fetchTeacherGroups() }
+            is Intent.Init -> init()
+            Intent.ChangeIsDatesShown -> dispatch(Message.IsDatesShownChanged)
+            is Intent.ChangeDate -> scope.launch {
+                dispatch(Message.DateChanged(intent.date))
+                fetchSchedule(dayOfWeek = intent.date.first.toString(), date = intent.date.second)
+            }
+        }
+    }
+
+    private fun init() {
+        fetchQuickTab(period = state().period)
+        fetchGrades()
+        fetchTeacherGroups()
+        fetchSchedule(dayOfWeek = state().currentDate.first.toString(), date = state().currentDate.second)
+    }
+    private fun fetchSchedule(dayOfWeek: String, date: String) {
+        scope.launch(CDispatcher) {
+            if ((state().items[date] ?: listOf()).isEmpty()) {
+                try {
+                    scheduleNInterface.nStartLoading()
+                    val response =
+                        mainRepository.fetchPersonSchedule(dayOfWeek = dayOfWeek, date = date)
+                    val newList = state().items + response.list
+                    scope.launch {
+                        dispatch(Message.ItemsUpdated(newList.toMap(HashMap<String, List<PersonScheduleItem>>())))
+
+                        scheduleNInterface.nSuccess()
+                    }
+                } catch (e: Throwable) {
+                    println(e)
+                    scheduleNInterface.nError("Не удалось загрузить расписание") {
+                        fetchSchedule(dayOfWeek = dayOfWeek, date = date)
+                    }
+//                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
                 }
-
-
             }
         }
     }
 
     private fun fetchGrades() {
-        scope.launch {
+        scope.launch(CDispatcher) {
             try {
                 gradesNInterface.nStartLoading()
                 val grades = mainRepository.fetchRecentGrades(state().login).grades
-                dispatch(Message.GradesUpdated(grades))
-                gradesNInterface.nSuccess()
+                scope.launch {
+                    dispatch(Message.GradesUpdated(grades))
+                    gradesNInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 println(e)
                 gradesNInterface.nError("Не удалось загрузить список оценок") {
@@ -62,12 +86,15 @@ class HomeExecutor(
     }
 
     private fun fetchTeacherGroups() {
-        scope.launch {
+        scope.launch(CDispatcher) {
             try {
                 teacherNInterface.nStartLoading()
                 val groups = mainRepository.fetchTeacherGroups().groups
-                dispatch(Message.TeacherGroupUpdated(groups))
-                teacherNInterface.nSuccess()
+                scope.launch {
+                    dispatch(Message.TeacherGroupUpdated(groups))
+
+                    teacherNInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 println(e)
                 teacherNInterface.nError("Не удалось загрузить список групп") {
@@ -78,16 +105,26 @@ class HomeExecutor(
         }
     }
 
-    fun fetchQuickTab(period: HomeStore.Period) {
-        scope.launch {
+    private fun fetchQuickTab(period: HomeStore.Period) {
+        scope.launch(CDispatcher) {
             quickTabNInterface.nStartLoading()
             try {
-                val avg = mainRepository.fetchMainAvg(state().login, reason = period.ordinal.toString())
+                val avg =
+                    mainRepository.fetchMainAvg(state().login, reason = period.ordinal.toString())
                 val avgMap = state().averageGradePoint.toMutableMap()
                 val stupsMap = state().ladderOfSuccess.toMutableMap()
                 avgMap[period] = avg.avg
                 stupsMap[period] = avg.stups
-                dispatch(Message.QuickTabUpdated(avg = avgMap.toMap(HashMap()), stups = stupsMap.toMap(HashMap())))
+                scope.launch {
+                    dispatch(
+                        Message.QuickTabUpdated(
+                            avg = avgMap.toMap(HashMap()),
+                            stups = stupsMap.toMap(HashMap())
+                        )
+                    )
+
+                    quickTabNInterface.nSuccess()
+                }
             } catch (_: Throwable) {
                 quickTabNInterface.nError("Ошибка") {
                     fetchQuickTab(period)

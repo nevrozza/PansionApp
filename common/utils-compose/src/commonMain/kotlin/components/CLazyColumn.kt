@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,6 +26,8 @@ fun CLazyColumn(
     modifier: Modifier = Modifier,
     isCustomExpanded: Boolean? = null,
     isBottomPaddingNeeded: Boolean = false,
+    state: LazyListState = rememberLazyListState(),
+    isHaze: Boolean = true,
     content: LazyListScope.() -> Unit
 ) {
     val viewManager = LocalViewManager.current
@@ -35,9 +39,10 @@ fun CLazyColumn(
             .consumeWindowInsets(padding)
             .imePadding()
             .then(
-                if(viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.haze(state = viewManager.hazeState!!.value, style = viewManager.hazeStyle!!.value)
+                if(isHaze && viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.haze(state = viewManager.hazeState!!.value, style = viewManager.hazeStyle!!.value)
                 else Modifier
-            ).then(modifier)
+            ).then(modifier),
+        state = state
     ) {
         item {
             Spacer(Modifier.height(padding.calculateTopPadding()))

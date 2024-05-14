@@ -56,42 +56,18 @@ object ScheduleReducer : Reducer<State, Message> {
             Message.ciGroupIdNulled -> copy(ciId = null)
             Message.ciPreviewFalsed -> copy(ciPreview = false, ciIsPair = false)
             is Message.TeacherCreated -> {
-                val newItems = activeTeachers.toMutableList()
-                var oldItemsIn =
-                    activeTeachers.firstOrNull { it.first == if (isDefault) defaultDate.toString() else currentDate.second }
-                if (oldItemsIn == null) {
-                    oldItemsIn = Pair(
-                        if (isDefault) defaultDate.toString() else currentDate.second,
-                        listOf()
-                    )
-                } else {
-                    newItems.remove(oldItemsIn)
-                }
-
-                newItems.add(
-                    oldItemsIn.copy(second = msg.activeTeachers)
-                )
-                copy(activeTeachers = newItems)
+                copy(activeTeachers = msg.activeTeachers)
             }
+
+
+
 
             is Message.ciCabinetChanged -> copy(ciCabinet = msg.cabinet)
             is Message.ItemsUpdated -> {
-                val newItems = items.toMutableList()
-
-                var oldItemsIn =
-                    items.firstOrNull { it.first == if (isDefault) defaultDate.toString() else currentDate.second }
-                if (oldItemsIn == null) {
-                    oldItemsIn = Pair(
-                        if (isDefault) defaultDate.toString() else currentDate.second,
-                        listOf()
-                    )
-                } else {
-                    newItems.remove(oldItemsIn)
-                }
-                newItems.add(
-                    oldItemsIn.copy(second = msg.items)
-                )
-                copy(items = newItems)
+                val newItems = items.toMutableMap()
+                val key = if (isDefault) defaultDate.toString() else currentDate.second
+                newItems[key] = msg.items
+                copy(items = newItems.toMap(HashMap()))
             }
 
             is Message.EditStarted -> copy(

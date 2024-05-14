@@ -18,7 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,9 +37,11 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -83,8 +89,11 @@ import components.cBottomSheet.CBottomSheetStore
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogContent
+import dev.chrisbanes.haze.hazeChild
 import groups.forms.FormsStore
+import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
+import kotlinx.coroutines.launch
 import view.LocalViewManager
 import view.WindowScreen
 import view.rememberImeState
@@ -119,7 +128,6 @@ fun GroupsContent(
 //    val refreshState = rememberPullRefreshState(
 //        model.isInProcess && model.teachers != null,
 //        { component.onEvent(UsersStore.Intent.FetchUsers) })
-    val isFabShowing = rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
 
@@ -131,65 +139,79 @@ fun GroupsContent(
         },
         topBar = {
             val isBigView = viewManager.orientation.value in listOf(WindowScreen.Expanded, WindowScreen.Horizontal)
-            AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(GroupsComponent.Output.BackToAdmin) }
-                    ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
-                        )
-                    }
-                },
-                title = {
-                    if(isBigView) {
-                        Text(
-                            "Группы",
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Black,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                    if (isInited) {
-                        val buttonsRow = listOf<Pair<String, GroupsStore.Views>>(
-                            "Предметы" to GroupsStore.Views.Subjects,
-                            "Классы" to GroupsStore.Views.Forms,
-                            "Ученики" to GroupsStore.Views.Students
-                        )
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = if(isBigView) Alignment.CenterEnd else Alignment.CenterStart) {
-                            SecondaryTabRow(
-                                selectedTabIndex = when (model.view) {
-                                    GroupsStore.Views.Subjects -> 0
-                                    GroupsStore.Views.Forms -> 1
-                                    GroupsStore.Views.Students -> 2
-                                },
-                                divider = {
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.outline.copy(
-                                            alpha = .4f
-                                        )
-                                    )
-                                },
-                                modifier = Modifier.then(
-                                    if (isBigView) Modifier.width(400.dp)
-                                    else Modifier.fillMaxWidth()
-                                ),
-                                containerColor = Color.Transparent
+            val isHaze = viewManager.hazeState != null && viewManager.hazeStyle != null
+            Column(
+                Modifier.then(
+                    if (isHaze) Modifier.hazeChild(
+                        state = viewManager.hazeState!!.value,
+                        style = viewManager.hazeStyle!!.value
+                    )
+                    else Modifier
+                )
+            ) {
+                AppBar(
+                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    navigationRow = {
+                        IconButton(
+                            onClick = { component.onOutput(GroupsComponent.Output.BackToAdmin) }
+                        ) {
+                            Icon(
+                                Icons.Rounded.ArrowBackIosNew, null
+                            )
+                        }
+                    },
+                    title = {
+                        if (isBigView) {
+                            Text(
+                                "Группы",
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Black,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        if (isInited) {
+                            val buttonsRow = listOf<Pair<String, GroupsStore.Views>>(
+                                "Предметы" to GroupsStore.Views.Subjects,
+                                "Классы" to GroupsStore.Views.Forms,
+                                "Ученики" to GroupsStore.Views.Students
+                            )
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = if (isBigView) Alignment.CenterEnd else Alignment.CenterStart
                             ) {
-                                buttonsRow.forEach {
-                                    Tab(
-                                        selected = it.second == model.view,
-                                        onClick = {
-                                            component.onEvent(GroupsStore.Intent.ChangeView(it.second))
-                                        },
-                                        text = { Text(it.first) })
+                                SecondaryTabRow(
+                                    selectedTabIndex = when (model.view) {
+                                        GroupsStore.Views.Subjects -> 0
+                                        GroupsStore.Views.Forms -> 1
+                                        GroupsStore.Views.Students -> 2
+                                    },
+                                    divider = {
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outline.copy(
+                                                alpha = .4f
+                                            )
+                                        )
+                                    },
+                                    modifier = Modifier.then(
+                                        if (isBigView) Modifier.width(400.dp)
+                                        else Modifier.fillMaxWidth()
+                                    ),
+                                    containerColor = Color.Transparent
+                                ) {
+                                    buttonsRow.forEach {
+                                        Tab(
+                                            selected = it.second == model.view,
+                                            onClick = {
+                                                component.onEvent(GroupsStore.Intent.ChangeView(it.second))
+                                            },
+                                            text = { Text(it.first) })
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                actionRow = {
+                    },
+                    actionRow = {
 //                        ) {
 //                            buttonsRow.forEach {
 ////                                CustomTextButton(
@@ -204,14 +226,130 @@ fun GroupsContent(
 //                            }
 //                        }
 
-                },
-                isHaze = true
-            )
+                    }
+                )
+                AnimatedVisibility(
+                    model.view == GroupsStore.Views.Students
+                ) {
+                    LazyRow(
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 10.dp)
+                            .height(35.dp)
+                    ) {
+                        item {
+                            val bringIntoViewRequester =
+                                BringIntoViewRequester()
+                            Box(
+                                Modifier.bringIntoViewRequester(
+                                    bringIntoViewRequester
+                                ).height(30.dp)
+                            ) {
+                                SubjectItem(
+                                    title = "без класса",
+                                    isChosen = 0 == studentsModel.chosenFormTabId
+                                ) {
+                                    component.studentsComponent.onEvent(
+//                            GroupsStore.Intent.ChangeCurrentClass(
+//                                0
+//                            )
+                                        StudentsStore.Intent.ClickOnFormTab(0)
+                                    )
+                                    coroutineScope.launch {
+                                        bringIntoViewRequester.bringIntoView()
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.width(5.dp))
+
+                        }
+                        items(model.forms) {
+                            val bringIntoViewRequester =
+                                BringIntoViewRequester()
+                            Box(
+                                Modifier.bringIntoViewRequester(
+                                    bringIntoViewRequester
+                                ).height(30.dp)
+                            ) {
+                                SubjectItem(
+                                    title = "${it.form.classNum}${if (it.form.shortTitle.length < 2) "-" else " "}${it.form.shortTitle} класс",
+                                    isChosen = it.id == studentsModel.chosenFormTabId
+                                ) {
+                                    component.studentsComponent.onEvent(
+                                        StudentsStore.Intent.ClickOnFormTab(it.id)
+                                    )
+                                    coroutineScope.launch {
+                                        bringIntoViewRequester.bringIntoView()
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.width(5.dp))
+                        }
+                    }
+                }
+
+                AnimatedVisibility(
+                    model.view == GroupsStore.Views.Subjects
+                ) {
+                    LazyRow(
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 10.dp)
+                            .height(35.dp),
+//            verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        item {
+
+                            FilledTonalIconButton(
+                                onClick = {
+                                    component.subjectsComponent.cSubjectDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                },
+                                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                        2.dp
+                                    )
+                                ),
+                                modifier = Modifier.height(30.dp)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Add,
+                                    null
+                                )
+                            }
+
+                            Spacer(Modifier.width(5.dp))
+                        }
+                        items(model.subjects.filter { it.isActive }
+                            .reversed()) {
+                            val bringIntoViewRequester = BringIntoViewRequester()
+                            Box(
+                                Modifier.bringIntoViewRequester(
+                                    bringIntoViewRequester
+                                ).height(30.dp)
+                            ) {
+                                SubjectItem(
+                                    title = it.name,
+                                    isChosen = it.id == subjectsModel.chosenSubjectId
+                                ) {
+                                    component.subjectsComponent.onEvent(SubjectsStore.Intent.ClickOnSubject(it.id))
+                                    coroutineScope.launch {
+                                        bringIntoViewRequester.bringIntoView()
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.width(5.dp))
+                        }
+                    }
+                }
+            }
         },
         floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
             AnimatedVisibility(
-                visible = isFabShowing.value,
+                visible = (
+                        model.view in listOf(
+                            GroupsStore.Views.Subjects,
+                            GroupsStore.Views.Forms
+                        ) && model.subjects.isNotEmpty()
+                        ),
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
                 exit = slideOutVertically(targetOffsetY = { it * 2 }),
             ) {
@@ -250,7 +388,6 @@ fun GroupsContent(
             Box(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()), contentAlignment = Alignment.Center) {
                 if (nModel.state == NetworkState.Error && !it) {
                     DefaultGroupsErrorScreen(
-                        isFabShowing,
                         component.nGroupsInterface
                     )
                 } else if (it) {
@@ -274,23 +411,19 @@ fun GroupsContent(
                                     SubjectsContent(
                                         component = component.subjectsComponent,
                                         coroutineScope = coroutineScope,
-                                        topPadding = padding.calculateTopPadding(),
-                                        isFabShowing = isFabShowing
+                                        topPadding = padding.calculateTopPadding()
                                     )
                                 }
 
                                 GroupsStore.Views.Forms -> FormsContent(
                                     component = component.formsComponent,
-                                    isFabShowing = isFabShowing,
                                     topPadding = padding.calculateTopPadding(),
                                     padding = padding
                                 )
 
                                 GroupsStore.Views.Students -> StudentsContent(
                                     component = component.studentsComponent,
-                                    coroutineScope = coroutineScope,
-                                    topPadding = padding.calculateTopPadding(),
-                                    isFabShowing = isFabShowing
+                                    topPadding = padding.calculateTopPadding()
                                 )
                             }
                         }

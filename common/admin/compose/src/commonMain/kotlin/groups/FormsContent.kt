@@ -74,7 +74,6 @@ import groups.students.StudentsStore
 @Composable
 fun FormsContent(
     component: FormsComponent,
-    isFabShowing: MutableState<Boolean>,
     topPadding: Dp,
     padding: PaddingValues
 ) {
@@ -88,8 +87,6 @@ fun FormsContent(
                 gModel.forms.isNotEmpty() && it != NetworkState.Error -> {
                     Spacer(Modifier.height(7.dp))
                     CLazyColumn(padding = PaddingValues(top = topPadding)) {
-                        isFabShowing.value = true
-
                         items(gModel.forms) { form ->
                             val mentor =
                                 model.mentors.find { it.login == form.form.mentorLogin }
@@ -101,7 +98,7 @@ fun FormsContent(
                                 }
                             Column(
                                 Modifier
-                                    .padding(horizontal = 10.dp)
+                                    //.padding(horizontal = 10.dp)
                                     .padding(bottom = if (form.id != gModel.forms.last().id) 7.dp else 80.dp + padding.calculateBottomPadding())
                                     .clip(CardDefaults.elevatedShape)
                                     .animateContentSize()
@@ -310,16 +307,12 @@ fun FormsContent(
                         Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (gModel.subjects.isNotEmpty()) {
-                            isFabShowing.value = true
-                        }
                         Text("Здесь пустовато =)")
                     }
                 }
 
                 else -> {
                     DefaultGroupsErrorScreen(
-                        isFabShowing,
                         component.nFormsInterface
                     )
                 }

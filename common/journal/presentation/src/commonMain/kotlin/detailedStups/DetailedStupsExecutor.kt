@@ -17,6 +17,7 @@ class DetailedStupsExecutor(
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> init()
+            Intent.ChangeReason -> dispatch(Message.ReasonChanged)
         }
     }
     private fun init() {

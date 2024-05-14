@@ -66,6 +66,8 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.MarkContent
+import components.StupsButton
+import components.StupsButtons
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.hazeChild
 import dnevnikRuMarks.DnevnikRuMarkStore
@@ -101,87 +103,48 @@ fun DnevnikRuMarkContent(
         Modifier.fillMaxSize(),
 //                .nestedScroll(scrollBehavior.nestedScrollConnection)
         topBar = {
-            AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(DnevnikRuMarksComponent.Output.BackToHome) }
-                    ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
-                        )
-                    }
-                },
-                title = {
-
-                    Text(
-                        "Успеваемость",
-                        modifier = Modifier.padding(start = 10.dp),
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+            val isHaze = viewManager.hazeState != null && viewManager.hazeStyle != null
+            Column(
+                Modifier.then(
+                    if (isHaze) Modifier.hazeChild(
+                        state = viewManager.hazeState!!.value,
+                        style = viewManager.hazeStyle!!.value
                     )
-                },
-                isHaze = true
-            )
-            //LessonReportTopBar(component, isFullView) //, scrollBehavior
-        }
-    ) { padding ->
-        Box {
-            Crossfade(nModel.state) {
-                when (it) {
-                    NetworkState.None -> CLazyColumn(padding = PaddingValues(top = padding.calculateTopPadding() + 45.dp, bottom = padding.calculateBottomPadding())) {
-                        items(model.subjects) {
-                            SubjectMarksItem(
-                                title = it.subjectName,
-                                marks = it.marks.sortedBy { it.date }.reversed(),
-                                stupsCount = it.stupCount,
-                                coroutineScope = coroutineScope
+                    else Modifier
+                )
+            ) {
+                AppBar(
+                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    navigationRow = {
+                        IconButton(
+                            onClick = { component.onOutput(DnevnikRuMarksComponent.Output.BackToHome) }
+                        ) {
+                            Icon(
+                                Icons.Rounded.ArrowBackIosNew, null
                             )
                         }
+                    },
+                    title = {
+
+                        Text(
+                            "Успеваемость",
+                            modifier = Modifier.padding(start = 10.dp),
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
-
-                    //.map {
-                    //                                        Mark(
-                    //                                            value = it.content.toInt(),
-                    //                                            reason = it.reason,
-                    //                                            isGoToAvg = it.isGoToAvg,
-                    //                                            id = it.id,
-                    //                                            date = it.date
-                    //                                        )
-                    //                                    }
-
-                    NetworkState.Loading -> {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    NetworkState.Error -> {
-                        Column(
-                            Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(nModel.error)
-                            Spacer(Modifier.height(7.dp))
-                            CustomTextButton("Попробовать ещё раз") {
-                                nModel.onFixErrorClick()
-                            }
-                        }
-                    }
-                }
-            }
-
-            Column() {
+                )
                 AnimatedVisibility(
                     model.isQuarters != null,
-                    modifier = Modifier.then(
-                        if (viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(
-                            state = viewManager.hazeState!!.value,
-                            style = viewManager.hazeStyle!!.value
-                        )
-                        else Modifier
-                    )
+//                    modifier = Modifier.then(
+//                        if (viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(
+//                            state = viewManager.hazeState!!.value,
+//                            style = viewManager.hazeStyle!!.value
+//                        )
+//                        else Modifier
+//                    )
                 ) {
                     SecondaryTabRow(
                         selectedTabIndex = (model.tabIndex ?: 0) - 1,
@@ -192,14 +155,13 @@ fun DnevnikRuMarkContent(
                                 )
                             )
                         },
-                        containerColor = Color.Transparent,
-                        modifier = Modifier.padding(padding)
+                        containerColor = Color.Transparent
                     ) {
                         for (i in if (model.isQuarters == true) 1..4 else 1..2) {
                             Tab(
-                                selected = (model.tabIndex ?: 0 - 1) == i,
+                                selected = ((model.tabIndex ?: 0) - 1) == i,
                                 onClick = {
-                                    if ((model.tabIndex ?: 0 - 1) != i) {
+                                    if (((model.tabIndex ?: 0) - 1) != i) {
                                         component.onEvent(DnevnikRuMarkStore.Intent.ClickOnTab(i))
                                     }
                                 },
@@ -208,6 +170,57 @@ fun DnevnikRuMarkContent(
                     }
                 }
             }
+            //LessonReportTopBar(component, isFullView) //, scrollBehavior
+        }
+    ) { padding ->
+        Crossfade(nModel.state) {
+            when (it) {
+                NetworkState.None -> CLazyColumn(
+                    padding = PaddingValues(
+                        top = padding.calculateTopPadding(),
+                        bottom = padding.calculateBottomPadding()
+                    )
+                ) {
+                    items(model.subjects) {
+                        SubjectMarksItem(
+                            title = it.subjectName,
+                            marks = it.marks.sortedBy { it.date }.reversed(),
+                            stupsCount = it.stupCount,
+                            coroutineScope = coroutineScope
+                        )
+                    }
+                }
+
+                //.map {
+                //                                        Mark(
+                //                                            value = it.content.toInt(),
+                //                                            reason = it.reason,
+                //                                            isGoToAvg = it.isGoToAvg,
+                //                                            id = it.id,
+                //                                            date = it.date
+                //                                        )
+                //                                    }
+
+                NetworkState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                NetworkState.Error -> {
+                    Column(
+                        Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(nModel.error)
+                        Spacer(Modifier.height(7.dp))
+                        CustomTextButton("Попробовать ещё раз") {
+                            nModel.onFixErrorClick()
+                        }
+                    }
+                }
+            }
+
 
         }
 
@@ -238,7 +251,7 @@ private fun SubjectMarksItem(
     val value = (AVGMarks.sumOf { it.content.toInt() }) / (AVGMarks.size).toFloat()
 
     ElevatedCard(
-        Modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(top = 10.dp)
+        Modifier.fillMaxWidth().padding(top = 10.dp) //.padding(horizontal = 10.dp)
             .animateContentSize().clip(CardDefaults.elevatedShape).clickable {
                 isFullView.value = !isFullView.value
             }) {
@@ -253,13 +266,9 @@ private fun SubjectMarksItem(
                 ) {
                     Text(title, fontWeight = FontWeight.Bold, fontSize = 25.sp)
                     Spacer(Modifier.width(5.dp))
-                    FilledTonalButton(
-                        onClick = {},
-                        contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(20.dp).offset(y = 2.dp)
-                    ) {
-                        Text("+$stupsCount", modifier = Modifier.offset(x = -2.dp))
-                    }
+                    StupsButton(
+                        stupsCount
+                    ) {}
                 }
                 Text(
                     text = if (value.isNaN()) {

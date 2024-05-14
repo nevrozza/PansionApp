@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
+import components.CLazyColumn
 import components.CustomTextButton
 import components.LoadingAnimation
 import home.HomeComponent
@@ -121,14 +122,11 @@ fun AdminContent(
             )
         }
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
+        Box(Modifier.fillMaxSize()) {
             if (model.items != null) {
-                LazyColumn(
-                    Modifier
-                        .padding(horizontal = 15.dp)
-                        .fillMaxSize()
-                        .consumeWindowInsets(padding)
-                        .imePadding()
+                CLazyColumn(
+                    padding = padding,
+                    isBottomPaddingNeeded = true
                 ) {
                     items(model.items!!) { item ->
                         AdminItemCompose(item.title, currentRouting == item.routing, isActive) {

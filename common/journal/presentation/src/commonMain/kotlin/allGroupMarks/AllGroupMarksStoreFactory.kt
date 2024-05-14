@@ -8,6 +8,7 @@ import allGroupMarks.AllGroupMarksStore.Intent
 import allGroupMarks.AllGroupMarksStore.Label
 import allGroupMarks.AllGroupMarksStore.State
 import allGroupMarks.AllGroupMarksStore.Message
+import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
 
 class AllGroupMarksStoreFactory(
@@ -17,7 +18,8 @@ class AllGroupMarksStoreFactory(
     private val groupName: String,
     private val subjectName: String,
     private val nInterface: NetworkInterface,
-    private val journalRepository: JournalRepository
+    private val journalRepository: JournalRepository,
+    private val stupsDialogComponent: CAlertDialogComponent
 ) {
 
     fun create(): AllGroupMarksStore {
@@ -36,7 +38,8 @@ class AllGroupMarksStoreFactory(
             ),
             executorFactory = { AllGroupMarksExecutor(
                 journalRepository = journalRepository,
-                nInterface = nInterface
+                nInterface = nInterface,
+                stupsDialogComponent = stupsDialogComponent
             ) },
             reducer = AllGroupMarksReducer
         )

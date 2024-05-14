@@ -1,3 +1,5 @@
+import admin.schedule.ScheduleGroup
+import admin.schedule.ScheduleSubject
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -97,22 +99,26 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CustomTextButton
 import components.CustomTextField
+import components.DateButton
 import components.listDialog.ListDialogStore
 import components.mpChose.mpChoseStore
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
+import kotlinx.datetime.DayOfWeek
 import schedule.ScheduleComponent
 import schedule.ScheduleStore
 import schedule.ScheduleStore.EditState
 import schedule.ScheduleTiming
+import schedule.StudentError
 import schedule.timingsPairs
-import schedule.weekPairs
 import server.isTimeFormat
 import server.toMinutes
+import server.weekPairs
 import view.LocalViewManager
 import view.LockScreenOrientation
 import view.rememberImeState
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -134,6 +140,7 @@ fun ScheduleContent(
 
     val dayStartTime = "8:30"
 
+    val key = if (model.isDefault) model.defaultDate.toString() else model.currentDate.second
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -180,20 +187,20 @@ fun ScheduleContent(
                                 ) {
                                     Spacer(Modifier.width(10.dp))
                                     weekPairs.forEach { item ->
-                                        if (item.first !in listOf(6, 7)) {
+                                        if (item.key !in listOf(6, 7)) {
                                             FilledTonalButton(
                                                 modifier = Modifier.size(50.dp).padding(end = 5.dp),
                                                 shape = RoundedCornerShape(30),
                                                 colors = ButtonDefaults.filledTonalButtonColors(
-                                                    containerColor = if (item.first == model.defaultDate) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                                    containerColor = if (item.key == model.defaultDate) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
                                                         2.dp
                                                     ),
-                                                    contentColor = if (item.first == model.defaultDate) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                                                    contentColor = if (item.key == model.defaultDate) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
                                                 ),
                                                 onClick = {
                                                     component.onEvent(
                                                         ScheduleStore.Intent.ChangeDefaultDate(
-                                                            item.first
+                                                            item.key
                                                         )
                                                     )
                                                 },
@@ -204,7 +211,7 @@ fun ScheduleContent(
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Text(
-                                                        text = item.second,
+                                                        text = item.value,
                                                         fontWeight = FontWeight.Bold,
                                                         fontSize = 20.sp,
                                                         modifier = Modifier.fillMaxWidth(),
@@ -222,40 +229,17 @@ fun ScheduleContent(
                                         .horizontalScroll(rememberScrollState()),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    model.dates.forEach { item ->
-                                        FilledTonalButton(
-                                            modifier = Modifier.size(50.dp).padding(end = 5.dp),
-                                            shape = RoundedCornerShape(30),
-                                            colors = ButtonDefaults.filledTonalButtonColors(
-                                                containerColor = if (item.second == model.currentDate.second) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                                    2.dp
-                                                ),
-                                                contentColor = if (item.second == model.currentDate.second) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-                                            ),
-                                            onClick = {
-                                                component.onEvent(
-                                                    ScheduleStore.Intent.ChangeCurrentDate(
-                                                        item
-                                                    )
-                                                )
-                                            },
-                                            contentPadding = PaddingValues(0.dp)
+                                    model.dates.toList().forEach { item ->
+                                        DateButton(
+                                            currentDate = model.currentDate.second,
+                                            dayOfWeek = item.first,
+                                            date = item.second
                                         ) {
-                                            Box(Modifier.fillMaxSize()) {
-                                                Text(
-                                                    text = item.second.substring(0, 5),
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 15.sp,
-                                                    modifier = Modifier.padding(bottom = 10.dp)
-                                                        .align(Alignment.Center)
+                                            component.onEvent(
+                                                ScheduleStore.Intent.ChangeCurrentDate(
+                                                    item
                                                 )
-                                                Text(
-                                                    text = weekPairs.first { it.first == item.first }.second,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    fontSize = 10.sp,
-                                                    modifier = Modifier.align(Alignment.BottomCenter)
-                                                )
-                                            }
+                                            )
                                         }
                                     }
                                 }
@@ -406,7 +390,7 @@ fun ScheduleContent(
 
                 if (model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty()) {
                     val trueTeachers =
-                        model.activeTeachers.firstOrNull { it.first == if (model.isDefault) model.defaultDate.toString() else model.currentDate.second }?.second
+                        model.activeTeachers[key]
                     LazyRow(Modifier.padding(start = 38.dp).fillMaxSize()) {
                         item { Spacer(Modifier.width(12.dp)) }
                         items(trueTeachers?.reversed() ?: emptyList(), key = { it }) { login ->
@@ -417,10 +401,12 @@ fun ScheduleContent(
                                 Modifier.width(200.dp).padding(end = 5.dp)
                                     .animateItemPlacement()
                             ) {
-                                val headerState = remember { MutableTransitionState(false).apply {
-                                    // Start the animation immediately.
-                                    targetState = true
-                                } }
+                                val headerState = remember {
+                                    MutableTransitionState(false).apply {
+                                        // Start the animation immediately.
+                                        targetState = true
+                                    }
+                                }
                                 AnimatedVisibility(
                                     visibleState = headerState,
                                     enter = fadeIn() + scaleIn()
@@ -642,73 +628,21 @@ fun ScheduleContent(
                                                                                             )
                                                                                         }
                                                                                     } else {
-                                                                                        val tState =
-                                                                                            rememberTooltipState(
-                                                                                                isPersistent = true
-                                                                                            )
                                                                                         val cabinetErrorGroup =
                                                                                             model.groups.firstOrNull { it.id == model.ciTiming!!.cabinetErrorGroupId }
                                                                                         val cabinetErrorSubject =
                                                                                             if (cabinetErrorGroup != null) model.subjects.firstOrNull { it.id == cabinetErrorGroup.subjectId } else null
 
                                                                                         val studentErrors =
-                                                                                            model.ciTiming!!.studentErrors.mapNotNull { e ->
-                                                                                                val group =
-                                                                                                    model.groups.firstOrNull { it.id == e.groupId }
-                                                                                                val subject =
-                                                                                                    if (group != null) model.subjects.firstOrNull { it.id == group.subjectId } else null
-                                                                                                if (subject != null) {
-                                                                                                    StudentErrorCompose(
-                                                                                                        subjectName = subject.name,
-                                                                                                        groupName = group!!.name,
-                                                                                                        studentFios = model.students.filter { it.login in e.logins }
-                                                                                                            .map { it.fio.surname }
-                                                                                                    )
-                                                                                                } else null
-                                                                                            }
-                                                                                        TooltipBox(
-                                                                                            state = tState,
-                                                                                            tooltip = {
-                                                                                                PlainTooltip() {
-                                                                                                    Text(
-                                                                                                        buildString {
-                                                                                                            if (cabinetErrorSubject != null) {
-                                                                                                                append(
-                                                                                                                    "Кабинет занят: ${cabinetErrorSubject.name} ${cabinetErrorGroup!!.name}"
-                                                                                                                )
-                                                                                                            }
-                                                                                                            if (studentErrors.isNotEmpty()) {
-
-                                                                                                                studentErrors.forEachIndexed { i, it ->
-                                                                                                                    if (cabinetErrorSubject != null || i != 0) append(
-                                                                                                                        "\n"
-                                                                                                                    )
-                                                                                                                    append(
-                                                                                                                        "Накладка: "
-                                                                                                                    )
-                                                                                                                    append(
-                                                                                                                        "${it.subjectName} ${it.groupName} ${it.studentFios}"
-                                                                                                                    )
-                                                                                                                }
-                                                                                                            }
-                                                                                                        },
-                                                                                                        textAlign = TextAlign.Center
-                                                                                                    )
-                                                                                                }
-                                                                                            },
-                                                                                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
-                                                                                        ) {
-                                                                                            IconButton(
-                                                                                                {},
-                                                                                                enabled = false
-                                                                                            ) {
-                                                                                                Icon(
-                                                                                                    Icons.Rounded.ErrorOutline,
-                                                                                                    null,
-                                                                                                    tint = MaterialTheme.colorScheme.error
-                                                                                                )
-                                                                                            }
-                                                                                        }
+                                                                                            getStudentErrors(
+                                                                                                model.ciTiming!!.studentErrors,
+                                                                                                model
+                                                                                            )
+                                                                                        ErrorsTooltip(
+                                                                                            cabinetErrorSubject = cabinetErrorSubject,
+                                                                                            cabinetErrorGroup = cabinetErrorGroup,
+                                                                                            studentErrors = studentErrors
+                                                                                        )
                                                                                     }
                                                                                 } else {
                                                                                     IconButton(
@@ -762,68 +696,21 @@ fun ScheduleContent(
                                                                             },
                                                                             trailingIcon = {
                                                                                 if (t.cabinetErrorGroupId != 0 || t.studentErrors.isNotEmpty()) {
-                                                                                    val tState =
-                                                                                        rememberTooltipState(
-                                                                                            isPersistent = true
-                                                                                        )
                                                                                     val cabinetErrorGroup =
                                                                                         model.groups.firstOrNull { it.id == t.cabinetErrorGroupId }
                                                                                     val cabinetErrorSubject =
                                                                                         if (cabinetErrorGroup != null) model.subjects.firstOrNull { it.id == cabinetErrorGroup.subjectId } else null
 
                                                                                     val studentErrors =
-                                                                                        t.studentErrors.mapNotNull { e ->
-                                                                                            val group =
-                                                                                                model.groups.firstOrNull { it.id == e.groupId }
-                                                                                            val subject =
-                                                                                                if (group != null) model.subjects.firstOrNull { it.id == group.subjectId } else null
-                                                                                            if (subject != null) {
-                                                                                                StudentErrorCompose(
-                                                                                                    subjectName = subject.name,
-                                                                                                    groupName = group!!.name,
-                                                                                                    studentFios = model.students.filter { it.login in e.logins }
-                                                                                                        .map { it.fio.surname }
-                                                                                                )
-                                                                                            } else null
-                                                                                        }
-                                                                                    TooltipBox(
-                                                                                        state = tState,
-                                                                                        tooltip = {
-                                                                                            PlainTooltip() {
-                                                                                                Text(
-                                                                                                    buildString {
-                                                                                                        if (cabinetErrorSubject != null) {
-                                                                                                            append(
-                                                                                                                "Кабинет занят: ${cabinetErrorSubject.name} ${cabinetErrorGroup!!.name}"
-                                                                                                            )
-                                                                                                        }
-                                                                                                        if (studentErrors.isNotEmpty()) {
-
-                                                                                                            studentErrors.forEachIndexed { i, it ->
-                                                                                                                if (cabinetErrorSubject != null || i != 0) append(
-                                                                                                                    "\n"
-                                                                                                                )
-                                                                                                                append(
-                                                                                                                    "Накладка: "
-                                                                                                                )
-                                                                                                                append(
-                                                                                                                    "${it.subjectName} ${it.groupName} ${it.studentFios}"
-                                                                                                                )
-                                                                                                            }
-                                                                                                        }
-                                                                                                    },
-                                                                                                    textAlign = TextAlign.Center
-                                                                                                )
-                                                                                            }
-                                                                                        },
-                                                                                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
-                                                                                    ) {
-                                                                                        Icon(
-                                                                                            Icons.Rounded.ErrorOutline,
-                                                                                            null,
-                                                                                            tint = MaterialTheme.colorScheme.error
+                                                                                        getStudentErrors(
+                                                                                            t.studentErrors,
+                                                                                            model
                                                                                         )
-                                                                                    }
+                                                                                    ErrorsTooltip(
+                                                                                        cabinetErrorSubject = cabinetErrorSubject,
+                                                                                        cabinetErrorGroup = cabinetErrorGroup,
+                                                                                        studentErrors = studentErrors
+                                                                                    )
                                                                                 }
                                                                             },
                                                                             onClick = {
@@ -950,14 +837,16 @@ fun ScheduleContent(
                                 }
                                 Box(Modifier.padding(top = headerP)) {
                                     val trueItems =
-                                        model.items.firstOrNull { it.first == if (model.isDefault) model.defaultDate.toString() else model.currentDate.second }
-                                    trueItems?.second?.filter { it.teacherLogin == login }
+                                        model.items[key]
+                                    trueItems?.filter { it.teacherLogin == login }
                                         ?.forEach { e ->
-                                            val index = trueItems.second.indexOf(e)
-                                            val aState = remember { MutableTransitionState(false).apply {
-                                                // Start the animation immediately.
-                                                targetState = true
-                                            } }
+                                            val index = trueItems.indexOf(e)
+                                            val aState = remember {
+                                                MutableTransitionState(false).apply {
+                                                    // Start the animation immediately.
+                                                    targetState = true
+                                                }
+                                            }
                                             AnimatedVisibility(
                                                 visibleState = aState,
                                                 enter = fadeIn() + scaleIn()
@@ -1256,73 +1145,22 @@ fun ScheduleContent(
                                                                                         }
                                                                                     } else {
                                                                                         ///
-                                                                                        val tState =
-                                                                                            rememberTooltipState(
-                                                                                                isPersistent = true
-                                                                                            )
                                                                                         val cabinetErrorGroup =
                                                                                             model.groups.firstOrNull { it.id == model.eiCabinetErrorGroupId }
                                                                                         val cabinetErrorSubject =
                                                                                             if (cabinetErrorGroup != null) model.subjects.firstOrNull { it.id == cabinetErrorGroup.subjectId } else null
 
                                                                                         val studentErrors =
-                                                                                            model.eiStudentErrors.mapNotNull { e ->
-                                                                                                val groupx =
-                                                                                                    model.groups.firstOrNull { it.id == e.groupId }
-                                                                                                val subjectx =
-                                                                                                    if (groupx != null) model.subjects.firstOrNull { it.id == groupx.subjectId } else null
-                                                                                                if (subjectx != null) {
-                                                                                                    StudentErrorCompose(
-                                                                                                        subjectName = subjectx.name,
-                                                                                                        groupName = groupx!!.name,
-                                                                                                        studentFios = model.students.filter { it.login in e.logins }
-                                                                                                            .map { it.fio.surname }
-                                                                                                    )
-                                                                                                } else null
-                                                                                            }
-                                                                                        TooltipBox(
-                                                                                            state = tState,
-                                                                                            tooltip = {
-                                                                                                PlainTooltip() {
-                                                                                                    Text(
-                                                                                                        buildString {
-                                                                                                            if (cabinetErrorSubject != null) {
-                                                                                                                append(
-                                                                                                                    "Кабинет занят: ${cabinetErrorSubject.name} ${cabinetErrorGroup!!.name}"
-                                                                                                                )
-                                                                                                            }
-                                                                                                            if (studentErrors.isNotEmpty()) {
+                                                                                            getStudentErrors(
+                                                                                                model.eiStudentErrors,
+                                                                                                model
+                                                                                            )
 
-                                                                                                                studentErrors.forEachIndexed { i, it ->
-                                                                                                                    if (cabinetErrorSubject != null || i != 0) append(
-                                                                                                                        "\n"
-                                                                                                                    )
-                                                                                                                    append(
-                                                                                                                        "Накладка: "
-                                                                                                                    )
-                                                                                                                    append(
-                                                                                                                        "${it.subjectName} ${it.groupName} ${it.studentFios}"
-                                                                                                                    )
-                                                                                                                }
-                                                                                                            }
-                                                                                                        },
-                                                                                                        textAlign = TextAlign.Center
-                                                                                                    )
-                                                                                                }
-                                                                                            },
-                                                                                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
-                                                                                        ) {
-                                                                                            IconButton(
-                                                                                                {},
-                                                                                                enabled = false
-                                                                                            ) {
-                                                                                                Icon(
-                                                                                                    Icons.Rounded.ErrorOutline,
-                                                                                                    null,
-                                                                                                    tint = MaterialTheme.colorScheme.error
-                                                                                                )
-                                                                                            }
-                                                                                        }
+                                                                                        ErrorsTooltip(
+                                                                                            cabinetErrorSubject = cabinetErrorSubject,
+                                                                                            cabinetErrorGroup = cabinetErrorGroup,
+                                                                                            studentErrors = studentErrors
+                                                                                        )
                                                                                     }
                                                                                 }
 
@@ -1520,9 +1358,15 @@ fun ScheduleContent(
 
                                     val tStart = remember { mutableStateOf("") }
                                     val tEnd = remember { mutableStateOf("") }
-                                    AnimatedVisibility(model.ciLogin == c.login && model.ciTiming != null && mpModel.isDialogShowing, enter = fadeIn() + scaleIn()) {
-                                        val t = model.ciTiming ?: ScheduleTiming(start = tStart.value, end = tEnd.value)
-                                        if(model.ciTiming != null) {
+                                    AnimatedVisibility(
+                                        model.ciLogin == c.login && model.ciTiming != null && mpModel.isDialogShowing,
+                                        enter = fadeIn() + scaleIn()
+                                    ) {
+                                        val t = model.ciTiming ?: ScheduleTiming(
+                                            start = tStart.value,
+                                            end = tEnd.value
+                                        )
+                                        if (model.ciTiming != null) {
                                             tStart.value = t.start
                                             tEnd.value = t.end
                                         }
@@ -1564,6 +1408,82 @@ fun ScheduleContent(
 //                    }
 //                }
 //            }
+        }
+    }
+}
+
+private fun getStudentErrors(
+    errors: List<StudentError>,
+    model: ScheduleStore.State
+): List<StudentErrorCompose> {
+    return errors.mapNotNull { e ->
+        val groupx =
+            model.groups.firstOrNull { it.id == e.groupId }
+        val subjectx =
+            if (groupx != null) model.subjects.firstOrNull { it.id == groupx.subjectId } else null
+        if (subjectx != null) {
+            StudentErrorCompose(
+                subjectName = subjectx.name,
+                groupName = groupx!!.name,
+                studentFios = model.students.filter { it.login in e.logins }
+                    .map { it.fio.surname }
+            )
+        } else null
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ErrorsTooltip(
+    cabinetErrorSubject: ScheduleSubject?,
+    cabinetErrorGroup: ScheduleGroup?,
+    studentErrors: List<StudentErrorCompose>
+    ) {
+    val tState =
+        rememberTooltipState(
+            isPersistent = true
+        )
+    TooltipBox(
+        state = tState,
+        tooltip = {
+            PlainTooltip() {
+                Text(
+                    buildString {
+                        if (cabinetErrorSubject != null) {
+                            append(
+                                "Кабинет занят: ${cabinetErrorSubject.name} ${cabinetErrorGroup!!.name}"
+                            )
+                        }
+                        if (studentErrors.isNotEmpty()) {
+
+                            studentErrors.forEachIndexed { i, it ->
+                                if (cabinetErrorSubject != null || i != 0) append(
+                                    "\n"
+                                )
+                                append(
+                                    "Накладка: "
+                                )
+                                append(
+                                    "${it.subjectName} ${it.groupName} ${it.studentFios}"
+                                )
+                            }
+                        }
+                    },
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+    ) {
+        IconButton(
+            {},
+            enabled = false
+        ) {
+            Icon(
+                Icons.Rounded.ErrorOutline,
+                null,
+                tint = MaterialTheme.colorScheme.error
+            )
         }
     }
 }

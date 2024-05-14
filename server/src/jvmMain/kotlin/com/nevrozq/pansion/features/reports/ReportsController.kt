@@ -319,7 +319,7 @@ class ReportsController() {
         if (call.isMember) {
             try {
                 val allSubjects = Subjects.fetchAllSubjects()
-                val stups = Stups.fetchForAWeek(login = r.login)
+                val stups = Stups.fetchForUser(login = r.login)
 
                 val responseList = mutableListOf<DetailedStupsSubject>()
 
@@ -332,6 +332,8 @@ class ReportsController() {
 
                 all.forEach { s ->
                     val iStups = stups.filter { it.subjectId == s.id }
+                    print("STUPS ")
+                    println(iStups)
                     responseList.add(
                         DetailedStupsSubject(
                             subjectName = s.name,

@@ -1,0 +1,94 @@
+package rating
+
+import CDispatcher
+import MainRepository
+import admin.schedule.ScheduleSubject
+import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
+import components.listDialog.ListComponent
+import components.listDialog.ListDialogStore
+import components.listDialog.ListItem
+import components.networkInterface.NetworkInterface
+import home.HomeStore
+import kotlinx.coroutines.launch
+import rating.RatingStore.Intent
+import rating.RatingStore.Label
+import rating.RatingStore.State
+import rating.RatingStore.Message
+import schedule.PersonScheduleItem
+
+class RatingExecutor(
+    private val mainRepository: MainRepository,
+    private val nInterface: NetworkInterface,
+    private val subjectsListComponent: ListComponent,
+) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeIntent(intent: Intent) {
+        when (intent) {
+            Intent.Init -> init()
+            is Intent.ClickOnSubject -> {
+                dispatch(Message.OnSubjectClicked(intent.subjectId))
+                fetchRating(intent.subjectId)
+            }
+        }
+    }
+
+    private fun init() {
+        fetchSubjects()
+        fetchRating(state().currentSubject)
+    }
+
+    private fun fetchRating(subjectId: Int, period: Int = 0) {
+        scope.launch(CDispatcher) {
+            try {
+                nInterface.nStartLoading()
+                val response = mainRepository.fetchSubjectRating(
+                    login = state().login,
+                    subjectId = subjectId,
+                    period = period
+                )
+
+                scope.launch {
+                    dispatch(Message.RatingUpdated(
+                        items = state().items + response.hash,
+                        me = state().me + response.me
+                    ))
+                   nInterface.nSuccess()
+                }
+            } catch (e: Throwable) {
+                println(e)
+                nInterface.nError("Не удалось загрузить рейтинг") {
+                   fetchRating(subjectId)
+                }
+//                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
+            }
+        }
+    }
+
+    private fun fetchSubjects() {
+        scope.launch(CDispatcher) {
+            try {
+                subjectsListComponent.nInterface.nStartLoading()
+                val subjects =
+                    mainRepository.fetchScheduleSubjects().subjects.toMutableList()
+                subjects.add(0, startSubject)
+                scope.launch {
+                    dispatch(Message.SubjectsUpdated(subjects))
+                    subjectsListComponent.onEvent(ListDialogStore.Intent.InitList(
+                        subjects.map {
+                            ListItem(
+                                id = it.id.toString(),
+                                text = it.name
+                            )
+                        }
+                    ))
+                    subjectsListComponent.nInterface.nSuccess()
+                }
+            } catch (e: Throwable) {
+                println(e)
+                subjectsListComponent.nInterface.nError("Не удалось загрузить предметы") {
+                    fetchSubjects()
+                }
+//                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
+            }
+        }
+    }
+}

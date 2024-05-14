@@ -9,12 +9,24 @@ fun Application.configureLessonsRouting() {
         val lessonsController = LessonsController()
 
 
+        post(RequestPaths.Main.FetchScheduleSubjects) {
+            lessonsController.fetchScheduleSubjects(call)
+        }
+
+        post(RequestPaths.Main.FetchSubjectRating) {
+            lessonsController.fetchRating(call)
+        }
+
         post(RequestPaths.Lessons.FetchSchedule) {
             lessonsController.fetchSchedule(call)
         }
 
         post(RequestPaths.Lessons.SaveSchedule) {
             lessonsController.saveSchedule(call)
+        }
+
+        post(RequestPaths.Lessons.FetchPersonSchedule) {
+            lessonsController.fetchPersonSchedule(call)
         }
 
         post(RequestPaths.Lessons.FetchCabinets) {

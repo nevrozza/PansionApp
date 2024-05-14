@@ -4,5 +4,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RScheduleList(
-    val list: List<Pair<String, List<ScheduleItem>>>
+    val list: HashMap<String, List<ScheduleItem>>
+)
+
+@Serializable
+data class RPersonScheduleList(
+    val list: HashMap<String, List<PersonScheduleItem>>
 )

@@ -41,6 +41,8 @@ import androidx.compose.material.icons.rounded.Fax
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryBooks
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -79,6 +81,7 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.AlphaTestZatichka
 import components.ThemePreview
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
@@ -109,6 +112,7 @@ import view.ViewManager
 import view.WindowScreen
 import groups.GroupsContent
 import root.RootComponent.Child.HomeSettings
+import root.RootComponent.Child.MainRating
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -127,7 +131,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
         NavigationItem(
             icon = Icons.Rounded.Home,
             label = "Главная",
-            category = if (isExpanded && model.currentCategory == RootComponent.RootCategories.Journal) RootComponent.RootCategories.Journal else RootComponent.RootCategories.Home,
+            category = if (isExpanded && model.currentCategory == RootComponent.RootCategories.Journal) RootComponent.RootCategories.Journal
+            else if (isExpanded && model.currentCategory == RootComponent.RootCategories.Rating && model.role != Roles.teacher) RootComponent.RootCategories.Rating
+            else RootComponent.RootCategories.Home,
             onClickOutput = RootComponent.Output.NavigateToHome
         ),
         if (!isExpanded && model.role == Roles.teacher) NavigationItem(
@@ -146,7 +152,13 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             label = "Модерация",
             category = RootComponent.RootCategories.Admin,
             onClickOutput = RootComponent.Output.NavigateToAdmin
-        ) else null
+        ) else null,
+        if ((!isExpanded && model.role != Roles.teacher) || model.role == Roles.teacher) NavigationItem(
+            icon = Icons.Rounded.Star,
+            label = "Рейтинг",
+            category = RootComponent.RootCategories.Rating,
+            onClickOutput = RootComponent.Output.NavigateToRating
+        ) else null,
     )
 //    var bottomBarAnimationScope: AnimatedVisibilityScope? = null
     Scaffold(
@@ -176,11 +188,17 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 start = padding.calculateStartPadding(LocalLayoutDirection.current),
                 end = padding.calculateEndPadding(LocalLayoutDirection.current),
                 bottom = 0.dp// if (model.isBottomBarShowing) padding.calculateBottomPadding() else (padding.calculateBottomPadding() - 80.dp).coerceAtLeast(
-                    //0.dp
+                //0.dp
                 //)
             )
         ) {
-            val aniPadding by animateDpAsState(if ((isExpanded || viewManager.orientation.value == WindowScreen.Horizontal) && model.currentScreen !in listOf(RootComponent.Config.AuthActivation, RootComponent.Config.AuthLogin) ) 80.dp else 0.dp)
+            val aniPadding by animateDpAsState(
+                if ((isExpanded || viewManager.orientation.value == WindowScreen.Horizontal) && model.currentScreen !in listOf(
+                        RootComponent.Config.AuthActivation,
+                        RootComponent.Config.AuthLogin
+                    )
+                ) 80.dp else 0.dp
+            )
             Children(
                 modifier = Modifier.fillMaxSize()
                     .padding(start = aniPadding),
@@ -191,6 +209,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     fallbackAnimation = stackAnimation { child ->
                         when (child.instance) {
                             is MainJournal -> fade()
+                            is MainRating -> fade()
                             is MainHome -> fade()
                             is MainAdmin -> fade()
 //                            is AdminMentors -> if (isExpanded) fade() else slide()
@@ -206,7 +225,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             is Child.HomeAllGroupMarks -> if (isExpanded) fade() else slide()
                             is Child.AdminSchedule -> slide()
                             is Child.HomeProfile -> TODO()
-                            is Child.AdminCabinets ->  if (isExpanded) fade() else slide()
+                            is Child.AdminCabinets -> if (isExpanded) fade() else slide()
                         }
                     }
                 )
@@ -215,18 +234,41 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     is Child.AuthLogin -> LoginContent(child.component)
                     is Child.AuthActivation -> ActivationContent(child.component)
 
+
                     is MainHome -> MultiPaneSplit(
                         isExpanded = isExpanded,
                         currentScreen = { HomeContent(child.homeComponent, model.role) },
                         firstScreen = { HomeContent(child.homeComponent, model.role) },
-                        secondScreen = { JournalContent(child.journalComponent, role = model.role, moderation = model.moderation) }
+                        secondScreen = {
+                            if (model.moderation != Moderation.nothing || model.role == Roles.teacher) {
+                                JournalContent(
+                                    child.journalComponent,
+                                    role = model.role,
+                                    moderation = model.moderation
+                                )
+                            } else {
+                                RatingContent(child.ratingComponent)
+                            }
+                        }
                     )
 
                     is MainJournal -> MultiPaneSplit(
                         isExpanded = isExpanded,
-                        currentScreen = { JournalContent(child.journalComponent, role = model.role, moderation = model.moderation) },
+                        currentScreen = {
+                            JournalContent(
+                                child.journalComponent,
+                                role = model.role,
+                                moderation = model.moderation
+                            )
+                        },
                         firstScreen = { HomeContent(child.homeComponent, model.role) },
-                        secondScreen = { JournalContent(child.journalComponent, role = model.role, moderation = model.moderation) }
+                        secondScreen = {
+                            JournalContent(
+                                child.journalComponent,
+                                role = model.role,
+                                moderation = model.moderation
+                            )
+                        }
                     )
 
                     is Child.HomeDnevnikRuMarks -> {
@@ -237,6 +279,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = { DnevnikRuMarkContent(child.dnevnikRuMarksComponent) }
                         )
                     }
+
                     is Child.HomeDetailedStups -> {
                         MultiPaneSplit(
                             isExpanded = isExpanded,
@@ -249,13 +292,13 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                     is MainAdmin ->
                         Scaffold(
-                            floatingActionButtonPosition = if(isExpanded) FabPosition.Center else FabPosition.End,
+                            floatingActionButtonPosition = if (isExpanded) FabPosition.Center else FabPosition.End,
                             floatingActionButton = {
                                 ExtendedFloatingActionButton(
                                     onClick = {
-                                              component.onOutput(RootComponent.Output.NavigateToSchedule)
+                                        component.onOutput(RootComponent.Output.NavigateToSchedule)
                                     },
-                                    modifier = Modifier.padding(bottom = if(!isExpanded) 80.dp else 10.dp)
+                                    modifier = Modifier.padding(bottom = if (!isExpanded) 80.dp else 10.dp)
                                 ) {
                                     Icon(
                                         Icons.Rounded.EditCalendar,
@@ -340,7 +383,13 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             isExpanded = isExpanded,
                             currentScreen = { AllGroupMarksContent(child.allGroupMarksComponent) },
                             firstScreen = { AllGroupMarksContent(child.allGroupMarksComponent) },
-                            secondScreen = { JournalContent(child.journalComponent, role = model.role, moderation = model.moderation) }
+                            secondScreen = {
+                                JournalContent(
+                                    child.journalComponent,
+                                    role = model.role,
+                                    moderation = model.moderation
+                                )
+                            }
                         )
 
                     is Child.AdminSchedule -> ScheduleContent(child.scheduleComponent)
@@ -351,13 +400,19 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         currentRouting = AdminComponent.Output.NavigateToCabinets,
                         secondScreen = { CabinetsContent(child.cabinetsComponent) }
                     )
+
+                    is MainRating -> MultiPaneSplit(
+                        isExpanded = isExpanded,
+                        currentScreen = { RatingContent(child.ratingComponent) },
+                        firstScreen = { HomeContent(child.homeComponent, model.role) },
+                        secondScreen = {
+                            RatingContent(child.ratingComponent)
+                        }
+                    )
                 }
-
-
             }
             CustomNavigationRail(viewManager, component, model, items)
         }
-
     }
 
     if (!isJs) {
@@ -422,7 +477,12 @@ fun MultiPaneJournal(
             splitPaneState = splitterState
         ) {
             first(minSize = x.value) {
-                JournalContent(journalComponent, isNotMinimized = false, role = role, moderation = moderation)
+                JournalContent(
+                    journalComponent,
+                    isNotMinimized = false,
+                    role = role,
+                    moderation = moderation
+                )
             }
 
             dSplitter(isFullScreen)
@@ -508,7 +568,12 @@ fun CustomNavigationBar(
 
 
     NavigationBar(
-        modifier = Modifier.then(if(viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(viewManager.hazeState!!.value, style = viewManager.hazeStyle!!.value) else Modifier).fillMaxWidth(),
+        modifier = Modifier.then(
+            if (viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(
+                viewManager.hazeState!!.value,
+                style = viewManager.hazeStyle!!.value
+            ) else Modifier
+        ).fillMaxWidth(),
         containerColor = Color.Transparent
     ) {
         items.filterNotNull().forEach { item ->
@@ -532,7 +597,10 @@ fun CustomNavigationRail(
     items: List<NavigationItem?>
 ) {
     AnimatedVisibility(
-        visible = viewManager.orientation.value != WindowScreen.Vertical && model.currentScreen !in listOf(RootComponent.Config.AuthActivation, RootComponent.Config.AuthLogin),
+        visible = viewManager.orientation.value != WindowScreen.Vertical && model.currentScreen !in listOf(
+            RootComponent.Config.AuthActivation,
+            RootComponent.Config.AuthLogin
+        ),
         enter = fadeIn(animationSpec = tween(300)) +
                 slideInHorizontally { -it },
         exit = fadeOut(animationSpec = tween(300)) + slideOutHorizontally { -it },

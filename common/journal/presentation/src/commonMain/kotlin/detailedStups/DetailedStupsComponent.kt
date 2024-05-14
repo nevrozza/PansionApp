@@ -61,6 +61,7 @@ class DetailedStupsComponent(
     init {
         backHandler.register(backCallback)
         onEvent(DetailedStupsStore.Intent.Init)
+        println(reason)
 
     }
 

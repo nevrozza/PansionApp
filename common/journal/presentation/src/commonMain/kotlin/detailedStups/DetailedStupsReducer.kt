@@ -8,6 +8,9 @@ object DetailedStupsReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
             is Message.SubjectsUpdated -> copy(subjects = msg.subjects)
+            Message.ReasonChanged -> copy(
+                reason = if(reason == "0") "1" else "0"
+            )
         }
     }
 }

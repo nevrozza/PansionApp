@@ -16,6 +16,8 @@ import kotlinx.datetime.todayIn
 import schedule.ScheduleStore.Intent
 import schedule.ScheduleStore.Label
 import schedule.ScheduleStore.State
+import server.getCurrentDate
+import server.getDates
 import server.twoNums
 
 interface ScheduleStore : Store<Intent, State, Label> {
@@ -25,9 +27,8 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val subjects: List<ScheduleSubject> = emptyList(),
         val cabinets: List<CabinetItem> = emptyList(),
         val groups: List<ScheduleGroup> = emptyList(),
-        val activeTeachers: List<Pair<String, List<String>>> = emptyList(),
-        val items: List<Pair<String, List<ScheduleItem>>> = emptyList(),
-
+        val activeTeachers: HashMap<String, List<String>> = hashMapOf(), // changed List<Pair<String, List<String>>> to HashMap<String, List<String>>
+        val items: HashMap<String, List<ScheduleItem>> = hashMapOf(), // changed List<Pair<String, List<ScheduleItem>>> to HashMap<String, List<ScheduleItem>>
         val ciLogin: String? = null,
         val ciId: Int? = null,
         val ciCabinet: Int = 0,
@@ -114,7 +115,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
 
     sealed interface Message {
 
-        data class ListUpdated(val list: List<Pair<String, List<ScheduleItem>>>) : Message
+        data class ListUpdated(val list: HashMap<String, List<ScheduleItem>>) : Message
 
         data object EditModeChanged : Message
 
@@ -158,8 +159,9 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data object ciGroupIdNulled : Message
         data object ciPreviewFalsed : Message
 
-        data class TeacherCreated(val activeTeachers: List<String>) : Message
-        data class TeacherListUpdated(val activeTeachers: List<Pair<String, List<String>>>) : Message
+        data class TeacherCreated(val activeTeachers: HashMap<String, List<String>>) : Message // updated message to use HashMap
+
+        data class TeacherListUpdated(val activeTeachers: HashMap<String, List<String>>) : Message // updated message to use HashMap
         data class ItemsUpdated(val items: List<ScheduleItem>) : Message
 
 
@@ -175,61 +177,5 @@ interface ScheduleStore : Store<Intent, State, Label> {
     }
 }
 
-fun getCurrentDate(): Pair<Int, String> {
-    val today = Clock.System.todayIn(TimeZone.of("UTC+3"))
-    val dayOfWeek = when (today.dayOfWeek) {
-        DayOfWeek.MONDAY -> 1
-        DayOfWeek.TUESDAY -> 2
-        DayOfWeek.WEDNESDAY -> 3
-        DayOfWeek.THURSDAY -> 4
-        DayOfWeek.FRIDAY -> 5
-        DayOfWeek.SATURDAY -> 6
-        DayOfWeek.SUNDAY -> 7
-        else -> 1
-    }
-    return Pair(
-        dayOfWeek,
-        "${today.dayOfMonth.twoNums()}.${today.monthNumber.twoNums()}.${today.year % 100}"
-    )
-
-}
-
-fun getDates(): List<Pair<Int, String>> {
-    val dates = mutableListOf<Pair<Int, String>>()
-    val today = Clock.System.todayIn(TimeZone.of("UTC+3"))
-    val startDate = today// сегодняшняя дата //минус 7 дней
-    val endDate = today.plus(7, DateTimeUnit.DAY) // сегодняшняя дата плюс 7 дней
-
-    var currentDate = startDate
-    while (currentDate <= endDate) {
-        val dayOfWeek = when (currentDate.dayOfWeek) {
-            DayOfWeek.MONDAY -> 1
-            DayOfWeek.TUESDAY -> 2
-            DayOfWeek.WEDNESDAY -> 3
-            DayOfWeek.THURSDAY -> 4
-            DayOfWeek.FRIDAY -> 5
-            DayOfWeek.SATURDAY -> 6
-            DayOfWeek.SUNDAY -> 7
-            else -> 1
-        }
-        dates.add(
-            Pair(
-                dayOfWeek,
-                "${currentDate.dayOfMonth.twoNums()}.${currentDate.monthNumber.twoNums()}.${currentDate.year % 100}"
-            )
-        )
-        currentDate = currentDate.plus(1, DateTimeUnit.DAY)
-    }
-    return dates
-}
 
 
-val weekPairs = listOf(
-    Pair(1, "Пн"),
-    Pair(2, "Вт"),
-    Pair(3, "Ср"),
-    Pair(4, "Чт"),
-    Pair(5, "Пт"),
-    Pair(6, "Сб"),
-    Pair(7, "Вс"),
-)

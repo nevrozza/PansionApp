@@ -6,6 +6,8 @@ import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
+import com.nevrozq.pansion.database.ratingTable.RatingTableDTO
+import com.nevrozq.pansion.database.ratingTable.RatingWeekTable
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
@@ -65,7 +67,68 @@ fun main() {
             Marks,
             Stups,
             Cabinets,
-            Schedule
+            Schedule,
+            RatingWeekTable
+        )
+        RatingWeekTable.saveRatings(
+            listOf(
+                RatingTableDTO(
+                    login = "a.matashkov1",
+                    name = "Арсентий",
+                    surname = "Харлампий",
+                    praname = "idk",
+                    avatarId = 0,
+                    stups = 666,
+                    avg = "4.69",
+                    top = 1,
+                    groupName = "10кл профмат",
+                    formNum = 10,
+                    subjectId = 1,
+                    formShortTitle = "10 инж"
+                ),
+                RatingTableDTO(
+                    login = "a.matashkov2",
+                    name = "Арсентий",
+                    surname = "Харлампий",
+                    praname = "idk",
+                    avatarId = 0,
+                    stups = 666,
+                    avg = "4.69",
+                    top = 2,
+                    groupName = "10кл профмат",
+                    formNum = 10,
+                    subjectId = 1,
+                    formShortTitle = "10 инж"
+                ),
+                RatingTableDTO(
+                    login = "a.matashkov3",
+                    name = "Арсентий",
+                    surname = "Харлампий",
+                    praname = "idk",
+                    avatarId = 0,
+                    stups = 666,
+                    avg = "4.69",
+                    top = 3,
+                    groupName = "10кл профмат",
+                    formNum = 10,
+                    subjectId = 1,
+                    formShortTitle = "10 инж"
+                ),
+                RatingTableDTO(
+                    login = "m.gubskaya893",
+                    name = "Арсентий",
+                    surname = "Харлампий",
+                    praname = "idk",
+                    avatarId = 0,
+                    stups = 666,
+                    avg = "4.69",
+                    top = 3,
+                    groupName = "10кл профмат",
+                    formNum = 10,
+                    subjectId = 1,
+                    formShortTitle = "10 инж"
+                ),
+            )
         )
 
 //        Schedule.deleteAll()

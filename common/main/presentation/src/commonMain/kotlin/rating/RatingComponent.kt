@@ -1,77 +1,72 @@
-package home
+package rating
 
 import AuthRepository
 import MainRepository
-import admin.AdminComponent
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import components.listDialog.ListComponent
+import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
 import di.Inject
+import home.HomeComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
-class HomeComponent(
+class RatingComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
-    val quickTabNInterface = NetworkInterface(
+    val nInterface = NetworkInterface(
         componentContext = componentContext,
         storeFactory = storeFactory,
-        name = "QuickTabNetworkkInterface"
+        name = "RatingNetworkkInterface"
     )
 
-    val gradesNInterface = NetworkInterface(
-        componentContext = componentContext,
-        storeFactory = storeFactory,
-        name = "GradesssNetworkkInterface"
+    val subjectsListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "SubjectsListComponent",
+        onItemClick = {onItemClick(it.id.toInt())}
     )
 
-    val teacherNInterface = NetworkInterface(
-        componentContext = componentContext,
-        storeFactory = storeFactory,
-        name = "TeacherNetworkkInterface"
-    )
-    val scheduleNInterface = NetworkInterface(
-        componentContext = componentContext,
-        storeFactory = storeFactory,
-        name = "ScheduleNetworkkInterface"
-    )
+    private fun onItemClick(id: Int) {
+        onEvent(RatingStore.Intent.ClickOnSubject(id))
+        subjectsListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+    }
 
     private val authRepository: AuthRepository = Inject.instance()
     private val mainRepository: MainRepository = Inject.instance()
     private val homeStore =
         instanceKeeper.getStore {
-            HomeStoreFactory(
+            RatingStoreFactory(
                 storeFactory = storeFactory,
                 authRepository = authRepository,
                 mainRepository = mainRepository,
-                quickTabNInterface = quickTabNInterface,
-                teacherNInterface = teacherNInterface,
-                gradesNInterface = gradesNInterface,
-                scheduleNInterface = scheduleNInterface
+                nInterface = nInterface,
+                subjectsListComponent = subjectsListComponent
             ).create()
         }
 
     val model = homeStore.asValue()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<HomeStore.State> = homeStore.stateFlow
+    val state: StateFlow<RatingStore.State> = homeStore.stateFlow
 
     fun getLogin() : String {
         return model.value.login
     }
 
-    fun onEvent(event: HomeStore.Intent) {
+    fun onEvent(event: RatingStore.Intent) {
         homeStore.accept(event)
     }
 
     init {
-        onEvent(HomeStore.Intent.Init)
+        onEvent(RatingStore.Intent.Init)
         //.Init(
         //            avatarId = authRepository.fetchAvatarId(),
         //            login = authRepository.fetchLogin(),
@@ -87,9 +82,5 @@ class HomeComponent(
 
     sealed class Output {
         data object NavigateToSettings : Output()
-
-        data class NavigateToDnevnikRuMarks(val studentLogin: String) : Output()
-        data class NavigateToDetailedStups(val studentLogin: String, val reason: Int) : Output()
-        data class NavigateToAllGroupMarks(val subjectId: Int, val subjectName: String, val groupId: Int, val groupName: String) : Output()
     }
 }

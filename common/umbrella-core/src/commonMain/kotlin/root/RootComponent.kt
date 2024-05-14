@@ -21,6 +21,7 @@ import home.HomeComponent
 import journal.JournalComponent
 import kotlinx.serialization.Serializable
 import profile.ProfileComponent
+import rating.RatingComponent
 import root.store.RootStore
 import schedule.ScheduleComponent
 import users.UsersComponent
@@ -35,7 +36,7 @@ interface RootComponent : BackHandlerOwner {
     sealed class Child {
         class AuthLogin(val component: LoginComponent) : Child()
         class AuthActivation(val component: ActivationComponent) : Child()
-        class MainHome(val homeComponent: HomeComponent, val journalComponent: JournalComponent) :
+        class MainHome(val homeComponent: HomeComponent, val journalComponent: JournalComponent, val ratingComponent: RatingComponent) :
             Child()
 
         class HomeSettings(val settingsComponent: SettingsComponent) : Child()
@@ -43,6 +44,9 @@ interface RootComponent : BackHandlerOwner {
             val homeComponent: HomeComponent,
             val journalComponent: JournalComponent
         ) : Child()
+
+        class MainRating(val homeComponent: HomeComponent, val ratingComponent: RatingComponent) :
+            Child()
 
         class MainAdmin(val adminComponent: AdminComponent) : Child()
 
@@ -102,6 +106,8 @@ interface RootComponent : BackHandlerOwner {
 
         data object NavigateToSchedule : Output()
 
+        data object NavigateToRating : Output()
+
     }
 
     @Serializable
@@ -123,6 +129,9 @@ interface RootComponent : BackHandlerOwner {
 
         @Serializable
         data object MainAdmin : Config
+
+        @Serializable
+        data object MainRating : Config
 
         //        @Serializable
 //        data object AdminMentors : Config
@@ -186,6 +195,8 @@ interface RootComponent : BackHandlerOwner {
         data object Home : RootCategories
         data object Journal : RootCategories
         data object Admin : RootCategories
+
+        data object Rating : RootCategories
     }
 
 }

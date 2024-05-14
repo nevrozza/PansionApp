@@ -7,6 +7,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsStore
 import detailedStups.DetailedStupsStoreFactory
@@ -31,6 +32,12 @@ class AllGroupMarksComponent(
 
     val journalRepository: JournalRepository = Inject.instance()
 
+    val stupsDialogComponent = CAlertDialogComponent(
+        componentContext,
+        storeFactory,
+        name = "StupsDialogComponentIntAllGroupMarks",
+        {}
+    )
 
     private val allGroupMarksStore =
         instanceKeeper.getStore(key = "AllGroupMarksComponent$groupId") {
@@ -41,7 +48,8 @@ class AllGroupMarksComponent(
                 subjectId = subjectId,
                 subjectName = subjectName,
                 nInterface = nInterface,
-                journalRepository = journalRepository
+                journalRepository = journalRepository,
+                stupsDialogComponent = stupsDialogComponent
             ).create()
         }
 

@@ -1,8 +1,10 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateValue
@@ -10,10 +12,15 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,17 +28,14 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -44,9 +48,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
 import androidx.compose.material.icons.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -63,10 +71,8 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -93,30 +99,32 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AlphaTestZatichka
 import components.AppBar
+import components.CLazyColumn
 import components.CustomTextButton
+import components.DateButton
 import components.LoadingAnimation
-import components.MarkContent
-import components.ReportTitle
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.hazeChild
 import home.HomeComponent
 import home.HomeStore
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
-import report.UserMark
 import server.Roles
 import server.fetchReason
+import server.getCurrentDayTime
 import server.roundTo
+import server.toMinutes
+import server.weekPairs
 import view.LocalViewManager
 import view.WindowScreen
 import view.handy
@@ -147,7 +155,8 @@ fun HomeContent(
                         Column(Modifier.verticalScroll(rememberScrollState())) {
                             model.teacherGroups.forEach {
                                 FilledTonalButton(
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).padding(horizontal = 50.dp)
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
+                                        .padding(horizontal = 50.dp)
                                         .handy(),
                                     onClick = {
                                         component.onOutput(
@@ -187,9 +196,11 @@ fun HomeContent(
                             }
                         }
                     }
+
                     NetworkState.Loading -> {
                         LoadingAnimation()
                     }
+
                     NetworkState.Error -> {
                         Column(
                             Modifier.fillMaxWidth(),
@@ -216,6 +227,9 @@ fun TrueHomeContent(
     val model by component.model.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
+    val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
+    val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
+
     val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
 //    val scrollState = rememberScrollState()
@@ -223,86 +237,122 @@ fun TrueHomeContent(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    //PullToRefresh
-    val refreshScope = rememberCoroutineScope()
-    var refreshing by remember { mutableStateOf(false) }
-    fun refresh() = refreshScope.launch {
-        refreshing = true
-        delay(1000)
-        refreshing = false
-    }
+    val isMainView = lazyListState.firstVisibleItemIndex in listOf(0, 1)
 
-    val refreshState = rememberPullRefreshState(refreshing, ::refresh)
+    val refreshing =
+        (nQuickTabModel.state == NetworkState.Loading || nGradesModel.state == NetworkState.Loading
+                || nScheduleModel.state == NetworkState.Loading || nTeacherModel.state == NetworkState.Loading)
+
+
+    val refreshState = rememberPullRefreshState(
+        refreshing,
+        { component.onEvent(HomeStore.Intent.Init) }
+    )
 
     Scaffold(
         Modifier.fillMaxSize()
             .onKeyEvent {
                 if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-                    refresh()
+                    component.onEvent(HomeStore.Intent.Init)
                 }
                 false
             },
         topBar = {
-            AppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        AnimatedContent(
-                            targetState = if (lazyListState.firstVisibleItemIndex != 0) "Расписание" else "Главная"
-                        ) {
-                            Text(
-                                it,
-                                modifier = Modifier.padding(start = 10.dp),
-                                fontSize = 25.sp,
-                                fontWeight = FontWeight.Black,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        if (model.name == "Мария" && model.surname == "Губская" && model.praname == "Дмитриевна") {
-                            Text(
-                                "Всё получится!!!",
-                                modifier = Modifier.padding(start = 7.dp).offset(y = 2.dp),
-                                fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                fontWeight = FontWeight.Bold,
-                                lineHeight = 10.sp,
-                                maxLines = 2, overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                },
-                actionRow = {
-
-                    IconButton(
-                        onClick = { refresh() }
-                    ) {
-                        Icon(
-                            Icons.Filled.Refresh, null
-                        )
-                    }
-                    if (viewManager.orientation.value != WindowScreen.Expanded) {
-                        IconButton(
-                            onClick = {
-                                component.onOutput(HomeComponent.Output.NavigateToSettings)
+            val isHaze = viewManager.hazeState != null && viewManager.hazeStyle != null
+            Column(
+                Modifier.then(
+                    if (isHaze) Modifier.hazeChild(
+                        state = viewManager.hazeState!!.value,
+                        style = viewManager.hazeStyle!!.value
+                    )
+                    else Modifier
+                )
+            ) {
+                AppBar(
+                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            println(lazyListState.firstVisibleItemIndex)
+                            AnimatedContent(
+                                targetState = if (lazyListState.firstVisibleItemIndex !in listOf(
+                                        0,
+                                        1
+                                    )
+                                ) "Расписание" else "Главная"
+                            ) {
+                                Text(
+                                    it,
+                                    modifier = Modifier.padding(start = 10.dp),
+                                    fontSize = 25.sp,
+                                    fontWeight = FontWeight.Black,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
+                            AnimatedContent(
+                                if (isMainView && model.name == "Мария" && model.surname == "Губская" && model.praname == "Дмитриевна") "Всё получится!!!"
+                                else "${
+                                    model.currentDate.second.substring(
+                                        0,
+                                        5
+                                    )
+                                }, ${weekPairs[model.currentDate.first]}"
+                            ) {
+                                Text(
+                                    it,
+                                    modifier = Modifier.padding(start = 7.dp).offset(y = 2.dp),
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    fontWeight = FontWeight.Bold,
+                                    lineHeight = 10.sp,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    },
+                    actionRow = {
+                        AnimatedVisibility(
+                            !isMainView
+                        ) {
+                            CalendarButton(component)
+                        }
+                        IconButton(
+                            onClick = { component.onEvent(HomeStore.Intent.Init) }
                         ) {
                             Icon(
-                                Icons.Rounded.Settings, null
+                                Icons.Filled.Refresh, null
                             )
                         }
-                    }
+                        if (viewManager.orientation.value != WindowScreen.Expanded) {
+                            IconButton(
+                                onClick = {
+                                    component.onOutput(HomeComponent.Output.NavigateToSettings)
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Settings, null
+                                )
+                            }
+                        }
 
+                    }
+                )
+                AnimatedVisibility(model.isDatesShown && !isMainView) {
+                    DatesLine(
+                        component = component,
+                        model = model
+                    )
                 }
-            )
+            }
         }
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            LazyColumn(
-                Modifier
-                    .padding(horizontal = 15.dp)
-                    .consumeWindowInsets(padding)
-                    .imePadding()
-                    .pullRefresh(refreshState)
+        Box(Modifier.fillMaxSize()) {
+            CLazyColumn(
+                modifier = Modifier
+                    .pullRefresh(refreshState),
+                state = lazyListState,
+                padding = padding,
+                isBottomPaddingNeeded = true
             ) {
                 items(3) { num ->
                     if (num == 0) {
@@ -467,13 +517,13 @@ fun TrueHomeContent(
                         Spacer(Modifier.height(15.dp))
                         Crossfade(nGradesModel.state) {
                             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                when(it) {
+                                when (it) {
                                     NetworkState.None -> LazyRow(Modifier.fillMaxWidth()) {
                                         items(model.grades.sortedBy { it.date }.reversed()) {
-                                            println("zxcxx: ${it.subjectName}")
                                             cGrade(it, coroutineScope)
                                         }
                                     }
+
                                     NetworkState.Loading -> LoadingAnimation()
                                     NetworkState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(nGradesModel.error)
@@ -486,17 +536,277 @@ fun TrueHomeContent(
                             }
                         }
 
+                    } else if (num == 1) {
+                        Box() {
+                            Column(Modifier.alpha(0f)) {
+                                Text(
+                                    "Расписание",
+                                    modifier = Modifier.padding(top = 8.dp, bottom = 5.dp),
+                                    fontSize = 25.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                                if (!isMainView) {
+                                    AnimatedVisibility(model.isDatesShown) {
+                                        DatesLine(
+                                            component = component,
+                                            model = model
+                                        )
+                                    }
+                                }
+                            }
+                            AnimatedVisibility(
+                                visible = isMainView,
+                                enter = slideInVertically(initialOffsetY = { -it / 2 }),
+                                exit = slideOutVertically(targetOffsetY = { -it / 2 }),
+                            ) {
+                                Column {
+                                    Row(
+                                        Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                "Расписание",
+                                                modifier = Modifier.padding(
+                                                    top = 8.dp,
+                                                    bottom = 5.dp
+                                                ),
+                                                fontSize = 25.sp,
+                                                fontWeight = FontWeight.Black
+                                            )
+                                            AnimatedContent(
+                                                "${
+                                                    model.currentDate.second.substring(
+                                                        0,
+                                                        5
+                                                    )
+                                                }, ${weekPairs[model.currentDate.first]}"
+                                            ) {
+                                                Text(
+                                                    text = it,
+                                                    modifier = Modifier.padding(start = 7.dp)
+                                                        .offset(y = 4.dp),
+                                                    fontSize = 15.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(
+                                                        alpha = 0.6f
+                                                    ),
+                                                    fontWeight = FontWeight.Bold,
+                                                    lineHeight = 10.sp,
+                                                    maxLines = 2, overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+                                        CalendarButton(component)
+                                    }
+
+                                    AnimatedVisibility(model.isDatesShown) {
+                                        DatesLine(
+                                            component = component,
+                                            model = model
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        val items = model.items[model.currentDate.second]
+                        Crossfade(nScheduleModel.state) { st ->
+
+                            Column {
+                                when (st) {
+                                    NetworkState.None -> {
+                                        if (items.isNullOrEmpty()) {
+                                            Text("Здесь пока ничего нет")
+                                        } else {
+                                            items.sortedBy { it.start }
+                                                .forEachIndexed { id, it ->
+                                                    Lesson(
+                                                        num = id + 1,
+                                                        title = it.subjectName,
+                                                        group = it.groupName,
+                                                        start = it.start,
+                                                        end = it.end,
+                                                        cabinet = it.cabinet.toString(),
+                                                        fio = it.teacherFio,
+                                                        date = model.currentDate.second,
+                                                        today = model.today
+                                                    )
+                                                    Spacer(Modifier.padding(10.dp))
+                                                }
+                                        }
+
+                                    }
+
+                                    NetworkState.Loading -> CircularProgressIndicator()
+                                    NetworkState.Error -> {
+                                        Text(nScheduleModel.error)
+                                        Spacer(Modifier.height(7.dp))
+                                        CustomTextButton("Попробовать ещё раз") {
+                                            nScheduleModel.onFixErrorClick()
+                                        }
+                                    }
+
+                                    else -> {}
+                                }
+
+                            }
+                        }
                     }
                 }
             }
 
             PullRefreshIndicator(
-                modifier = Modifier.align(alignment = Alignment.TopCenter),
+                modifier = Modifier.align(alignment = Alignment.TopCenter)
+                    .padding(top = padding.calculateTopPadding()),
                 refreshing = refreshing,
                 state = refreshState,
             )
         }
 
+    }
+}
+
+@Composable
+fun Lesson(
+    num: Int,
+    title: String,
+    group: String,
+    start: String,
+    end: String,
+    cabinet: String,
+    fio: FIO,
+    date: String,
+    today: String
+) {
+    val todayParts = today.substring(0, 5).split(".")
+    val dateParts = date.substring(0, 5).split(".")
+    val currentTime = getCurrentDayTime().toMinutes()
+    val isEnded = (currentTime >= end.toMinutes() && today == date) ||
+            (todayParts[0].toInt() > dateParts[0].toInt() && todayParts[1].toInt() == dateParts[1].toInt()) ||
+            (todayParts[1].toInt() > dateParts[1].toInt())
+    val minutesOst = start.toMinutes() - currentTime
+    Row(Modifier.padding(end = 10.dp)) {
+        Box(Modifier.width(20.dp).height(50.dp), contentAlignment = Alignment.CenterStart) {
+            Text(
+                num.toString(),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column {
+                Text(buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
+                        )
+                    ) {
+                        append(title.capitalize())
+                    }
+                    withStyle(
+                        SpanStyle(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                        )
+                    ) {
+                        append(" $cabinet")
+                    }
+
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 17.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
+                        )
+                    ) {
+                        append("\n")
+                        append(group.capitalize())
+                    }
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 17.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                        )
+                    ) {
+                        append(
+                            " ${fio.surname}"
+                        )
+                    }
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                        )
+                    ) {
+                        append("\n")
+                        append("$start-$end")
+                    }
+
+                }, lineHeight = 17.sp)
+//                Text(
+//                    text = group,
+//                    fontWeight = FontWeight.SemiBold,
+//                    fontSize = 17.sp,
+//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
+//                    modifier = Modifier.offset(y = (-4).dp)
+//                )
+//                Text(
+//                    "$start-$end",
+//                    lineHeight = 5.sp,
+//                    fontSize = 12.sp,
+//                    fontWeight = FontWeight.SemiBold,
+//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f),
+//                    modifier = Modifier.offset(y = (-4).dp)
+//                )
+            }
+
+            if (
+                isEnded || today == date
+            ) {
+                if (minutesOst > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Schedule, null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(5.dp))
+                        Text("$minutesOst мин.", lineHeight = 5.sp)
+
+                    }
+                } else if (!isEnded) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Начался", lineHeight = 5.sp)
+
+                    }
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Нет оценок", lineHeight = 5.sp)
+                    }
+                }
+            }
+//            else if (mark != "0") {
+//                ElevatedCard(
+//                    Modifier.size(45.dp)
+//                ) {
+//                    Box(
+//                        Modifier.fillMaxSize(),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        Text("5", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color(185, 254, 179))
+//                    }
+//                }
+//            }
+        }
     }
 }
 
@@ -533,6 +843,40 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope) {
     }
 }
 
+@Composable
+fun CalendarButton(component: HomeComponent) {
+    IconButton(
+        onClick = { component.onEvent(HomeStore.Intent.ChangeIsDatesShown) }
+    ) {
+        Icon(
+            Icons.Rounded.CalendarToday, null
+        )
+    }
+}
+
+@Composable
+fun DatesLine(component: HomeComponent, model: HomeStore.State) {
+    Column {
+        Row(
+            Modifier.height(50.dp).fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            model.dates.toList().forEach { item ->
+                DateButton(
+                    currentDate = model.currentDate.second,
+                    dayOfWeek = item.first,
+                    date = item.second
+                ) {
+                    component.onEvent(HomeStore.Intent.ChangeDate(item))
+                    //component.onEvent(ScheduleStore.Intent.ChangeCurrentDate(item))
+                }
+            }
+        }
+        Spacer(Modifier.height(5.dp))
+    }
+}
 
 @Composable
 fun RecentMarkContent(
@@ -548,22 +892,29 @@ fun RecentMarkContent(
     Box(
         Modifier.padding(PaddingValues(start = 5.dp, top = 5.dp))
             .border(
-                width = if(cutedReason !in listOf("!ds", "!st")) 0.dp else 1.dp,
-                color = if(cutedReason !in listOf("!ds", "!st")) Color.Transparent else MaterialTheme.colorScheme.outline.copy(1f),
+                width = if (cutedReason !in listOf("!ds", "!st")) 0.dp else 1.dp,
+                color = if (cutedReason !in listOf(
+                        "!ds",
+                        "!st"
+                    )
+                ) Color.Transparent else MaterialTheme.colorScheme.outline.copy(1f),
                 shape = RoundedCornerShape(30)
             )
             .clip(RoundedCornerShape(percent = 30))
             .background(
-                if(cutedReason !in listOf("!ds", "!st")) MaterialTheme.colorScheme.primary.copy(
+                if (cutedReason !in listOf("!ds", "!st")) MaterialTheme.colorScheme.primary.copy(
                     alpha = .2f
                 ) else MaterialTheme.colorScheme.surface
             )
             .then(addModifier),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(5.dp).padding(horizontal = 2.dp).offset(y = -2.dp)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(5.dp).padding(horizontal = 2.dp).offset(y = -2.dp)
+        ) {
             Text(
-                (if(cutedReason in listOf("!ds", "!st") && mark.toInt() > 0) "+" else "") + mark,
+                (if (cutedReason in listOf("!ds", "!st") && mark.toInt() > 0) "+" else "") + mark,
                 fontSize = 18.sp,
                 modifier = Modifier.fillMaxWidth().offset(y = 4.dp),
                 textAlign = TextAlign.Center,
@@ -575,6 +926,7 @@ fun RecentMarkContent(
         }
     }
 }
+
 @Composable
 fun LoadingCircleAnimation(
     size: Dp = 32.dp,
@@ -676,10 +1028,10 @@ private fun QuickTabNotNull(
 }
 
 @Composable
-fun GetAvatar(avatarId: Int, name: String) {
+fun GetAvatar(avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit = 30.sp) {
     val viewManager = LocalViewManager.current
     Box(
-        modifier = Modifier.size(70.dp).clip(CircleShape).background(
+        modifier = Modifier.size(size).clip(CircleShape).background(
             brush = Brush.verticalGradient(
                 colors = if (viewManager.isDark.value) listOf(
                     MaterialTheme.colorScheme.secondary,
@@ -693,13 +1045,18 @@ fun GetAvatar(avatarId: Int, name: String) {
         ),
         contentAlignment = Alignment.Center
     ) {
-
-        Text(
-            name[0].toString(),
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Normal,
-            color = Color.White
-        )
+        if (avatarId == 0) {
+            Text(
+                name[0].toString(),
+                fontSize = textSize,
+                fontWeight = FontWeight.Normal,
+                color = Color.White
+            )
+        } else if (avatarId == -1) {
+            Icon(
+                Icons.Rounded.Favorite, null
+            )
+        }
 
     }
 }

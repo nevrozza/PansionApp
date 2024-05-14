@@ -4,6 +4,7 @@
 )
 
 import allGroupMarks.AllGroupMarksComponent
+import allGroupMarks.AllGroupMarksStore
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -13,28 +14,25 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,11 +55,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
+import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
+import components.MarkContent
+import components.StupsButtons
 import components.networkInterface.NetworkState
+import decomposeComponents.CAlertDialogContent
 import kotlinx.coroutines.CoroutineScope
+import lessonReport.LessonReportStore
 import report.UserMark
+import server.fetchReason
 import server.roundTo
 import view.LocalViewManager
 import view.rememberImeState
@@ -176,7 +180,9 @@ fun AllGroupMarksContent(
                                         marks = s.marks.sortedBy { it.date }.reversed(),
                                         stups = s.stups,
                                         coroutineScope = coroutineScope
-                                    )
+                                    ) {
+                                        component.onEvent(AllGroupMarksStore.Intent.OpenDetailedStups(s.login))
+                                    }
                                 }
 
                             } else {
@@ -208,6 +214,30 @@ fun AllGroupMarksContent(
                 }
             }
 
+
+            val detailedStupsStudent =
+                model.students.firstOrNull { it.login == model.detailedStupsLogin }
+
+            CAlertDialogContent(
+                component = component.stupsDialogComponent,
+                title = "Ступени: ${detailedStupsStudent?.shortFIO ?: "null"}",
+                titleXOffset = 5.dp
+            ) {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    model.students.firstOrNull { it.login == model.detailedStupsLogin }?.stups?.forEach {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)
+                                .padding(horizontal = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(it.date)
+                            Text(fetchReason(it.reason))
+                            BorderStup(it.content)
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -220,7 +250,8 @@ private fun AllGroupMarksStudentItem(
     marks: List<UserMark>,
     stups: List<UserMark>,
 //    stupsCount: Int,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    onClick: () -> Unit
 ) {
 //    val isFullView = remember { mutableStateOf(false) }
 
@@ -246,32 +277,13 @@ private fun AllGroupMarksStudentItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(title, fontWeight = FontWeight.Bold, fontSize = 25.sp)
-                    Spacer(Modifier.width(5.dp))
-                    FilledTonalButton(
-                        onClick = {},
-                        contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(20.dp).offset(y = 2.dp)
-                    ) {
-                        Text(
-                            "+${
-                                stups.filter { it.reason.subSequence(0, 3) != "!ds" }
-                                    .sumOf { it.content.toInt() }
-                            }", modifier = Modifier.offset(x = -2.dp)
-                        )
-                    }
-                    Spacer(Modifier.width(5.dp))
-                    OutlinedButton(
-                        onClick = {},
-                        contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(20.dp).offset(y = 2.dp),
-                    ) {
-                        Text(
-                            "+${
-                                stups.filter { it.reason.subSequence(0, 3) == "!ds" }
-                                    .sumOf { it.content.toInt() }
-                            }", modifier = Modifier.offset(x = -2.dp)
-                        )
-                    }
+
+                    StupsButtons(
+                        stups = stups.map {
+                            Pair(it.content.toInt(), it.reason)
+                        },
+                        { onClick() }, { onClick() }
+                    )
                 }
                 Text(
                     text = if (value.isNaN()) {
