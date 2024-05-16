@@ -34,7 +34,8 @@ class HomeStoreFactory(
                 login = authRepository.fetchLogin(),
                 name = authRepository.fetchName(),
                 surname = authRepository.fetchSurname(),
-                praname = authRepository.fetchPraname()
+                praname = authRepository.fetchPraname(),
+                role = authRepository.fetchRole()
             ),
             executorFactory = { HomeExecutor(
                 authRepository = authRepository,

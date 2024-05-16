@@ -1,4 +1,7 @@
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,9 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,7 +37,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -139,6 +147,45 @@ fun RatingContent(
                     }
                 }
             )
+        },
+        bottomBar = {
+            val me = model.me[model.currentSubject]
+            val previousItem: MutableState<RatingItem?> = remember {
+                mutableStateOf(
+                    null
+                )
+            }
+            AnimatedVisibility(
+                me != null && me.first > 10,
+                enter = slideInVertically(initialOffsetY = { it * 2 }),
+                exit = slideOutVertically(targetOffsetY = { it * 2 }),
+            ) {
+                if (me != null) {
+                    previousItem.value = RatingItem(
+                        login = model.login,
+                        fio = model.fio,
+                        avatarId = model.avatarId,
+                        stups = me.second,
+                        top = me.first,
+                        groupName = "",
+                        formNum = 0,
+                        formShortTitle = "",
+                        avg = ""
+                    )
+                }
+                if (previousItem.value != null) {
+                    Column(Modifier.padding(horizontal = 7.5.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        RatingCard(
+                            previousItem.value!!,
+                            meLogin = model.login,
+                            isMe = true
+                        )
+
+                        Spacer(Modifier.height(if (viewManager.orientation.value != WindowScreen.Vertical) 15.dp else 80.dp))
+                    }
+                }
+            }
+
         }
     ) { padding ->
         Box(Modifier.fillMaxSize()) {
@@ -149,9 +196,8 @@ fun RatingContent(
                     isBottomPaddingNeeded = true,
                     modifier = Modifier.pullRefresh(refreshState)
                 ) {
-                    items(items) { i ->
-                        RatingCard(i)
-                        RatingCard(i.copy(top = 4))
+                    items(items.sortedBy { it.top }) { i ->
+                        RatingCard(i, meLogin = model.login)
                     }
                 }
             } else {
@@ -169,15 +215,26 @@ fun RatingContent(
 }
 
 @Composable
-private fun RatingCard(item: RatingItem) {
+private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false) {
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .shadow(elevation = 4.dp),
-        shape = RoundedCornerShape(8.dp),
+            .then(
+                if (isMe) {
+                    Modifier.wrapContentSize()
+                } else {
+                    Modifier
+                        .fillMaxWidth()
+                }
+            )
+            .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = if(isMe || meLogin == item.login) 24.dp else 2.dp,
+        shadowElevation = if(isMe) 12.dp else 0.dp
     ) {
-        Row(modifier = Modifier.padding(end = 16.dp, start = 8.dp).padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(end = 16.dp, start = 8.dp).padding(vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                 if (item.top <= 3) {
                     // Show trophy icon for top 3 positions
@@ -209,28 +266,46 @@ private fun RatingCard(item: RatingItem) {
             )
 
             Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            if (!isMe) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "${item.fio.surname} ${item.fio.name}",
+                        fontSize = 18.sp, // Adjust font size for heading
+                        fontWeight = FontWeight.Bold // Make text bold for emphasis
+                    )
+                    Text(
+                        text = "${item.formShortTitle}: ${item.groupName}",
+                        fontSize = 14.sp, // Adjust font size for body text
+                        color = Color.Gray
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = item.avg,
+                        fontSize = 18.sp
+                    )
+                    Text(
+                        text = "+${item.stups}",
+                        fontSize = 12.sp,
+                        color = Color.Green
+                    )
+                }
+            } else {
                 Text(
-                    text = "${item.fio.surname} ${item.fio.name}",
-                    fontSize = 18.sp, // Adjust font size for heading
-                    fontWeight = FontWeight.Bold // Make text bold for emphasis
+                    text = "Вы",
+                    fontSize = 26.sp, // Adjust font size for heading
+                    fontWeight = FontWeight.Bold, // Make text bold for emphasis,
+                    modifier = Modifier.offset(y = (-2.5).dp)
                 )
+
+                Spacer(modifier = Modifier.width(13.dp))
+
                 Text(
-                    text = "${item.formShortTitle}: ${item.groupName}",
-                    fontSize = 14.sp, // Adjust font size for body text
-                    color = Color.Gray
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = item.avg,
-                    fontSize = 18.sp
-                )
-                Text(
-                    text = "+${item.stups}",
-                    fontSize = 12.sp,
-                    color = Color.Green
+                    text = "${if(item.stups > 0) "+" else "-"}${item.stups}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

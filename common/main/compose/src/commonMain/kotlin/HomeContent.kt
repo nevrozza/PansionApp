@@ -3,8 +3,8 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateValue
@@ -12,8 +12,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
@@ -71,7 +69,6 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -109,6 +106,7 @@ import components.CLazyColumn
 import components.CustomTextButton
 import components.DateButton
 import components.LoadingAnimation
+import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.hazeChild
 import home.HomeComponent
@@ -134,101 +132,309 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun HomeContent(
-    component: HomeComponent,
-    role: String
+    component: HomeComponent
 ) {
     val model by component.model.subscribeAsState()
-    val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
-    val viewManager = LocalViewManager.current
-    if (role == Roles.student) {
-        TrueHomeContent(component)
-    } else if (role == Roles.teacher) {
-        AlphaTestZatichka(
-            onSettingsClick =
-            if (viewManager.orientation.value != WindowScreen.Expanded) {
-                { component.onOutput(HomeComponent.Output.NavigateToSettings) }
-            } else null
-        ) {
-            Crossfade(nTeacherModel.state, modifier = Modifier.padding(top = 10.dp)) { state ->
-                when (state) {
-                    NetworkState.None -> {
-                        Column(Modifier.verticalScroll(rememberScrollState())) {
-                            model.teacherGroups.forEach {
-                                FilledTonalButton(
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
-                                        .padding(horizontal = 50.dp)
-                                        .handy(),
-                                    onClick = {
-                                        component.onOutput(
-                                            HomeComponent.Output.NavigateToAllGroupMarks(
-                                                subjectId = it.subjectId,
-                                                subjectName = it.subjectName,
-                                                groupId = it.cutedGroup.groupId,
-                                                groupName = it.cutedGroup.groupName
-                                            )
-                                        )
-                                    },
-                                    shape = RoundedCornerShape(30),
-                                    colors = ButtonDefaults.filledTonalButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation( //if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else
-                                            2.dp
-                                        ),
-                                        contentColor = MaterialTheme.colorScheme.onSurface //if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else
-                                    )
-                                ) {
-                                    Row(
-                                        Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            buildAnnotatedString {
-                                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                                    append(it.subjectName)
-                                                }
-                                                append(" ")
-                                                append(it.cutedGroup.groupName)
-                                            }
-                                        )
-                                        Icon(Icons.Rounded.ArrowForwardIos, null)
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    NetworkState.Loading -> {
-                        LoadingAnimation()
-                    }
-
-                    NetworkState.Error -> {
-                        Column(
-                            Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(nTeacherModel.error)
-                            Spacer(Modifier.height(7.dp))
-                            CustomTextButton("Попробовать ещё раз") {
-                                nTeacherModel.onFixErrorClick()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
+    if (model.role == Roles.student) {
+        StudentHomeContent(component)
+    } else if (model.role == Roles.teacher) {
+        TeacherHomeContent(component)
     }
 }
 
 @Composable
-fun TrueHomeContent(
+fun TeacherHomeContent(
+    component: HomeComponent
+) {
+    val model by component.model.subscribeAsState()
+    val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
+    val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
+
+    val focusManager = LocalFocusManager.current
+    val viewManager = LocalViewManager.current
+//    val scrollState = rememberScrollState()
+    val imeState = rememberImeState()
+    val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val isMainView = lazyListState.firstVisibleItemIndex in listOf(0, 1)
+
+    val refreshing =
+        (nTeacherModel.state == NetworkState.Loading || nScheduleModel.state == NetworkState.Loading)
+    val refreshState = rememberPullRefreshState(
+        refreshing,
+        { component.onEvent(HomeStore.Intent.Init) }
+    )
+
+
+    Scaffold(
+        Modifier.fillMaxSize()
+            .onKeyEvent {
+                if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
+                    component.onEvent(HomeStore.Intent.Init)
+                }
+                false
+            },
+        topBar = {
+            val isHaze = viewManager.hazeState != null && viewManager.hazeStyle != null
+            Column(
+                Modifier.then(
+                    if (isHaze) Modifier.hazeChild(
+                        state = viewManager.hazeState!!.value,
+                        style = viewManager.hazeStyle!!.value
+                    )
+                    else Modifier
+                )
+            ) {
+                AppBar(
+                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            println(lazyListState.firstVisibleItemIndex)
+                            AnimatedContent(
+                                targetState = if (lazyListState.firstVisibleItemIndex !in listOf(
+                                        0,
+                                        1
+                                    )
+                                ) "Расписание" else "Главная"
+                            ) {
+                                Text(
+                                    it,
+                                    modifier = Modifier.padding(start = 10.dp),
+                                    fontSize = 25.sp,
+                                    fontWeight = FontWeight.Black,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            AnimatedContent(
+                                if (isMainView) ""
+                                else "${
+                                    model.currentDate.second.substring(
+                                        0,
+                                        5
+                                    )
+                                }, ${weekPairs[model.currentDate.first]}"
+                            ) {
+                                Text(
+                                    it,
+                                    modifier = Modifier.padding(start = 7.dp).offset(y = 2.dp),
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    fontWeight = FontWeight.Bold,
+                                    lineHeight = 10.sp,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    },
+                    actionRow = {
+                        AnimatedVisibility(
+                            !isMainView
+                        ) {
+                            CalendarButton(component)
+                        }
+                        IconButton(
+                            onClick = { component.onEvent(HomeStore.Intent.Init) }
+                        ) {
+                            Icon(
+                                Icons.Filled.Refresh, null
+                            )
+                        }
+                        if (viewManager.orientation.value != WindowScreen.Expanded) {
+                            IconButton(
+                                onClick = {
+                                    component.onOutput(HomeComponent.Output.NavigateToSettings)
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Settings, null
+                                )
+                            }
+                        }
+
+                    }
+                )
+                AnimatedVisibility(model.isDatesShown && !isMainView) {
+                    DatesLine(
+                        component = component,
+                        model = model
+                    )
+                }
+            }
+        }
+    ) { padding ->
+        Box(Modifier.fillMaxSize()) {
+            CLazyColumn(
+                modifier = Modifier
+                    .pullRefresh(refreshState),
+                state = lazyListState,
+                padding = padding,
+                isBottomPaddingNeeded = true
+            ) {
+                items(3) { num ->
+                    if (num == 0) {
+                        Text(
+                            "Успеваемость учеников",
+                            modifier = Modifier.fillMaxWidth(),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Crossfade(
+                            nTeacherModel.state,
+                            modifier = Modifier.animateContentSize()
+                        ) { state -> //, modifier = Modifier.padding(top = 10.dp)
+                            when (state) {
+                                NetworkState.None -> {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        model.teacherGroups.sortedBy { it.subjectId }.forEach {
+                                            FilledTonalButton(
+                                                modifier = Modifier.fillMaxWidth()
+                                                    .padding(bottom = 10.dp)
+                                                    .padding(horizontal = 50.dp)
+                                                    .handy(),
+                                                onClick = {
+                                                    component.onOutput(
+                                                        HomeComponent.Output.NavigateToAllGroupMarks(
+                                                            subjectId = it.subjectId,
+                                                            subjectName = it.subjectName,
+                                                            groupId = it.cutedGroup.groupId,
+                                                            groupName = it.cutedGroup.groupName
+                                                        )
+                                                    )
+                                                },
+                                                shape = RoundedCornerShape(30),
+                                                colors = ButtonDefaults.filledTonalButtonColors(
+                                                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation( //if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else
+                                                        2.dp
+                                                    ),
+                                                    contentColor = MaterialTheme.colorScheme.onSurface //if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else
+                                                )
+                                            ) {
+                                                Row(
+                                                    Modifier.fillMaxWidth()
+                                                        .padding(vertical = 5.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        buildAnnotatedString {
+                                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                                                append(it.subjectName)
+                                                            }
+                                                            append(" ")
+                                                            append(it.cutedGroup.groupName)
+                                                        }
+                                                    )
+                                                    Icon(Icons.Rounded.ArrowForwardIos, null)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                NetworkState.Loading -> {
+                                    Box(
+                                        Modifier.height(100.dp).fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        LoadingAnimation()
+                                    }
+                                }
+
+                                NetworkState.Error -> {
+                                    Column(
+                                        Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(nTeacherModel.error)
+                                        Spacer(Modifier.height(7.dp))
+                                        CustomTextButton("Попробовать ещё раз") {
+                                            nTeacherModel.onFixErrorClick()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else if (num == 1) {
+                        RaspisanieTitleBox(
+                            isMainView = isMainView,
+                            model = model,
+                            component = component
+                        )
+                    } else {
+                        RaspisanieTable(
+                            model,
+                            nScheduleModel
+                        )
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+@Composable
+private fun RaspisanieTable(
+    model: HomeStore.State,
+    nScheduleModel: NetworkInterface.NetworkModel
+) {
+    val items = model.items[model.currentDate.second]
+    Crossfade(nScheduleModel.state) { st ->
+
+        Column {
+            when (st) {
+                NetworkState.None -> {
+                    if (items.isNullOrEmpty()) {
+                        Text("Здесь пока ничего нет")
+                    } else {
+                        items.sortedBy { it.start }
+                            .forEachIndexed { id, it ->
+                                Lesson(
+                                    num = id + 1,
+                                    title = it.subjectName,
+                                    group = it.groupName,
+                                    start = it.start,
+                                    end = it.end,
+                                    cabinet = it.cabinet.toString(),
+                                    fio = it.teacherFio,
+                                    date = model.currentDate.second,
+                                    today = model.today,
+                                    role = model.role
+                                )
+                                Spacer(Modifier.padding(10.dp))
+                            }
+                    }
+
+                }
+
+                NetworkState.Loading -> CircularProgressIndicator()
+                NetworkState.Error -> {
+                    Text(nScheduleModel.error)
+                    Spacer(Modifier.height(7.dp))
+                    CustomTextButton("Попробовать ещё раз") {
+                        nScheduleModel.onFixErrorClick()
+                    }
+                }
+
+                else -> {}
+            }
+
+        }
+    }
+}
+
+@Composable
+fun StudentHomeContent(
     component: HomeComponent
 ) {
     val model by component.model.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
-    val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
 
     val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
@@ -241,7 +447,7 @@ fun TrueHomeContent(
 
     val refreshing =
         (nQuickTabModel.state == NetworkState.Loading || nGradesModel.state == NetworkState.Loading
-                || nScheduleModel.state == NetworkState.Loading || nTeacherModel.state == NetworkState.Loading)
+                || nScheduleModel.state == NetworkState.Loading)
 
 
     val refreshState = rememberPullRefreshState(
@@ -291,6 +497,7 @@ fun TrueHomeContent(
                             }
                             AnimatedContent(
                                 if (isMainView && model.name == "Мария" && model.surname == "Губская" && model.praname == "Дмитриевна") "Всё получится!!!"
+                                else if (isMainView) ""
                                 else "${
                                     model.currentDate.second.substring(
                                         0,
@@ -300,7 +507,8 @@ fun TrueHomeContent(
                             ) {
                                 Text(
                                     it,
-                                    modifier = Modifier.padding(start = 7.dp).offset(y = 2.dp),
+                                    modifier = Modifier.padding(start = 7.dp)
+                                        .offset(y = 2.dp),
                                     fontSize = 15.sp,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                     fontWeight = FontWeight.Bold,
@@ -438,7 +646,8 @@ fun TrueHomeContent(
                         Spacer(Modifier.height(15.dp))
                         Row(Modifier.fillMaxWidth()) {
                             ElevatedCard(
-                                Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape).weight(1f)
+                                Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                                    .weight(1f)
                                     .handy()
                                     .clickable() {
                                         component.onOutput(
@@ -453,10 +662,15 @@ fun TrueHomeContent(
                                         .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
                                     verticalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text("Оценки", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        "Оценки",
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                     Spacer(Modifier.height(5.dp))
                                     Box(
-                                        Modifier.fillMaxWidth().padding(end = 5.dp, bottom = 5.dp),
+                                        Modifier.fillMaxWidth()
+                                            .padding(end = 5.dp, bottom = 5.dp),
                                         contentAlignment = Alignment.CenterEnd
                                     ) {
                                         Icon(
@@ -469,7 +683,8 @@ fun TrueHomeContent(
                             }
                             Spacer(Modifier.width(15.dp))
                             ElevatedCard(
-                                Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape).weight(1f)
+                                Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                                    .weight(1f)
                                     .clickable() {
 
                                     }
@@ -515,16 +730,28 @@ fun TrueHomeContent(
                             }
                         }
                         Spacer(Modifier.height(15.dp))
-                        Crossfade(nGradesModel.state) {
-                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Crossfade(nGradesModel.state, modifier = Modifier.animateContentSize()) {
+                            Box(
+                                Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 when (it) {
                                     NetworkState.None -> LazyRow(Modifier.fillMaxWidth()) {
-                                        items(model.grades.sortedBy { it.date }.reversed()) {
+                                        items(model.grades.sortedBy { it.date }
+                                            .reversed()) {
                                             cGrade(it, coroutineScope)
                                         }
                                     }
 
-                                    NetworkState.Loading -> LoadingAnimation()
+                                    NetworkState.Loading -> {
+                                        Box(
+                                            Modifier.height(60.dp).offset(y = 5.dp).fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            LoadingAnimation()
+                                        }
+                                    }
+
                                     NetworkState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(nGradesModel.error)
                                         Spacer(Modifier.height(7.dp))
@@ -537,123 +764,16 @@ fun TrueHomeContent(
                         }
 
                     } else if (num == 1) {
-                        Box() {
-                            Column(Modifier.alpha(0f)) {
-                                Text(
-                                    "Расписание",
-                                    modifier = Modifier.padding(top = 8.dp, bottom = 5.dp),
-                                    fontSize = 25.sp,
-                                    fontWeight = FontWeight.Black
-                                )
-                                if (!isMainView) {
-                                    AnimatedVisibility(model.isDatesShown) {
-                                        DatesLine(
-                                            component = component,
-                                            model = model
-                                        )
-                                    }
-                                }
-                            }
-                            AnimatedVisibility(
-                                visible = isMainView,
-                                enter = slideInVertically(initialOffsetY = { -it / 2 }),
-                                exit = slideOutVertically(targetOffsetY = { -it / 2 }),
-                            ) {
-                                Column {
-                                    Row(
-                                        Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text(
-                                                "Расписание",
-                                                modifier = Modifier.padding(
-                                                    top = 8.dp,
-                                                    bottom = 5.dp
-                                                ),
-                                                fontSize = 25.sp,
-                                                fontWeight = FontWeight.Black
-                                            )
-                                            AnimatedContent(
-                                                "${
-                                                    model.currentDate.second.substring(
-                                                        0,
-                                                        5
-                                                    )
-                                                }, ${weekPairs[model.currentDate.first]}"
-                                            ) {
-                                                Text(
-                                                    text = it,
-                                                    modifier = Modifier.padding(start = 7.dp)
-                                                        .offset(y = 4.dp),
-                                                    fontSize = 15.sp,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(
-                                                        alpha = 0.6f
-                                                    ),
-                                                    fontWeight = FontWeight.Bold,
-                                                    lineHeight = 10.sp,
-                                                    maxLines = 2, overflow = TextOverflow.Ellipsis
-                                                )
-                                            }
-                                        }
-                                        CalendarButton(component)
-                                    }
-
-                                    AnimatedVisibility(model.isDatesShown) {
-                                        DatesLine(
-                                            component = component,
-                                            model = model
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        RaspisanieTitleBox(
+                            isMainView = isMainView,
+                            model = model,
+                            component = component
+                        )
                     } else {
-                        val items = model.items[model.currentDate.second]
-                        Crossfade(nScheduleModel.state) { st ->
-
-                            Column {
-                                when (st) {
-                                    NetworkState.None -> {
-                                        if (items.isNullOrEmpty()) {
-                                            Text("Здесь пока ничего нет")
-                                        } else {
-                                            items.sortedBy { it.start }
-                                                .forEachIndexed { id, it ->
-                                                    Lesson(
-                                                        num = id + 1,
-                                                        title = it.subjectName,
-                                                        group = it.groupName,
-                                                        start = it.start,
-                                                        end = it.end,
-                                                        cabinet = it.cabinet.toString(),
-                                                        fio = it.teacherFio,
-                                                        date = model.currentDate.second,
-                                                        today = model.today
-                                                    )
-                                                    Spacer(Modifier.padding(10.dp))
-                                                }
-                                        }
-
-                                    }
-
-                                    NetworkState.Loading -> CircularProgressIndicator()
-                                    NetworkState.Error -> {
-                                        Text(nScheduleModel.error)
-                                        Spacer(Modifier.height(7.dp))
-                                        CustomTextButton("Попробовать ещё раз") {
-                                            nScheduleModel.onFixErrorClick()
-                                        }
-                                    }
-
-                                    else -> {}
-                                }
-
-                            }
-                        }
+                        RaspisanieTable(
+                            model,
+                            nScheduleModel
+                        )
                     }
                 }
             }
@@ -670,6 +790,89 @@ fun TrueHomeContent(
 }
 
 @Composable
+private fun RaspisanieTitleBox(
+    isMainView: Boolean,
+    model: HomeStore.State,
+    component: HomeComponent
+) {
+    Box() {
+        Column(Modifier.alpha(0f)) {
+            Text(
+                "Расписание",
+                modifier = Modifier.padding(top = 8.dp, bottom = 5.dp),
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Black
+            )
+            if (!isMainView) {
+                AnimatedVisibility(model.isDatesShown) {
+                    DatesLine(
+                        component = component,
+                        model = model
+                    )
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = isMainView,
+            enter = slideInVertically(initialOffsetY = { -it / 2 }),
+            exit = slideOutVertically(targetOffsetY = { -it / 2 }),
+        ) {
+            Column {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            "Расписание",
+                            modifier = Modifier.padding(
+                                top = 8.dp,
+                                bottom = 5.dp
+                            ),
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        AnimatedContent(
+                            "${
+                                model.currentDate.second.substring(
+                                    0,
+                                    5
+                                )
+                            }, ${weekPairs[model.currentDate.first]}"
+                        ) {
+                            Text(
+                                text = it,
+                                modifier = Modifier.padding(start = 7.dp)
+                                    .offset(y = 4.dp),
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.6f
+                                ),
+                                fontWeight = FontWeight.Bold,
+                                lineHeight = 10.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    CalendarButton(component)
+                }
+
+                AnimatedVisibility(model.isDatesShown) {
+                    DatesLine(
+                        component = component,
+                        model = model
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun Lesson(
     num: Int,
     title: String,
@@ -679,7 +882,8 @@ fun Lesson(
     cabinet: String,
     fio: FIO,
     date: String,
-    today: String
+    today: String,
+    role: String
 ) {
     val todayParts = today.substring(0, 5).split(".")
     val dateParts = date.substring(0, 5).split(".")
@@ -773,24 +977,34 @@ fun Lesson(
 //                )
             }
 
-            if (
-                isEnded || today == date
-            ) {
-                if (minutesOst > 0) {
+            if (role == Roles.student) {
+                if (
+                    isEnded || today == date
+                ) {
+                    val notNow = minutesOst > 0 && !isEnded
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.Schedule, null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(5.dp))
-                        Text("$minutesOst мин.", lineHeight = 5.sp)
-
+                        if (notNow ) {
+                            Icon(Icons.Rounded.Schedule, null, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(5.dp))
+                        }
+                        Text(
+                            if (notNow) "$minutesOst мин."
+                            else if (!isEnded) "Начался"
+                            else "Нет оценок",
+                            lineHeight = 5.sp
+                        )
                     }
-                } else if (!isEnded) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Начался", lineHeight = 5.sp)
-
-                    }
-                } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Нет оценок", lineHeight = 5.sp)
+                }
+            } else {
+                if (isEnded || today == date) {
+                    FilledTonalButton(
+                        onClick = {},
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
+                    ) {
+                        Text(
+                            if (isEnded) "Посмотреть отчёт" else "Создать отчёт",
+                            lineHeight = 10.sp
+                        )
                     }
                 }
             }
@@ -820,7 +1034,10 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope) {
         tooltip = {
             PlainTooltip(modifier = Modifier.clickable {}) {
                 println(mark.reason)
-                Text("${mark.date}\n${fetchReason(mark.reason)}", textAlign = TextAlign.Center)
+                Text(
+                    "${mark.date}\n${fetchReason(mark.reason)}",
+                    textAlign = TextAlign.Center
+                )
             }
         },
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
@@ -902,7 +1119,11 @@ fun RecentMarkContent(
             )
             .clip(RoundedCornerShape(percent = 30))
             .background(
-                if (cutedReason !in listOf("!ds", "!st")) MaterialTheme.colorScheme.primary.copy(
+                if (cutedReason !in listOf(
+                        "!ds",
+                        "!st"
+                    )
+                ) MaterialTheme.colorScheme.primary.copy(
                     alpha = .2f
                 ) else MaterialTheme.colorScheme.surface
             )
@@ -914,7 +1135,11 @@ fun RecentMarkContent(
             modifier = Modifier.padding(5.dp).padding(horizontal = 2.dp).offset(y = -2.dp)
         ) {
             Text(
-                (if (cutedReason in listOf("!ds", "!st") && mark.toInt() > 0) "+" else "") + mark,
+                (if (cutedReason in listOf(
+                        "!ds",
+                        "!st"
+                    ) && mark.toInt() > 0
+                ) "+" else "") + mark,
                 fontSize = 18.sp,
                 modifier = Modifier.fillMaxWidth().offset(y = 4.dp),
                 textAlign = TextAlign.Center,

@@ -40,8 +40,12 @@ class HomeExecutor(
         fetchQuickTab(period = state().period)
         fetchGrades()
         fetchTeacherGroups()
-        fetchSchedule(dayOfWeek = state().currentDate.first.toString(), date = state().currentDate.second)
+        fetchSchedule(
+            dayOfWeek = state().currentDate.first.toString(),
+            date = state().currentDate.second
+        )
     }
+
     private fun fetchSchedule(dayOfWeek: String, date: String) {
         scope.launch(CDispatcher) {
             if ((state().items[date] ?: listOf()).isEmpty()) {
@@ -49,10 +53,12 @@ class HomeExecutor(
                     scheduleNInterface.nStartLoading()
                     val response =
                         mainRepository.fetchPersonSchedule(dayOfWeek = dayOfWeek, date = date)
-                    val newList = state().items + response.list
+                    val newList = state().items.toMutableMap()
+                    response.list.forEach {
+                        newList[it.key] = it.value
+                    }
                     scope.launch {
-                        dispatch(Message.ItemsUpdated(newList.toMap(HashMap<String, List<PersonScheduleItem>>())))
-
+                        dispatch(Message.ItemsUpdated(newList.toMap(HashMap())))
                         scheduleNInterface.nSuccess()
                     }
                 } catch (e: Throwable) {

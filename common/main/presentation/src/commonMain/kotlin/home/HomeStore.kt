@@ -1,5 +1,6 @@
 package home
 
+import FIO
 import com.arkivanov.mvikotlin.core.store.Store
 import home.HomeStore.Intent
 import home.HomeStore.Label
@@ -40,7 +41,9 @@ interface HomeStore : Store<Intent, State, Label> {
         val currentDate: Pair<Int, String> = getCurrentDate(),
         val today: String = getCurrentDate().second,
         val dates: List<Pair<Int, String>> = getDates(4, 4),
-        val isDatesShown: Boolean = false
+        val isDatesShown: Boolean = false,
+
+        val role: String
     )
 
     sealed interface Intent {

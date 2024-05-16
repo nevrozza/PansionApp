@@ -13,13 +13,14 @@ interface RatingStore : Store<Intent, State, Label> {
     data class State(
         val avatarId: Int,
         val login: String,
+        val fio: FIO,
         val currentSubject: Int = -1,
         val me: Map<Int, Pair<Int, Int>?> = hashMapOf(),
         val subjects: List<ScheduleSubject> = listOf(
            startSubject
         ),
         val items: Map<Int, List<RatingItem>> = hashMapOf(),
-        val period: Int = 0
+        val period: Int = 0,
     )
 
     sealed interface Intent {

@@ -237,8 +237,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                     is MainHome -> MultiPaneSplit(
                         isExpanded = isExpanded,
-                        currentScreen = { HomeContent(child.homeComponent, model.role) },
-                        firstScreen = { HomeContent(child.homeComponent, model.role) },
+                        currentScreen = { HomeContent(child.homeComponent) },
+                        firstScreen = { HomeContent(child.homeComponent) },
                         secondScreen = {
                             if (model.moderation != Moderation.nothing || model.role == Roles.teacher) {
                                 JournalContent(
@@ -261,7 +261,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 moderation = model.moderation
                             )
                         },
-                        firstScreen = { HomeContent(child.homeComponent, model.role) },
+                        firstScreen = { HomeContent(child.homeComponent) },
                         secondScreen = {
                             JournalContent(
                                 child.journalComponent,
@@ -275,7 +275,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         MultiPaneSplit(
                             isExpanded = isExpanded,
                             currentScreen = { DnevnikRuMarkContent(child.dnevnikRuMarksComponent) },
-                            firstScreen = { HomeContent(child.homeComponent, model.role) },
+                            firstScreen = { HomeContent(child.homeComponent) },
                             secondScreen = { DnevnikRuMarkContent(child.dnevnikRuMarksComponent) }
                         )
                     }
@@ -284,7 +284,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         MultiPaneSplit(
                             isExpanded = isExpanded,
                             currentScreen = { DetailedStupsContent(child.detailedStups) },
-                            firstScreen = { HomeContent(child.homeComponent, model.role) },
+                            firstScreen = { HomeContent(child.homeComponent) },
                             secondScreen = { DetailedStupsContent(child.detailedStups) }
                         )
                     }
@@ -404,7 +404,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     is MainRating -> MultiPaneSplit(
                         isExpanded = isExpanded,
                         currentScreen = { RatingContent(child.ratingComponent) },
-                        firstScreen = { HomeContent(child.homeComponent, model.role) },
+                        firstScreen = { HomeContent(child.homeComponent) },
                         secondScreen = {
                             RatingContent(child.ratingComponent)
                         }

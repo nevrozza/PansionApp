@@ -7,7 +7,7 @@ import admin.AdminStore.State
 
 interface AdminStore : Store<Intent, State, Label> {
     data class State(
-        val items: List<AdminItem>? = getItems(),
+        val items: List<AdminItem>? = getItems()
     )
 
     sealed interface Intent {

@@ -1,6 +1,7 @@
 package rating
 
 import AuthRepository
+import FIO
 import MainRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -30,7 +31,12 @@ class RatingStoreFactory(
             name = "RatingStore",
             initialState = State(
                 avatarId = authRepository.fetchAvatarId(),
-                login = authRepository.fetchLogin()
+                login = authRepository.fetchLogin(),
+                fio = FIO(
+                    name = authRepository.fetchName(),
+                    surname = authRepository.fetchSurname(),
+                    praname = authRepository.fetchPraname()
+                )
             ),
             executorFactory = { RatingExecutor(
                 mainRepository = mainRepository,
