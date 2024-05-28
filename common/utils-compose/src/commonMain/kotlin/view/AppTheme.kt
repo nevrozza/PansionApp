@@ -1,18 +1,26 @@
 package view
 
-import androidx.compose.material3.ColorScheme
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.font.FontFamily
+import com.materialkolor.DynamicMaterialTheme
+import com.materialkolor.PaletteStyle
+import resources.GeologicaFont
 
 @Composable
-fun AppTheme(colorScheme: ColorScheme, content: @Composable () -> Unit) {
-    val font = FontFamily.SansSerif
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content,
+fun AppTheme(content: @Composable () -> Unit) {
+    val font = GeologicaFont
+
+    val viewManager = LocalViewManager.current
+
+    val isDark =
+        if (viewManager.tint.value == ThemeTint.Auto) isSystemInDarkTheme()
+        else viewManager.tint.value == ThemeTint.Dark
+
+    DynamicMaterialTheme(
+        seedColor = viewManager.seedColor.value, //Black + Monochrome
+        useDarkTheme = isDark,
+        style = PaletteStyle.Rainbow,
         typography = MaterialTheme.typography.copy(
             displayLarge = MaterialTheme.typography.displayLarge.copy(fontFamily = font),
             displayMedium = MaterialTheme.typography.displayMedium.copy(fontFamily = font),
@@ -29,30 +37,34 @@ fun AppTheme(colorScheme: ColorScheme, content: @Composable () -> Unit) {
             labelLarge = MaterialTheme.typography.labelLarge.copy(fontFamily = font),
             labelMedium = MaterialTheme.typography.labelMedium.copy(fontFamily = font),
             labelSmall = MaterialTheme.typography.labelSmall.copy(fontFamily = font),
-            )
-    )
-}
-
-@Composable
-fun colorSchemeGetter(isDark: Boolean, color: String): ColorScheme {
-    return if (isDark) {
-        when (color) {
-            ThemeColors.Default.name -> defaultDarkPalette()
-            ThemeColors.Green.name -> greenDarkPalette()
-            ThemeColors.Red.name -> redDarkPalette()
-            ThemeColors.Yellow.name -> yellowDarkPalette()
-            ThemeColors.Dynamic.name -> dynamicDarkScheme() ?: defaultDarkPalette()
-            else -> defaultDarkPalette()
-
-        }
-    } else {
-        when (color) {
-            ThemeColors.Default.name -> defaultLightPalette()
-            ThemeColors.Green.name -> greenLightPalette()
-            ThemeColors.Red.name -> redLightPalette()
-            ThemeColors.Yellow.name -> yellowLightPalette()
-            ThemeColors.Dynamic.name -> dynamicLightScheme() ?: defaultLightPalette()
-            else -> defaultLightPalette()
-        }
+        ),
+        animate = true
+    ) {
+        content()
     }
 }
+
+
+//@Composable
+//fun colorSchemeGetter(isDark: Boolean, color: String): ColorScheme {
+//    return if (isDark) {
+//        when (color) {
+//            ThemeColors.Default.name -> defaultDarkPalette()
+//            ThemeColors.Green.name -> greenDarkPalette()
+//            ThemeColors.Red.name -> redDarkPalette()
+//            ThemeColors.Yellow.name -> yellowDarkPalette()
+//            ThemeColors.Dynamic.name -> dynamicDarkScheme() ?: defaultDarkPalette()
+//            else -> defaultDarkPalette()
+//
+//        }
+//    } else {
+//        when (color) {
+//            ThemeColors.Default.name -> defaultLightPalette()
+//            ThemeColors.Green.name -> greenLightPalette()
+//            ThemeColors.Red.name -> redLightPalette()
+//            ThemeColors.Yellow.name -> yellowLightPalette()
+//            ThemeColors.Dynamic.name -> dynamicLightScheme() ?: defaultLightPalette()
+//            else -> defaultLightPalette()
+//        }
+//    }
+//}

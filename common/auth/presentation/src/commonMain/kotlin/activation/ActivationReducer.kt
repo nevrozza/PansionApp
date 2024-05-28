@@ -9,9 +9,6 @@ object ActivationReducer : Reducer<State, Message> {
         return when (msg) {
             is Message.LoginChanged -> copy(login = msg.login, isErrorShown = false)
             //is Message.StepChanged -> if(msg.step == ActivationStore.Step.Activation) copy(name = "Александра", step = msg.step) else copy(step = msg.step, name = null)
-            is Message.ThemeTintChanged -> copy(themeTint = msg.tint.name)
-            is Message.LanguageChanged -> copy(language = msg.language.name)
-            is Message.ColorChanged -> copy(color = msg.color.name)
 
             Message.ErrorHided-> copy(isErrorShown = false)
 
@@ -26,6 +23,16 @@ object ActivationReducer : Reducer<State, Message> {
             Message.Activated -> copy(activated = true, isInProcess = false)
             is Message.StepChanged -> copy(step = msg.step, name = null)
             is Message.PasswordChanged -> copy(password = msg.password, isErrorShown = false)
+            Message.AllReseted -> copy(
+                login = "",
+                name = null,
+                password = "",
+                step = ActivationStore.Step.Login,
+                isInProcess = false,
+                error = "",
+                isErrorShown = false,
+                activated = false
+            )
         }
     }
 }

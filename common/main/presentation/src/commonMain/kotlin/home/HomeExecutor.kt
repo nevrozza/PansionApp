@@ -48,7 +48,7 @@ class HomeExecutor(
 
     private fun fetchSchedule(dayOfWeek: String, date: String) {
         scope.launch(CDispatcher) {
-            if ((state().items[date] ?: listOf()).isEmpty()) {
+//            if ((state().items[date] ?: listOf()).isEmpty()) {
                 try {
                     scheduleNInterface.nStartLoading()
                     val response =
@@ -68,7 +68,7 @@ class HomeExecutor(
                     }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
                 }
-            }
+//            }
         }
     }
 

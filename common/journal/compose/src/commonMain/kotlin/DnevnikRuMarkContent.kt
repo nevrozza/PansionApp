@@ -103,11 +103,11 @@ fun DnevnikRuMarkContent(
         Modifier.fillMaxSize(),
 //                .nestedScroll(scrollBehavior.nestedScrollConnection)
         topBar = {
-            val isHaze = viewManager.hazeState != null && viewManager.hazeStyle != null
+            val isHaze = viewManager.hazeStyle != null
             Column(
                 Modifier.then(
                     if (isHaze) Modifier.hazeChild(
-                        state = viewManager.hazeState!!.value,
+                        state = viewManager.hazeState,
                         style = viewManager.hazeStyle!!.value
                     )
                     else Modifier

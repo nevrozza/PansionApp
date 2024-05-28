@@ -1,10 +1,10 @@
 [versions]
 # Plugins
 plugin-android = "8.3.0"
-plugin-compose = "1.6.10-rc01"
+plugin-compose = "1.6.10"
 
 # Multiplatform
-kotlin = "2.0.0-RC2"
+kotlin = "2.0.0"
 coroutines = "1.8.0"
 serialization = "1.6.3"
 datetime = "0.6.0-RC.2"
@@ -23,6 +23,8 @@ mokographics = "0.9.0"
 
 # Compose Libraries
 haze = "0.7.0"
+materialKolor = "1.4.4"
+colorPicker = "1.0.8"
 
 # Android
 androidx-compose = "1.6.3"
@@ -68,6 +70,8 @@ settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", vers
 
 kodein-di = "org.kodein.di:kodein-di:7.21.2"
 
+compose-materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
+compose-colorPicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorPicker" }
 compose-haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 compose-haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 

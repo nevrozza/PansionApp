@@ -70,77 +70,83 @@ fun main() {
             Schedule,
             RatingWeekTable
         )
-        RatingWeekTable.saveRatings(
-            listOf(
-                RatingTableDTO(
-                    login = "a.matashkov1",
-                    name = "Арсентий",
-                    surname = "Харлампий",
-                    praname = "idk",
-                    avatarId = 0,
-                    stups = 666,
-                    avg = "4.69",
-                    top = 4,
-                    groupName = "10кл профмат",
-                    formNum = 10,
-                    subjectId = 1,
-                    formShortTitle = "10 инж"
-                ),
-                RatingTableDTO(
-                    login = "a.matashkov2",
-                    name = "Арсентий",
-                    surname = "Харлампий",
-                    praname = "idk",
-                    avatarId = 0,
-                    stups = 666,
-                    avg = "4.69",
-                    top = 2,
-                    groupName = "10кл профмат",
-                    formNum = 10,
-                    subjectId = 1,
-                    formShortTitle = "10 инж"
-                ),
-                RatingTableDTO(
-                    login = "a.matashkov3",
-                    name = "Арсентий",
-                    surname = "Харлампий",
-                    praname = "idk",
-                    avatarId = 0,
-                    stups = 666,
-                    avg = "4.69",
-                    top = 3,
-                    groupName = "10кл профмат",
-                    formNum = 10,
-                    subjectId = 1,
-                    formShortTitle = "10 инж"
-                ),
-                RatingTableDTO(
-                    login = "m.gubskaya893",
-                    name = "Мария",
-                    surname = "Губская",
-                    praname = "idk",
-                    avatarId = 0,
-                    stups = 999,
-                    avg = "4.69",
-                    top = 1,
-                    groupName = "10кл профмат",
-                    formNum = 10,
-                    subjectId = 1,
-                    formShortTitle = "10 инж"
-                ),
-            )
-        )
-
-//        Schedule.deleteAll()
-
 //        Users.deleteAll()
-//        Tokens.deleteAll()
-//        Subjects.deleteAll()
-//        Groups.deleteAll()
-//        Forms.deleteAll()
-//        DefaultGroupsForms.deleteAll()
-//        StudentGroups.deleteAll()
-//        UserForms.deleteAll()
+//        Users.insert(
+//            UserDTO(
+//                login = "a.matashkov1",
+//                password = null,
+//                name = "Артём",
+//                surname = "Маташков",
+//                praname = "Игоревич",
+//                birthday = "22012008",
+//                role = Roles.teacher,
+//                moderation = Moderation.moderator,
+//                isParent = false,
+//                avatarId = 1,
+//                isActive = true
+//            )
+//        )
+//        RatingWeekTable.saveRatings(
+//            listOf(
+//                RatingTableDTO(
+//                    login = "a.matashkov1",
+//                    name = "Арсентий",
+//                    surname = "Харлампий",
+//                    praname = "idk",
+//                    avatarId = 0,
+//                    stups = 666,
+//                    avg = "4.69",
+//                    top = 4,
+//                    groupName = "10кл профмат",
+//                    formNum = 10,
+//                    subjectId = 1,
+//                    formShortTitle = "10 инж"
+//                ),
+//                RatingTableDTO(
+//                    login = "a.matashkov2",
+//                    name = "Арсентий",
+//                    surname = "Харлампий",
+//                    praname = "idk",
+//                    avatarId = 0,
+//                    stups = 666,
+//                    avg = "4.69",
+//                    top = 2,
+//                    groupName = "10кл профмат",
+//                    formNum = 10,
+//                    subjectId = 1,
+//                    formShortTitle = "10 инж"
+//                ),
+//                RatingTableDTO(
+//                    login = "a.matashkov3",
+//                    name = "Арсентий",
+//                    surname = "Харлампий",
+//                    praname = "idk",
+//                    avatarId = 0,
+//                    stups = 666,
+//                    avg = "4.69",
+//                    top = 3,
+//                    groupName = "10кл профмат",
+//                    formNum = 10,
+//                    subjectId = 1,
+//                    formShortTitle = "10 инж"
+//                ),
+//                RatingTableDTO(
+//                    login = "m.gubskaya893",
+//                    name = "Мария",
+//                    surname = "Губская",
+//                    praname = "idk",
+//                    avatarId = 0,
+//                    stups = 999,
+//                    avg = "4.69",
+//                    top = 1,
+//                    groupName = "10кл профмат",
+//                    formNum = 10,
+//                    subjectId = 1,
+//                    formShortTitle = "10 инж"
+//                ),
+//            )
+//        )
+
 
 //        val login = createLogin("Артём", "Маташков")
 //        Users.insert(

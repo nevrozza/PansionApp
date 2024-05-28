@@ -22,11 +22,7 @@ class ActivationStoreFactory(
         ActivationStore,
         Store<Intent, State, Nothing> by storeFactory.create(
             name = "ActivationStore",
-            initialState = State(
-                themeTint = settingsRepository.fetchTint(),
-                language = settingsRepository.fetchLanguage(),
-                color = settingsRepository.fetchColor()
-            ),
+            initialState = State(),
             executorFactory = {
                 ActivationExecutor(
                     settingsRepository = settingsRepository,

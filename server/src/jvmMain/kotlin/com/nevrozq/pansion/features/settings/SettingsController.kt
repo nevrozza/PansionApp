@@ -11,14 +11,18 @@ import io.ktor.server.response.respond
 
 class SettingsController {
     suspend fun logout(call: ApplicationCall) {
-        if (call.token != null) {
-            if(Tokens.isTokenValid(call.token.toId())) {
-                Tokens.deleteToken(call.token.toId())
+        try {
+            if (call.token != null) {
+                if (Tokens.isTokenValid(call.token.toId())) {
+                    Tokens.deleteToken(call.token.toId())
+                } else {
+                    call.respond(HttpStatusCode.Unauthorized, "Token expired")
+                }
             } else {
-                call.respond(HttpStatusCode.Unauthorized, "Token expired")
+                call.respond(HttpStatusCode.Unauthorized, "There is nothing to delete")
             }
-        } else {
-            call.respond(HttpStatusCode.Unauthorized, "There is nothing to delete")
+        } catch (e: Throwable) {
+            println(e.message)
         }
     }
 }

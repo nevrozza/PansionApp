@@ -39,7 +39,7 @@ fun CLazyColumn(
             .consumeWindowInsets(padding)
             .imePadding()
             .then(
-                if(isHaze && viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.haze(state = viewManager.hazeState!!.value, style = viewManager.hazeStyle!!.value)
+                if(isHaze && viewManager.hazeStyle != null) Modifier.haze(state = viewManager.hazeState, style = viewManager.hazeStyle!!.value)
                 else Modifier
             ).then(modifier),
         state = state

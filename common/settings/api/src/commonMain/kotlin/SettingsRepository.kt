@@ -5,8 +5,11 @@ interface SettingsRepository {
     fun saveLanguage(language: String)
     fun fetchLanguage(): String
 
-    fun saveColor(color: String)
-    fun fetchColor(): String
+    fun saveSeedColor(color: String)
+    fun fetchSeedColor(): String
+
+    fun saveIsDynamic(isDynamic: Boolean)
+    fun fetchIsDynamic(): Boolean
 
 //    fun fetchSettingsScreenData(): SettingsScreenData
 }

@@ -163,8 +163,8 @@ fun CabinetsContent(
                 .fillMaxSize()
                 .imePadding()
                 .then(
-                    if (viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.haze(
-                        state = viewManager.hazeState!!.value,
+                    if (viewManager.hazeStyle != null) Modifier.haze(
+                        state = viewManager.hazeState,
                         style = viewManager.hazeStyle!!.value
                     )
                     else Modifier

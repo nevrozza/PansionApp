@@ -9,7 +9,7 @@ kotlin {
             dependencies {
 
                 api(project(":common:auth:presentation"))
-                ////implementation(":common:settings:presentation")
+                implementation(project(":common:settings:compose"))
                 implementation(project(":common:core"))
 
                 //implementation(project(":common:utils-compose"))

@@ -86,8 +86,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.BottomThemePanel
 import components.LoadingAnimation
+import forks.colorPicker.toHex
 import kotlinx.coroutines.launch
+import login.LoginComponent
+import resources.Images
 import view.defaultDarkPalette
 import view.defaultLightPalette
 import view.greenDarkPalette
@@ -96,10 +100,8 @@ import view.redDarkPalette
 import view.redLightPalette
 import view.yellowDarkPalette
 import view.yellowLightPalette
-import view.AllThemes
 import view.AppTheme
 import view.LocalViewManager
-import view.ThemeColors
 import view.ThemeTint
 import view.bringIntoView
 import view.dynamicDarkScheme
@@ -107,209 +109,13 @@ import view.dynamicLightScheme
 import view.rememberImeState
 
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ActivationContent(
     component: ActivationComponent
 ) {
-    val viewManager = LocalViewManager.current
-    val model by component.model.subscribeAsState()
-
-    if (model.activated) {
-        component.onOutput(ActivationComponent.Output.NavigateToMain)
-    }
-
-    val isDarkTheme = isSystemInDarkTheme()
-
     val scrollState = rememberScrollState()
     val imeState = rememberImeState()
-    val theme: String =
-        if (model.themeTint == ThemeTint.Dark.name || (model.themeTint == ThemeTint.Auto.name && isDarkTheme)) {
-            when (model.color) {
-                ThemeColors.Dynamic.name -> AllThemes.DarkDynamic.name
-                ThemeColors.Green.name -> AllThemes.DarkGreen.name
-                ThemeColors.Red.name -> AllThemes.DarkRed.name
-                ThemeColors.Yellow.name -> AllThemes.DarkYellow.name
-                else -> {
-                    AllThemes.DarkDefault.name
-                }
-            }
-        } else {
-            when (model.color) {
-                ThemeColors.Dynamic.name -> AllThemes.LightDynamic.name
-                ThemeColors.Green.name -> AllThemes.LightGreen.name
-                ThemeColors.Red.name -> AllThemes.LightRed.name
-                ThemeColors.Yellow.name -> AllThemes.LightYellow.name
-                else -> {
-                    AllThemes.LightDefault.name
-                }
-            }
-        }
-    viewManager.tint.value = model.themeTint
-    viewManager.color.value = model.color
-    val timeEnter = 300
-    val easingEnter = EaseOutQuad
-    val timeExit = 300
-    val easingExit = EaseInQuad
-
-    //Dark
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.DarkDynamic.name,
-        dynamicDarkScheme() ?: defaultDarkPalette(),
-        scrollState,
-        imeState
-    )
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.DarkDefault.name,
-        defaultDarkPalette(),
-        scrollState,
-        imeState
-    )
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.DarkGreen.name,
-        greenDarkPalette(),
-        scrollState,
-        imeState
-    )
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.DarkRed.name,
-        redDarkPalette(),
-        scrollState,
-        imeState
-    )
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.DarkYellow.name,
-        yellowDarkPalette(),
-        scrollState,
-        imeState
-    )
-
-    //Light
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.LightDynamic.name,
-        dynamicLightScheme() ?: defaultLightPalette(),
-        scrollState,
-        imeState
-    )
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.LightDefault.name,
-        defaultLightPalette(),
-        scrollState,
-        imeState
-    )
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.LightGreen.name,
-        greenLightPalette(),
-        scrollState,
-        imeState
-    )
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.LightRed.name,
-        redLightPalette(),
-        scrollState,
-        imeState
-    )
-    RequrseActivationContent(
-        component,
-        theme,
-        timeEnter,
-        easingEnter,
-        timeExit,
-        easingExit,
-        AllThemes.LightYellow.name,
-        yellowLightPalette(),
-        scrollState,
-        imeState
-    )
-
-}
-
-@Composable
-private fun RequrseActivationContent(
-    component: ActivationComponent,
-    theme: String,
-    timeEnter: Int,
-    easingEnter: Easing,
-    timeExit: Int,
-    easingExit: Easing,
-    color: String,
-    colorScheme: ColorScheme,
-    scrollState: ScrollState,
-    imeState: State<Boolean>
-) {
-    AnimatedVisibility(
-        visible = theme == color,
-        enter = fadeIn(tween(timeEnter, easing = easingEnter)),
-        exit = fadeOut(tween(timeExit, easing = easingExit))
-    ) {
-        AppTheme(colorScheme) {
-            ActivationInContent(component, scrollState, imeState)
-        }
-    }
-}
-
-
-@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
-@Composable
-private fun ActivationInContent(
-    component: ActivationComponent,
-    scrollState: ScrollState,
-    imeState: State<Boolean>
-) {
     val model by component.model.subscribeAsState()
     val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
@@ -320,6 +126,12 @@ private fun ActivationInContent(
         !model.isInProcess && model.password.isNotBlank()
     val focusRequester1 = remember { FocusRequester() }
     val focusRequester2 = remember { FocusRequester() }
+
+    if (model.activated) {
+        component.navigateToMain()
+    }
+
+
     Scaffold(
         Modifier.fillMaxSize(),
         snackbarHost = {
@@ -360,9 +172,9 @@ private fun ActivationInContent(
             ) {
                 Spacer(Modifier)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
                     Icon(
-//                        dev.icerock.moko.resources.compose.painterResource(mguImage),
-                        Icons.Rounded.Cake,
+                        Images.MGU,
                         null,
                         Modifier.size(200.dp)
                     )
@@ -592,68 +404,77 @@ private fun ActivationInContent(
                         }
                     }
 
-                    Row(
-                        modifier = Modifier.widthIn(max = 470.dp).fillMaxWidth()
-                            .bringIntoView(scrollState, imeState)
-                            .padding(horizontal = 15.dp)
-                            .padding(bottom = 5.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    BottomThemePanel(
+                        viewManager,
+                        onThemeClick = {
+                            changeTint(viewManager)
+                        }
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            AnimatedContent(
-                                when (model.themeTint) {
-                                    ThemeTint.Auto.name -> Icons.Rounded.AutoMode
-                                    ThemeTint.Dark.name -> Icons.Rounded.DarkMode
-                                    else -> Icons.Rounded.LightMode
-                                }
-                            ) {
-                                IconButton(
-                                    onClick = { component.onEvent(ActivationStore.Intent.ChangeTint) }
-                                ) {
-                                    Icon(
-                                        it,
-                                        null,
-                                        modifier = Modifier.size(27.dp)
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.width(10.dp))
-
-                            Button(
-                                onClick = {
-                                    component.onEvent(ActivationStore.Intent.ChangeColor)
-                                },
-                                contentPadding = PaddingValues(0.dp),
-                                shape = CircleShape,
-                                modifier = Modifier.size(25.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                            ) {}
-                        }
-
-                        Row() {
-                            Icon(
-                                Icons.AutoMirrored.Rounded.Send,
-                                null,
-                                modifier = Modifier.rotate(360-45.0f)
-                            )
-                            Text(
-                                "@pansionApp"
-                            )
-                        }
-
-                        AnimatedContent(
-                            when (model.language) {
-                                else -> "\uD83C\uDDF7\uD83C\uDDFA"
-                            }
-                        ) {
-                            TextButton(onClick = {
-                                component.onEvent(ActivationStore.Intent.ChangeLanguage)
-                            }) {
-                                Text(it, fontSize = 20.sp)
-                            }
-                        }
+                        changeColorSeed(viewManager, it.toHex())
                     }
+
+//                    Row(
+//                        modifier = Modifier.widthIn(max = 470.dp).fillMaxWidth()
+//                            .bringIntoView(scrollState, imeState)
+//                            .padding(horizontal = 15.dp)
+//                            .padding(bottom = 5.dp),
+//                        horizontalArrangement = Arrangement.SpaceBetween,
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                            AnimatedContent(
+//                                when (model.themeTint) {
+//                                    ThemeTint.Auto.name -> Icons.Rounded.AutoMode
+//                                    ThemeTint.Dark.name -> Icons.Rounded.DarkMode
+//                                    else -> Icons.Rounded.LightMode
+//                                }
+//                            ) {
+//                                IconButton(
+//                                    onClick = { component.onEvent(ActivationStore.Intent.ChangeTint) }
+//                                ) {
+//                                    Icon(
+//                                        it,
+//                                        null,
+//                                        modifier = Modifier.size(27.dp)
+//                                    )
+//                                }
+//                            }
+//                            Spacer(Modifier.width(10.dp))
+//
+//                            Button(
+//                                onClick = {
+//                                    component.onEvent(ActivationStore.Intent.ChangeColor)
+//                                },
+//                                contentPadding = PaddingValues(0.dp),
+//                                shape = CircleShape,
+//                                modifier = Modifier.size(25.dp),
+//                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+//                            ) {}
+//                        }
+//
+//                        Row() {
+//                            Icon(
+//                                Icons.AutoMirrored.Rounded.Send,
+//                                null,
+//                                modifier = Modifier.rotate(360-45.0f)
+//                            )
+//                            Text(
+//                                "@pansionApp"
+//                            )
+//                        }
+//
+//                        AnimatedContent(
+//                            when (model.language) {
+//                                else -> "\uD83C\uDDF7\uD83C\uDDFA"
+//                            }
+//                        ) {
+//                            TextButton(onClick = {
+//                                component.onEvent(ActivationStore.Intent.ChangeLanguage)
+//                            }) {
+//                                Text(it, fontSize = 20.sp)
+//                            }
+//                        }
+//                    }
                 }
             }
         }

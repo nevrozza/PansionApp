@@ -21,10 +21,7 @@ class SettingsStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "SettingsStore",
             initialState = State(
-                login = authRepository.fetchLogin(),
-                themeTint = settingsRepository.fetchTint(),
-                color = settingsRepository.fetchColor(),
-                language = settingsRepository.fetchLanguage()
+                login = authRepository.fetchLogin()
             ),
             executorFactory = { SettingsExecutor(
                 settingsRepository = settingsRepository,

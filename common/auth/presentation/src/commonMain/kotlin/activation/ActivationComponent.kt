@@ -65,6 +65,11 @@ class ActivationComponent(
         activationStore.accept(event)
     }
 
+    fun navigateToMain() {
+        onEvent(ActivationStore.Intent.ResetAll)
+        onOutput(Output.NavigateToMain)
+    }
+
     fun onOutput(output: Output) {
         output(output)
     }

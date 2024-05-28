@@ -569,8 +569,8 @@ fun CustomNavigationBar(
 
     NavigationBar(
         modifier = Modifier.then(
-            if (viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(
-                viewManager.hazeState!!.value,
+            if (viewManager.hazeStyle != null) Modifier.hazeChild(
+                viewManager.hazeState,
                 style = viewManager.hazeStyle!!.value
             ) else Modifier
         ).fillMaxWidth(),

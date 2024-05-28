@@ -65,18 +65,20 @@ class JournalExecutor(
                     try {
                         nOpenReportInterface.nStartLoading()
                         val rd = mainRepository.fetchReportData(intent.reportHeader.reportId)
-                        dispatch(Message.ReportDataFetched(
-                            ReportData(
-                                header = intent.reportHeader,
-                                topic = rd.topic,
-                                description = rd.description,
-                                editTime = rd.editTime,
-                                ids = rd.ids,
-                                isMentorWas = rd.isMentorWas,
-                                isEditable = rd.isEditable,
-                                customColumns = rd.customColumns
+                        dispatch(
+                            Message.ReportDataFetched(
+                                ReportData(
+                                    header = intent.reportHeader,
+                                    topic = rd.topic,
+                                    description = rd.description,
+                                    editTime = rd.editTime,
+                                    ids = rd.ids,
+                                    isMentorWas = rd.isMentorWas,
+                                    isEditable = rd.isEditable,
+                                    customColumns = rd.customColumns
+                                )
                             )
-                        ))
+                        )
                         nOpenReportInterface.nSuccess()
                     } catch (_: Throwable) {
                         nOpenReportInterface.nError(
@@ -88,8 +90,9 @@ class JournalExecutor(
                     }
                 }
             }
+
             Intent.ResetReportData -> dispatch(Message.ReportDataReseted)
-            Intent.Refresh -> fetchHeaders()
+            Intent.Refresh -> initComponent()
 
         }
     }
@@ -136,7 +139,7 @@ class JournalExecutor(
 
             } catch (e: Throwable) {
                 println(e)
-                nInterface.nError("Не удалось загрузить список")  {
+                nInterface.nError("Не удалось загрузить список") {
                     fetchHeaders()
                 }
 //                groupListComponent.nInterface.nError("Не удалось загрузить список групп") {

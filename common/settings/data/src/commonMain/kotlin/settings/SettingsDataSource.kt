@@ -4,8 +4,8 @@ import com.russhwolf.settings.Settings
 import com.russhwolf.settings.get
 import com.russhwolf.settings.set
 import view.Language
-import view.ThemeColors
 import view.ThemeTint
+import view.isCanInDynamic
 
 class SettingsDataSource(
     private val settings: Settings
@@ -24,21 +24,30 @@ class SettingsDataSource(
     }
 
     fun fetchTint(): String {
-        return settings[tintKey, ThemeTint.Auto.name]
+        return settings[tintKey, ThemeTint.Dark.name]
     }
 
-    fun saveColor(color: String) {
-        settings[colorKey] = color
+    fun saveSeedColor(color: String) {
+        settings[seedColorKey] = color
     }
 
-    fun fetchColor(): String {
-        return settings[colorKey, ThemeColors.Default.name]
+    fun fetchSeedColor(): String {
+        return settings[seedColorKey, "6E007F"]
+    }
+
+    fun saveIsDynamic(isDynamic: Boolean) {
+        settings[isDynamicKey] = isDynamic
+    }
+
+    fun fetchIsDynamic(): Boolean {
+        return settings[isDynamicKey, isCanInDynamic()]
     }
 
     companion object {
         const val languageKey = "languageKey"
         const val tintKey = "tintKey"
-        const val colorKey = "colorKey"
+        const val seedColorKey = "seedColorKey"
+        const val isDynamicKey = "isDynamicKey"
     }
 
 }

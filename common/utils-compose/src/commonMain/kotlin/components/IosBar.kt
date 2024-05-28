@@ -38,14 +38,14 @@ fun AppBar(
 ) {
     val viewManager = LocalViewManager.current
     Box(
-        Modifier.fillMaxWidth().height(60.dp).background(if (isHaze) Color.Transparent else containerColor).then(
-            if(isHaze && viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(state = viewManager.hazeState!!.value, style = viewManager.hazeStyle!!.value)
+        Modifier.fillMaxWidth().height(60.dp + viewManager.topPadding).background(if (isHaze) Color.Transparent else containerColor).then(
+            if(isHaze && viewManager.hazeStyle != null) Modifier.hazeChild(state = viewManager.hazeState, style = viewManager.hazeStyle!!.value)
             else Modifier
         ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.BottomCenter
     ) {
         Row(
-            modifier = modifier.fillMaxWidth().padding(bottom = 5.dp),
+            modifier = modifier.fillMaxWidth().height(60.dp).padding(bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -71,8 +71,9 @@ fun CentreAppBar(
     actionRow: @Composable () -> Unit = {},
     containerColor: Color = MaterialTheme.colorScheme.surface,
 ) {
+    val viewManager = LocalViewManager.current
     Box(
-        Modifier.fillMaxWidth().height(60.dp).background(containerColor),
+        Modifier.fillMaxWidth().height(60.dp + viewManager.topPadding).background(containerColor),
         contentAlignment = Alignment.Center
     ) {
         Row(

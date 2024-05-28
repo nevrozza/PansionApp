@@ -20,12 +20,19 @@ class SettingsRepositoryImpl(
         return cacheDataSource.fetchLanguage()
     }
 
-    override fun saveColor(color: String) {
-        cacheDataSource.saveColor(color)
+    override fun saveSeedColor(color: String) {
+        cacheDataSource.saveSeedColor(color)
     }
 
-    override fun fetchColor(): String {
-        return cacheDataSource.fetchColor()
+    override fun fetchSeedColor(): String {
+        return cacheDataSource.fetchSeedColor()
     }
 
+    override fun saveIsDynamic(isDynamic: Boolean) {
+        cacheDataSource.saveIsDynamic(isDynamic)
+    }
+
+    override fun fetchIsDynamic(): Boolean {
+        return cacheDataSource.fetchIsDynamic()
+    }
 }

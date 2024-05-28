@@ -28,7 +28,15 @@ class LoginExecutor(private val authRepository: AuthRepository) : CoroutineExecu
         scope.launch {
             try {
                 val r = authRepository.performLogin(state.login, state.password)
-                if (r.activation.token.isNotBlank()) {
+                val token = r.activation.token
+                if(token == "password") {
+                    dispatch(Message.CustomError("Неправильный пароль"))
+                } else if (token == "user") {
+                    dispatch(Message.CustomError("Неправильный логин"))
+                } else if (token == "deactivated") {
+                    dispatch(Message.CustomError("Аккаунт деактивирован"))
+                }
+                else if (r.activation.token.isNotBlank()) {
                     dispatch(Message.Logined)
                 } else {
                     dispatch(Message.CustomError("Неправильный пароль или логин"))
@@ -47,7 +55,8 @@ class LoginExecutor(private val authRepository: AuthRepository) : CoroutineExecu
                         .commonPrefixWith("Failed to connect to /") == "Failed to connect to /"
                 ) {
                     dispatch(Message.CustomError("Проверьте подключение к интернету"))
-                } else {
+                }
+                else {
                     dispatch(Message.CustomError("Что-то пошло не так =/"))
                 }
             }

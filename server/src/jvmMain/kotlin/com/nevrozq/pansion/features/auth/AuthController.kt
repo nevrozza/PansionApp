@@ -22,6 +22,8 @@ import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.nullUUID
 import com.nevrozq.pansion.utils.toId
 import server.DataLength
+import server.Moderation
+import server.Roles
 import server.cut
 import java.util.UUID
 
@@ -117,7 +119,10 @@ class AuthController {
         val userDTO = Users.fetchUser(receive.login)
 
         if (userDTO == null) {
-            call.respond(HttpStatusCode.BadRequest, "admin.users.User not found")
+//            call.respond(HttpStatusCode.BadRequest, "admin.users.User not found")
+            call.respond(
+                errorLogin("user")
+            )
         } else {
             if (receive.deviceId.toId() != nullUUID) {
                 when (userDTO.password ?: "".cut(DataLength.passwordLength)) {
@@ -157,9 +162,12 @@ class AuthController {
                                 )
                             )
                         } else {
+//                            call.respond(
+//                                HttpStatusCode.Forbidden,
+//                                "Your account has been deactivated"
+//                            )
                             call.respond(
-                                HttpStatusCode.Forbidden,
-                                "Your account has been deactivated"
+                                errorLogin("deactivated")
                             )
                         }
                     }
@@ -172,7 +180,10 @@ class AuthController {
 //                    }
 
                     else -> {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid password")
+//                        call.respond(HttpStatusCode.BadRequest, "Invalid password")
+                        call.respond(
+                            errorLogin("password")
+                        )
                     }
                 }
             } else {
@@ -180,4 +191,25 @@ class AuthController {
             }
         }
     }
+}
+
+private fun errorLogin(reason: String) : LoginResponse {
+    return LoginResponse(
+        activation = ActivationResponse(
+            token = reason,
+            user = UserInit(
+                fio = FIO(
+                    name = "",
+                    surname = "",
+                    praname = ""
+                ),
+                birthday = "22012008",
+                role = Roles.nothing,
+                moderation = Moderation.nothing,
+                isParent = false
+            ),
+            login = ""
+        ),
+        avatarId = 0
+    )
 }

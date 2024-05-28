@@ -11,7 +11,6 @@ import io.ktor.client.network.sockets.SocketTimeoutException
 import kotlinx.coroutines.launch
 import login.LoginStore
 import view.Language
-import view.ThemeColors
 import view.ThemeTint
 import view.isCanInDynamic
 
@@ -23,11 +22,9 @@ class ActivationExecutor(private val settingsRepository: SettingsRepository, pri
             is Intent.InputPassword -> dispatch(Message.PasswordChanged(intent.password))
             is Intent.ChangeStepOnActivation -> changeStepOnActivation(state())
             is Intent.CheckToGoMain -> checkToGoMain(state())
-            Intent.ChangeTint -> changeTint(state())
-            Intent.ChangeLanguage -> changeLanguage(state())
-            Intent.ChangeColor -> changeColor(state())
             is Intent.ChangeStep -> dispatch(Message.StepChanged(intent.step))
             Intent.HideError -> dispatch(Message.ErrorHided)
+            Intent.ResetAll -> dispatch(Message.AllReseted)
         }
     }
 
@@ -95,70 +92,5 @@ class ActivationExecutor(private val settingsRepository: SettingsRepository, pri
         }
     }
 
-    private fun changeTint(state: State) {
-        when (state.themeTint) {
-            ThemeTint.Auto.name -> {
-                settingsRepository.saveTint(ThemeTint.Dark.name)
-                dispatch(Message.ThemeTintChanged(ThemeTint.Dark))
-            }
-
-            ThemeTint.Dark.name -> {
-                settingsRepository.saveTint(ThemeTint.Light.name)
-                dispatch(Message.ThemeTintChanged(ThemeTint.Light))
-            }
-
-            else -> {
-                settingsRepository.saveTint(ThemeTint.Auto.name)
-                dispatch(Message.ThemeTintChanged(ThemeTint.Auto))
-            }
-        }
-    }
-
-    private fun changeColor(state: State) {
-        when (state.color) {
-            ThemeColors.Default.name -> {
-                settingsRepository.saveColor(ThemeColors.Green.name)
-                dispatch(Message.ColorChanged(ThemeColors.Green))
-            }
-
-            ThemeColors.Green.name -> {
-                settingsRepository.saveColor(ThemeColors.Red.name)
-                dispatch(Message.ColorChanged(ThemeColors.Red))
-            }
-
-            ThemeColors.Red.name -> {
-                settingsRepository.saveColor(ThemeColors.Yellow.name)
-                dispatch(Message.ColorChanged(ThemeColors.Yellow))
-            }
-
-            ThemeColors.Yellow.name -> {
-                val color = if (isCanInDynamic()) ThemeColors.Dynamic else ThemeColors.Default
-
-                settingsRepository.saveColor(color.name)
-                dispatch(Message.ColorChanged(color))
-
-            }
-
-            else -> {
-
-                settingsRepository.saveColor(ThemeColors.Default.name)
-                dispatch(Message.ColorChanged(ThemeColors.Default))
-            }
-        }
-    }
-
-    private fun changeLanguage(state: State) {
-        when (state.language) {
-            Language.Russian.name -> {
-//                settingsRepository.saveTint(ThemeTint.Dark.name)
-//                dispatch(Message.ThemeTintChanged(ThemeTint.Dark))
-            }
-
-            else -> {
-                settingsRepository.saveLanguage(Language.Russian.name)
-                dispatch(Message.LanguageChanged(Language.Russian))
-            }
-        }
-    }
 
 }

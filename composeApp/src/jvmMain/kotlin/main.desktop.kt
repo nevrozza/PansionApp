@@ -1,37 +1,25 @@
 @file:OptIn(ExperimentalAnimationApi::class)
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Category
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Fullscreen
-import androidx.compose.material.icons.rounded.FullscreenExit
-import androidx.compose.material.icons.rounded.HorizontalRule
-import androidx.compose.material.icons.rounded.Minimize
-import androidx.compose.material3.Button
-import androidx.compose.material3.ColorScheme
+import androidx.compose.material.icons.rounded.AutoMode
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,73 +28,58 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.input.pointer.PointerIcon.Companion.Text
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.useResource
-import androidx.compose.ui.semantics.SemanticsProperties.Text
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.ApplicationScope
-import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Tray
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import di.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.descriptors.PrimitiveKind
-import org.jetbrains.jewel.foundation.GlobalColors
 import org.jetbrains.jewel.foundation.theme.JewelTheme
-import org.jetbrains.jewel.foundation.theme.ThemeDefinition
-import org.jetbrains.jewel.intui.core.theme.IntUiDarkTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
+import org.jetbrains.jewel.intui.window.styling.dark
 import org.jetbrains.jewel.intui.window.styling.light
 import org.jetbrains.jewel.ui.ComponentStyling
-import org.jetbrains.jewel.ui.component.IconButton
-import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.window.DecoratedWindow
 import org.jetbrains.jewel.window.TitleBar
 import org.jetbrains.jewel.window.newFullscreenControls
-import org.jetbrains.jewel.window.styling.DecoratedWindowStyle
 import org.jetbrains.jewel.window.styling.LocalTitleBarStyle
 import org.jetbrains.jewel.window.styling.TitleBarColors
+import org.jetbrains.jewel.window.styling.TitleBarMetrics
 import org.jetbrains.jewel.window.styling.TitleBarStyle
 import root.RootComponentImpl
-import view.ThemeColors
+import server.DeviceTypex
+import view.AppTheme
+import view.LocalViewManager
+import view.ThemeTint
+import view.ViewManager
 import view.WindowType
-import view.colorSchemeGetter
-import java.awt.AWTEvent
-import java.awt.Desktop
+import view.toRGB
+import view.toTint
 import java.awt.Dimension
 import java.net.InetAddress
 import java.net.NetworkInterface
-import java.net.URI
 import java.util.UUID
-import javax.swing.JFrame
 import javax.swing.SwingUtilities
-import javax.swing.WindowConstants
-import server.DeviceTypex
 
 
 // c53379fe-19a7-3f07-911c-0c9d195b1925
@@ -142,7 +115,17 @@ fun main() {
         val windowState = rememberWindowState()
         windowState.size = DpSize(480.dp, 800.dp)
         var isVisible by remember { mutableStateOf(true) }
+
+        val settingsRepository: SettingsRepository = Inject.instance()
+        val rgb = settingsRepository.fetchSeedColor().toRGB()
         val themeDefinition = JewelTheme.darkThemeDefinition()
+        val viewManager = remember {
+            ViewManager(
+                seedColor = mutableStateOf(Color(red = rgb[0], green = rgb[1], blue = rgb[2])),
+                tint = mutableStateOf(settingsRepository.fetchTint().toTint())
+            )
+        }
+
 
         Tray(
             icon = TrayIcon,
@@ -156,125 +139,116 @@ fun main() {
                     onClick = ::exitApplication
                 )
             },
-            tooltip = "PansionApp",
+            tooltip = "Pansion App",
             onAction = {
                 isVisible = true
             }
         )
-        if (isVisible) {
-            IntUiTheme(
-                themeDefinition,
-                styling = ComponentStyling.decoratedWindow(
-                    titleBarStyle = TitleBarStyle.light()
-                )
-            ) {
-                DecoratedWindow(
-                    onCloseRequest = { isVisible = false },
-                    state = windowState,
-                    title = "PansionApp",
-                    visible = isVisible,
-                    icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
-
+        CompositionLocalProvider(
+            LocalViewManager provides viewManager
+        ) {
+            if (isVisible) {
+                IntUiTheme(
+                    themeDefinition,
+                    styling = ComponentStyling.decoratedWindow(
+                        titleBarStyle = TitleBarStyle.light()
+                    )
                 ) {
-                    val color = remember { mutableStateOf(ThemeColors.Default.name) }
-                    val isDark = remember { mutableStateOf(true) }
-                    val colorScheme = colorSchemeGetter(isDark.value, color.value)
-                    val l = LocalTitleBarStyle.current
-                    TitleBar(
-                        Modifier.newFullscreenControls(),
-                        style = TitleBarStyle(
-                            colors = TitleBarColors(
-                                background = colorScheme.surfaceColorAtElevation(2.dp),
-                                inactiveBackground = colorScheme.background,
-                                content = colorScheme.onBackground,
-                                border = l.colors.border,
-                                fullscreenControlButtonsBackground = l.colors.fullscreenControlButtonsBackground,
-                                titlePaneButtonHoveredBackground = l.colors.titlePaneButtonHoveredBackground,
-                                titlePaneButtonPressedBackground = l.colors.titlePaneButtonPressedBackground,
-                                titlePaneCloseButtonHoveredBackground = l.colors.titlePaneCloseButtonHoveredBackground,
-                                titlePaneCloseButtonPressedBackground = l.colors.titlePaneCloseButtonPressedBackground,
-                                iconButtonHoveredBackground = l.colors.iconButtonHoveredBackground,
-                                iconButtonPressedBackground = l.colors.iconButtonPressedBackground,
-                                dropdownHoveredBackground = l.colors.dropdownHoveredBackground,
-                                dropdownPressedBackground = l.colors.dropdownPressedBackground
-                            ),
-                            metrics = l.metrics,
-                            icons = l.icons,
-                            dropdownStyle = l.dropdownStyle,
-                            iconButtonStyle = l.iconButtonStyle,
-                            paneButtonStyle = l.paneButtonStyle,
-                            paneCloseButtonStyle = l.paneCloseButtonStyle,
-                        ),
-                        gradientStartColor = colorScheme.surfaceColorAtElevation(26.dp)
-                    ) {
-                        Text(
-                            text = title,
-                            color = colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.align(Alignment.Start).padding(start = 15.dp),
-                        )
+                    AppTheme {
+                        DecoratedWindow(
+                            onCloseRequest = { isVisible = false },
+                            state = windowState,
+                            title = "Pansion App",
+                            visible = isVisible,
+                            icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 
+                        ) {
+                            val l = LocalTitleBarStyle.current
+                            viewManager.topPadding = (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
+                            this.window.setMinSize(400, 600)
+                            Box(contentAlignment = Alignment.TopCenter) {
+                                Root(root, WindowType.PC)
+                                TitleBar(
+                                    Modifier.newFullscreenControls(),
+                                    style = TitleBarStyle(
+                                        colors = TitleBarColors(
+                                            background = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                                                alpha = 0.0f
+                                            ) else MaterialTheme.colorScheme.background,
+                                            inactiveBackground = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                                                alpha = 0.0f
+                                            ) else MaterialTheme.colorScheme.background,
+                                            content = MaterialTheme.colorScheme.onBackground,
+                                            border = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                                                alpha = 0.0f
+                                            ) else MaterialTheme.colorScheme.background,
+                                            fullscreenControlButtonsBackground = l.colors.fullscreenControlButtonsBackground,
+                                            titlePaneButtonHoveredBackground = l.colors.titlePaneButtonHoveredBackground,
+                                            titlePaneButtonPressedBackground = l.colors.titlePaneButtonPressedBackground,
+                                            titlePaneCloseButtonHoveredBackground = l.colors.titlePaneCloseButtonHoveredBackground,
+                                            titlePaneCloseButtonPressedBackground = l.colors.titlePaneCloseButtonPressedBackground,
+                                            iconButtonHoveredBackground = l.colors.iconButtonHoveredBackground,
+                                            iconButtonPressedBackground = l.colors.iconButtonPressedBackground,
+                                            dropdownHoveredBackground = l.colors.dropdownHoveredBackground,
+                                            dropdownPressedBackground = l.colors.dropdownPressedBackground
+                                        ),
+                                        metrics = TitleBarMetrics(
+                                            height = l.metrics.height,
+                                            titlePaneButtonSize = l.metrics.titlePaneButtonSize,
+                                            gradientStartX = 0.dp, //-200
+                                            gradientEndX = 0.dp //300
+                                        ),
+                                        icons = l.icons,
+                                        dropdownStyle = l.dropdownStyle,
+                                        iconButtonStyle = l.iconButtonStyle,
+                                        paneButtonStyle = l.paneButtonStyle,
+                                        paneCloseButtonStyle = l.paneCloseButtonStyle,
+                                    ),
+                                    gradientStartColor = MaterialTheme.colorScheme.inversePrimary//.surfaceColorAtElevation(26.dp)
+                                ) {
+                                    AnimatedContent(
+                                        when (viewManager.tint.value) {
+                                            ThemeTint.Auto -> Icons.Rounded.AutoMode
+                                            ThemeTint.Dark -> Icons.Rounded.DarkMode
+                                            ThemeTint.Light -> Icons.Rounded.LightMode
+                                        },
+                                        modifier = Modifier.align(Alignment.Start)
+                                            .padding(start = 5.dp),
+                                    ) {
+                                        androidx.compose.material3.IconButton(
+                                            onClick = {
+                                                changeTint(
+                                                    viewManager
+                                                )
+                                            },
+                                            modifier = Modifier.fillMaxHeight()
+                                        ) {
+                                            Icon(
+                                                imageVector = it,
+                                                "Change Theme",
+                                                tint = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+
+                                    }
+                                    Text(
+                                        text = title,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        fontWeight = FontWeight.Bold
+                                    )
+
+                                }
+                            }
+                        }
                     }
-                    this.window.setMinSize(400, 600)
-
-
-//                Row(
-//                    modifier = Modifier.background(color = Color(75, 75, 75))
-//                        .fillMaxWidth()
-//                        .height(30.dp)
-//                        .padding(start = 20.dp, end = 10.dp),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    WindowDraggableArea(
-//                        modifier = Modifier.weight(1f)
-//                    ) {
-//                        Text(text = "Undecorated window", color = Color.White)
-//                    }
-//                    Row {
-//                        Button(
-//                            onClick = {
-//                                val current = window.isFocused
-//                                if (current != null) {
-//                                    window.extendedState = JFrame.ICONIFIED
-//                                }
-//                            }
-//                        )
-//                        Spacer(modifier = Modifier.width(5.dp))
-//                        Button(
-//                            onClick = {
-//                                val current = window.isFocused
-//                                if (current != null) {
-//                                    if (window.extendedState == JFrame.MAXIMIZED_BOTH) {
-//                                        window.extendedState = JFrame.NORMAL
-//                                    } else {
-//                                        window.extendedState = JFrame.MAXIMIZED_BOTH
-//                                    }
-//                                }
-//                            }
-//                        )
-//                        Spacer(modifier = Modifier.width(5.dp))
-//                        Button(
-//                            onClick = {
-//                                window.defaultCloseOperation
-//                            }
-//                        )
-//                    }
-//                }
-
-                    Root(root, WindowType.PC) { colorX, isDarkX ->
-                        isDark.value = isDarkX
-                        color.value = colorX
-                    }
-
-
                 }
             }
         }
     }
+}
 
 
 //    JFrame().init(root)
-}
 
 
 object TrayIcon : Painter() {
