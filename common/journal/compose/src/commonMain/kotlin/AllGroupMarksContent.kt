@@ -65,6 +65,7 @@ import decomposeComponents.CAlertDialogContent
 import kotlinx.coroutines.CoroutineScope
 import lessonReport.LessonReportStore
 import report.UserMark
+import resources.GeologicaFont
 import server.fetchReason
 import server.roundTo
 import view.LocalViewManager
@@ -117,7 +118,7 @@ fun AllGroupMarksContent(
                                     text = buildAnnotatedString {
                                         withStyle(
                                             SpanStyle(
-                                                fontWeight = FontWeight.Bold,
+                                                fontWeight = FontWeight.Bold
                                             )
                                         ) {
                                             append(model.subjectName)
@@ -126,7 +127,7 @@ fun AllGroupMarksContent(
                                     overflow = TextOverflow.Ellipsis,
                                     fontSize = bigTextSize,
                                     maxLines = 1,
-                                    style = TextStyle(
+                                    style = androidx.compose.material3.LocalTextStyle.current.copy(
                                         lineHeightStyle = LineHeightStyle(
                                             alignment = LineHeightStyle.Alignment.Bottom,
                                             trim = LineHeightStyle.Trim.LastLineBottom
@@ -141,7 +142,7 @@ fun AllGroupMarksContent(
                                 text = buildAnnotatedString {
                                     withStyle(
                                         SpanStyle(
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.Bold
                                         )
                                     ) {
                                         append(model.groupName)
@@ -150,7 +151,7 @@ fun AllGroupMarksContent(
                                 },
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1,
-                                style = TextStyle(
+                                style = androidx.compose.material3.LocalTextStyle.current.copy(
                                     fontSize = smallTextSize,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
@@ -261,7 +262,7 @@ private fun AllGroupMarksStudentItem(
     val value = (AVGMarks.sumOf { it.content.toInt() }) / (AVGMarks.size).toFloat()
 
     ElevatedCard(
-        Modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(top = 10.dp)
+        Modifier.fillMaxWidth().padding(top = 10.dp)//.padding(horizontal = 10.dp)
             .animateContentSize().clip(CardDefaults.elevatedShape)
     ) {
 //            .clickable {

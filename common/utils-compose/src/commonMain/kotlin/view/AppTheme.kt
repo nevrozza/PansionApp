@@ -1,8 +1,12 @@
 package view
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalFontFamilyResolver
+import androidx.compose.ui.text.font.FontFamily
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
 import resources.GeologicaFont
@@ -40,7 +44,11 @@ fun AppTheme(content: @Composable () -> Unit) {
         ),
         animate = true
     ) {
-        content()
+        CompositionLocalProvider(
+            LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = font)
+        ) {
+            content()
+        }
     }
 }
 

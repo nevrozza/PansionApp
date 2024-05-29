@@ -8,6 +8,7 @@ import journal.JournalStore.Label
 import journal.JournalStore.State
 import journal.init.TeacherGroup
 import report.ReportHeader
+import server.getSixTime
 
 interface JournalStore : Store<Intent, State, Label> {
     data class State(
@@ -16,12 +17,13 @@ interface JournalStore : Store<Intent, State, Label> {
         val teacherGroups: List<TeacherGroup> = emptyList(),
         val headers: List<ReportHeader> = emptyList(),
         val creatingReportId: Int = -1,
-        val openingReportData: ReportData? = null
+        val openingReportData: ReportData? = null,
+        val time: String = getSixTime()
     )
 
     sealed interface Intent {
         data object Init : Intent
-        data class OnGroupClicked(val groupId: Int) : Intent
+        data class OnGroupClicked(val groupId: Int, val time: String) : Intent
 
         data object Refresh : Intent
 
@@ -42,6 +44,8 @@ interface JournalStore : Store<Intent, State, Label> {
 
         data class ReportDataFetched(val reportData: ReportData) : Message
         data object ReportDataReseted : Message
+
+        data class TimeChanged(val time: String) : Message
     }
 
     sealed interface Label

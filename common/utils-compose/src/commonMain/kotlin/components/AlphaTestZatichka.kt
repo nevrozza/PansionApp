@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+import resources.GeologicaFont
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +57,8 @@ fun AlphaTestZatichka(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(buildAnnotatedString {
-                withStyle(SpanStyle(fontSize = 25.sp)) {
+                withStyle(SpanStyle(fontSize = 25.sp
+                )) {
                     append("Огромное спасибо!!\n")
                 }
                 append("что согласились попробовать эту\n")

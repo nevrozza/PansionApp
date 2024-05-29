@@ -55,6 +55,7 @@ import components.CLazyColumn
 import components.CustomTextField
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.haze
+import resources.GeologicaFont
 import schedule.ScheduleComponent
 import users.UsersStore
 import view.LocalViewManager
@@ -182,7 +183,8 @@ fun CabinetsContent(
                 ) {
                     Text(
                         buildAnnotatedString {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold
+                            )) {
                                 append(p.fio.surname + " ")
                             }
                             append("${p.fio.name} ${p.fio.praname}")

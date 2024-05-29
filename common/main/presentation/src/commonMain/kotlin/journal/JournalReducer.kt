@@ -17,6 +17,7 @@ object JournalReducer : Reducer<State, Message> {
             Message.CreatingIdReseted -> copy(creatingReportId = -1)
             Message.ReportDataReseted -> copy(openingReportData = null)
             is Message.ReportDataFetched -> copy(openingReportData = msg.reportData)
+            is Message.TimeChanged -> copy(time = msg.time)
         }
     }
 }

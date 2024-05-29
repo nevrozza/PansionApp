@@ -12,6 +12,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
@@ -62,6 +66,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -69,6 +74,7 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,26 +106,31 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AlphaTestZatichka
 import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.DateButton
 import components.LoadingAnimation
+import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
+import decomposeComponents.CAlertDialogContent
 import dev.chrisbanes.haze.hazeChild
 import home.HomeComponent
 import home.HomeStore
+import journal.JournalStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
+import report.ReportHeader
+import resources.GeologicaFont
 import server.Roles
 import server.fetchReason
 import server.getCurrentDayTime
+import server.getDate
 import server.roundTo
 import server.toMinutes
 import server.weekPairs
@@ -146,241 +157,340 @@ fun HomeContent(
 fun TeacherHomeContent(
     component: HomeComponent
 ) {
-    val model by component.model.subscribeAsState()
-    val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
-    val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
+    if (component.journalComponent != null) {
+        val model by component.model.subscribeAsState()
+        val journalModel by component.journalComponent!!.model.subscribeAsState()
+        val nJournalOpenReportModel by component.journalComponent!!.nOpenReportInterface.networkModel.subscribeAsState()
+        val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
+        val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
 
-    val focusManager = LocalFocusManager.current
-    val viewManager = LocalViewManager.current
+        val focusManager = LocalFocusManager.current
+        val viewManager = LocalViewManager.current
 //    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+        val imeState = rememberImeState()
+        val lazyListState = rememberLazyListState()
+        val coroutineScope = rememberCoroutineScope()
 
-    val isMainView = lazyListState.firstVisibleItemIndex in listOf(0, 1)
+        val isMainView = lazyListState.firstVisibleItemIndex in listOf(0, 1)
 
-    val refreshing =
-        (nTeacherModel.state == NetworkState.Loading || nScheduleModel.state == NetworkState.Loading)
-    val refreshState = rememberPullRefreshState(
-        refreshing,
-        { component.onEvent(HomeStore.Intent.Init) }
-    )
+        val refreshing =
+            (nTeacherModel.state == NetworkState.Loading || nScheduleModel.state == NetworkState.Loading)
+        val refreshState = rememberPullRefreshState(
+            refreshing,
+            { component.onEvent(HomeStore.Intent.Init) }
+        )
 
-
-    Scaffold(
-        Modifier.fillMaxSize()
-            .onKeyEvent {
-                if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-                    component.onEvent(HomeStore.Intent.Init)
-                }
-                false
-            },
-        topBar = {
-            val isHaze = viewManager.hazeStyle != null
-            Column(
-                Modifier.then(
-                    if (isHaze) Modifier.hazeChild(
-                        state = viewManager.hazeState,
-                        style = viewManager.hazeStyle!!.value
-                    )
-                    else Modifier
-                )
-            ) {
-                AppBar(
-                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
-                    title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            println(lazyListState.firstVisibleItemIndex)
-                            AnimatedContent(
-                                targetState = if (lazyListState.firstVisibleItemIndex !in listOf(
-                                        0,
-                                        1
-                                    )
-                                ) "Расписание" else "Главная"
-                            ) {
-                                Text(
-                                    it,
-                                    modifier = Modifier.padding(start = 10.dp),
-                                    fontSize = 25.sp,
-                                    fontWeight = FontWeight.Black,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                            AnimatedContent(
-                                if (isMainView) ""
-                                else "${
-                                    model.currentDate.second.substring(
-                                        0,
-                                        5
-                                    )
-                                }, ${weekPairs[model.currentDate.first]}"
-                            ) {
-                                Text(
-                                    it,
-                                    modifier = Modifier.padding(start = 7.dp).offset(y = 2.dp),
-                                    fontSize = 15.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontWeight = FontWeight.Bold,
-                                    lineHeight = 10.sp,
-                                    maxLines = 2, overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                        }
-                    },
-                    actionRow = {
-                        AnimatedVisibility(
-                            !isMainView
-                        ) {
-                            CalendarButton(component)
-                        }
-                        IconButton(
-                            onClick = { component.onEvent(HomeStore.Intent.Init) }
-                        ) {
-                            Icon(
-                                Icons.Filled.Refresh, null
-                            )
-                        }
-                        if (viewManager.orientation.value != WindowScreen.Expanded) {
-                            IconButton(
-                                onClick = {
-                                    component.onOutput(HomeComponent.Output.NavigateToSettings)
-                                }
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Settings, null
-                                )
-                            }
-                        }
-
-                    }
-                )
-                AnimatedVisibility(model.isDatesShown && !isMainView) {
-                    DatesLine(
-                        component = component,
-                        model = model
-                    )
+        if (component.journalComponent != null) {
+            if (viewManager.orientation.value != WindowScreen.Expanded) {
+                if (journalModel.creatingReportId != -1) {
+                    component.journalComponent!!.createReport()
+                    component.journalComponent!!.onEvent(JournalStore.Intent.ResetCreatingId)
+                } else if (journalModel.openingReportData != null) {
+                    component.journalComponent!!.openReport(journalModel.openingReportData!!)
+                    component.reportsDialog.onEvent(CAlertDialogStore.Intent.HideDialog)
+                    component.journalComponent!!.onEvent(JournalStore.Intent.ResetReportData)
                 }
             }
+
         }
-    ) { padding ->
-        Box(Modifier.fillMaxSize()) {
-            CLazyColumn(
-                modifier = Modifier
-                    .pullRefresh(refreshState),
-                state = lazyListState,
-                padding = padding,
-                isBottomPaddingNeeded = true
-            ) {
-                items(3) { num ->
-                    if (num == 0) {
-                        Text(
-                            "Успеваемость учеников",
-                            modifier = Modifier.fillMaxWidth(),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
+
+        Scaffold(
+            Modifier.fillMaxSize()
+                .onKeyEvent {
+                    if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
+                        component.onEvent(HomeStore.Intent.Init)
+                    }
+                    false
+                },
+            topBar = {
+                val isHaze = viewManager.hazeStyle != null
+                Column(
+                    Modifier.then(
+                        if (isHaze) Modifier.hazeChild(
+                            state = viewManager.hazeState,
+                            style = viewManager.hazeStyle!!.value
                         )
-                        Spacer(Modifier.height(10.dp))
-                        Crossfade(
-                            nTeacherModel.state,
-                            modifier = Modifier.animateContentSize()
-                        ) { state -> //, modifier = Modifier.padding(top = 10.dp)
-                            when (state) {
-                                NetworkState.None -> {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        model.teacherGroups.sortedBy { it.subjectId }.forEach {
-                                            FilledTonalButton(
-                                                modifier = Modifier.fillMaxWidth()
-                                                    .padding(bottom = 10.dp)
-                                                    .padding(horizontal = 50.dp)
-                                                    .handy(),
-                                                onClick = {
-                                                    component.onOutput(
-                                                        HomeComponent.Output.NavigateToAllGroupMarks(
-                                                            subjectId = it.subjectId,
-                                                            subjectName = it.subjectName,
-                                                            groupId = it.cutedGroup.groupId,
-                                                            groupName = it.cutedGroup.groupName
+                        else Modifier
+                    )
+                ) {
+                    AppBar(
+                        containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                        title = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                println(lazyListState.firstVisibleItemIndex)
+                                AnimatedContent(
+                                    targetState = if (lazyListState.firstVisibleItemIndex !in listOf(
+                                            0,
+                                            1
+                                        )
+                                    ) "Расписание" else "Главная"
+                                ) {
+                                    Text(
+                                        it,
+                                        modifier = Modifier.padding(start = 10.dp),
+                                        fontSize = 25.sp,
+                                        fontWeight = FontWeight.Black,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                AnimatedContent(
+                                    if (isMainView) ""
+                                    else "${
+                                        model.currentDate.second.substring(
+                                            0,
+                                            5
+                                        )
+                                    }, ${weekPairs[model.currentDate.first]}"
+                                ) {
+                                    Text(
+                                        it,
+                                        modifier = Modifier.padding(start = 7.dp).offset(y = 2.dp),
+                                        fontSize = 15.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontWeight = FontWeight.Bold,
+                                        lineHeight = 10.sp,
+                                        maxLines = 2, overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        },
+                        actionRow = {
+                            AnimatedVisibility(
+                                !isMainView
+                            ) {
+                                CalendarButton(component)
+                            }
+                            if (viewManager.orientation.value != WindowScreen.Expanded) {
+                                IconButton(
+                                    onClick = { component.onEvent(HomeStore.Intent.Init) }
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Refresh, null
+                                    )
+                                }
+
+
+                                IconButton(
+                                    onClick = {
+                                        component.onOutput(HomeComponent.Output.NavigateToSettings)
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Settings, null
+                                    )
+                                }
+                            }
+
+                        }
+                    )
+                    AnimatedVisibility(model.isDatesShown && !isMainView) {
+                        DatesLine(
+                            component = component,
+                            model = model
+                        )
+                    }
+                }
+            }
+        ) { padding ->
+            Box(Modifier.fillMaxSize()) {
+                CLazyColumn(
+                    modifier = Modifier
+                        .pullRefresh(refreshState),
+                    state = lazyListState,
+                    padding = padding,
+                    isBottomPaddingNeeded = true
+                ) {
+                    items(3) { num ->
+                        if (num == 0) {
+                            Text(
+                                "Успеваемость учеников",
+                                modifier = Modifier.fillMaxWidth(),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            Crossfade(
+                                nTeacherModel.state,
+                                modifier = Modifier.animateContentSize()
+                            ) { state -> //, modifier = Modifier.padding(top = 10.dp)
+                                when (state) {
+                                    NetworkState.None -> {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            model.teacherGroups.sortedBy { it.subjectId }.forEach {
+                                                FilledTonalButton(
+                                                    modifier = Modifier.fillMaxWidth()
+                                                        .padding(bottom = 10.dp)
+                                                        .padding(horizontal = 50.dp)
+                                                        .handy(),
+                                                    onClick = {
+                                                        component.onOutput(
+                                                            HomeComponent.Output.NavigateToAllGroupMarks(
+                                                                subjectId = it.subjectId,
+                                                                subjectName = it.subjectName,
+                                                                groupId = it.cutedGroup.groupId,
+                                                                groupName = it.cutedGroup.groupName
+                                                            )
                                                         )
+                                                    },
+                                                    shape = RoundedCornerShape(30),
+                                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation( //if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else
+                                                            2.dp
+                                                        ),
+                                                        contentColor = MaterialTheme.colorScheme.onSurface //if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else
                                                     )
-                                                },
-                                                shape = RoundedCornerShape(30),
-                                                colors = ButtonDefaults.filledTonalButtonColors(
-                                                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation( //if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else
-                                                        2.dp
-                                                    ),
-                                                    contentColor = MaterialTheme.colorScheme.onSurface //if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else
-                                                )
-                                            ) {
-                                                Row(
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(vertical = 5.dp),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.SpaceBetween
                                                 ) {
-                                                    Text(
-                                                        buildAnnotatedString {
-                                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                                                append(it.subjectName)
+                                                    Row(
+                                                        Modifier.fillMaxWidth()
+                                                            .padding(vertical = 5.dp),
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.SpaceBetween
+                                                    ) {
+                                                        Text(
+                                                            buildAnnotatedString {
+                                                                withStyle(
+                                                                    SpanStyle(
+                                                                        fontWeight = FontWeight.Bold
+                                                                    )
+                                                                ) {
+                                                                    append(it.subjectName)
+                                                                }
+                                                                append(" ")
+                                                                append(it.cutedGroup.groupName)
                                                             }
-                                                            append(" ")
-                                                            append(it.cutedGroup.groupName)
-                                                        }
-                                                    )
-                                                    Icon(Icons.Rounded.ArrowForwardIos, null)
+                                                        )
+                                                        Icon(Icons.Rounded.ArrowForwardIos, null)
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                NetworkState.Loading -> {
-                                    Box(
-                                        Modifier.height(100.dp).fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        LoadingAnimation()
+                                    NetworkState.Loading -> {
+                                        Box(
+                                            Modifier.height(100.dp).fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            LoadingAnimation()
+                                        }
                                     }
-                                }
 
-                                NetworkState.Error -> {
-                                    Column(
-                                        Modifier.fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(nTeacherModel.error)
-                                        Spacer(Modifier.height(7.dp))
-                                        CustomTextButton("Попробовать ещё раз") {
-                                            nTeacherModel.onFixErrorClick()
+                                    NetworkState.Error -> {
+                                        Column(
+                                            Modifier.fillMaxWidth(),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(nTeacherModel.error)
+                                            Spacer(Modifier.height(7.dp))
+                                            CustomTextButton("Попробовать ещё раз") {
+                                                nTeacherModel.onFixErrorClick()
+                                            }
                                         }
                                     }
                                 }
                             }
+                        } else if (num == 1) {
+                            RaspisanieTitleBox(
+                                isMainView = isMainView,
+                                model = model,
+                                component = component
+                            )
+                        } else {
+                            RaspisanieTable(
+                                model = model,
+                                nScheduleModel = nScheduleModel,
+                                component = component,
+                                journalModel = journalModel
+                            )
                         }
-                    } else if (num == 1) {
-                        RaspisanieTitleBox(
-                            isMainView = isMainView,
-                            model = model,
-                            component = component
-                        )
-                    } else {
-                        RaspisanieTable(
-                            model,
-                            nScheduleModel
-                        )
+                    }
+
+                }
+                PullRefreshIndicator(
+                    modifier = Modifier.align(alignment = Alignment.TopCenter),
+                    refreshing = refreshing,
+                    state = refreshState,
+                )
+                if (viewManager.orientation.value != WindowScreen.Expanded)
+                    StudentsPreviewDialog(
+                        component.journalComponent!!, journalModel
+                    )
+                AnimatedVisibility(
+                    nJournalOpenReportModel.state != NetworkState.None, modifier = Modifier.align(Alignment.Center),
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut()
+                ) {
+                    Crossfade(nJournalOpenReportModel.state) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.background,
+                            tonalElevation = 5.dp,
+                            shadowElevation = 10.dp,
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            when(it) {
+                                NetworkState.Error -> Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("Не удалось загрузить отчёт")
+                                    CustomTextButton("Закрыть") {
+                                        component.journalComponent!!.nOpenReportInterface.goToNone()
+                                    }
+                                }
+
+                                else -> CircularProgressIndicator(Modifier.padding(10.dp))
+                            }
+                        }
                     }
                 }
+                CAlertDialogContent(
+                    component = component.reportsDialog,
+                    title = "Отчёты"
+                ) {
+                    Crossfade(nJournalOpenReportModel.state) {
+                        when(it) {
+                            NetworkState.None -> Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                model.someHeaders.sortedBy { it.reportId }.forEach { item ->
+                                    JournalItemCompose(
+                                        subjectName = item.subjectName,
+                                        groupName = item.groupName,
+                                        lessonReportId = item.reportId,
+                                        date = item.date,
+                                        teacher = item.teacherName,
+                                        time = item.time,
+                                        isEnabled = true,
+                                        isActive = true
+                                    ) {
+                                        component.journalComponent!!.onEvent(
+                                            JournalStore.Intent.FetchReportData(
+                                                item
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            NetworkState.Loading -> CircularProgressIndicator()
+                            NetworkState.Error -> Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Не удалось загрузить отчёт")
+                                CustomTextButton("Выбрать ещё раз") {
+                                    component.journalComponent!!.nOpenReportInterface.goToNone()
+                                }
+                            }
 
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+
 @Composable
 private fun RaspisanieTable(
     model: HomeStore.State,
-    nScheduleModel: NetworkInterface.NetworkModel
+    journalModel: JournalStore.State?,
+    nScheduleModel: NetworkInterface.NetworkModel,
+    component: HomeComponent
 ) {
     val items = model.items[model.currentDate.second]
     Crossfade(nScheduleModel.state) { st ->
@@ -403,7 +513,11 @@ private fun RaspisanieTable(
                                     fio = it.teacherFio,
                                     date = model.currentDate.second,
                                     today = model.today,
-                                    role = model.role
+                                    role = model.role,
+                                    component = component,
+                                    groupId = it.groupId,
+                                    model = model,
+                                    journalModel = journalModel
                                 )
                                 Spacer(Modifier.padding(10.dp))
                             }
@@ -771,16 +885,17 @@ fun StudentHomeContent(
                         )
                     } else {
                         RaspisanieTable(
-                            model,
-                            nScheduleModel
+                            model = model,
+                            nScheduleModel = nScheduleModel,
+                            component = component,
+                            journalModel = null
                         )
                     }
                 }
             }
 
             PullRefreshIndicator(
-                modifier = Modifier.align(alignment = Alignment.TopCenter)
-                    .padding(top = padding.calculateTopPadding()),
+                modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = refreshing,
                 state = refreshState,
             )
@@ -877,13 +992,17 @@ fun Lesson(
     num: Int,
     title: String,
     group: String,
+    groupId: Int,
     start: String,
     end: String,
     cabinet: String,
     fio: FIO,
     date: String,
     today: String,
-    role: String
+    role: String,
+    component: HomeComponent,
+    model: HomeStore.State,
+    journalModel: JournalStore.State?
 ) {
     val todayParts = today.substring(0, 5).split(".")
     val dateParts = date.substring(0, 5).split(".")
@@ -893,7 +1012,7 @@ fun Lesson(
             (todayParts[1].toInt() > dateParts[1].toInt())
     val minutesOst = start.toMinutes() - currentTime
     Row(Modifier.padding(end = 10.dp)) {
-        Box(Modifier.width(20.dp).height(50.dp), contentAlignment = Alignment.CenterStart) {
+        Box(Modifier.width(25.dp).height(50.dp), contentAlignment = Alignment.CenterStart) {
             Text(
                 num.toString(),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
@@ -912,7 +1031,7 @@ fun Lesson(
                         SpanStyle(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                         )
                     ) {
                         append(title.capitalize())
@@ -960,21 +1079,6 @@ fun Lesson(
                     }
 
                 }, lineHeight = 17.sp)
-//                Text(
-//                    text = group,
-//                    fontWeight = FontWeight.SemiBold,
-//                    fontSize = 17.sp,
-//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
-//                    modifier = Modifier.offset(y = (-4).dp)
-//                )
-//                Text(
-//                    "$start-$end",
-//                    lineHeight = 5.sp,
-//                    fontSize = 12.sp,
-//                    fontWeight = FontWeight.SemiBold,
-//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f),
-//                    modifier = Modifier.offset(y = (-4).dp)
-//                )
             }
 
             if (role == Roles.student) {
@@ -983,7 +1087,7 @@ fun Lesson(
                 ) {
                     val notNow = minutesOst > 0 && !isEnded
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (notNow ) {
+                        if (notNow) {
                             Icon(Icons.Rounded.Schedule, null, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(5.dp))
                         }
@@ -995,14 +1099,39 @@ fun Lesson(
                         )
                     }
                 }
-            } else {
+            } else if (journalModel != null) {
                 if (isEnded || today == date) {
+                    val headers = journalModel.headers.filter {
+                        it.date == model.currentDate.second &&
+                                it.groupId == groupId &&
+                                (it.time.toMinutes() >= start.toMinutes() && it.time.toMinutes() < end.toMinutes())
+                    }
+                    val isCreated = headers.isNotEmpty()
                     FilledTonalButton(
-                        onClick = {},
+                        onClick = {
+                            with(component.journalComponent!!) {
+                                if (isCreated) {
+                                    if (headers.size == 1) {
+                                        onEvent(JournalStore.Intent.FetchReportData(headers.first()))
+                                    } else {
+                                        component.onEvent(HomeStore.Intent.UpdateSomeHeaders(headers))
+                                        component.reportsDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                    }
+                                } else if (!isEnded) {
+                                    onEvent(
+                                        JournalStore.Intent.OnGroupClicked(
+                                            groupId,
+                                            start
+                                        )
+                                    )
+                                }
+                            }
+                        },
+                        enabled = !isEnded || isCreated,
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
                     ) {
                         Text(
-                            if (isEnded) "Посмотреть отчёт" else "Создать отчёт",
+                            if (isCreated) "Посмотреть отчёт" else if (isEnded) "Отчёт не найден" else "Создать отчёт",
                             lineHeight = 10.sp
                         )
                     }
@@ -1089,6 +1218,7 @@ fun DatesLine(component: HomeComponent, model: HomeStore.State) {
                     component.onEvent(HomeStore.Intent.ChangeDate(item))
                     //component.onEvent(ScheduleStore.Intent.ChangeCurrentDate(item))
                 }
+
             }
         }
         Spacer(Modifier.height(5.dp))

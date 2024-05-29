@@ -7,6 +7,7 @@ import home.HomeStore.Label
 import home.HomeStore.State
 import journal.init.TeacherGroup
 import report.Grade
+import report.ReportHeader
 import schedule.PersonScheduleItem
 import schedule.ScheduleItem
 import server.getCurrentDate
@@ -43,7 +44,8 @@ interface HomeStore : Store<Intent, State, Label> {
         val dates: List<Pair<Int, String>> = getDates(4, 4),
         val isDatesShown: Boolean = false,
 
-        val role: String
+        val role: String,
+        val someHeaders: List<ReportHeader> = emptyList()
     )
 
     sealed interface Intent {
@@ -52,6 +54,8 @@ interface HomeStore : Store<Intent, State, Label> {
         data object ChangeIsDatesShown : Intent
 
         data class ChangeDate(val date: Pair<Int, String>) : Intent
+
+        data class UpdateSomeHeaders(val someHeaders: List<ReportHeader>) : Intent
 
 //        data class ChangeDate()
         //val avatarId: Int,
@@ -62,6 +66,7 @@ interface HomeStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+        data class SomeHeadersUpdated(val someHeaders: List<ReportHeader>) : Message
         data class TeacherGroupUpdated(val teacherGroups: List<TeacherGroup>): Message
         data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Pair<Int, Int>?>) : Message
 //        data class Inited(val avatarId: Int,

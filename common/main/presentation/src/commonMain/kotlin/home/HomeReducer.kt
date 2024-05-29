@@ -21,6 +21,7 @@ object HomeReducer : Reducer<State, Message> {
             is Message.ItemsUpdated -> copy(items = msg.items)
             Message.IsDatesShownChanged -> copy(isDatesShown = !isDatesShown)
             is Message.DateChanged -> copy(currentDate = msg.date)
+            is Message.SomeHeadersUpdated -> copy(someHeaders = msg.someHeaders)
         }
     }
 }

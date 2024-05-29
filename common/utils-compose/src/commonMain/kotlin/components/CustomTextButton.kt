@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import resources.GeologicaFont
 
 @Composable
 fun CustomTextButton(
@@ -34,7 +35,8 @@ fun CustomTextButton(
     onClick: () -> Unit
 ) {
     CustomTextButton(text = buildAnnotatedString {
-        withStyle(SpanStyle(fontWeight = fontWeight)) {
+        withStyle(SpanStyle(fontWeight = fontWeight
+        )) {
             append(
                 text
             )

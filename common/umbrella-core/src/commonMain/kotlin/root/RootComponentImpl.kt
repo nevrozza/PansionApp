@@ -5,6 +5,7 @@ import lessonReport.LessonReportComponent
 import ReportData
 import SettingsComponent
 import activation.ActivationComponent
+import activation.ActivationStore
 import admin.AdminComponent
 import admin.AdminStore
 import allGroupMarks.AllGroupMarksComponent
@@ -14,6 +15,8 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.active
+import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.value.Value
 
@@ -23,6 +26,8 @@ import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.webhistory.WebHistoryController
+import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
@@ -79,7 +84,27 @@ class RootComponentImpl(
 
     override fun onBackClicked() {
         navigation.pop()
+        val root = getRoot(childStack.active.instance)
+        rootStore.accept(
+            RootStore.Intent.ChangeCurrentScreen(
+                currentCategory = root.first,
+                currentScreen = root.second
+            )
+        )
+
+
     }
+
+    private fun getRoot(child: Child): Pair<RootComponent.RootCategories, Config> {
+        return when (child) {
+            is Child.MainAdmin -> Pair(Admin, Config.MainAdmin)
+            is Child.MainHome -> Pair(Home, Config.MainHome)
+            is Child.MainJournal -> Pair(Journal, Config.MainJournal)
+            is Child.MainRating -> Pair(Rating, Config.MainRating)
+            else -> Pair(Home, Config.MainHome)
+        }
+    }
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val state: StateFlow<RootStore.State> = rootStore.stateFlow
@@ -108,8 +133,8 @@ class RootComponentImpl(
     private fun getMainAdminComponent(
         componentContext: ComponentContext,
         getOld: Boolean = false
-    ) : AdminComponent {
-        return if(getOld && mainAdminComponent != null) mainAdminComponent!! else {
+    ): AdminComponent {
+        return if (getOld && mainAdminComponent != null) mainAdminComponent!! else {
             mainAdminComponent = AdminComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
@@ -122,8 +147,8 @@ class RootComponentImpl(
     private fun getMainJournalComponent(
         componentContext: ComponentContext,
         getOld: Boolean = false
-    ) : JournalComponent {
-        return if(getOld && mainJournalComponent != null) mainJournalComponent!! else {
+    ): JournalComponent {
+        return if (getOld && mainJournalComponent != null) mainJournalComponent!! else {
             mainJournalComponent = JournalComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
@@ -137,10 +162,13 @@ class RootComponentImpl(
         componentContext: ComponentContext,
         getOld: Boolean = false
     ): HomeComponent {
-        return if(getOld && mainHomeComponent != null) mainHomeComponent!! else {
+        return if (getOld && mainHomeComponent != null) mainHomeComponent!! else {
             mainHomeComponent = HomeComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
+                journalComponent = getMainJournalComponent(
+                    componentContext
+                ),
                 output = ::onHomeOutput
             )
             mainHomeComponent!!
@@ -150,8 +178,8 @@ class RootComponentImpl(
     private fun getMainRatingComponent(
         componentContext: ComponentContext,
         getOld: Boolean = false
-    ) : RatingComponent {
-        return if(getOld && mainRatingComponent != null) mainRatingComponent!! else {
+    ): RatingComponent {
+        return if (getOld && mainRatingComponent != null) mainRatingComponent!! else {
             mainRatingComponent = RatingComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
@@ -333,7 +361,6 @@ class RootComponentImpl(
         }
 
 
-
     private fun onAdminScheduleOutput(output: ScheduleComponent.Output): Unit =
         when (output) {
             ScheduleComponent.Output.BackToAdmin -> navigateToAdmin {
@@ -343,7 +370,7 @@ class RootComponentImpl(
 
     private fun onLessonReportOutput(output: LessonReportComponent.Output): Unit =
         when (output) {
-            LessonReportComponent.Output.BackToJournal -> if (model.value.currentCategory == RootComponent.RootCategories.Journal) {
+            LessonReportComponent.Output.BackToJournal -> if (model.value.currentCategory == Journal) {
                 navigateToJournal {
                     navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainJournal }
                 }
@@ -677,8 +704,11 @@ class RootComponentImpl(
 //            getConfiguration = ::getConfigForPath,
 //            serializer = Config.serializer()
 //        )
+//        backHandler.register(backCallback)
+//        updateBackCallback(false)
 
         rootStore.accept(RootStore.Intent.HideGreetings())
+
     }
 
 //    private fun getInitialStack(webHistoryPaths: List<String>?, deepLink: DeepLink): List<Config> =

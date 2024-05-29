@@ -58,7 +58,6 @@ import components.ReportTitle
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
-import decomposeComponents.listDialogComponent.ListDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -81,10 +80,11 @@ fun JournalContent(
     component: JournalComponent,
     role: String,
     moderation: String,
-    isNotMinimized: Boolean = true
+    isNotMinimized: Boolean = true,
+    onRefresh: () -> Unit
 ) {
     if (moderation != Moderation.nothing || role == Roles.teacher) {
-        TrueJournalContent(component, isNotMinimized)
+        TrueJournalContent(component, isNotMinimized, onRefresh)
     } else {
         AlphaTestZatichka(
             onSettingsClick = {
@@ -98,7 +98,8 @@ fun JournalContent(
 @Composable
 private fun TrueJournalContent(
     component: JournalComponent,
-    isNotMinimized: Boolean
+    isNotMinimized: Boolean,
+    onRefresh: () -> Unit
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -120,9 +121,6 @@ private fun TrueJournalContent(
         component.onEvent(JournalStore.Intent.ResetReportData)
     }
 
-    //PullToRefresh
-    val refreshScope = rememberCoroutineScope()
-
     val refreshState = rememberPullRefreshState(
         nModel.state == NetworkState.Loading && model.headers.isNotEmpty(),
         { component.onEvent(JournalStore.Intent.Refresh) })
@@ -131,7 +129,7 @@ private fun TrueJournalContent(
         Modifier.fillMaxSize()
             .onKeyEvent {
                 if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-                    component.onEvent(JournalStore.Intent.Refresh)
+                    onRefresh()
                 }
                 false
             },
@@ -173,7 +171,7 @@ private fun TrueJournalContent(
                         )
                     }
                     IconButton(
-                        onClick = { component.onEvent(JournalStore.Intent.Refresh) }
+                        onClick = { if(isExpanded) onRefresh() else component.onEvent(JournalStore.Intent.Refresh) }
                     ) {
                         Icon(
                             Icons.Filled.Refresh, null
@@ -255,26 +253,39 @@ private fun TrueJournalContent(
                 state = refreshState,
             )
             ListDialogMobileContent(component.groupListComponent)
-            CAlertDialogContent(
-                component.studentsInGroupCAlertDialogComponent,
-                title = "Ученики",
-                standardCustomButton = {
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            component.onEvent(JournalStore.Intent.CreateReport)
-                            //component.onOutput(JournalComponent.Output.NavigateToLessonReport(3))
+            StudentsPreviewDialog(
+                component, model
+            )
+        }
+
+    }
+}
+
+@Composable
+fun StudentsPreviewDialog(
+    component: JournalComponent,
+    model: JournalStore.State
+) {
+    CAlertDialogContent(
+        component.studentsInGroupCAlertDialogComponent,
+        title = "Ученики",
+        standardCustomButton = {
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    component.onEvent(JournalStore.Intent.CreateReport)
+                    //component.onOutput(JournalComponent.Output.NavigateToLessonReport(3))
 //                            component.studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
-                        }
-                    ) {
-                        Text("Создать")
-                    }
-                },
-                isCustomButtons = false
+                }
             ) {
-                Column {
-                    LazyColumn {
-                        items(model.studentsInGroup) {
+                Text("Создать")
+            }
+        },
+        isCustomButtons = false
+    ) {
+        Column {
+            LazyColumn {
+                items(model.studentsInGroup) {
 //                            TextButton(
 //                                modifier = Modifier.fillMaxWidth(),
 //                                onClick = {},
@@ -284,20 +295,17 @@ private fun TrueJournalContent(
 //                                ),
 //                                shape = RoundedCornerShape(15.dp)
 //                            ) {
-                            Text(
-                                "${it.fio.surname} ${it.fio.name} ${it.fio.praname}",
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                                textAlign = TextAlign.Center
-                            )
+                    Text(
+                        "${it.fio.surname} ${it.fio.name} ${it.fio.praname}",
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                        textAlign = TextAlign.Center
+                    )
 //                            }
 
 
-                        }
-                    }
                 }
             }
         }
-
     }
 }
 
@@ -307,7 +315,6 @@ fun JournalItemCompose(
     subjectName: String,
     groupName: String,
     lessonReportId: Int,
-//    isLarge: Boolean,
     date: String,
     teacher: String,
     time: String,

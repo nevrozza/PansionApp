@@ -47,8 +47,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
+import components.BottomThemePanel
 import components.CentreAppBar
 import components.LoadingAnimation
+import forks.colorPicker.toHex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -56,6 +58,7 @@ import login.LoginComponent
 import login.LoginComponent.Output
 import login.LoginStore
 import login.LoginStore.Intent
+import view.LocalViewManager
 import view.bringIntoView
 import view.rememberImeState
 
@@ -67,6 +70,9 @@ fun LoginContent(
     component: LoginComponent
 ) {
     val model by component.model.subscribeAsState()
+
+    val viewManager = LocalViewManager.current
+
     val coroutineScope = rememberCoroutineScope()
     val isButtonEnabled =
         !model.isInProcess && model.login.isNotBlank() && model.password.isNotBlank()
@@ -133,76 +139,89 @@ fun LoginContent(
                     .consumeWindowInsets(padding)
                     .imePadding(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    Icons.Rounded.School,
-                    null,
-                    Modifier.size(150.dp)
-                )
-                CustomTextField(
-                    value = model.login,
-                    onValueChange = {
-                        component.onEvent(Intent.InputLogin(it))
-                    },
-                    text = "Логин",
-                    isEnabled = !model.isInProcess,
-                    leadingIcon = {
-                        val image = Icons.Rounded.Person
-                        // Please provide localized description for accessibility services
-                        val description = "Login"
-                        Icon(imageVector = image, description)
-                    },
-                    onEnterClicked = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    },
-                    focusManager = focusManager,
-                    isMoveUpLocked = true,
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Password
-                )
+                Spacer(Modifier)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Rounded.School,
+                        null,
+                        Modifier.size(150.dp)
+                    )
+                    CustomTextField(
+                        value = model.login,
+                        onValueChange = {
+                            component.onEvent(Intent.InputLogin(it))
+                        },
+                        text = "Логин",
+                        isEnabled = !model.isInProcess,
+                        leadingIcon = {
+                            val image = Icons.Rounded.Person
+                            // Please provide localized description for accessibility services
+                            val description = "Login"
+                            Icon(imageVector = image, description)
+                        },
+                        onEnterClicked = {
+                            focusManager.moveFocus(FocusDirection.Down)
+                        },
+                        focusManager = focusManager,
+                        isMoveUpLocked = true,
+                        autoCorrect = false,
+                        keyboardType = KeyboardType.Password
+                    )
 
 
-                Spacer(Modifier.height(15.dp))
+                    Spacer(Modifier.height(15.dp))
 
-                CustomTextField(
-                    value = model.password,
-                    onValueChange = {
-                        component.onEvent(Intent.InputPassword(it))
-                    },
-                    text = "Пароль",
-                    isEnabled = !model.isInProcess,
-                    passwordVisibleInit = false,
-                    focusManager = focusManager,
-                    onEnterClicked = {
-                        if (isButtonEnabled) {
+                    CustomTextField(
+                        value = model.password,
+                        onValueChange = {
+                            component.onEvent(Intent.InputPassword(it))
+                        },
+                        text = "Пароль",
+                        isEnabled = !model.isInProcess,
+                        passwordVisibleInit = false,
+                        focusManager = focusManager,
+                        onEnterClicked = {
+                            if (isButtonEnabled) {
+                                component.onEvent(Intent.CheckToGoMain)
+                            }
+                        },
+                        keyboardType = KeyboardType.Password
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+                    AnimatedVisibility(
+                        model.isInProcess
+                    ) {
+                        LoadingAnimation(
+                            Modifier.padding(top = 12.dp),
+                            circleSize = 10.dp,
+                            travelDistance = 8.dp,
+                            spaceBetween = 6.dp
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    AnimatedCommonButton(
+                        modifier = Modifier.bringIntoView(scrollState, imeState),
+                        isEnabled = isButtonEnabled,
+                        onClick = {
                             component.onEvent(Intent.CheckToGoMain)
-                        }
-                    },
-                    keyboardType = KeyboardType.Password
-                )
-
-                Spacer(Modifier.height(10.dp))
-                AnimatedVisibility(
-                    model.isInProcess
-                ) {
-                    LoadingAnimation(
-                        Modifier.padding(top = 12.dp),
-                        circleSize = 10.dp,
-                        travelDistance = 8.dp,
-                        spaceBetween = 6.dp
+                        },
+                        text = "Войти в аккаунт"
                     )
                 }
-                Spacer(Modifier.height(10.dp))
-                AnimatedCommonButton(
-                    modifier = Modifier.bringIntoView(scrollState, imeState),
-                    isEnabled = isButtonEnabled,
-                    onClick = {
-                        component.onEvent(Intent.CheckToGoMain)
-                    },
-                    text = "Войти в аккаунт"
-                )
+
+                BottomThemePanel(
+                    viewManager,
+                    onThemeClick = {
+                        changeTint(viewManager)
+                    }
+                ) {
+                    changeColorSeed(viewManager, it.toHex())
+                }
             }
+
         }
     }
 }

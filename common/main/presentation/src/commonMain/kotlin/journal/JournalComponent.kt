@@ -14,7 +14,7 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
 import di.Inject
-import io.ktor.client.plugins.cache.storage.CachedResponseData
+import journal.init.TeacherGroup
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import report.ReportHeader
@@ -41,7 +41,7 @@ class JournalComponent(
         name = "groupListInMainJournal",
         onItemClick = {
 //            onEvent(JournalStore.Intent.CreateUserForm(it.id))
-            onEvent(JournalStore.Intent.OnGroupClicked(it.id.toInt()))
+            onEvent(JournalStore.Intent.OnGroupClicked(it.id.toInt(), getSixTime()))
         })
     val studentsInGroupCAlertDialogComponent = CAlertDialogComponent(
         componentContext,
@@ -61,10 +61,12 @@ class JournalComponent(
         studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
     }
 
-    fun createReport() {
-        hideStudentAlarm()
-        val group = state.value.teacherGroups.first { it.cutedGroup.groupId == state.value.currentGroupId }
-        val header = ReportHeader(
+    fun getReportHeader(
+        teacherGroups: List<TeacherGroup> = state.value.teacherGroups
+    ) : ReportHeader {
+        val group =
+            teacherGroups.first { it.cutedGroup.groupId == state.value.currentGroupId }
+        return ReportHeader(
             reportId = model.value.creatingReportId,
             subjectName = group.subjectName,
             subjectId = group.subjectId, //не нужное
@@ -73,9 +75,14 @@ class JournalComponent(
             teacherName = "${authRepository.fetchSurname()} ${authRepository.fetchName()[0]}. ${authRepository.fetchPraname()[0]}.",
             teacherLogin = authRepository.fetchLogin(),
             date = getDate(),
-            time = getSixTime(),
+            time = model.value.time,
             status = "0",
         )
+    }
+
+    fun createReport(header: ReportHeader = getReportHeader()) {
+        hideStudentAlarm()
+
         val data = ReportData(
             header = header,
             topic = "",
@@ -117,7 +124,7 @@ class JournalComponent(
 
 
     init {
-        onEvent(JournalStore.Intent.Init )
+//        onEvent(JournalStore.Intent.Init )
     }
 
     fun onEvent(event: JournalStore.Intent) {

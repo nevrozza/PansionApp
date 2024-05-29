@@ -87,12 +87,13 @@ import kotlin.math.roundToInt
 fun BottomThemePanel(
     viewManager: ViewManager,
     onThemeClick: () -> Unit,
+    modifier: Modifier = Modifier,
     changeColor: (Color) -> Unit
 ) {
     val isColorMenuOpened = remember { mutableStateOf(false) }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
         Row(
-            modifier = Modifier.widthIn(max = 470.dp).fillMaxWidth()
+            modifier = modifier.widthIn(max = 470.dp).fillMaxWidth()
 //                    .bringIntoView(scrollState, imeState)
 
                 .padding(bottom = 8.dp),

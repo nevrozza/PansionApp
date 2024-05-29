@@ -76,6 +76,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onPlaced
@@ -91,6 +92,7 @@ import components.LoadingAnimation
 import forks.colorPicker.toHex
 import kotlinx.coroutines.launch
 import login.LoginComponent
+import login.LoginStore
 import resources.Images
 import view.defaultDarkPalette
 import view.defaultLightPalette
@@ -188,7 +190,7 @@ fun ActivationContent(
                                     "Активируйте свой аккаунт\n",
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = 28.sp
+                                    fontSize = (26.5).sp
                                 )
 
                                 else -> Text(
@@ -227,17 +229,12 @@ fun ActivationContent(
                                     Text("Введите логин с карточки", fontSize = 20.sp)
                                     Spacer(Modifier.height(10.dp))
                                     CustomTextField(
-                                        modifier = Modifier.focusRequester(focusRequester1)
-                                            .onPlaced {
-                                                if (model.login.isBlank()) {
-                                                    focusRequester1.requestFocus()
-                                                }
-                                            },
+                                        modifier = Modifier,
                                         value = model.login,
                                         onValueChange = {
                                             component.onEvent(ActivationStore.Intent.InputLogin(it))
                                         },
-                                        supText = "Логин",
+                                        text = "Логин",
                                         isEnabled = !model.isInProcess,
                                         leadingIcon = {
                                             val image = Icons.Rounded.Person
@@ -405,7 +402,8 @@ fun ActivationContent(
                     }
 
                     BottomThemePanel(
-                        viewManager,
+                        modifier = Modifier.bringIntoView(scrollState, imeState),
+                        viewManager = viewManager,
                         onThemeClick = {
                             changeTint(viewManager)
                         }

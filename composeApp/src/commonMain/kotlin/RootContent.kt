@@ -67,22 +67,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.NativeKeyEvent
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import animations.iosSlide
+import animations.slideEnterModifier
+import animations.slideExitModifier
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.androidPredictiveBackAnimatable
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
 import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AlphaTestZatichka
 import components.ThemePreview
+import components.onBackButtonClicked
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.HazeMaterials
@@ -111,6 +118,7 @@ import view.LocalViewManager
 import view.ViewManager
 import view.WindowScreen
 import groups.GroupsContent
+import home.HomeStore
 import root.RootComponent.Child.HomeSettings
 import root.RootComponent.Child.MainRating
 
@@ -181,12 +189,11 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             }
         }
     ) { padding ->
-
         Box(
             Modifier.fillMaxSize().padding(
-                top = padding.calculateTopPadding(),
-                start = padding.calculateStartPadding(LocalLayoutDirection.current),
-                end = padding.calculateEndPadding(LocalLayoutDirection.current),
+                top = 0.dp,
+                start = 0.dp,// padding.calculateStartPadding(LocalLayoutDirection.current),
+                end = 0.dp,//padding.calculateEndPadding(LocalLayoutDirection.current),
                 bottom = 0.dp// if (model.isBottomBarShowing) padding.calculateBottomPadding() else (padding.calculateBottomPadding() - 80.dp).coerceAtLeast(
                 //0.dp
                 //)
@@ -213,21 +220,28 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             is MainHome -> fade()
                             is MainAdmin -> fade()
 //                            is AdminMentors -> if (isExpanded) fade() else slide()
-                            is AdminUsers -> if (isExpanded) fade() else slide()
-                            is AdminGroups -> if (isExpanded) fade() else slide()
-                            is LessonReport -> slide() //if (isExpanded) fade() else slide()
-                            is HomeSettings -> slide()//if (isExpanded) fade() else slide()
+                            is AdminUsers -> if (isExpanded) fade() else iosSlide()
+                            is AdminGroups -> if (isExpanded) fade() else iosSlide()
+                            is LessonReport -> iosSlide() //if (isExpanded) fade() else slide()
+                            is HomeSettings -> iosSlide()//if (isExpanded) fade() else slide()
 //                            else -> slide()
-                            is Child.AuthActivation -> if (isExpanded) fade() else slide()
-                            is Child.AuthLogin -> if (isExpanded) fade() else slide()
-                            is Child.HomeDnevnikRuMarks -> if (isExpanded) fade() else slide()
-                            is Child.HomeDetailedStups -> if (isExpanded) fade() else slide()
-                            is Child.HomeAllGroupMarks -> if (isExpanded) fade() else slide()
-                            is Child.AdminSchedule -> slide()
+                            is Child.AuthActivation -> if (isExpanded) fade() else iosSlide()
+                            is Child.AuthLogin -> if (isExpanded) fade() else iosSlide()
+                            is Child.HomeDnevnikRuMarks -> if (isExpanded) fade() else iosSlide()
+                            is Child.HomeDetailedStups -> if (isExpanded) fade() else iosSlide()
+                            is Child.HomeAllGroupMarks -> if (isExpanded) fade() else iosSlide()
+                            is Child.AdminSchedule -> iosSlide()
                             is Child.HomeProfile -> TODO()
-                            is Child.AdminCabinets -> if (isExpanded) fade() else slide()
+                            is Child.AdminCabinets -> if (isExpanded) fade() else iosSlide()
                         }
-                    }
+                    },
+                    selector = { initialBackEvent, _, _ ->
+                        predictiveBackAnimatable(
+                            initialBackEvent = initialBackEvent,
+                            exitModifier = { progress, _ -> Modifier.slideExitModifier(progress = progress) },
+                            enterModifier = { progress, _ -> Modifier.slideEnterModifier(progress = progress) },
+                        )
+                    },
                 )
             ) {
                 when (val child = it.instance) {
@@ -244,7 +258,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 JournalContent(
                                     child.journalComponent,
                                     role = model.role,
-                                    moderation = model.moderation
+                                    moderation = model.moderation,
+                                    onRefresh = { child.homeComponent.onEvent(HomeStore.Intent.Init) }
                                 )
                             } else {
                                 RatingContent(child.ratingComponent)
@@ -258,7 +273,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             JournalContent(
                                 child.journalComponent,
                                 role = model.role,
-                                moderation = model.moderation
+                                moderation = model.moderation,
+                                onRefresh = { child.homeComponent.onEvent(HomeStore.Intent.Init) }
                             )
                         },
                         firstScreen = { HomeContent(child.homeComponent) },
@@ -266,7 +282,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             JournalContent(
                                 child.journalComponent,
                                 role = model.role,
-                                moderation = model.moderation
+                                moderation = model.moderation,
+                                onRefresh = { child.homeComponent.onEvent(HomeStore.Intent.Init) }
                             )
                         }
                     )
@@ -387,7 +404,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 JournalContent(
                                     child.journalComponent,
                                     role = model.role,
-                                    moderation = model.moderation
+                                    moderation = model.moderation,
+                                    onRefresh = {  }
                                 )
                             }
                         )
@@ -481,7 +499,8 @@ fun MultiPaneJournal(
                     journalComponent,
                     isNotMinimized = false,
                     role = role,
-                    moderation = moderation
+                    moderation = moderation,
+                    onRefresh = {  }
                 )
             }
 

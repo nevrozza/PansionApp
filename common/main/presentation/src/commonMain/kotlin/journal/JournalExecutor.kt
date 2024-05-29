@@ -30,6 +30,7 @@ class JournalExecutor(
         when (intent) {
             Intent.Init -> initComponent()
             is Intent.OnGroupClicked -> {
+                dispatch(Message.TimeChanged(intent.time))
                 groupListComponent.onEvent(ListDialogStore.Intent.HideDialog)
                 studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
                 fetchStudentsInGroup(intent.groupId)
@@ -42,7 +43,7 @@ class JournalExecutor(
                         val id = mainRepository.createReport(RCreateReportReceive(
                             groupId = state().currentGroupId,
                             date = getDate(),
-                            time = getSixTime(),
+                            time = state().time,
                             studentLogins = state().studentsInGroup.map { it.login }
                         )).reportId
                         dispatch(Message.ReportCreated(id))

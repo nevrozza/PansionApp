@@ -235,6 +235,12 @@ kotlin {
 
 android {
 
+    sourceSets {
+        getByName("main") {
+            manifest.srcFile ("src/androidMain/AndroidManifest.xml")
+        }
+    }
+
     namespace = "com.nevrozq.pansion.android"
     compileSdk = 34
 //    namespace = "com.nevrozq.pansion.android"

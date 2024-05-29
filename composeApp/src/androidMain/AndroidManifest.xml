@@ -17,7 +17,7 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name="com.nevrozq.pansion.android.MainActivity"
+            android:name="android.MainActivity"
             android:configChanges="uiMode|orientation|screenSize"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">

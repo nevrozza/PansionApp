@@ -19,10 +19,10 @@ fun iosSlide(animationSpec: FiniteAnimationSpec<Float> = tween()): StackAnimator
         )
     }
 
-private fun Modifier.slideExitModifier(progress: Float): Modifier =
+fun Modifier.slideExitModifier(progress: Float): Modifier =
     offsetXFactor(progress)
 
-private fun Modifier.slideEnterModifier(progress: Float): Modifier =
+fun Modifier.slideEnterModifier(progress: Float): Modifier =
     fade(progress).offsetXFactor((progress - 1f) * 0.5f)
 
 private fun Modifier.fade(factor: Float) =

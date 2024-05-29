@@ -10,6 +10,7 @@ import home.HomeStore.Intent
 import home.HomeStore.Label
 import home.HomeStore.State
 import home.HomeStore.Message
+import journal.JournalComponent
 
 class HomeStoreFactory(
     private val storeFactory: StoreFactory,
@@ -19,6 +20,7 @@ class HomeStoreFactory(
     private val teacherNInterface: NetworkInterface,
     private val gradesNInterface: NetworkInterface,
     private val scheduleNInterface: NetworkInterface,
+    private val journalComponent: JournalComponent?
 ) {
 
     fun create(): HomeStore {
@@ -43,7 +45,8 @@ class HomeStoreFactory(
                 quickTabNInterface = quickTabNInterface,
                 teacherNInterface = teacherNInterface,
                 gradesNInterface = gradesNInterface,
-                scheduleNInterface = scheduleNInterface
+                scheduleNInterface = scheduleNInterface,
+                journalComponent = journalComponent
             ) },
             reducer = HomeReducer
         )

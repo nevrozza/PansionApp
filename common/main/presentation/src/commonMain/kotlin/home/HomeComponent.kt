@@ -8,17 +8,28 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
 import di.Inject
+import journal.JournalComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
 class HomeComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
+    val journalComponent: JournalComponent? = null,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
+    val reportsDialog = CAlertDialogComponent(
+        componentContext,
+        storeFactory,
+        name = "ReportsInHomeDialogComss",
+        onAcceptClick = {}
+    )
+
+
     val quickTabNInterface = NetworkInterface(
         componentContext = componentContext,
         storeFactory = storeFactory,
@@ -53,7 +64,8 @@ class HomeComponent(
                 quickTabNInterface = quickTabNInterface,
                 teacherNInterface = teacherNInterface,
                 gradesNInterface = gradesNInterface,
-                scheduleNInterface = scheduleNInterface
+                scheduleNInterface = scheduleNInterface,
+                journalComponent = journalComponent
             ).create()
         }
 

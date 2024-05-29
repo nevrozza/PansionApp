@@ -62,6 +62,7 @@ import decomposeComponents.listDialogComponent.BottomSheetVariant
 import decomposeComponents.listDialogComponent.customConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import resources.GeologicaFont
 import view.LocalViewManager
 import view.WindowScreen
 

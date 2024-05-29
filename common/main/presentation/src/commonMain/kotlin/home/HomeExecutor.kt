@@ -12,6 +12,7 @@ import home.HomeStore.Intent
 import home.HomeStore.Label
 import home.HomeStore.State
 import home.HomeStore.Message
+import journal.JournalComponent
 import journal.JournalStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ class HomeExecutor(
     private val teacherNInterface: NetworkInterface,
     private val gradesNInterface: NetworkInterface,
     private val scheduleNInterface: NetworkInterface,
+    private val journalComponent: JournalComponent?
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -33,17 +35,22 @@ class HomeExecutor(
                 dispatch(Message.DateChanged(intent.date))
                 fetchSchedule(dayOfWeek = intent.date.first.toString(), date = intent.date.second)
             }
+
+            is Intent.UpdateSomeHeaders -> dispatch(Message.SomeHeadersUpdated(intent.someHeaders))
         }
     }
 
     private fun init() {
-        fetchQuickTab(period = state().period)
-        fetchGrades()
-        fetchTeacherGroups()
-        fetchSchedule(
-            dayOfWeek = state().currentDate.first.toString(),
-            date = state().currentDate.second
-        )
+        scope.launch(CDispatcher) {
+            fetchQuickTab(period = state().period)
+            fetchGrades()
+            fetchTeacherGroups()
+            fetchSchedule(
+                dayOfWeek = state().currentDate.first.toString(),
+                date = state().currentDate.second
+            )
+        }
+        journalComponent?.onEvent(JournalStore.Intent.Init)
     }
 
     private fun fetchSchedule(dayOfWeek: String, date: String) {

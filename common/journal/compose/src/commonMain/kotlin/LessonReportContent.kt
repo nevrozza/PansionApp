@@ -141,6 +141,7 @@ import lessonReport.prisut
 import lessonReport.srBall
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
+import resources.GeologicaFont
 import server.roundTo
 import view.LocalViewManager
 import view.LockScreenOrientation
@@ -475,7 +476,8 @@ fun LessonReportContent(
                     text = buildAnnotatedString {
                         append("Это приведёт к удалению ")
                         withStyle(
-                            SpanStyle(fontWeight = FontWeight.Bold)
+                            SpanStyle(fontWeight = FontWeight.Bold
+                            )
                         ) {
                             append("всех")
                         }

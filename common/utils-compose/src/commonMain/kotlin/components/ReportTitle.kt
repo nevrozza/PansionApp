@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import resources.GeologicaFont
 
 @Composable
 fun ReportTitle(
@@ -64,7 +65,7 @@ fun ReportTitle(
                     text = buildAnnotatedString {
                         withStyle(
                             SpanStyle(
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.Bold
                             )
                         ) {
                             append(subjectName)
@@ -73,7 +74,7 @@ fun ReportTitle(
                             SpanStyle(
                                 fontWeight = FontWeight.Black,
                                 fontSize = smallTextSize,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
                             )
                         ) {
                             append(" $date")
@@ -86,7 +87,7 @@ fun ReportTitle(
                                     fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.onSurface.copy(
                                         alpha = .2f
-                                    ),
+                                    )
                                 )
                             ) {
                                 append(" в ${time}")
@@ -96,7 +97,7 @@ fun ReportTitle(
                     overflow = TextOverflow.Ellipsis,
                     fontSize = bigTextSize,
                     maxLines = 1,
-                    style = TextStyle(
+                    style = androidx.compose.material3.LocalTextStyle.current.copy(
                         lineHeightStyle = LineHeightStyle(
                             alignment = LineHeightStyle.Alignment.Bottom,
                             trim = LineHeightStyle.Trim.LastLineBottom
@@ -112,7 +113,7 @@ fun ReportTitle(
                     text = buildAnnotatedString {
                         withStyle(
                             SpanStyle(
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.Bold
                             )
                         ) {
                             append(groupName)
@@ -120,7 +121,7 @@ fun ReportTitle(
                         withStyle(
                             SpanStyle(
                                 fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .2f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .2f)
                             )
                         ) {
                             append(" №$lessonReportId")
@@ -128,7 +129,7 @@ fun ReportTitle(
                     },
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
-                    style = TextStyle(
+                    style = androidx.compose.material3.LocalTextStyle.current.copy(
                         fontSize = smallTextSize,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
@@ -165,7 +166,7 @@ fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true) {
             buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.SemiBold
                     )
                 ) {
                     append(teacherName)
@@ -176,7 +177,7 @@ fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true) {
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.onSurface.copy(
                                 alpha = .2f
-                            ),
+                            )
                         )
                     ) {
                         append(" в ${time}")
@@ -184,7 +185,7 @@ fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true) {
                 }
             },
             fontSize = 14.sp,
-            style = TextStyle(
+            style = androidx.compose.material3.LocalTextStyle.current.copy(
                 lineHeightStyle = LineHeightStyle(
                     alignment = LineHeightStyle.Alignment.Top,
                     trim = LineHeightStyle.Trim.FirstLineTop
