@@ -4,8 +4,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoMode
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
@@ -39,6 +44,7 @@ import androidx.compose.ui.res.useResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
@@ -48,6 +54,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import components.CustomTextButton
 import di.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -60,6 +67,7 @@ import org.jetbrains.jewel.intui.window.styling.dark
 import org.jetbrains.jewel.intui.window.styling.light
 import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.window.DecoratedWindow
+import org.jetbrains.jewel.window.DecoratedWindowScope
 import org.jetbrains.jewel.window.TitleBar
 import org.jetbrains.jewel.window.newFullscreenControls
 import org.jetbrains.jewel.window.styling.LocalTitleBarStyle
@@ -76,9 +84,11 @@ import view.WindowType
 import view.toRGB
 import view.toTint
 import java.awt.Dimension
+import java.awt.Robot
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.SwingUtilities
 
 
@@ -86,157 +96,128 @@ import javax.swing.SwingUtilities
 @ExperimentalFoundationApi
 @OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class)
 fun main() {
-    GlobalScope.launch(Dispatchers.IO) {
-        com.nevrozq.pansion.main()
-    }
-    PlatformSDK.init(
-        configuration = PlatformConfiguration(),
-        cConfiguration = CommonPlatformConfiguration(
-            deviceName = getDeviceName() ?: "unknown",
-            deviceType = DeviceTypex.desktop,
-            deviceId = getDeviceId()
-        )
-    )
 
-
-    val root = invokeOnAwtSync {
-        setMainThreadId(Thread.currentThread().id)
-        val lifecycle = LifecycleRegistry()
-        val rootComponent = RootComponentImpl(
-            componentContext = DefaultComponentContext(
-                lifecycle = lifecycle
-            ),
-            storeFactory = DefaultStoreFactory()
-        )
-        lifecycle.resume()
-        rootComponent
-    }
-    application {
-        val windowState = rememberWindowState()
-        windowState.size = DpSize(480.dp, 800.dp)
-        var isVisible by remember { mutableStateOf(true) }
-
-        val settingsRepository: SettingsRepository = Inject.instance()
-        val rgb = settingsRepository.fetchSeedColor().toRGB()
-        val themeDefinition = JewelTheme.darkThemeDefinition()
-        val viewManager = remember {
-            ViewManager(
-                seedColor = mutableStateOf(Color(red = rgb[0], green = rgb[1], blue = rgb[2])),
-                tint = mutableStateOf(settingsRepository.fetchTint().toTint())
+    val isAppRunning = AtomicBoolean(false)
+    if (isAppRunning.compareAndSet(false, true)) {
+        GlobalScope.launch(Dispatchers.IO) {
+            com.nevrozq.pansion.main()
+        }
+        PlatformSDK.init(
+            configuration = PlatformConfiguration(),
+            cConfiguration = CommonPlatformConfiguration(
+                deviceName = getDeviceName() ?: "unknown",
+                deviceType = DeviceTypex.desktop,
+                deviceId = getDeviceId()
             )
+        )
+
+
+        val root = invokeOnAwtSync {
+            setMainThreadId(Thread.currentThread().id)
+            val lifecycle = LifecycleRegistry()
+            val rootComponent = RootComponentImpl(
+                componentContext = DefaultComponentContext(
+                    lifecycle = lifecycle
+                ),
+                storeFactory = DefaultStoreFactory()
+            )
+            lifecycle.resume()
+            rootComponent
         }
 
 
-        Tray(
-            icon = TrayIcon,
-            menu = {
-                Item(
-                    "Показать",
-                    onClick = { isVisible = true }
-                )
-                Item(
-                    "Выход",
-                    onClick = ::exitApplication
-                )
-            },
-            tooltip = "Pansion App",
-            onAction = {
-                isVisible = true
-            }
-        )
-        CompositionLocalProvider(
-            LocalViewManager provides viewManager
-        ) {
-            if (isVisible) {
-                IntUiTheme(
-                    themeDefinition,
-                    styling = ComponentStyling.decoratedWindow(
-                        titleBarStyle = TitleBarStyle.light()
+        application {
+
+
+            val windowState = rememberWindowState()
+            windowState.size = DpSize(950.dp, 480.dp)
+
+            var isVisible by remember { mutableStateOf(true) }
+
+            Tray(
+                icon = TrayIcon,
+                menu = {
+                    Item(
+                        "Показать",
+                        onClick = { isVisible = true }
                     )
+                    Item(
+                        "Выход",
+                        onClick = ::exitApplication
+                    )
+                },
+                tooltip = "Pansion App",
+                onAction = {
+                    isVisible = true
+                }
+            )
+
+            if (isVisible) {
+                var isCloseDialogVisible by remember { mutableStateOf(false) }
+
+                val settingsRepository: SettingsRepository = Inject.instance()
+                val rgb = settingsRepository.fetchSeedColor().toRGB()
+                val themeDefinition = JewelTheme.darkThemeDefinition()
+                val viewManager = remember {
+                    ViewManager(
+                        seedColor = mutableStateOf(
+                            Color(
+                                red = rgb[0],
+                                green = rgb[1],
+                                blue = rgb[2]
+                            )
+                        ),
+                        tint = mutableStateOf(settingsRepository.fetchTint().toTint())
+                    )
+                }
+                CompositionLocalProvider(
+                    LocalViewManager provides viewManager
                 ) {
-                    AppTheme {
-                        DecoratedWindow(
-                            onCloseRequest = { isVisible = false },
-                            state = windowState,
-                            title = "Pansion App",
-                            visible = isVisible,
-                            icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
+                    IntUiTheme(
+                        themeDefinition,
+                        styling = ComponentStyling.decoratedWindow(
+                            titleBarStyle = TitleBarStyle.light()
+                        )
+                    ) {
+                        AppTheme {
+                            DecoratedWindow(
+                                onCloseRequest = { isCloseDialogVisible = true },
+                                state = windowState,
+                                title = "Pansion App",
+                                visible = isVisible,
+                                icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 
-                        ) {
-                            val l = LocalTitleBarStyle.current
-                            viewManager.topPadding = (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
-                            this.window.setMinSize(400, 600)
-                            Box(contentAlignment = Alignment.TopCenter) {
-                                Root(root, WindowType.PC)
-                                TitleBar(
-                                    Modifier.newFullscreenControls(),
-                                    style = TitleBarStyle(
-                                        colors = TitleBarColors(
-                                            background = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
-                                                alpha = 0.0f
-                                            ) else MaterialTheme.colorScheme.background,
-                                            inactiveBackground = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
-                                                alpha = 0.0f
-                                            ) else MaterialTheme.colorScheme.background,
-                                            content = MaterialTheme.colorScheme.onBackground,
-                                            border = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
-                                                alpha = 0.0f
-                                            ) else MaterialTheme.colorScheme.background,
-                                            fullscreenControlButtonsBackground = l.colors.fullscreenControlButtonsBackground,
-                                            titlePaneButtonHoveredBackground = l.colors.titlePaneButtonHoveredBackground,
-                                            titlePaneButtonPressedBackground = l.colors.titlePaneButtonPressedBackground,
-                                            titlePaneCloseButtonHoveredBackground = l.colors.titlePaneCloseButtonHoveredBackground,
-                                            titlePaneCloseButtonPressedBackground = l.colors.titlePaneCloseButtonPressedBackground,
-                                            iconButtonHoveredBackground = l.colors.iconButtonHoveredBackground,
-                                            iconButtonPressedBackground = l.colors.iconButtonPressedBackground,
-                                            dropdownHoveredBackground = l.colors.dropdownHoveredBackground,
-                                            dropdownPressedBackground = l.colors.dropdownPressedBackground
-                                        ),
-                                        metrics = TitleBarMetrics(
-                                            height = l.metrics.height,
-                                            titlePaneButtonSize = l.metrics.titlePaneButtonSize,
-                                            gradientStartX = 0.dp, //-200
-                                            gradientEndX = 0.dp //300
-                                        ),
-                                        icons = l.icons,
-                                        dropdownStyle = l.dropdownStyle,
-                                        iconButtonStyle = l.iconButtonStyle,
-                                        paneButtonStyle = l.paneButtonStyle,
-                                        paneCloseButtonStyle = l.paneCloseButtonStyle,
-                                    ),
-                                    gradientStartColor = MaterialTheme.colorScheme.inversePrimary//.surfaceColorAtElevation(26.dp)
-                                ) {
-                                    AnimatedContent(
-                                        when (viewManager.tint.value) {
-                                            ThemeTint.Auto -> Icons.Rounded.AutoMode
-                                            ThemeTint.Dark -> Icons.Rounded.DarkMode
-                                            ThemeTint.Light -> Icons.Rounded.LightMode
-                                        },
-                                        modifier = Modifier.align(Alignment.Start)
-                                            .padding(start = 5.dp),
-                                    ) {
-                                        androidx.compose.material3.IconButton(
-                                            onClick = {
-                                                changeTint(
-                                                    viewManager
-                                                )
+                            ) {
+                                val l = LocalTitleBarStyle.current
+                                viewManager.topPadding =
+                                    (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
+                                this.window.setMinSize(400, 600)
+                                Box(contentAlignment = Alignment.TopCenter) {
+                                    Root(root, WindowType.PC)
+                                    MainTitleBar(viewManager, l)
+                                    if (isCloseDialogVisible) {
+                                        AlertDialog(
+                                            onDismissRequest = { isCloseDialogVisible = false },
+                                            confirmButton = {
+                                                CustomTextButton(
+                                                    text = "Свернуть в трею"
+                                                ) {
+                                                    isVisible = false
+                                                    isCloseDialogVisible = false
+                                                }
                                             },
-                                            modifier = Modifier.fillMaxHeight()
-                                        ) {
-                                            Icon(
-                                                imageVector = it,
-                                                "Change Theme",
-                                                tint = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
+                                            dismissButton = {
+                                                CustomTextButton(
+                                                    text = "Закрыть"
+                                                ) {
+                                                    exitApplication()
+                                                }
+                                            },
+//                                            title = { Text("Закрыть приложение?") },
+                                            text = { Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)") }
 
+                                        )
                                     }
-                                    Text(
-                                        text = title,
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        fontWeight = FontWeight.Bold
-                                    )
-
                                 }
                             }
                         }
@@ -244,6 +225,94 @@ fun main() {
                 }
             }
         }
+    } else {
+        application {
+            DialogWindow(
+                onCloseRequest = { ::exitApplication }
+            ) {
+                Row(
+                    Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("Приложение уже работает на фоне")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DecoratedWindowScope.MainTitleBar(viewManager: ViewManager, l: TitleBarStyle) {
+    TitleBar(
+        Modifier.newFullscreenControls(),
+        style = TitleBarStyle(
+            colors = TitleBarColors(
+                background = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                    alpha = 0.0f
+                ) else MaterialTheme.colorScheme.background,
+                inactiveBackground = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                    alpha = 0.0f
+                ) else MaterialTheme.colorScheme.background,
+                content = MaterialTheme.colorScheme.onBackground,
+                border = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                    alpha = 0.0f
+                ) else MaterialTheme.colorScheme.background,
+                fullscreenControlButtonsBackground = l.colors.fullscreenControlButtonsBackground,
+                titlePaneButtonHoveredBackground = l.colors.titlePaneButtonHoveredBackground,
+                titlePaneButtonPressedBackground = l.colors.titlePaneButtonPressedBackground,
+                titlePaneCloseButtonHoveredBackground = l.colors.titlePaneCloseButtonHoveredBackground,
+                titlePaneCloseButtonPressedBackground = l.colors.titlePaneCloseButtonPressedBackground,
+                iconButtonHoveredBackground = l.colors.iconButtonHoveredBackground,
+                iconButtonPressedBackground = l.colors.iconButtonPressedBackground,
+                dropdownHoveredBackground = l.colors.dropdownHoveredBackground,
+                dropdownPressedBackground = l.colors.dropdownPressedBackground
+            ),
+            metrics = TitleBarMetrics(
+                height = l.metrics.height,
+                titlePaneButtonSize = l.metrics.titlePaneButtonSize,
+                gradientStartX = 0.dp, //-200
+                gradientEndX = 0.dp //300
+            ),
+            icons = l.icons,
+            dropdownStyle = l.dropdownStyle,
+            iconButtonStyle = l.iconButtonStyle,
+            paneButtonStyle = l.paneButtonStyle,
+            paneCloseButtonStyle = l.paneCloseButtonStyle,
+        ),
+        gradientStartColor = MaterialTheme.colorScheme.inversePrimary//.surfaceColorAtElevation(26.dp)
+    ) {
+        AnimatedContent(
+            when (viewManager.tint.value) {
+                ThemeTint.Auto -> Icons.Rounded.AutoMode
+                ThemeTint.Dark -> Icons.Rounded.DarkMode
+                ThemeTint.Light -> Icons.Rounded.LightMode
+            },
+            modifier = Modifier.align(Alignment.Start)
+                .padding(start = 5.dp),
+        ) {
+            androidx.compose.material3.IconButton(
+                onClick = {
+                    changeTint(
+                        viewManager
+                    )
+                },
+                modifier = Modifier.fillMaxHeight()
+            ) {
+                Icon(
+                    imageVector = it,
+                    "Change Theme",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+        }
+        Text(
+            text = title,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.Bold
+        )
+
     }
 }
 

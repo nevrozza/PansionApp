@@ -1,6 +1,7 @@
 package groups.subjects
 
 import AdminRepository
+import MainRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
@@ -12,6 +13,8 @@ import groups.subjects.SubjectsStore.State
 
 class SubjectsStoreFactory(
     private val storeFactory: StoreFactory,
+    private val mainRepository: MainRepository,
+    private val nGroupInterface: NetworkInterface,
     private val adminRepository: AdminRepository,
     private val nSubjectsInterface: NetworkInterface,
     private val updateSubjects: () -> Unit,
@@ -33,7 +36,9 @@ class SubjectsStoreFactory(
                 nSubjectsInterface = nSubjectsInterface,
                 updateSubjects = {updateSubjects()},
                 cSubjectDialog = cSubjectDialog,
-                cGroupBottomSheet = cGroupBottomSheet
+                cGroupBottomSheet = cGroupBottomSheet,
+                mainRepository = mainRepository,
+                nGroupInterface = nGroupInterface
             ) },
             reducer = SubjectsReducer
         )

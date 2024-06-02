@@ -13,6 +13,8 @@ object SubjectsReducer : Reducer<State, Message> {
             is Message.CSubjectTextChanged -> copy(cSubjectText = msg.text)
             is Message.ChosenSubjectChanged -> copy(chosenSubjectId = msg.subjectId)
             is Message.GroupsUpdated -> copy(groups = msg.groups)
+            is Message.StudentsFetched -> copy(students = msg.students)
+            is Message.CurrentGroupChanged -> copy(currentGroup = msg.currentGroup)
         }
     }
 }

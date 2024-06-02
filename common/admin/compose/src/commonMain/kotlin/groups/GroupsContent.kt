@@ -3,6 +3,7 @@ package groups
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -29,7 +32,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -46,6 +52,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -95,6 +102,7 @@ import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
 import kotlinx.coroutines.launch
 import resources.GeologicaFont
+import schedule.ScheduleStore
 import view.LocalViewManager
 import view.WindowScreen
 import view.rememberImeState
@@ -354,32 +362,74 @@ fun GroupsContent(
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
                 exit = slideOutVertically(targetOffsetY = { it * 2 }),
             ) {
-                ExtendedFloatingActionButton(
-                    text = {
-                        AnimatedContent(
-                            if (model.view == GroupsStore.Views.Subjects) "Создать группу" else "Создать класс"
+                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                    Crossfade(nModel.state) {
+                        SmallFloatingActionButton(
+                            onClick = {
+                                when (it) {
+                                    NetworkState.Error -> {
+                                        nModel.onFixErrorClick()
+                                    }
+
+                                    NetworkState.None -> {
+                                        component.onEvent(GroupsStore.Intent.InitList)
+                                    }
+
+                                    NetworkState.Loading -> {}
+                                }
+                            },
+                            modifier = Modifier
                         ) {
-                            Text(it)
+                            when (it) {
+                                NetworkState.None -> {
+                                    Icon(
+                                        Icons.Rounded.Refresh,
+                                        null
+                                    )
+                                }
+
+                                NetworkState.Loading -> {
+                                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                                }
+
+                                NetworkState.Error -> {
+                                    Text(nModel.error)
+                                }
+                            }
                         }
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Rounded.Add,
-                            null
-                        )
-                    },
-                    onClick = {
-                        if (model.view == GroupsStore.Views.Subjects) {
-//                            component.onEvent(GroupsStore.Intent.ChangeCreatingSheetShowing(true))
-                            component.subjectsComponent.cGroupBottomSheet.onEvent(CBottomSheetStore.Intent.ShowSheet)
-                        } else if (model.view == GroupsStore.Views.Forms) {
-                            component.formsComponent.creatingFormBottomSheet.onEvent(
-                                CBottomSheetStore.Intent.ShowSheet
+                    }
+                    Spacer(Modifier.width(5.dp))
+                    ExtendedFloatingActionButton(
+                        text = {
+                            AnimatedContent(
+                                if (model.view == GroupsStore.Views.Subjects) "Создать группу" else "Создать класс"
+                            ) {
+                                Text(it)
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                Icons.Rounded.Add,
+                                null
                             )
-                        }
-                    },
-                    shape = MaterialTheme.shapes.large
-                )
+                        },
+                        onClick = {
+                            if (model.view == GroupsStore.Views.Subjects) {
+//                            component.onEvent(GroupsStore.Intent.ChangeCreatingSheetShowing(true))
+                                component.subjectsComponent.cGroupBottomSheet.onEvent(
+                                    CBottomSheetStore.Intent.ShowSheet
+                                )
+                            } else if (model.view == GroupsStore.Views.Forms) {
+                                component.formsComponent.creatingFormBottomSheet.onEvent(
+                                    CBottomSheetStore.Intent.ShowSheet
+                                )
+                            }
+                        },
+                        shape = MaterialTheme.shapes.large
+                    )
+                    Spacer(Modifier.width(25.dp))
+                }
             }
         }
 

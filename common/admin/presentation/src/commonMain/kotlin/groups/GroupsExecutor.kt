@@ -93,6 +93,7 @@ class GroupsExecutor(
                 val teachersA = adminRepository.fetchAllTeachers().teachers
                 val subjectsA =  adminRepository.fetchAllSubjects().subjects
                 val formsA = adminRepository.fetchAllForms().forms
+                updateMentorsInForms()
                 // async {
 
 //                val subjects = subjectsA.await()
@@ -106,12 +107,12 @@ class GroupsExecutor(
                         formsA
                     )
                 )
+                nGroupsInterface.nSuccess()
 //                subjectsComponent.onEvent(SubjectsStore.Intent.ClickOnSubject(subjectsA.first().id))
                 updateFormsList(formsA)
             } catch (e: Throwable) {
                 nGroupsInterface.nError("Что-то пошло не так =/") {
                         init()
-                        updateMentorsInForms()
                 }
                 println(e)
             }

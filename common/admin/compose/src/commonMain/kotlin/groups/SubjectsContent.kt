@@ -1,10 +1,13 @@
 package groups
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,6 +57,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import view.LocalViewManager
 
+@OptIn(ExperimentalLayoutApi::class)
 @ExperimentalFoundationApi
 @Composable
 fun SubjectsContent(
@@ -97,34 +101,45 @@ fun SubjectsContent(
                                     } catch (_: Throwable) {
                                         ""
                                     }
-                                ElevatedCard(
-                                    Modifier.heightIn(TextFieldDefaults.MinHeight)
-                                        .fillMaxWidth()//.padding(horizontal = 10.dp)
-                                        .padding(bottom = 5.dp)
-                                ) {
-                                    Column(
-                                        Modifier.padding(horizontal = 10.dp)
-                                            .padding(bottom = 10.dp, top = 5.dp)
+                                Column {
+                                    ElevatedCard(
+                                        modifier = Modifier.heightIn(TextFieldDefaults.MinHeight)
+                                            .fillMaxWidth()//.padding(horizontal = 10.dp)
+                                            .padding(bottom = 5.dp),
+                                        onClick = { component.onEvent(SubjectsStore.Intent.FetchStudents(group.id)) }
                                     ) {
-                                        Text(
-                                            group.group.name,
-                                            modifier = Modifier.fillMaxWidth()
-                                                .padding(start = 5.dp),
-                                            fontSize = 25.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Row {
-                                            Icon(
-                                                Icons.Rounded.Person,
-                                                null
+                                        Column(
+                                            Modifier.padding(horizontal = 10.dp)
+                                                .padding(bottom = 10.dp, top = 5.dp)
+                                        ) {
+                                            Text(
+                                                group.group.name,
+                                                modifier = Modifier.fillMaxWidth()
+                                                    .padding(start = 5.dp),
+                                                fontSize = 25.sp,
+                                                fontWeight = FontWeight.SemiBold
                                             )
-                                            Text(text = mentorName)
+                                            Row {
+                                                Icon(
+                                                    Icons.Rounded.Person,
+                                                    null
+                                                )
+                                                Text(text = mentorName)
 
-                                            Icon(
-                                                Icons.Rounded.LocalFireDepartment,
-                                                null
-                                            )
-                                            Text(group.group.difficult)
+                                                Icon(
+                                                    Icons.Rounded.LocalFireDepartment,
+                                                    null
+                                                )
+                                                Text(group.group.difficult)
+                                            }
+                                        }
+                                    }
+                                    FlowRow(Modifier.animateContentSize().fillMaxWidth().padding(horizontal = 5.dp).padding(bottom = 5.dp), horizontalArrangement = Arrangement.Center) {
+                                        if(model.currentGroup == group.id) {
+                                            val list = model.students[group.id]
+                                            list?.forEach { student ->
+                                                Text("${student.fio.surname} ${student.fio.name}${if (list.last() != student) ", " else ""}")
+                                            }
                                         }
                                     }
                                 }

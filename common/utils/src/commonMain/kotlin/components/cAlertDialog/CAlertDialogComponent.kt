@@ -57,14 +57,14 @@ class CAlertDialogComponent(
 
     val model: Value<CAlertDialogStore.State> = cAlertDialogStore.asValue()
 
-    private val backCallback = BackCallback {
-        onEvent(CAlertDialogStore.Intent.HideDialog)
-    }
-
-
-    init {
-        backHandler.register(backCallback)
-    }
+//    private val backCallback = BackCallback {
+//        onEvent(CAlertDialogStore.Intent.HideDialog)
+//    }
+//
+//
+//    init {
+//        backHandler.register(backCallback)
+//    }
 
     fun fullySuccess() {
         nInterface.nSuccess()

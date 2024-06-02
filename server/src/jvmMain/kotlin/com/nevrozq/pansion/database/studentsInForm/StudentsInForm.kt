@@ -1,6 +1,9 @@
 package com.nevrozq.pansion.database.studentsInForm
 
+import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.FormDTO
+import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
+import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.tokens.Tokens
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
@@ -13,8 +16,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object StudentsInForm : Table() {
     private val formId = StudentsInForm.integer("formId")
     private val login = StudentsInForm.varchar("login", 30).uniqueIndex()
-
-
     private fun deleteStudentInFormByLogin(login: String) {
         try {
             transaction {
@@ -34,6 +35,19 @@ object StudentsInForm : Table() {
                 StudentsInForm.insert {
                     it[formId] = studentInFormDTO.formId
                     it[login] = studentInFormDTO.login
+                }
+
+                StudentGroups.deleteWhere {
+                    StudentGroups.studentLogin eq studentInFormDTO.login
+                }
+                FormGroups.getGroupsOfThisForm(studentInFormDTO.formId).forEach {
+                    StudentGroups.insert(
+                        StudentGroupDTO(
+                            groupId = it.groupId,
+                            subjectId = it.subjectId,
+                            studentLogin = studentInFormDTO.login
+                        )
+                    )
                 }
             }
         } catch (e: Throwable) {

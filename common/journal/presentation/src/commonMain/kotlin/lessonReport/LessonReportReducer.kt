@@ -37,6 +37,7 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
             is LessonReportStore.Message.Inited -> copy(students = msg.students, likedList = msg.likedList, dislikedList = msg.dislikedList)
             is LessonReportStore.Message.DetailedMarksFetched -> copy(detailedMarks = msg.marks)
             is LessonReportStore.Message.DetailedMarksOpened -> copy(detailedMarksLogin = msg.login, detailedMarks = emptyList())
+            is LessonReportStore.Message.IsSavedAnimation -> copy(isSavedAnimation = msg.isSaved)
         }
     }
 }

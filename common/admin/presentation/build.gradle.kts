@@ -10,6 +10,7 @@ kotlin {
             dependencies {
                 implementation(project(":common:core"))
                 api(project(":common:admin:api"))
+                api(project(":common:main:api"))
                 api(project(":common:ktor"))
 //                api(project(":common:settings:api"))
 

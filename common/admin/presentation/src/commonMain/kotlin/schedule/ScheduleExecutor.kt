@@ -9,7 +9,9 @@ import components.listDialog.ListItem
 import components.mpChose.mpChoseComponent
 import components.mpChose.mpChoseStore
 import components.networkInterface.NetworkInterface
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DayOfWeek
@@ -172,11 +174,13 @@ class ScheduleExecutor(
             }
 
             Intent.SaveSchedule -> saveItems()
+            is Intent.IsSavedAnimation -> dispatch(Message.IsSavedAnimation(intent.isSavedAnimation))
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun saveItems() {
-        scope.launch(CDispatcher) {
+        GlobalScope.launch(CDispatcher) {
             try {
                 nInterface.nStartLoading()
                 adminRepository.saveSchedule(
@@ -184,7 +188,10 @@ class ScheduleExecutor(
                         list = state().items
                     )
                 )
-                nInterface.nSuccess()
+                scope.launch {
+                    dispatch(Message.IsSavedAnimation(true))
+                    nInterface.nSuccess()
+                }
             } catch (_: Throwable) {
                 nInterface.nError("Не удалось сохранить") {
                     saveItems()

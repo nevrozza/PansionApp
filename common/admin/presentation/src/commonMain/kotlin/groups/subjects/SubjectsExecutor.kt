@@ -1,6 +1,8 @@
 package groups.subjects
 
 import AdminRepository
+import CDispatcher
+import MainRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import components.cAlertDialog.CAlertDialogComponent
@@ -14,6 +16,8 @@ import kotlinx.coroutines.launch
 
 class SubjectsExecutor(
     private val adminRepository: AdminRepository,
+    private val mainRepository: MainRepository,
+    private val nGroupInterface: NetworkInterface,
     private val nSubjectsInterface: NetworkInterface,
     private val updateSubjects: () -> Unit,
     private val cSubjectDialog: CAlertDialogComponent,
@@ -28,6 +32,31 @@ class SubjectsExecutor(
             is Intent.ClickOnSubject -> changeSubjectId(intent.subjectId)
             Intent.CreateGroup -> createGroup(state())
             Intent.CreateSubject -> createSubject(state())
+            is Intent.FetchStudents -> fetchStudents(groupId = intent.groupId)
+        }
+    }
+
+    private fun fetchStudents(groupId: Int) {
+        if(groupId != state().currentGroup) {
+            dispatch(Message.CurrentGroupChanged(groupId))
+            scope.launch(CDispatcher) {
+                nGroupInterface.nStartLoading()
+                try {
+                    val students = mainRepository.fetchStudentsInGroup(groupId).students
+                    val newMap = state().students.toMutableMap()
+                    newMap[groupId] = students
+                    scope.launch {
+                        dispatch(Message.StudentsFetched(newMap.toMap(HashMap())))
+                        nGroupInterface.nStartLoading()
+                    }
+                } catch (_: Throwable) {
+                    nGroupInterface.nError("Не удалось загрузить список учеников") {
+                        fetchStudents(groupId)
+                    }
+                }
+            }
+        } else {
+            dispatch(Message.CurrentGroupChanged(0))
         }
     }
 

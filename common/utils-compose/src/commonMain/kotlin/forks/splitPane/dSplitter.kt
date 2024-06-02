@@ -24,17 +24,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import cursorForHorizontalResize
+import view.LocalViewManager
 
 @ExperimentalSplitPaneApi
 fun SplitPaneScope.dSplitter(
     isFullScreen: MutableState<Boolean>? = null
 ) = splitter {
     visiblePart {
+        val viewManager = LocalViewManager.current
         Box(Modifier.fillMaxHeight()) {
             if (isFullScreen != null) {
                 AnimatedContent(
                     if (isFullScreen.value) Icons.Rounded.CloseFullscreen else Icons.Rounded.OpenInFull,
-                    modifier = Modifier.size(25.dp).offset(x = 20.dp, y = 10.dp),
+                    modifier = Modifier.size(25.dp).offset(x = 20.dp, y = viewManager.topPadding + 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(

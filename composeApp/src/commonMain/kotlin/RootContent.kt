@@ -81,6 +81,7 @@ import animations.slideExitModifier
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
+import com.arkivanov.decompose.extensions.compose.stack.animation.plus
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.androidPredictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
@@ -206,6 +207,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     )
                 ) 80.dp else 0.dp
             )
+
             Children(
                 modifier = Modifier.fillMaxSize()
                     .padding(start = aniPadding),
@@ -223,7 +225,10 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             is AdminUsers -> if (isExpanded) fade() else iosSlide()
                             is AdminGroups -> if (isExpanded) fade() else iosSlide()
                             is LessonReport -> iosSlide() //if (isExpanded) fade() else slide()
-                            is HomeSettings -> iosSlide()//if (isExpanded) fade() else slide()
+                            is HomeSettings -> {
+
+                                iosSlide()
+                            }//if (isExpanded) fade() else slide()
 //                            else -> slide()
                             is Child.AuthActivation -> if (isExpanded) fade() else iosSlide()
                             is Child.AuthLogin -> if (isExpanded) fade() else iosSlide()

@@ -50,11 +50,13 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val isDefault: Boolean = false,
         val defaultDate: Int = 1,
         val dates: List<Pair<Int, String>> = getDates(),
-        val currentDate: Pair<Int, String> = getCurrentDate()
+        val currentDate: Pair<Int, String> = getCurrentDate(),
+        val isSavedAnimation: Boolean = false
     )
 
     sealed interface Intent {
         data object Init : Intent
+        data class IsSavedAnimation(val isSavedAnimation: Boolean): Intent
 
 
         data object ChangeEditMode : Intent
@@ -114,6 +116,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+        data class IsSavedAnimation(val isSavedAnimation: Boolean): Message
 
         data class ListUpdated(val list: HashMap<String, List<ScheduleItem>>) : Message
 

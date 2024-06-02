@@ -129,6 +129,7 @@ object ScheduleReducer : Reducer<State, Message> {
 //                )
 //            }
             is Message.TeacherListUpdated -> copy(activeTeachers = msg.activeTeachers)
+            is Message.IsSavedAnimation -> copy(isSavedAnimation = msg.isSavedAnimation)
         }
     }
 }

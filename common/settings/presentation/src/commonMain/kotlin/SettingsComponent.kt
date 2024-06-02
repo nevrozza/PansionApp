@@ -1,5 +1,4 @@
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cAlertDialog.CAlertDialogComponent
@@ -31,9 +30,6 @@ class SettingsComponent(
 //        quitDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
 //    }
 
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToHome)
-    }
 
     private val settingsStore =
         instanceKeeper.getStore {
@@ -43,11 +39,6 @@ class SettingsComponent(
                 authRepository = authRepository
             ).create()
         }
-
-    init {
-        backHandler.register(backCallback)
-//        onEvent(UsersStore.Intent.FetchUsersInit)
-    }
 
     val model = settingsStore.asValue()
 

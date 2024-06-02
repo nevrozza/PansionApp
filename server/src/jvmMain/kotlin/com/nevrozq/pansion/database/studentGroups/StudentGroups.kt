@@ -4,6 +4,7 @@ import FIO
 import Person
 import com.nevrozq.pansion.database.groups.GroupDTO
 import com.nevrozq.pansion.database.groups.Groups
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.SubjectDTO
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
@@ -17,9 +18,9 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object StudentGroups : Table() {
-    private val groupId = StudentGroups.integer("groupId")
-    private val subjectId = StudentGroups.integer("subjectId")
-    private val studentLogin = StudentGroups.varchar("studentLogin", 30)
+    val groupId = StudentGroups.integer("groupId")
+    val subjectId = StudentGroups.integer("subjectId")
+    val studentLogin = StudentGroups.varchar("studentLogin", 30)
 
 //    init {
 //        index(true, studentLogin)
@@ -30,10 +31,12 @@ object StudentGroups : Table() {
 //    private val difficult = Groups.varchar("difficult", 1)
 //    private val isActivated = Groups.bool("isActivated")
 
+
+
     fun insert(studentLessons: StudentGroupDTO) {
         try {
             transaction {
-
+                StudentGroups.delete(studentLessons)
                 StudentGroups.insert {
                     it[groupId] = studentLessons.groupId
                     it[studentLogin] = studentLessons.studentLogin

@@ -4,6 +4,7 @@ import admin.groups.forms.FormGroup
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
@@ -25,6 +26,15 @@ object FormGroups : Table() {
                     it[groupId] = formGroupsDTO.groupId
                     it[subjectId] = formGroupsDTO.subjectId
                 }
+                StudentsInForm.fetchStudentLoginsInForm(formGroupsDTO.formId).forEach { studentLogin ->
+                    StudentGroups.insert(
+                        StudentGroupDTO(
+                            groupId = formGroupsDTO.groupId,
+                            subjectId = formGroupsDTO.subjectId,
+                            studentLogin = studentLogin
+                        )
+                    )
+                }
             }
         } catch (e: Throwable) {
             println(e)
@@ -34,9 +44,18 @@ object FormGroups : Table() {
     fun delete(formGroupsDTO: FormGroupDTO) {
         try {
             transaction {
-               FormGroups.deleteWhere { (groupId eq formGroupsDTO.groupId) and
-                        (subjectId eq formGroupsDTO.subjectId) and
-                        (formId eq formGroupsDTO.formId) }
+                FormGroups.deleteWhere {
+                    (groupId eq formGroupsDTO.groupId) and
+                            (subjectId eq formGroupsDTO.subjectId) and
+                            (formId eq formGroupsDTO.formId)
+                }
+                StudentsInForm.fetchStudentLoginsInForm(formGroupsDTO.formId).forEach { studentLogin ->
+                    StudentGroups.deleteWhere {
+                        (this.groupId eq formGroupsDTO.groupId) and
+                                (this.subjectId eq formGroupsDTO.subjectId) and
+                                (this.studentLogin eq studentLogin)
+                    }
+                }
             }
         } catch (e: Throwable) {
             println(e)

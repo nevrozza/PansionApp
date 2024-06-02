@@ -1,5 +1,6 @@
 package lessonReport
 
+import CDispatcher
 import JournalRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
@@ -7,6 +8,8 @@ import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import report.RFetchReportStudentsReceive
 import report.RUpdateReportReceive
@@ -24,6 +27,7 @@ class LessonReportExecutor(
     private val marksDialogComponent: CAlertDialogComponent,
 ) :
     CoroutineExecutor<LessonReportStore.Intent, Unit, LessonReportStore.State, LessonReportStore.Message, LessonReportStore.Label>() {
+    @OptIn(DelicateCoroutinesApi::class)
     override fun executeIntent(intent: LessonReportStore.Intent) {
         when (intent) {
             is LessonReportStore.Intent.CreateColumn -> {
@@ -264,7 +268,7 @@ class LessonReportExecutor(
 
             LessonReportStore.Intent.ChangeInfoShowing -> dispatch(LessonReportStore.Message.InfoShowingChanged)
             LessonReportStore.Intent.UpdateWholeReport -> {
-                scope.launch {
+                GlobalScope.launch (CDispatcher) {
                     nInterface.nStartLoading()
                     try {
 //                        dispatch(LessonReportStore.Message.isFABShowing(false))
@@ -322,9 +326,11 @@ class LessonReportExecutor(
                         )
 
                         journalRepository.updateWholeReport(r)
-
-                        dispatch(LessonReportStore.Message.EditTimeChanged(editTime))
-                        nInterface.nSuccess()
+                        scope.launch {
+                            dispatch(LessonReportStore.Message.EditTimeChanged(editTime))
+                            dispatch(LessonReportStore.Message.IsSavedAnimation(true))
+                            nInterface.nSuccess()
+                        }
                     } catch (_: Throwable) {
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
                         nInterface.nError("Что-то пошло не так") {
@@ -414,6 +420,7 @@ class LessonReportExecutor(
             }
 
             is LessonReportStore.Intent.OpenDetailedMarks -> openDetailedMarks(intent.studentLogin)
+            is LessonReportStore.Intent.IsSavedAnimation -> dispatch(LessonReportStore.Message.IsSavedAnimation(intent.isSaved))
         }
     }
 

@@ -32,7 +32,8 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         val ids: Int,
         val isMentorWas: Boolean,
         val detailedMarksLogin: String = "",
-        val detailedMarks: List<UserMark> = emptyList()
+        val detailedMarks: List<UserMark> = emptyList(),
+        val isSavedAnimation: Boolean = false
 //        val deletingColumnReasondId: String = ""
 
     )
@@ -46,6 +47,8 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
 
     sealed interface Intent {
         data object Init: Intent
+
+        data class IsSavedAnimation(val isSaved: Boolean): Intent
 
         data class CreateColumn(val columnName: String, val reasonId: String) : Intent
 
@@ -86,6 +89,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
     }
 
     sealed interface Message {
+        data class IsSavedAnimation(val isSaved: Boolean): Message
         data class Inited(val students: List<StudentLine>, val likedList: List<String>, val dislikedList: List<String>):
             Message
 

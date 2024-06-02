@@ -48,6 +48,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -104,8 +109,6 @@ fun ListDialogContent(
 //    }
 
 
-
-
 //    else {
 //        val modalBottomSheetState = rememberModalBottomSheetState(
 //            skipPartiallyExpanded = true
@@ -148,7 +151,8 @@ fun BottomSheetVariant(
     isShowingCostil: MutableState<Boolean>,
     coroutineScope: CoroutineScope,
     modalBottomSheetState: SheetState,
-    title: String = "Выберите"
+    title: String = "Выберите",
+    modifier: Modifier = Modifier
 ) {
 
 
@@ -156,7 +160,7 @@ fun BottomSheetVariant(
 
     if (isShowingCostil.value) {
         DefaultModalBottomSheet(
-            additionalModifier = Modifier.sizeIn(maxHeight = 500.dp),
+            additionalModifier = modifier.then(Modifier.sizeIn(maxHeight = 500.dp)),
             modalBottomSheetState = modalBottomSheetState,
             onDismissRequest = {
                 component.onEvent(ListDialogStore.Intent.HideDialog)
@@ -274,14 +278,16 @@ fun DropdownVariant(
     nModel: NetworkInterface.NetworkModel,
     isTooltip: Boolean,
     isFullHeight: Boolean,
-    offset: DpOffset
+    offset: DpOffset,
+    modifier: Modifier = Modifier
 ) {
     DropdownMenu(
         expanded = model.isDialogShowing && isTooltip,
         onDismissRequest = {
             component.onEvent(ListDialogStore.Intent.HideDialog)
         },
-        modifier = Modifier.then(if (!isFullHeight) Modifier.sizeIn(maxHeight = 200.dp) else Modifier).animateContentSize(),
+        modifier = modifier.then(if (!isFullHeight) Modifier.sizeIn(maxHeight = 200.dp) else Modifier)
+            .animateContentSize(),
         offset = offset
     ) {
         Crossfade(

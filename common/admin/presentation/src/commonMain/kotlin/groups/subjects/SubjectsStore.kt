@@ -1,5 +1,6 @@
 package groups.subjects
 
+import Person
 import admin.groups.Group
 import com.arkivanov.mvikotlin.core.store.Store
 import groups.subjects.SubjectsStore.Intent
@@ -25,10 +26,13 @@ interface SubjectsStore : Store<Intent, State, Label> {
         val cError: String = "",
         val cName: String = "",
         val cTeacherLogin: String = "",
-        val cDifficult: String = ""
+        val cDifficult: String = "",
+        val students: HashMap<Int, List<Person>> = hashMapOf(),
+        val currentGroup: Int = 0
     )
 
     sealed interface Intent {
+        data class FetchStudents(val groupId: Int) : Intent
         data class ClickOnSubject(val subjectId: Int) : Intent
 
         data class ChangeCSubjectText(val text: String) : Intent
@@ -50,6 +54,8 @@ interface SubjectsStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+        data class CurrentGroupChanged(val currentGroup: Int) : Message
+        data class StudentsFetched(val students: HashMap<Int, List<Person>>) : Message
         data class ChosenSubjectChanged(val subjectId: Int) : Message //Subjects
 
         data class GroupsUpdated(val groups: List<Group>) : Message

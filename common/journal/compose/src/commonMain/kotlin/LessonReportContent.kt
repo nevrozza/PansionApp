@@ -4,6 +4,10 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,6 +46,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LocalPolice
 import androidx.compose.material.icons.rounded.MoreVert
@@ -70,6 +75,7 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.surfaceColorAtElevation
@@ -119,10 +125,12 @@ import components.CustomTextButton
 import components.CustomTextField
 import components.MarkContent
 import components.ReportTitle
+import components.SaveAnimation
 import components.ScrollBaredBox
 import components.TeacherTime
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
+import components.listDialog.ListItem
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
@@ -142,7 +150,10 @@ import lessonReport.srBall
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
 import resources.GeologicaFont
+import server.getDate
+import server.getSixTime
 import server.roundTo
+import server.toMinutes
 import view.LocalViewManager
 import view.LockScreenOrientation
 import view.rememberImeState
@@ -215,33 +226,6 @@ fun LessonReportContent(
                             }
                         }
                     }
-
-//                    AnimatedContent(nModel.state) {
-//                    when (it) {
-//                        NetworkState.None -> {
-//                            SmallFloatingActionButton(
-//                                onClick = {
-//                                    component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
-//                                }
-//                            ) {
-//                                Icon(
-//                                    Icons.Rounded.Save,
-//                                    null
-//                                )
-//                            }
-//                        }
-//
-//                        NetworkState.Loading -> {
-//                            SmallFloatingActionButton(
-//                                onClick = {}
-//                            ) {
-//                                CircularProgressIndicator()
-//                            }
-//                        }
-//
-//                        NetworkState.Error -> {}
-//                    }
-//                }
                 }
             }
 
@@ -334,7 +318,8 @@ fun LessonReportContent(
                 ListDialogMobileContent(
                     component = component.setMarkMenuComponent,
                     title =
-                    markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName
+                    markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName,
+                    modifier = Modifier.setMarksBind(component)
                 )
 
                 ListDialogMobileContent(
@@ -343,11 +328,13 @@ fun LessonReportContent(
                     markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName + " - " + markValue
                 )
             }
+
             PullRefreshIndicator(
                 modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = refreshing,
                 state = refreshState,
             )
+
             CBottomSheetContent(
                 component.setReportColumnsComponent
             ) {
@@ -449,6 +436,7 @@ fun LessonReportContent(
         }
 
 
+
         LaunchedEffect(Unit) {
             component.setReportColumnsComponent.onEvent(CBottomSheetStore.Intent.ShowSheet)
         }
@@ -476,7 +464,8 @@ fun LessonReportContent(
                     text = buildAnnotatedString {
                         append("Это приведёт к удалению ")
                         withStyle(
-                            SpanStyle(fontWeight = FontWeight.Bold
+                            SpanStyle(
+                                fontWeight = FontWeight.Bold
                             )
                         ) {
                             append("всех")
@@ -487,6 +476,12 @@ fun LessonReportContent(
                     textAlign = TextAlign.Center
                 )
             }
+        }
+
+
+        //SAVE_ANIMATION
+        SaveAnimation(model.isSavedAnimation) {
+            component.onEvent(LessonReportStore.Intent.IsSavedAnimation(false))
         }
     }
 }
@@ -971,27 +966,6 @@ fun LessonTable(
     val allWidth = remember { mutableStateOf(0.dp) }
     val lP = 50.dp
 
-//    val widths = mutableStateMapOf<String, Dp>(
-//        prisut/*columnNames[0]*/ to 150.dp, //
-//        opozdanie/*columnNames[1]*/ to 104.dp, //
-//        srBall/*columnNames[2]*/ to 50.dp //
-//    )
-//
-//    model.columnNames.forEach {
-//        if (widths[it.title] == null) {
-//            if (it.type !in listOf(
-//                    ColumnTypes.opozdanie,
-//                    ColumnTypes.srBall,
-//                    ColumnTypes.prisut
-//                )
-//            ) {
-//                widths[it.title] = 150.dp
-//            } else {
-//                widths[it.title] = 50.dp
-//            }
-//        }
-//    }
-
     allWidth.value = model.columnNames.map {
         when (it.type) {
             ColumnTypes.prisut -> 150.dp
@@ -1103,57 +1077,10 @@ fun LessonTable(
                                         .removePrefix("st").removePrefix("ds"),
                                     fontWeight = FontWeight.ExtraBold,
                                     textAlign = TextAlign.Center,
-//                                    modifier = Modifier.width(when(column.type) {
-//                                        ColumnTypes.prisut -> 150.dp
-//                                        ColumnTypes.opozdanie -> 104.dp
-//                                        ColumnTypes.srBall -> 50.dp
-//                                        else -> 150.dp
-//                                    })
-//                                        .onGloballyPositioned {
-//                                            val width = with(density) { it.size.height.toDp() }
-//                                            if (width > widths[column.title]!!) widths[column.title] =
-//                                                (width)
-//                                            else {
-//                                                isChecked.value =
-//                                                    true//; println("${column.title}: ${widths[column.title]}")
-//                                            }
-//
-//                                        },
-
-//                                    onTextLayout = {
-//                                        if (it.hasVisualOverflow) {
-//                                            widths[column.title] =
-//                                                widths[column.title]!! + 15.dp
-//                                        }
-//                                    },
 
                                     overflow = TextOverflow.Ellipsis,
                                     softWrap = false
                                 )
-//                                val count = remember { mutableStateOf(0) }
-//                                if (column.type is ColumnTypes.srBall && model.isEditable) {
-//                                    Box(
-//                                        Modifier.offset(y = 1.dp).padding(start = 5.dp).size(13.dp)
-//                                            .clip(CircleShape).background(
-//                                                MaterialTheme.colorScheme.onSurface.copy(alpha = .4f)
-//                                            ).clickable {
-//                                                component.onEvent(
-//                                                    LessonReportStore.Intent.CreateColumn(
-//                                                        if (count.value == 0) "За домашнюю 18.03" else if (count.value == 1) "За домашнюю 16.03" else "За классную"
-//                                                    )
-//                                                )
-//                                                count.value++
-//                                            },
-//                                        contentAlignment = Alignment.Center
-//                                    ) {
-//                                        Icon(
-//                                            Icons.Rounded.Menu,
-//                                            modifier = Modifier,
-//                                            contentDescription = null,
-//                                            tint = MaterialTheme.colorScheme.onSurface
-//                                        )
-//                                    }
-//                                }
                             }
                         }
                     }
@@ -1257,18 +1184,24 @@ fun LessonTable(
                                                                     verticalAlignment = Alignment.CenterVertically,
                                                                     horizontalArrangement = Arrangement.Center
                                                                 ) {
-                                                                    FilledTonalButton(
-                                                                        contentPadding = PaddingValues(
-                                                                            horizontal = 5.dp
-                                                                        ), onClick = {
-                                                                            component.onEvent(
-                                                                                LessonReportStore.Intent.SetLateTime(
-                                                                                    student.login,
-                                                                                    "auto"
+                                                                    val lessonMinutes =
+                                                                        model.time.toMinutes()
+                                                                    val currentMinutes =
+                                                                        getSixTime().toMinutes()
+                                                                    if (model.date == getDate() && lessonMinutes <= currentMinutes && currentMinutes - lessonMinutes <= 40) {
+                                                                        FilledTonalButton(
+                                                                            contentPadding = PaddingValues(
+                                                                                horizontal = 5.dp
+                                                                            ), onClick = {
+                                                                                component.onEvent(
+                                                                                    LessonReportStore.Intent.SetLateTime(
+                                                                                        student.login,
+                                                                                        "auto"
+                                                                                    )
                                                                                 )
-                                                                            )
-                                                                        }) {
-                                                                        Text("Опозд.")
+                                                                            }) {
+                                                                            Text("Опозд.")
+                                                                        }
                                                                     }
                                                                     Box() {
                                                                         IconButton(
@@ -1399,13 +1332,6 @@ fun LessonTable(
                                                                     )
                                                                 },
                                                                 addModifier = Modifier
-//                                                                .onGloballyPositioned {
-//                                                                    x =
-//                                                                        it.positionInRoot().x - 110f - (viewManager.size!!.maxWidth - currentParentWidth).value// it.positionInParent().x
-//                                                                    y =
-//                                                                        it.positionInRoot().y - 50f
-//
-//                                                                }
                                                                     .clickable {
                                                                         component.onEvent(
                                                                             LessonReportStore.Intent.OpenDeleteMarkMenu(
@@ -1436,8 +1362,6 @@ fun LessonTable(
                                                     }
 
                                                     if (marks.size != 4) {
-//                                                        var x by remember { mutableStateOf(0.0f) }
-//                                                        var y by remember { mutableStateOf(0.0f) }
                                                         Box() {
                                                             Box(
                                                                 Modifier.offset(y = -2.dp)
@@ -1456,13 +1380,6 @@ fun LessonTable(
                                                                         }
 
                                                                     )
-//                                                                .onGloballyPositioned {
-//                                                                    x =
-//                                                                        it.positionInRoot().x - 110f - (viewManager.size!!.maxWidth - currentParentWidth).value// it.positionInParent().x
-//                                                                    y =
-//                                                                        it.positionInRoot().y - 50f
-//
-//                                                                }
                                                                     .clickable {
                                                                         component.onEvent(
                                                                             LessonReportStore.Intent.OpenSetMarksMenu(
@@ -1489,7 +1406,10 @@ fun LessonTable(
                                                                         x = 27.dp,
                                                                         y = -18.dp
                                                                     ),
-                                                                    isFullHeight = true
+                                                                    isFullHeight = true,
+                                                                    modifier = Modifier.setMarksBind(
+                                                                        component
+                                                                    )
                                                                 )
                                                             }
                                                         }
@@ -1662,7 +1582,6 @@ fun LessonReportTopBar(
         actionRow = {
             settingsAB(component)
             refreshAB(component)
-
         }
     )
 
@@ -1707,5 +1626,26 @@ private fun refreshAB(
         Icon(
             Icons.Filled.Refresh, null
         )
+    }
+}
+
+@Composable
+fun Modifier.setMarksBind(
+    component: LessonReportComponent
+): Modifier {
+    return this then Modifier.onKeyEvent {
+        if (it.key in listOf(
+                Key.Two, Key.Three, Key.Four, Key.Five,
+                Key.NumPad2, Key.NumPad3, Key.NumPad4, Key.NumPad5
+            ) && it.type == KeyEventType.KeyDown
+        ) {
+            component.setMarkMenuComponent.onClick(
+                ListItem(
+                    id = it.key.toString().split(" ", "-").last(),
+                    text = it.key.toString().split(" ", "-").last()
+                )
+            )
+        }
+        false
     }
 }

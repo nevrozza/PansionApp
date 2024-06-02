@@ -11,6 +11,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -23,7 +26,8 @@ import view.WindowScreen
 fun ListDialogDesktopContent(
     component: ListComponent,
     isFullHeight: Boolean = false,
-    offset: DpOffset = DpOffset(x = 40.dp, y = -25.dp)
+    offset: DpOffset = DpOffset(x = 40.dp, y = -25.dp),
+    modifier: Modifier = Modifier
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
@@ -31,6 +35,7 @@ fun ListDialogDesktopContent(
     val viewManager = LocalViewManager.current
     val isShowingCostil = remember { mutableStateOf(false) }
     val isTooltip = viewManager.orientation.value != WindowScreen.Vertical
+    val focusRequester = remember { FocusRequester() }
 //    if(model.isDialogShowing) {
 //        AlertDialog({}){}
 //    }
@@ -46,8 +51,16 @@ fun ListDialogDesktopContent(
                 nModel = nModel,
                 isTooltip = isTooltip,
                 offset = offset,
-                isFullHeight = isFullHeight
+                isFullHeight = isFullHeight,
+                modifier = modifier.then(
+                    Modifier.focusRequester(focusRequester)
+                        .onPlaced {
+                            focusRequester.requestFocus()
+                        }
+                )
             )
         }
+
+//        focusRequester.requestFocus()
     }
 }

@@ -83,16 +83,21 @@ class RootComponentImpl(
     }
 
     override fun onBackClicked() {
-        navigation.pop()
-        val root = getRoot(childStack.active.instance)
-        rootStore.accept(
-            RootStore.Intent.ChangeCurrentScreen(
-                currentCategory = root.first,
-                currentScreen = root.second
-            )
-        )
-
-
+        when(val child = childStack.active.instance) {
+            is Child.HomeSettings -> {
+                onHomeSettingsOutput(SettingsComponent.Output.BackToHome)
+            }
+            else -> {
+                navigation.pop()
+                val root = getRoot(childStack.active.instance)
+                rootStore.accept(
+                    RootStore.Intent.ChangeCurrentScreen(
+                        currentCategory = root.first,
+                        currentScreen = root.second
+                    )
+                )
+            }
+        }
     }
 
     private fun getRoot(child: Child): Pair<RootComponent.RootCategories, Config> {
