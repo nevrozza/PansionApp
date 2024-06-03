@@ -99,9 +99,9 @@ fun main() {
 
     val isAppRunning = AtomicBoolean(false)
     if (isAppRunning.compareAndSet(false, true)) {
-        GlobalScope.launch(Dispatchers.IO) {
-            com.nevrozq.pansion.main()
-        }
+//        GlobalScope.launch(Dispatchers.IO) {
+//            com.nevrozq.pansion.main()
+//        }
         PlatformSDK.init(
             configuration = PlatformConfiguration(),
             cConfiguration = CommonPlatformConfiguration(

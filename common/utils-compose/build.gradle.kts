@@ -17,7 +17,6 @@ kotlin {
                 implementation(project(":common:utils"))
                 implementation(project(":common:core"))
                 implementation(libs.compose.materialKolor)
-                implementation(libs.compose.colorPicker)
                 implementation(compose.components.resources)
 //                implementation(libs.moko.resources.compose)
                 implementation(libs.decompose.core)

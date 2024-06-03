@@ -8,7 +8,10 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.SoftKeyboardInterceptionModifierNode
@@ -24,10 +27,16 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import di.Inject
 import kotlinx.browser.window
 import root.RootComponentImpl
 import view.WindowType
 import server.DeviceTypex
+import view.AppTheme
+import view.LocalViewManager
+import view.ViewManager
+import view.toRGB
+import view.toTint
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
@@ -68,12 +77,32 @@ fun main() {
 //            IntSize(width, height)
 //        }
     ) {
-        PageLoadNotify()
-        Root(
-            root = root,
-            device = WindowType.PC,
-            isJs = true
-        )
+        val settingsRepository: SettingsRepository = Inject.instance()
+        val rgb = settingsRepository.fetchSeedColor().toRGB()
+        val viewManager = remember {
+            ViewManager(
+                seedColor = mutableStateOf(
+                    Color(
+                        red = rgb[0],
+                        green = rgb[1],
+                        blue = rgb[2]
+                    )
+                ),
+                tint = mutableStateOf(settingsRepository.fetchTint().toTint())
+            )
+        }
+        CompositionLocalProvider(
+            LocalViewManager provides viewManager
+        ) {
+            PageLoadNotify()
+            AppTheme {
+                Root(
+                    root = root,
+                    device = WindowType.PC,
+                    isJs = true
+                )
+            }
+        }
 
     }
 }
