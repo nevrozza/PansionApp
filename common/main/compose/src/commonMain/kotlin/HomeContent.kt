@@ -106,7 +106,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import bp.SberMain
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -544,7 +543,6 @@ private fun RaspisanieTable(
 fun StudentHomeContent(
     component: HomeComponent
 ) {
-    val isSber = remember { mutableStateOf(false) }
     val model by component.model.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
@@ -800,7 +798,7 @@ fun StudentHomeContent(
                                 Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
                                     .weight(1f)
                                     .clickable() {
-                                        isSber.value = true
+
                                     }
                             ) {
                                 Column(
@@ -901,9 +899,6 @@ fun StudentHomeContent(
             )
         }
 
-    }
-    if (isSber.value) {
-        SberMain()
     }
 }
 

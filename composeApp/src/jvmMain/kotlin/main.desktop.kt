@@ -183,7 +183,7 @@ fun main() {
                             DecoratedWindow(
                                 onCloseRequest = { isCloseDialogVisible = true },
                                 state = windowState,
-                                title = "СберДруг", //Pansion App
+                                title = "Pansion App", //Pansion App
                                 visible = isVisible,
                                 icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 
