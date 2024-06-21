@@ -173,6 +173,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
     Scaffold(
         Modifier.fillMaxSize(),
         bottomBar = {
+            //sber
             Box(Modifier.animateContentSize().fillMaxWidth()) {
                 AnimatedVisibility(
 

@@ -31,6 +31,12 @@ kotlin {
         binaries.executable()
     }
 
+    js(IR) {
+        browser()
+//        useCommonJs()
+        binaries.executable()
+    }
+
     //JVM
     jvmToolchain(17)
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

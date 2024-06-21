@@ -75,6 +75,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -105,6 +106,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import bp.SberMain
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -125,12 +127,9 @@ import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
-import report.ReportHeader
-import resources.GeologicaFont
 import server.Roles
 import server.fetchReason
 import server.getCurrentDayTime
-import server.getDate
 import server.roundTo
 import server.toMinutes
 import server.weekPairs
@@ -545,6 +544,7 @@ private fun RaspisanieTable(
 fun StudentHomeContent(
     component: HomeComponent
 ) {
+    val isSber = remember { mutableStateOf(false) }
     val model by component.model.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
@@ -800,7 +800,7 @@ fun StudentHomeContent(
                                 Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
                                     .weight(1f)
                                     .clickable() {
-
+                                        isSber.value = true
                                     }
                             ) {
                                 Column(
@@ -901,6 +901,9 @@ fun StudentHomeContent(
             )
         }
 
+    }
+    if (isSber.value) {
+        SberMain()
     }
 }
 

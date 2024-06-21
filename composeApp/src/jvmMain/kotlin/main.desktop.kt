@@ -130,7 +130,7 @@ fun main() {
 
 
             val windowState = rememberWindowState()
-            windowState.size = DpSize(950.dp, 480.dp)
+            windowState.size = DpSize(480.dp, 800.dp) //950 480
 
             var isVisible by remember { mutableStateOf(true) }
 
@@ -183,7 +183,7 @@ fun main() {
                             DecoratedWindow(
                                 onCloseRequest = { isCloseDialogVisible = true },
                                 state = windowState,
-                                title = "Pansion App",
+                                title = "СберДруг", //Pansion App
                                 visible = isVisible,
                                 icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 

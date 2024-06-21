@@ -77,16 +77,16 @@ kotlin {
 //    iosArm64()
 //    iosSimulatorArm64()
 
-//    js(IR) {
-//        moduleName = "composeApp"
-//        browser {
-//            commonWebpackConfig {
-//                outputFileName = "composeApp.js"
-//            }
-//        }
-////        browser()
-//        binaries.executable()
-//    }
+    js(IR) {
+        moduleName = "composeApp"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+//        browser()
+        binaries.executable()
+    }
 
     wasmJs {
         moduleName = "composeApp"
@@ -193,12 +193,9 @@ kotlin {
         }
 
         jsMain.dependencies {
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-styled")
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-css")
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-system") //mui-system
+
             implementation(project.dependencies.enforcedPlatform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:1.0.0-pre.648"))
+            implementation("org.jetbrains.kotlin-wrappers:kotlin-browser")
         }
 
 //        val iosX64Main by getting
