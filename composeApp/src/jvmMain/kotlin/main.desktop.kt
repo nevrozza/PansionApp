@@ -99,9 +99,9 @@ fun main() {
 
     val isAppRunning = AtomicBoolean(false)
     if (isAppRunning.compareAndSet(false, true)) {
-//        GlobalScope.launch(Dispatchers.IO) {
-//            com.nevrozq.pansion.main()
-//        }
+        GlobalScope.launch(Dispatchers.IO) {
+            com.nevrozq.pansion.main()
+        }
         PlatformSDK.init(
             configuration = PlatformConfiguration(),
             cConfiguration = CommonPlatformConfiguration(
@@ -130,7 +130,7 @@ fun main() {
 
 
             val windowState = rememberWindowState()
-            windowState.size = DpSize(480.dp, 800.dp) //950 480
+            windowState.size = DpSize(950.dp, 480.dp) //950 480 //480 800
 
             var isVisible by remember { mutableStateOf(true) }
 

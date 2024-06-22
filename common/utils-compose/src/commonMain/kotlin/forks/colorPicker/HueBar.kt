@@ -2,6 +2,7 @@ package forks.colorPicker
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.materialkolor.ktx.toHct
 import com.materialkolor.utils.ColorUtils
@@ -52,11 +54,11 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ColorSlider(
+    modifier: Modifier = Modifier,
     changeColor: (Color) -> Unit
 ) {
     val viewManager = LocalViewManager.current
     val value = remember { mutableStateOf(rgbToHue(viewManager.seedColor.value)) }
-
 
 
     val color = remember {
@@ -92,13 +94,12 @@ fun ColorSlider(
             activeTrackColor = Color.Transparent,
             inactiveTrackColor = Color.Transparent
         ),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(35.dp),
         thumb = {
             CustomThumb(
-                color = color.value,
-                modifier = Modifier.size(70.dp) // Custom thumb size
+                color = color.value
             )
         },
         track = {
@@ -139,22 +140,26 @@ fun rgbToHue(color: Color): Float {
 @Composable
 fun CustomThumb(
     color: Color,
-    modifier: Modifier = Modifier
+    size: Dp = 30.dp
 ) {
-
-
-    Canvas(modifier = modifier) {
-        drawCircle(
-            color = color,
-            radius = 18f, // Adjust for desired thumb size
-
-        )
-        drawCircle(
-            color = Color.White, // Inner circle for white border
-            radius = 16f,
-            style = Stroke(6f)// Adjust for desired thumb size
-//            style = Paint.Style.Stroke,
-//            stroke = thumbPaint
-        )
+    Box(contentAlignment = Alignment.Center) {
+        Box(Modifier.clip(RoundedCornerShape(100)).size(size).background(Color.White))
+        Box(Modifier.clip(RoundedCornerShape(100)).size(size - (size/4)).background(color))
     }
+
+
+//    Canvas(modifier = modifier) {
+//        drawCircle(
+//            color = color,
+//            radius = 18f, // Adjust for desired thumb size
+//
+//        )
+//        drawCircle(
+//            color = Color.White, // Inner circle for white border
+//            radius = 16f,
+//            style = Stroke(6f)// Adjust for desired thumb size
+////            style = Paint.Style.Stroke,
+////            stroke = thumbPaint
+//        )
+//    }
 }

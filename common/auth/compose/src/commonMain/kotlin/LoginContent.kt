@@ -215,7 +215,7 @@ fun LoginContent(
                 BottomThemePanel(
                     viewManager,
                     onThemeClick = {
-                        changeTint(viewManager)
+                        changeTint(viewManager, it)
                     }
                 ) {
                     changeColorSeed(viewManager, it.toHex())
