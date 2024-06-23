@@ -65,7 +65,6 @@ import decomposeComponents.CAlertDialogContent
 import kotlinx.coroutines.CoroutineScope
 import lessonReport.LessonReportStore
 import report.UserMark
-import resources.GeologicaFont
 import server.fetchReason
 import server.roundTo
 import view.LocalViewManager

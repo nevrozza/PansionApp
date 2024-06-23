@@ -107,7 +107,6 @@ import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
 import kotlinx.datetime.DayOfWeek
-import resources.GeologicaFont
 import schedule.ScheduleComponent
 import schedule.ScheduleStore
 import schedule.ScheduleStore.EditState
