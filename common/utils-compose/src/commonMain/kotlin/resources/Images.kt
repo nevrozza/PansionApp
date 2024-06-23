@@ -27,17 +27,10 @@ import pansion.common.utils_compose.generated.resources.Geologica_Thin
 import pansion.common.utils_compose.generated.resources.Geologica_ThinItalic
 import pansion.common.utils_compose.generated.resources.Res
 import pansion.common.utils_compose.generated.resources.MGU
-import pansion.common.utils_compose.generated.resources.primer
-import pansion.common.utils_compose.generated.resources.sb
-import pansion.common.utils_compose.generated.resources.sfera
 
 data object Images {
     val MGU: ImageBitmap
         @Composable get() = imageResource(Res.drawable.MGU)
-    val SberLogo: ImageBitmap
-        @Composable get() = imageResource(Res.drawable.sfera)
-    val SberPrimer: ImageBitmap
-        @Composable get() = imageResource(Res.drawable.primer)
 }
 val GeologicaFont: FontFamily
     @Composable get() = FontFamily(
@@ -59,26 +52,4 @@ val GeologicaFont: FontFamily
         Font(Res.font.Geologica_ExtraLightItalic, FontWeight.ExtraLight, FontStyle.Italic),
         Font(Res.font.Geologica_Thin, FontWeight.Thin, FontStyle.Normal),
         Font(Res.font.Geologica_ThinItalic, FontWeight.Thin, FontStyle.Italic),
-    )
-
-val SberFont: FontFamily
-    @Composable get() = FontFamily(
-        Font(Res.font.sb, FontWeight.Black, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.Black, FontStyle.Italic),
-        Font(Res.font.sb, FontWeight.Bold, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.Bold, FontStyle.Italic),
-        Font(Res.font.sb, FontWeight.SemiBold, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.SemiBold, FontStyle.Italic),
-        Font(Res.font.sb, FontWeight.ExtraBold, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.ExtraBold, FontStyle.Italic),
-        Font(Res.font.sb, FontWeight.Medium, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.Medium, FontStyle.Italic),
-        Font(Res.font.sb, FontWeight.Normal, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.Normal, FontStyle.Italic),
-        Font(Res.font.sb, FontWeight.Light, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.SemiBold, FontStyle.Italic),
-        Font(Res.font.sb, FontWeight.ExtraLight, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.ExtraLight, FontStyle.Italic),
-        Font(Res.font.sb, FontWeight.Thin, FontStyle.Normal),
-        Font(Res.font.sb, FontWeight.Thin, FontStyle.Italic),
     )

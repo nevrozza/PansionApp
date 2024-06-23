@@ -66,7 +66,9 @@ import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.deleteAll
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
 import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
@@ -259,7 +261,10 @@ class LessonsController() {
                     }
                 }
                 transaction {
-                    Schedule.deleteAll()
+                    val dates: List<String> = list.flatMap { it.map { it.date } }
+                    Schedule.deleteWhere {
+                        (date.inList(dates))
+                    }
                     list.forEach {
                         Schedule.insertList(
                             it

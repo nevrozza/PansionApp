@@ -405,7 +405,7 @@ fun ActivationContent(
                         modifier = Modifier.bringIntoView(scrollState, imeState),
                         viewManager = viewManager,
                         onThemeClick = {
-                            changeTint(viewManager)
+                            changeTint(viewManager, it)
                         }
                     ) {
                         changeColorSeed(viewManager, it.toHex())

@@ -13,9 +13,11 @@ import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,6 +43,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,6 +65,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -86,11 +91,16 @@ import kotlin.math.roundToInt
 @Composable
 fun BottomThemePanel(
     viewManager: ViewManager,
-    onThemeClick: () -> Unit,
+    onThemeClick: (ThemeTint) -> Unit,
     modifier: Modifier = Modifier,
     changeColor: (Color) -> Unit
 ) {
     val isColorMenuOpened = remember { mutableStateOf(false) }
+    val tints = listOf(
+        Pair(ThemeTint.Dark, Icons.Rounded.DarkMode),
+        Pair(ThemeTint.Auto, Icons.Rounded.AutoMode),
+        Pair(ThemeTint.Light, Icons.Rounded.LightMode)
+    )
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
         Row(
             modifier = modifier.widthIn(max = 470.dp).fillMaxWidth()
@@ -100,25 +110,6 @@ fun BottomThemePanel(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-//                AnimatedContent(
-//                    when (viewManager.tint.value) {
-//                        ThemeTint.Auto -> Icons.Rounded.AutoMode
-//                        ThemeTint.Dark -> Icons.Rounded.DarkMode
-//                        else -> Icons.Rounded.LightMode
-//                    }
-//                ) {
-//                    IconButton(
-//                        onClick = {
-//                            onThemeClick()
-//                        }
-//                    ) {
-//                        Icon(
-//                            it,
-//                            null,
-//                            modifier = Modifier.size(27.dp)
-//                        )
-//                    }
-//                }
             Box() {
                 IconButton(
                     onClick = {
@@ -159,7 +150,8 @@ fun BottomThemePanel(
             }
         }
         Box(
-            modifier = Modifier.fillMaxWidth().animateContentSize()) {
+            modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth().animateContentSize()
+        ) {
             AnimatedVisibility(
                 isColorMenuOpened.value,
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
@@ -171,14 +163,49 @@ fun BottomThemePanel(
                         .padding(horizontal = 15.dp),
                     shape = RoundedCornerShape(40)
                 ) {
-                    Box(Modifier.align(Alignment.Center).padding(vertical = 10.dp)) {
-                        ColorSlider() {
+                    Column(Modifier.align(Alignment.Center).padding(vertical = 10.dp)) {
+                        ColorSlider(Modifier.padding(bottom = 5.dp)) {
                             changeColor(it)
+                        }
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            tints.forEach { tint ->
+                                ChangeTintButton(
+                                    tint = tint.first,
+                                    imageVector = tint.second,
+                                    isSelected = viewManager.tint.value == tint.first
+                                ) {
+                                    onThemeClick(it)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
 
+@Composable
+fun ChangeTintButton(
+    tint: ThemeTint,
+    imageVector: ImageVector,
+    isSelected: Boolean,
+    onClick: (ThemeTint) -> Unit
+) {
+    IconButton(
+        onClick = {
+            onClick(tint)
+        },
+        colors = IconButtonDefaults.iconButtonColors(containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Unspecified)
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = tint.name,
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+    }
 }

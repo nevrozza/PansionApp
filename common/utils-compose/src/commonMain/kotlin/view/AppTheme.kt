@@ -10,11 +10,10 @@ import androidx.compose.ui.text.font.FontFamily
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
 import resources.GeologicaFont
-import resources.SberFont
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    val font = SberFont//GeologicaFont
+    val font = GeologicaFont
 
     val viewManager = LocalViewManager.current
 
