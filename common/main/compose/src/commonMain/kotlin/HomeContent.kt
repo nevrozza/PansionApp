@@ -19,6 +19,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -94,6 +95,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
@@ -126,6 +128,7 @@ import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
+import resources.Images
 import server.Roles
 import server.fetchReason
 import server.getCurrentDayTime
@@ -1398,16 +1401,19 @@ fun GetAvatar(avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit 
         ),
         contentAlignment = Alignment.Center
     ) {
-        if (avatarId == 0) {
+        if (false) { //avatarId in listOf(0, 1)
             Text(
                 name[0].toString(),
                 fontSize = textSize,
                 fontWeight = FontWeight.Normal,
                 color = Color.White
             )
-        } else if (avatarId == -1) {
-            Icon(
-                Icons.Rounded.Favorite, null
+        } else {
+            Image(
+                Images.Avatars.nevrozq,
+                null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
         }
 

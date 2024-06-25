@@ -12,6 +12,7 @@ import cabinets.CabinetsComponent
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
+import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
 import dnevnikRuMarks.DnevnikRuMarksComponent
 import groups.GroupsComponent
@@ -32,6 +33,8 @@ interface RootComponent : BackHandlerOwner {
     val state: StateFlow<RootStore.State>
 
     val model: Value<RootStore.State>
+
+    val checkNInterface: NetworkInterface
 
     sealed class Child {
         class AuthLogin(val component: LoginComponent) : Child()
@@ -96,6 +99,7 @@ interface RootComponent : BackHandlerOwner {
     }
 
     fun onOutput(output: Output)
+    fun onEvent(event: RootStore.Intent)
 
     fun onBackClicked()
 
@@ -107,6 +111,7 @@ interface RootComponent : BackHandlerOwner {
         data object NavigateToSchedule : Output()
 
         data object NavigateToRating : Output()
+        data object NavigateToAuth : Output()
 
     }
 

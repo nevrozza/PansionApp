@@ -22,6 +22,12 @@ object HomeReducer : Reducer<State, Message> {
             Message.IsDatesShownChanged -> copy(isDatesShown = !isDatesShown)
             is Message.DateChanged -> copy(currentDate = msg.date)
             is Message.SomeHeadersUpdated -> copy(someHeaders = msg.someHeaders)
+            is Message.UpdateAfterCheck -> copy(
+                avatarId = msg.r.avatarId,
+                name = msg.r.name,
+                surname = msg.r.surname,
+                praname = msg.r.praname ?: ""
+            )
         }
     }
 }

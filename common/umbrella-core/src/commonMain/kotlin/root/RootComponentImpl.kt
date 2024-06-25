@@ -25,12 +25,14 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceAll
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.router.stack.webhistory.WebHistoryController
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
 import di.Inject
 import dnevnikRuMarks.DnevnikRuMarksComponent
@@ -67,19 +69,33 @@ class RootComponentImpl(
 ) : RootComponent, ComponentContext by componentContext {
 
     private val authRepository: AuthRepository = Inject.instance()
+
+    override val checkNInterface: NetworkInterface = NetworkInterface(
+        componentContext,
+        storeFactory,
+        name = "CheckNInterfaceRoot"
+    )
+
     private val rootStore =
         instanceKeeper.getStore {
             RootStoreFactory(
                 storeFactory = storeFactory,
                 isBottomBarShowing = authRepository.isUserLoggedIn(),
                 currentScreen = getFirstScreen(),
-                role = authRepository.fetchRole(),
-                moderation = authRepository.fetchModeration()
+                authRepository = authRepository,
+                checkNInterface = checkNInterface,
+                gotoHome = {
+//                    mainHomeComponent = getMainHomeComponent(componentContext, false)
+                    navigateToHome { navigation.replaceAll(it) }
+                }
+
+//                role = authRepository.fetchRole(),
+//                moderation = authRepository.fetchModeration()
             ).create()
         }
 
     private fun getFirstScreen(): Config {
-        return if (authRepository.isUserLoggedIn()) Config.MainHome else Config.AuthActivation
+        return  Config.AuthActivation //if (authRepository.isUserLoggedIn()) Config.MainHome else
     }
 
     override fun onBackClicked() {
@@ -523,6 +539,10 @@ class RootComponentImpl(
             }
         }
 
+    override fun onEvent(event: RootStore.Intent) {
+        rootStore.accept(event)
+    }
+
     override fun onOutput(output: RootComponent.Output): Unit =
         when (output) {
 
@@ -550,6 +570,10 @@ class RootComponentImpl(
 
             RootComponent.Output.NavigateToRating -> navigateToRating {
                 navigation.bringToFront(it)
+            }
+
+            RootComponent.Output.NavigateToAuth -> navigateToActivation {
+                navigation.replaceAll(it)
             }
         }
 
@@ -711,9 +735,10 @@ class RootComponentImpl(
 //        )
 //        backHandler.register(backCallback)
 //        updateBackCallback(false)
-
-        rootStore.accept(RootStore.Intent.HideGreetings())
-
+        if (authRepository.isUserLoggedIn()) {
+            rootStore.accept(RootStore.Intent.CheckConnection)
+            rootStore.accept(RootStore.Intent.HideGreetings())
+        }
     }
 
 //    private fun getInitialStack(webHistoryPaths: List<String>?, deepLink: DeepLink): List<Config> =

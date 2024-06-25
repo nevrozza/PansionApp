@@ -1,8 +1,15 @@
 import auth.ActivationResponse
 import auth.LoginResponse
 import auth.CheckActivationResponse
+import auth.RCheckConnectionResponse
 
 interface AuthRepository {
+
+
+    suspend fun checkConnection(): RCheckConnectionResponse
+
+    fun updateAfterFetch(r: RCheckConnectionResponse)
+
     suspend fun performLogin(login: String, password: String): LoginResponse
     suspend fun activate(login: String, password: String): ActivationResponse
     suspend fun checkActivation(login: String): CheckActivationResponse

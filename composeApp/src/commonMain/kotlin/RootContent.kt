@@ -3,6 +3,7 @@
 import admin.AdminComponent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
@@ -43,6 +44,7 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryBooks
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarOutline
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -63,6 +65,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -89,7 +92,9 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AlphaTestZatichka
+import components.CustomTextButton
 import components.ThemePreview
+import components.networkInterface.NetworkState
 import components.onBackButtonClicked
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
@@ -134,6 +139,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
     val viewManager = LocalViewManager.current
     val childStack by component.childStack.subscribeAsState()
     val model by component.model.subscribeAsState()
+    val nCheckModel by component.checkNInterface.networkModel.subscribeAsState()
     val isExpanded =
         viewManager.orientation.value == WindowScreen.Expanded
     val items = listOf<NavigationItem?>(
@@ -411,7 +417,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     child.journalComponent,
                                     role = model.role,
                                     moderation = model.moderation,
-                                    onRefresh = {  }
+                                    onRefresh = { }
                                 )
                             }
                         )
@@ -442,7 +448,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
     if (!isJs) {
         val time = 600
         AnimatedVisibility(
-            model.isGreetingsShowing,
+            model.isGreetingsShowing || nCheckModel.state != NetworkState.None || !model.isTokenValid,
             enter = fadeIn(animationSpec = tween(time)) + slideInVertically(
                 animationSpec = tween(
                     time
@@ -455,8 +461,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             ) { -it / 2 }
         ) {
             Box(
-                Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-                contentAlignment = Alignment.Center
+                Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
             ) {
                 Text(
                     when (Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).hour) {
@@ -466,8 +471,45 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         else -> "Доброй ночи!"
                     },
                     fontSize = 25.sp,
-                    fontWeight = FontWeight.Black
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.align(Alignment.Center)
                 )
+                Crossfade(targetState = nCheckModel.state, modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)) {
+                    Column(
+                        Modifier.fillMaxWidth().animateContentSize().padding(bottom = 100.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        when(it) {
+                            is NetworkState.Loading -> {
+                                CircularProgressIndicator()
+                            }
+                            is NetworkState.Error -> {
+                                Text(text = if(nCheckModel.error != "") nCheckModel.error else "Загрузка...")
+                                Spacer(Modifier.height(7.dp))
+                                CustomTextButton(text = "Попробовать ещё раз") {
+                                    nCheckModel.onFixErrorClick()
+                                }
+                                Spacer(Modifier.height(7.dp))
+                                CustomTextButton(text = "Продолжить без синхронизации") {
+                                    component.checkNInterface.nSuccess()
+                                    component.onOutput(RootComponent.Output.NavigateToHome)
+                                }
+                            }
+
+                            NetworkState.None -> {
+                                if(!model.isTokenValid) {
+                                    Text("Ваш токен недействителен!")
+                                    Spacer(Modifier.height(7.dp))
+                                    CustomTextButton(text = "Перезайти в аккаунт") {
+                                        component.onOutput(RootComponent.Output.NavigateToAuth)
+                                        component.onEvent(RootStore.Intent.ChangeTokenValidationStatus(true))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -506,7 +548,7 @@ fun MultiPaneJournal(
                     isNotMinimized = false,
                     role = role,
                     moderation = moderation,
-                    onRefresh = {  }
+                    onRefresh = { }
                 )
             }
 

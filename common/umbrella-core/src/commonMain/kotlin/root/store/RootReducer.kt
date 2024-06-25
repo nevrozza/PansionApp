@@ -11,6 +11,7 @@ object RootReducer : Reducer<State, Message> {
             is Message.BottomBarShowingChanged -> copy(isBottomBarShowing = msg.isShowing)
             is Message.CurrentScreenChanged -> copy(currentCategory = msg.currentCategory, currentScreen = msg.currentScreen)
             is Message.PermissionsUpdated -> copy(role = msg.role, moderation = msg.moderation)
+            is Message.TokenValidationStatusChanged -> copy(isTokenValid = msg.isTokenValid)
         }
     }
 }

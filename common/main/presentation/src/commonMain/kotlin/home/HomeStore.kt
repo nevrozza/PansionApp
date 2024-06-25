@@ -1,6 +1,7 @@
 package home
 
 import FIO
+import auth.RCheckConnectionResponse
 import com.arkivanov.mvikotlin.core.store.Store
 import home.HomeStore.Intent
 import home.HomeStore.Label
@@ -50,7 +51,7 @@ interface HomeStore : Store<Intent, State, Label> {
 
     sealed interface Intent {
         data object Init : Intent
-
+        data class UpdateAfterCheck(val r: RCheckConnectionResponse) : Intent
         data object ChangeIsDatesShown : Intent
 
         data class ChangeDate(val date: Pair<Int, String>) : Intent
@@ -66,6 +67,7 @@ interface HomeStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+        data class UpdateAfterCheck(val r: RCheckConnectionResponse) : Message
         data class SomeHeadersUpdated(val someHeaders: List<ReportHeader>) : Message
         data class TeacherGroupUpdated(val teacherGroups: List<TeacherGroup>): Message
         data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Pair<Int, Int>?>) : Message

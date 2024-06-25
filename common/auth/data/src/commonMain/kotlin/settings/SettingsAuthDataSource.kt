@@ -1,5 +1,6 @@
 package settings
 
+import auth.RCheckConnectionResponse
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.get
 import com.russhwolf.settings.set
@@ -7,6 +8,15 @@ import com.russhwolf.settings.set
 class SettingsAuthDataSource(
     private val settings: Settings
 ) {
+
+    fun updateAfterFetch(r: RCheckConnectionResponse) {
+        settings[nameKey] = r.name
+        settings[surnameKey] = r.surname
+        settings[pranameKey] = r.praname
+        settings[roleKey] = r.role
+        settings[moderationKey] = r.moderation
+        settings[avatarKey] = r.avatarId
+    }
 
     fun logout() {
         settings[tokenKey] = ""

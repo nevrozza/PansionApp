@@ -8,6 +8,7 @@ import auth.CheckActivationReceive
 import auth.CheckActivationResponse
 import auth.LoginReceive
 import auth.LoginResponse
+import auth.RCheckConnectionResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -19,8 +20,10 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.tokens.TokenDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.nullUUID
 import com.nevrozq.pansion.utils.toId
+import com.nevrozq.pansion.utils.token
 import server.DataLength
 import server.Moderation
 import server.Roles
@@ -28,6 +31,44 @@ import server.cut
 import java.util.UUID
 
 class AuthController {
+
+    suspend fun checkConnection(call: ApplicationCall) {
+        //val isTokenValid: Boolean,
+        //    val name: String,
+        //    val surname: String,
+        //    val praname: String,
+        //    val role: String,
+        //    val moderation: String,
+        //    val avatarId: Int
+        val isTokenValid: Boolean = Tokens.isTokenValid(call.token.toId())
+        var name: String = ""
+        var surname: String = ""
+        var praname: String? = ""
+        var role: String = ""
+        var moderation: String = ""
+        var avatarId: Int = 0
+
+        if (isTokenValid) {
+            val user = Users.fetchUser(call.login)!!
+            name = user.name
+            surname = user.surname
+            praname = user.praname
+            role = user.role
+            moderation = user.moderation
+            avatarId = user.avatarId
+        }
+        call.respond(RCheckConnectionResponse(
+            isTokenValid = isTokenValid,
+            name = name,
+            surname = surname,
+            praname = praname,
+            role = role,
+            moderation = moderation,
+            avatarId = avatarId
+        ))
+
+    }
+
 
     suspend fun activateUser(call: ApplicationCall) {
         val authReceive = call.receive<ActivationReceive>()

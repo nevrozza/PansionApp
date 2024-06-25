@@ -37,6 +37,7 @@ class HomeExecutor(
             }
 
             is Intent.UpdateSomeHeaders -> dispatch(Message.SomeHeadersUpdated(intent.someHeaders))
+            is Intent.UpdateAfterCheck -> dispatch(Message.UpdateAfterCheck(intent.r))
         }
     }
 

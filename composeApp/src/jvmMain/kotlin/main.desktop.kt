@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoMode
 import androidx.compose.material.icons.rounded.DarkMode
@@ -194,6 +195,7 @@ fun main() {
                                 this.window.setMinSize(400, 600)
                                 Box(contentAlignment = Alignment.TopCenter) {
                                     Root(root, WindowType.PC)
+
                                     MainTitleBar(viewManager, l)
                                     if (isCloseDialogVisible) {
                                         AlertDialog(

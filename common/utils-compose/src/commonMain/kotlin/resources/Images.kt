@@ -27,10 +27,15 @@ import pansion.common.utils_compose.generated.resources.Geologica_Thin
 import pansion.common.utils_compose.generated.resources.Geologica_ThinItalic
 import pansion.common.utils_compose.generated.resources.Res
 import pansion.common.utils_compose.generated.resources.MGU
+import pansion.common.utils_compose.generated.resources.Anevrozq
 
 data object Images {
     val MGU: ImageBitmap
         @Composable get() = imageResource(Res.drawable.MGU)
+    data object Avatars {
+        val nevrozq: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.Anevrozq)
+    }
 }
 val GeologicaFont: FontFamily
     @Composable get() = FontFamily(

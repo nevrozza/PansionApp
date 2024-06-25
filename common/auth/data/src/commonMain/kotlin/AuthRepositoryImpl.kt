@@ -11,6 +11,14 @@ class AuthRepositoryImpl(
 ) : AuthRepository {
     private val cPlatformConfiguration: CommonPlatformConfiguration = Inject.instance()
 
+    override suspend fun checkConnection(): RCheckConnectionResponse {
+        return remoteDataSource.checkConnection()
+    }
+
+    override fun updateAfterFetch(r: RCheckConnectionResponse) {
+        cacheDataSource.updateAfterFetch(r)
+    }
+
     override suspend fun performLogin(login: String, password: String): LoginResponse {
         val r =
             remoteDataSource.performLogin(
