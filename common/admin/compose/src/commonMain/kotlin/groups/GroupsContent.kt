@@ -101,7 +101,6 @@ import groups.forms.FormsStore
 import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
 import kotlinx.coroutines.launch
-import resources.GeologicaFont
 import schedule.ScheduleStore
 import view.LocalViewManager
 import view.WindowScreen

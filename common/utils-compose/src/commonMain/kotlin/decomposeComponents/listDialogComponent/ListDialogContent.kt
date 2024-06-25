@@ -76,7 +76,6 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import resources.GeologicaFont
 import view.LocalViewManager
 import view.ViewManager
 import view.WindowScreen

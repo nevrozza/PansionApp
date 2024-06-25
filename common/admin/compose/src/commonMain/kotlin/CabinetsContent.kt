@@ -55,7 +55,6 @@ import components.CLazyColumn
 import components.CustomTextField
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.haze
-import resources.GeologicaFont
 import schedule.ScheduleComponent
 import users.UsersStore
 import view.LocalViewManager

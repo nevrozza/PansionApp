@@ -149,7 +149,6 @@ import lessonReport.prisut
 import lessonReport.srBall
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
-import resources.GeologicaFont
 import server.getDate
 import server.getSixTime
 import server.roundTo
