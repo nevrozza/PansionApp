@@ -1,6 +1,7 @@
 package home
 
 import AuthRepository
+import FIO
 import MainRepository
 import admin.AdminComponent
 import asValue
@@ -98,6 +99,7 @@ class HomeComponent(
     }
 
     sealed class Output {
+        data class NavigateToProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Output()
         data object NavigateToSettings : Output()
 
         data class NavigateToDnevnikRuMarks(val studentLogin: String) : Output()

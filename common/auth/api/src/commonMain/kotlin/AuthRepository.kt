@@ -1,6 +1,7 @@
 import auth.ActivationResponse
 import auth.LoginResponse
 import auth.CheckActivationResponse
+import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
 
 interface AuthRepository {
@@ -8,11 +9,15 @@ interface AuthRepository {
 
     suspend fun checkConnection(): RCheckConnectionResponse
 
+    suspend fun changeAvatarId(avatarId: Int)
+
     fun updateAfterFetch(r: RCheckConnectionResponse)
 
     suspend fun performLogin(login: String, password: String): LoginResponse
     suspend fun activate(login: String, password: String): ActivationResponse
     suspend fun checkActivation(login: String): CheckActivationResponse
+
+    fun saveAvatarId(avatarId: Int)
 
     fun isUserLoggedIn(): Boolean
     fun fetchToken(): String

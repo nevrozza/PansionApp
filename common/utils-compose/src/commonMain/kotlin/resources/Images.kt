@@ -27,14 +27,70 @@ import pansion.common.utils_compose.generated.resources.Geologica_Thin
 import pansion.common.utils_compose.generated.resources.Geologica_ThinItalic
 import pansion.common.utils_compose.generated.resources.Res
 import pansion.common.utils_compose.generated.resources.MGU
-import pansion.common.utils_compose.generated.resources.Anevrozq
+import pansion.common.utils_compose.generated.resources.a01nevrozq
+import pansion.common.utils_compose.generated.resources.a02nevrozq
+import pansion.common.utils_compose.generated.resources.a03nevrozq
+import pansion.common.utils_compose.generated.resources.a04nevrozq
+import pansion.common.utils_compose.generated.resources.a1
+import pansion.common.utils_compose.generated.resources.a2
+import pansion.common.utils_compose.generated.resources.a3
+import pansion.common.utils_compose.generated.resources.a4
+import pansion.common.utils_compose.generated.resources.a5
+import pansion.common.utils_compose.generated.resources.a6
+import pansion.common.utils_compose.generated.resources.a7
+import pansion.common.utils_compose.generated.resources.a8
+
+
+@Composable
+fun getAvatarImageVector(avatarId: Int) : ImageBitmap {
+    return when(avatarId) {
+        -1 -> Images.Avatars.nevrozq1
+        -2 -> Images.Avatars.nevrozq2
+        -3 -> Images.Avatars.nevrozq3
+        -4 -> Images.Avatars.nevrozq4
+        2 -> Images.Avatars.a1
+        3 -> Images.Avatars.a2
+        4 -> Images.Avatars.a3
+        5 -> Images.Avatars.a4
+        6 -> Images.Avatars.a5
+        7 -> Images.Avatars.a6
+        8 -> Images.Avatars.a7
+        9 -> Images.Avatars.a8
+        else -> Images.Avatars.a8
+    }
+}
 
 data object Images {
     val MGU: ImageBitmap
         @Composable get() = imageResource(Res.drawable.MGU)
     data object Avatars {
-        val nevrozq: ImageBitmap
-            @Composable get() = imageResource(Res.drawable.Anevrozq)
+        val avatarIds = listOf<Int>(
+            1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4
+        )
+        val nevrozq1: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a01nevrozq)
+        val nevrozq2: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a02nevrozq)
+        val nevrozq3: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a03nevrozq)
+        val nevrozq4: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a04nevrozq)
+        val a1: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a1)
+        val a2: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a2)
+        val a3: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a3)
+        val a4: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a4)
+        val a5: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a5)
+        val a6: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a6)
+        val a7: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a7)
+        val a8: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.a8)
     }
 }
 val GeologicaFont: FontFamily

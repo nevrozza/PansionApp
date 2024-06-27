@@ -37,6 +37,8 @@ object RequestPaths {
         const val CheckActivation = "server/auth/check"
         const val PerformLogin = "server/auth/login"
         const val CheckConnection = "server/checkConnection"
+
+        const val ChangeAvatarId = "server/changeAvatarId"
     }
 
     object Lessons {

@@ -10,13 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.chrisbanes.haze.haze
-import pullRefresh.pullRefresh
+import dev.chrisbanes.haze.hazeChild
 import view.LocalViewManager
 import view.WindowScreen
 
@@ -38,10 +36,7 @@ fun CLazyColumn(
             .fillMaxSize()
             .consumeWindowInsets(padding)
             .imePadding()
-            .then(
-                if(isHaze && viewManager.hazeStyle != null) Modifier.haze(state = viewManager.hazeState, style = viewManager.hazeStyle!!.value)
-                else Modifier
-            ).then(modifier),
+            .hazeUnder(viewManager).then(modifier),
         state = state
     ) {
         item {

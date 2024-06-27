@@ -34,7 +34,18 @@ class KtorAuthRemoteDataSource(
             }
         }.status.value.checkOnNoOk()
     }
-    suspend fun performLogin(request: LoginReceive) : LoginResponse {
+
+    suspend fun changeAvatarId(r: RChangeAvatarIdReceive) {
+        httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Auth.ChangeAvatarId)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+    suspend fun performLogin(request: LoginReceive): LoginResponse {
         return httpClient.post {
             url {
                 path(RequestPaths.Auth.PerformLogin)
@@ -43,7 +54,7 @@ class KtorAuthRemoteDataSource(
         }.body()
     }
 
-    suspend fun checkUserActivation(request: CheckActivationReceive) : CheckActivationResponse {
+    suspend fun checkUserActivation(request: CheckActivationReceive): CheckActivationResponse {
         return httpClient.post {
             url {
                 path(RequestPaths.Auth.CheckActivation)
@@ -52,7 +63,7 @@ class KtorAuthRemoteDataSource(
         }.body()
     }
 
-    suspend fun activate(request: ActivationReceive) : ActivationResponse {
+    suspend fun activate(request: ActivationReceive): ActivationResponse {
         return httpClient.post {
             url {
                 path(RequestPaths.Auth.ActivateProfile)

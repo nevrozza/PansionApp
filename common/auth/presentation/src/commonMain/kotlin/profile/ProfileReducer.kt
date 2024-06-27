@@ -7,7 +7,9 @@ import profile.ProfileStore.Message
 object ProfileReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
-            else -> TODO()
+            is Message.TabChanged -> copy(tabIndex = msg.index)
+            is Message.NewAvatarIdChanged -> copy(newAvatarId = msg.avatarId)
+            Message.AvatarIdSaved -> copy(avatarId = newAvatarId)
         }
     }
 }

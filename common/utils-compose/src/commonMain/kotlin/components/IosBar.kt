@@ -35,14 +35,13 @@ fun AppBar(
     actionRow: @Composable () -> Unit = {},
     containerColor: Color = MaterialTheme.colorScheme.surface,
     isHaze: Boolean = false,
+    isTransparentHaze: Boolean = false,
     isTopPadding: Boolean = true
 ) {
     val viewManager = LocalViewManager.current
     Box(
-        Modifier.fillMaxWidth().height(60.dp + if(isTopPadding) viewManager.topPadding else 0.dp).background(if (isHaze) Color.Transparent else containerColor).then(
-            if(isHaze && viewManager.hazeStyle != null) Modifier.hazeChild(state = viewManager.hazeState, style = viewManager.hazeStyle!!.value)
-            else Modifier
-        ),
+        Modifier.fillMaxWidth().height(60.dp + if (isTopPadding) viewManager.topPadding else 0.dp)
+            .hazeHeader(viewManager, isHaze, isTransparentHaze),
         contentAlignment = Alignment.BottomCenter
     ) {
         Row(

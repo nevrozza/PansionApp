@@ -1,6 +1,7 @@
 package com.nevrozq.pansion.features.auth
 
 import FIO
+import admin.cabinets.RUpdateCabinetsReceive
 import admin.users.UserInit
 import auth.ActivationReceive
 import auth.ActivationResponse
@@ -8,7 +9,10 @@ import auth.CheckActivationReceive
 import auth.CheckActivationResponse
 import auth.LoginReceive
 import auth.LoginResponse
+import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
+import com.nevrozq.pansion.database.cabinets.Cabinets
+import com.nevrozq.pansion.database.cabinets.CabinetsDTO
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -20,6 +24,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.tokens.TokenDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.nullUUID
 import com.nevrozq.pansion.utils.toId
@@ -31,6 +36,27 @@ import server.cut
 import java.util.UUID
 
 class AuthController {
+
+
+    suspend fun updateAvatarId(call: ApplicationCall) {
+        if (call.isModer) {
+            val r = call.receive<RChangeAvatarIdReceive>()
+            try {
+                Users.updateAvatarId(
+                    login = call.login,
+                    avatarId = r.avatarId
+                )
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Idk ERROR WHEN CHANGE AVATAR ID CONFLICT!!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't change avatarId: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
 
     suspend fun checkConnection(call: ApplicationCall) {
         //val isTokenValid: Boolean,

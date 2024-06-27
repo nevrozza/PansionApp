@@ -113,6 +113,7 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.DateButton
+import components.GetAvatar
 import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
@@ -683,10 +684,24 @@ fun StudentHomeContent(
                             Row(
                                 Modifier.padding(10.dp)
                             ) {
-                                GetAvatar(
-                                    avatarId = model.avatarId,
-                                    name = model.name
-                                )
+                                Box(
+                                    modifier = Modifier.clip(CircleShape).clickable {
+                                        component.onOutput(HomeComponent.Output.NavigateToProfile(
+                                            studentLogin = model.login,
+                                            fio = FIO(
+                                                name = model.name,
+                                                praname = model.praname,
+                                                surname = model.surname
+                                            ),
+                                            avatarId = model.avatarId
+                                        ))
+                                    }
+                                ) {
+                                    GetAvatar(
+                                        avatarId = model.avatarId,
+                                        name = model.name
+                                    )
+                                }
                                 Spacer(Modifier.width(15.dp))
                                 Column {
                                     Row(
@@ -1383,42 +1398,7 @@ private fun QuickTabNotNull(
     }
 }
 
-@Composable
-fun GetAvatar(avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit = 30.sp) {
-    val viewManager = LocalViewManager.current
-    Box(
-        modifier = Modifier.size(size).clip(CircleShape).background(
-            brush = Brush.verticalGradient(
-                colors = if (viewManager.isDark.value) listOf(
-                    MaterialTheme.colorScheme.secondary,
-                    MaterialTheme.colorScheme.primaryContainer
-                ) else listOf(
-                    MaterialTheme.colorScheme.primaryContainer,
-                    MaterialTheme.colorScheme.secondary
-                ),
-                tileMode = TileMode.Decal
-            )
-        ),
-        contentAlignment = Alignment.Center
-    ) {
-        if (false) { //avatarId in listOf(0, 1)
-            Text(
-                name[0].toString(),
-                fontSize = textSize,
-                fontWeight = FontWeight.Normal,
-                color = Color.White
-            )
-        } else {
-            Image(
-                Images.Avatars.nevrozq,
-                null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
 
-    }
-}
 
 val dotSize = 24.dp // made it bigger for demo
 val delayUnit = 300 // you can change delay to change animation speed

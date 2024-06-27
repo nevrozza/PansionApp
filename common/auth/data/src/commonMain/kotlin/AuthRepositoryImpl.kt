@@ -15,6 +15,10 @@ class AuthRepositoryImpl(
         return remoteDataSource.checkConnection()
     }
 
+    override suspend fun changeAvatarId(avatarId: Int) {
+        remoteDataSource.changeAvatarId(RChangeAvatarIdReceive(avatarId = avatarId))
+    }
+
     override fun updateAfterFetch(r: RCheckConnectionResponse) {
         cacheDataSource.updateAfterFetch(r)
     }
@@ -76,6 +80,10 @@ class AuthRepositoryImpl(
             )
         )
         return r
+    }
+
+    override fun saveAvatarId(avatarId: Int) {
+        cacheDataSource.saveAvatarId(avatarId)
     }
 
 //    override suspend fun register(login: String, password: String, name: String, surname: String, number: String): RegistrationResponse {

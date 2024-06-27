@@ -13,10 +13,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import login.LoginStore
 
-class ProfileComponent(componentContext: ComponentContext,
-                       storeFactory: StoreFactory,
-                       fio: FIO,
-                       private val output: (Output) -> Unit
+class ProfileComponent(
+    componentContext: ComponentContext,
+    storeFactory: StoreFactory,
+    studentLogin: String,
+    fio: FIO,
+    avatarId: Int,
+    val changeAvatarOnMain: (Int) -> Unit,
+    private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     private val authRepository: AuthRepository = Inject.instance()
     val nInterface = NetworkInterface(
@@ -24,12 +28,21 @@ class ProfileComponent(componentContext: ComponentContext,
         storeFactory,
         "profileStoreNetworkInterface"
     )
+    val nAvatarInterface = NetworkInterface(
+        componentContext,
+        storeFactory,
+        "profileAvatarStoreNetworkInterface"
+    )
     private val profileStore =
         instanceKeeper.getStore {
             ProfileStoreFactory(
                 storeFactory = storeFactory,
                 authRepository = authRepository,
-                fio = fio
+                fio = fio,
+                studentLogin = studentLogin,
+                avatarId = avatarId,
+                nAvatarInterface = nAvatarInterface,
+                changeAvatarOnMain = { changeAvatarOnMain(it) }
             ).create()
         }
 

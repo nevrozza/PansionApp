@@ -4,6 +4,7 @@ import AuthRepository
 import FIO
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import components.networkInterface.NetworkInterface
 import profile.ProfileStore.Intent
 import profile.ProfileStore.Label
 import profile.ProfileStore.State
@@ -11,7 +12,11 @@ import profile.ProfileStore.State
 class ProfileStoreFactory(
     private val storeFactory: StoreFactory,
     private val authRepository: AuthRepository,
-    private val fio: FIO
+    private val studentLogin: String,
+    private val fio: FIO,
+    private val avatarId: Int,
+    private val nAvatarInterface: NetworkInterface,
+    private val changeAvatarOnMain: (Int) -> Unit
 ) {
 
     fun create(): ProfileStore {
@@ -23,10 +28,14 @@ class ProfileStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "ProfileStore",
             initialState = State(
-                fio = fio
+                studentLogin = studentLogin,
+                fio = fio,
+                avatarId = avatarId
             ),
             executorFactory = { ProfileExecutor(
-                authRepository = authRepository
+                authRepository = authRepository,
+                nAvatarInterface = nAvatarInterface,
+                changeAvatarOnMain = { changeAvatarOnMain(it) }
             ) },
             reducer = ProfileReducer
         )

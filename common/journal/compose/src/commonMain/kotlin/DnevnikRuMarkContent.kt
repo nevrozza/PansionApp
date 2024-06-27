@@ -128,7 +128,7 @@ fun DnevnikRuMarkContent(
 
                         Text(
                             "Успеваемость",
-                            modifier = Modifier.padding(start = 10.dp),
+                            //modifier = Modifier.padding(start = 10.dp),
                             fontSize = 25.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,

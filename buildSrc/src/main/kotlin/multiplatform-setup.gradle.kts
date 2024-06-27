@@ -24,12 +24,12 @@ kotlin {
 //        browser()
 //        binaries.executable()
 //    }
-
-    wasmJs {
-        browser()
-//        useCommonJs()
-        binaries.executable()
-    }
+//RIP
+//    wasmJs {
+//        browser()
+////        useCommonJs()
+//        binaries.executable()
+//    }
 
     js(IR) {
         browser()

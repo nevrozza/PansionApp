@@ -9,6 +9,10 @@ class SettingsAuthDataSource(
     private val settings: Settings
 ) {
 
+    fun saveAvatarId(avatarId: Int) {
+        settings[avatarKey] = avatarId
+    }
+
     fun updateAfterFetch(r: RCheckConnectionResponse) {
         settings[nameKey] = r.name
         settings[surnameKey] = r.surname

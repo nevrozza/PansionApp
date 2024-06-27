@@ -1,6 +1,7 @@
 package root
 
 import AuthRepository
+import FIO
 import lessonReport.LessonReportComponent
 import ReportData
 import SettingsComponent
@@ -21,6 +22,7 @@ import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.value.Value
 
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.items
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.router.stack.push
@@ -44,6 +46,7 @@ import journal.JournalStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import login.LoginComponent
+import profile.ProfileComponent
 import rating.RatingComponent
 import report.ReportHeader
 //import mentors.MentorsComponent
@@ -80,8 +83,9 @@ class RootComponentImpl(
         instanceKeeper.getStore {
             RootStoreFactory(
                 storeFactory = storeFactory,
-                isBottomBarShowing = authRepository.isUserLoggedIn(),
-                currentScreen = getFirstScreen(),
+                isBottomBarShowing = isBottomBarShowing(),
+                //              !!!!!! stack?
+                currentScreen = stack?.value?.active?.configuration ?: getFirstScreen(),
                 authRepository = authRepository,
                 checkNInterface = checkNInterface,
                 gotoHome = {
@@ -93,6 +97,16 @@ class RootComponentImpl(
 //                moderation = authRepository.fetchModeration()
             ).create()
         }
+
+    private fun isBottomBarShowing(): Boolean {
+        //!!!!!! stack?
+        return if(stack != null) stack.value.active.configuration in listOf(
+            Config.MainHome,
+            Config.MainAdmin,
+            Config.MainRating,
+            Config.MainJournal
+        ) else authRepository.isUserLoggedIn()
+    }
 
     private fun getFirstScreen(): Config {
         return  Config.AuthActivation //if (authRepository.isUserLoggedIn()) Config.MainHome else
@@ -349,7 +363,20 @@ class RootComponentImpl(
                 )
             }
 
-            is Config.HomeProfile -> TODO()
+            is Config.HomeProfile -> Child.HomeProfile(
+                homeComponent = getMainHomeComponent(componentContext, true),
+                profileComponent = ProfileComponent(
+                    componentContext = componentContext,
+                    storeFactory = storeFactory,
+                    studentLogin = config.studentLogin,
+                    fio = config.fio,
+                    avatarId = config.avatarId,
+                    output = ::onHomeProfileOutput,
+                    changeAvatarOnMain = {
+                        mainHomeComponent?.onEvent(HomeStore.Intent.UpdateAvatarId(it))
+                    }
+                )
+            )
             Config.AdminSchedule -> Child.AdminSchedule(
                 scheduleComponent = ScheduleComponent(
                     componentContext,
@@ -438,6 +465,15 @@ class RootComponentImpl(
 
             SettingsComponent.Output.GoToZero -> navigateToActivation {
                 navigation.replaceAll(it)
+            }
+        }
+    private fun onHomeProfileOutput(output: ProfileComponent.Output): Unit =
+        when (output) {
+
+            ProfileComponent.Output.BackToHome -> {
+                navigateToHome {
+                    navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
+                }
             }
         }
 
@@ -534,6 +570,14 @@ class RootComponentImpl(
                 groupName = output.groupName,
                 subjectName = output.subjectName,
                 subjectId = output.subjectId
+            ) {
+                navigation.bringToFront(it)
+            }
+
+            is HomeComponent.Output.NavigateToProfile -> navigateToProfile(
+                studentLogin = output.studentLogin,
+                fio = output.fio,
+                avatarId = output.avatarId
             ) {
                 navigation.bringToFront(it)
             }
@@ -641,6 +685,22 @@ class RootComponentImpl(
             groupName = groupName,
             subjectId = subjectId,
             subjectName = subjectName
+        )
+        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
+        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
+        post(d)
+    }
+
+    private fun navigateToProfile(
+        studentLogin: String,
+        fio: FIO,
+        avatarId: Int,
+        post: (Config) -> Unit
+    ) {
+        val d = Config.HomeProfile(
+            studentLogin = studentLogin,
+            fio = fio,
+            avatarId = avatarId
         )
         rootStore.accept(RootStore.Intent.BottomBarShowing(false))
         rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))

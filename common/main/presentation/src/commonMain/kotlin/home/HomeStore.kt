@@ -51,13 +51,12 @@ interface HomeStore : Store<Intent, State, Label> {
 
     sealed interface Intent {
         data object Init : Intent
-        data class UpdateAfterCheck(val r: RCheckConnectionResponse) : Intent
         data object ChangeIsDatesShown : Intent
 
         data class ChangeDate(val date: Pair<Int, String>) : Intent
 
         data class UpdateSomeHeaders(val someHeaders: List<ReportHeader>) : Intent
-
+        data class UpdateAvatarId(val avatarId: Int) : Intent
 //        data class ChangeDate()
         //val avatarId: Int,
         //                        val login: String,
@@ -67,7 +66,8 @@ interface HomeStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
-        data class UpdateAfterCheck(val r: RCheckConnectionResponse) : Message
+        data class AvatarIdUpdated(val avatarId: Int) : Message
+
         data class SomeHeadersUpdated(val someHeaders: List<ReportHeader>) : Message
         data class TeacherGroupUpdated(val teacherGroups: List<TeacherGroup>): Message
         data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Pair<Int, Int>?>) : Message

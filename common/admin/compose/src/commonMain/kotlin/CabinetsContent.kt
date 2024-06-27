@@ -1,7 +1,6 @@
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -20,23 +19,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Save
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -51,14 +43,10 @@ import cabinets.CabinetsComponent
 import cabinets.CabinetsStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
-import components.CLazyColumn
 import components.CustomTextField
+import components.hazeUnder
 import components.networkInterface.NetworkState
-import dev.chrisbanes.haze.haze
-import schedule.ScheduleComponent
-import users.UsersStore
 import view.LocalViewManager
-import view.LockScreenOrientation
 import view.rememberImeState
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
@@ -162,13 +150,7 @@ fun CabinetsContent(
                 .consumeWindowInsets(padding)
                 .fillMaxSize()
                 .imePadding()
-                .then(
-                    if (viewManager.hazeStyle != null) Modifier.haze(
-                        state = viewManager.hazeState,
-                        style = viewManager.hazeStyle!!.value
-                    )
-                    else Modifier
-                )
+                .hazeUnder(viewManager)
                 .verticalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center
 

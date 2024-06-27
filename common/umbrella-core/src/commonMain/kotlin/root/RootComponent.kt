@@ -158,7 +158,7 @@ interface RootComponent : BackHandlerOwner {
         data class HomeDnevnikRuMarks(val studentLogin: String) : Config
 
         @Serializable
-        data class HomeProfile(val studentLogin: String, val fio: FIO) : Config
+        data class HomeProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Config
 
 
         @Serializable

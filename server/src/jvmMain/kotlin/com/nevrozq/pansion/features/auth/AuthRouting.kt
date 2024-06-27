@@ -12,6 +12,10 @@ fun Application.configureActivationRouting() {
             authController.activateUser(call)
         }
 
+        post(RequestPaths.Auth.ChangeAvatarId) {
+            authController.updateAvatarId(call)
+        }
+
         post(RequestPaths.Auth.CheckConnection) {
             authController.checkConnection(call)
         }

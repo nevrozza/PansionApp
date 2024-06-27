@@ -232,18 +232,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             is AdminUsers -> if (isExpanded) fade() else iosSlide()
                             is AdminGroups -> if (isExpanded) fade() else iosSlide()
                             is LessonReport -> iosSlide() //if (isExpanded) fade() else slide()
-                            is HomeSettings -> {
-
-                                iosSlide()
-                            }//if (isExpanded) fade() else slide()
-//                            else -> slide()
+                            is HomeSettings -> iosSlide()
                             is Child.AuthActivation -> if (isExpanded) fade() else iosSlide()
                             is Child.AuthLogin -> if (isExpanded) fade() else iosSlide()
+                            is Child.HomeProfile -> if (isExpanded) fade() else iosSlide()
                             is Child.HomeDnevnikRuMarks -> if (isExpanded) fade() else iosSlide()
                             is Child.HomeDetailedStups -> if (isExpanded) fade() else iosSlide()
                             is Child.HomeAllGroupMarks -> if (isExpanded) fade() else iosSlide()
                             is Child.AdminSchedule -> iosSlide()
-                            is Child.HomeProfile -> TODO()
                             is Child.AdminCabinets -> if (isExpanded) fade() else iosSlide()
                         }
                     },
@@ -392,7 +388,6 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = { GroupsContent(child.groupsComponent) }
                         )
 
-//                    is Child.AdminStudents -> TODO()
                     is LessonReport ->
                         MultiPaneJournal(
                             isExpanded,
@@ -423,7 +418,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         )
 
                     is Child.AdminSchedule -> ScheduleContent(child.scheduleComponent)
-                    is Child.HomeProfile -> TODO()
+                    is Child.HomeProfile -> MultiPaneSplit(
+                        isExpanded = isExpanded,
+                        currentScreen = { ProfileContent(child.profileComponent) },
+                        firstScreen = { HomeContent(child.homeComponent) },
+                        secondScreen = {
+                            ProfileContent(child.profileComponent)
+                        }
+                    )
                     is Child.AdminCabinets -> MultiPaneAdmin(
                         isExpanded,
                         adminComponent = child.adminComponent,
@@ -445,66 +447,72 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
         }
     }
 
-    if (!isJs) {
-        val time = 600
-        AnimatedVisibility(
-            model.isGreetingsShowing || nCheckModel.state != NetworkState.None || !model.isTokenValid,
-            enter = fadeIn(animationSpec = tween(time)) + slideInVertically(
-                animationSpec = tween(
-                    time
-                )
-            ) { -it / 2 },
-            exit = fadeOut(animationSpec = tween(time)) + slideOutVertically(
-                animationSpec = tween(
-                    time
-                )
-            ) { -it / 2 }
+    val time = 600
+    AnimatedVisibility(
+        model.isGreetingsShowing || nCheckModel.state != NetworkState.None || !model.isTokenValid,
+        enter = fadeIn(animationSpec = tween(time)) + slideInVertically(
+            animationSpec = tween(
+                time
+            )
+        ) { -it / 2 },
+        exit = fadeOut(animationSpec = tween(time)) + slideOutVertically(
+            animationSpec = tween(
+                time
+            )
+        ) { -it / 2 }
+    ) {
+        Box(
+            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
         ) {
-            Box(
-                Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+            Text(
+                when (Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).hour) {
+                    in 5..10 -> "Доброе утро!"
+                    in 11..18 -> "Добрый день!"
+                    in 19..21 -> "Добрый вечер!"
+                    else -> "Доброй ночи!"
+                },
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            Crossfade(
+                targetState = nCheckModel.state,
+                modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)
             ) {
-                Text(
-                    when (Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).hour) {
-                        in 5..10 -> "Доброе утро!"
-                        in 11..18 -> "Добрый день!"
-                        in 19..21 -> "Добрый вечер!"
-                        else -> "Доброй ночи!"
-                    },
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-                Crossfade(targetState = nCheckModel.state, modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)) {
-                    Column(
-                        Modifier.fillMaxWidth().animateContentSize().padding(bottom = 100.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        when(it) {
-                            is NetworkState.Loading -> {
-                                CircularProgressIndicator()
-                            }
-                            is NetworkState.Error -> {
-                                Text(text = if(nCheckModel.error != "") nCheckModel.error else "Загрузка...")
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton(text = "Попробовать ещё раз") {
-                                    nCheckModel.onFixErrorClick()
-                                }
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton(text = "Продолжить без синхронизации") {
-                                    component.checkNInterface.nSuccess()
-                                    component.onOutput(RootComponent.Output.NavigateToHome)
-                                }
-                            }
+                Column(
+                    Modifier.fillMaxWidth().animateContentSize().padding(bottom = 100.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    when (it) {
+                        is NetworkState.Loading -> {
+                            CircularProgressIndicator()
+                        }
 
-                            NetworkState.None -> {
-                                if(!model.isTokenValid) {
-                                    Text("Ваш токен недействителен!")
-                                    Spacer(Modifier.height(7.dp))
-                                    CustomTextButton(text = "Перезайти в аккаунт") {
-                                        component.onOutput(RootComponent.Output.NavigateToAuth)
-                                        component.onEvent(RootStore.Intent.ChangeTokenValidationStatus(true))
-                                    }
+                        is NetworkState.Error -> {
+                            Text(text = if (nCheckModel.error != "") nCheckModel.error else "Загрузка...")
+                            Spacer(Modifier.height(7.dp))
+                            CustomTextButton(text = "Попробовать ещё раз") {
+                                nCheckModel.onFixErrorClick()
+                            }
+                            Spacer(Modifier.height(7.dp))
+                            CustomTextButton(text = "Продолжить без синхронизации") {
+                                component.checkNInterface.nSuccess()
+                                component.onOutput(RootComponent.Output.NavigateToHome)
+                            }
+                        }
+
+                        NetworkState.None -> {
+                            if (!model.isTokenValid) {
+                                Text("Ваш токен недействителен!")
+                                Spacer(Modifier.height(7.dp))
+                                CustomTextButton(text = "Перезайти в аккаунт") {
+                                    component.onOutput(RootComponent.Output.NavigateToAuth)
+                                    component.onEvent(
+                                        RootStore.Intent.ChangeTokenValidationStatus(
+                                            true
+                                        )
+                                    )
                                 }
                             }
                         }
