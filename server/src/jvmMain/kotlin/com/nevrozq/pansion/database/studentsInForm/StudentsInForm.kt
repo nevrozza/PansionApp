@@ -4,7 +4,6 @@ import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.FormDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
-import com.nevrozq.pansion.database.tokens.Tokens
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteWhere
@@ -12,6 +11,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import server.Roles
 
 object StudentsInForm : Table() {
     private val formId = StudentsInForm.integer("formId")
@@ -27,6 +27,23 @@ object StudentsInForm : Table() {
             println(e)
         }
     }
+
+    fun fetchAll(): List<StudentInFormDTO> {
+        return try {
+            transaction {
+                StudentsInForm.selectAll().map {
+                    StudentInFormDTO(
+                        formId = it[formId],
+                        login = it[login]
+                    )
+                }
+            }
+
+        } catch (e: Throwable) {
+            listOf()
+        }
+    }
+
 
     fun insert(studentInFormDTO: StudentInFormDTO) {
         try {

@@ -1,12 +1,16 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -27,11 +32,17 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.StarOutline
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ChipElevation
+import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -55,6 +66,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -63,6 +75,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
 import components.GetAvatar
+import components.hazeHeader
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
@@ -80,7 +93,7 @@ import view.WindowScreen
 import view.rememberImeState
 import view.toColor
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun RatingContent(
     component: RatingComponent
@@ -102,19 +115,16 @@ fun RatingContent(
         topBar = {
             AppBar(
                 title = {
-                    AnimatedContent(
-                        model.subjects.firstOrNull() { it.id == model.currentSubject }?.name
-                            ?: "Загрузка"
-                    ) {
-                        Text(
-                            it,
-                            modifier = Modifier.padding(start = 10.dp),
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Black,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+
+                    Text(
+                        "Рейтинг",
+                        modifier = Modifier.padding(start = 10.dp),
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
                 },
                 actionRow = {
                     IconButton(
@@ -125,16 +135,7 @@ fun RatingContent(
                         )
                     }
 
-                    Box() {
-                        IconButton(
-                            onClick = {
-                                component.subjectsListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
-                            }
-                        ) {
-                            Icon(Icons.Outlined.Tune, null)
-                        }
-                        ListDialogDesktopContent(component.subjectsListComponent)
-                    }
+
                     if (viewManager.orientation.value == WindowScreen.Expanded) {
                         IconButton(
                             onClick = {
@@ -148,6 +149,7 @@ fun RatingContent(
                     }
                 }
             )
+
         },
         bottomBar = {
             val me = model.me[model.currentSubject]
@@ -175,7 +177,10 @@ fun RatingContent(
                     )
                 }
                 if (previousItem.value != null) {
-                    Column(Modifier.padding(horizontal = 7.5.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        Modifier.padding(horizontal = 7.5.dp).fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         RatingCard(
                             previousItem.value!!,
                             meLogin = model.login,
@@ -190,21 +195,101 @@ fun RatingContent(
         }
     ) { padding ->
         Box(Modifier.fillMaxSize()) {
-            val items = model.items[model.currentSubject]
-            if (!items.isNullOrEmpty()) {
-                CLazyColumn(
-                    padding = padding,
-                    isBottomPaddingNeeded = true,
-                    modifier = Modifier.pullRefresh(refreshState)
-                ) {
+            CLazyColumn(
+                padding = padding,
+                isBottomPaddingNeeded = true,
+                modifier = Modifier.pullRefresh(refreshState)
+            ) {
+                item {
+                    Row(Modifier.offset(y = -6.dp).horizontalScroll(rememberScrollState())) {
+                        Box() {
+                            ElevatedAssistChip(
+                                onClick = {
+                                    component.subjectsListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                                },
+                                label = {
+                                    AnimatedContent(
+                                        model.subjects.firstOrNull() { it.id == model.currentSubject }?.name
+                                            ?: "Загрузка.."
+                                    ) {
+                                        Text(
+                                            it, maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    labelColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                modifier = Modifier.animateContentSize()
+                            )
+                            ListDialogDesktopContent(component.subjectsListComponent)
+                        }
+                        Spacer(Modifier.width(5.dp))
+                        Box() {
+                            InputChip(
+                                selected = true,
+                                onClick = { component.formsListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
+                                label = {
+                                    AnimatedContent(
+                                        component.formsListComponent.state.value.list.firstOrNull { it.id.toInt() == model.forms }?.text ?: "Загрузка.."
+                                    ) {
+                                        Text(
+                                            it, maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.animateContentSize()
+                            )
+                            ListDialogDesktopContent(component.formsListComponent)
+                        }
+                        Spacer(Modifier.width(5.dp))
+
+                        Box() {
+                            AssistChip(
+                                onClick = { component.periodListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
+                                label = {
+                                    AnimatedContent(
+                                        component.periodListComponent.state.value.list.firstOrNull { it.id.toInt() == model.period }?.text ?: "Загрузка.."
+
+                                    ) {
+                                        Text(
+                                            it, maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.animateContentSize()
+                            )
+                            ListDialogDesktopContent(component.periodListComponent)
+                        }
+                        Spacer(Modifier.width(15.dp))
+                    }
+                }
+                val items = model.items[model.currentSubject]
+                if (!items.isNullOrEmpty()) {
+
                     items(items.sortedBy { it.top }) { i ->
                         RatingCard(i, meLogin = model.login)
                     }
+                } else {
+                    item {
+                        Text(
+                            text = "Здесь пусто 0_0",
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(top = viewManager.size!!.maxHeight / 2 - padding.calculateTopPadding() - viewManager.topPadding),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
-            } else {
-                Text("Здесь пусто 0_0")
             }
-            ListDialogMobileContent(component.subjectsListComponent)
+
+
+            ListDialogMobileContent(component.subjectsListComponent, title = "Предмет")
+            ListDialogMobileContent(component.periodListComponent, title = "Период")
+            ListDialogMobileContent(component.formsListComponent, title = "Классы")
             PullRefreshIndicator(
                 modifier = Modifier.align(alignment = Alignment.TopCenter)
                     .padding(top = padding.calculateTopPadding()),
@@ -229,8 +314,8 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false)
             )
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        tonalElevation = if(isMe || meLogin == item.login) 24.dp else 2.dp,
-        shadowElevation = if(isMe) 12.dp else 0.dp
+        tonalElevation = if (isMe || meLogin == item.login) 24.dp else 2.dp,
+        shadowElevation = if (isMe) 12.dp else 0.dp
     ) {
         Row(
             modifier = Modifier.padding(end = 16.dp, start = 8.dp).padding(vertical = 5.dp),
@@ -303,7 +388,7 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false)
                 Spacer(modifier = Modifier.width(13.dp))
 
                 Text(
-                    text = "${if(item.stups > 0) "+" else "-"}${item.stups}",
+                    text = "${if (item.stups > 0) "+" else "-"}${item.stups}",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary

@@ -83,8 +83,12 @@ fun JournalContent(
     isNotMinimized: Boolean = true,
     onRefresh: () -> Unit
 ) {
+
+
+
     if (moderation != Moderation.nothing || role == Roles.teacher) {
         TrueJournalContent(component, isNotMinimized, onRefresh)
+
     } else {
         AlphaTestZatichka(
             onSettingsClick = {
@@ -123,7 +127,7 @@ private fun TrueJournalContent(
 
     val refreshState = rememberPullRefreshState(
         nModel.state == NetworkState.Loading && model.headers.isNotEmpty(),
-        { component.onEvent(JournalStore.Intent.Refresh) })
+        { onRefresh() })
 
     Scaffold(
         Modifier.fillMaxSize()

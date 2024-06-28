@@ -17,9 +17,39 @@ object Marks : RatingEntity() {
         }
     }
 
+    fun fetchWeekSubjectAVG(login: String, subjectId: Int): ForAvg {
+        return transaction {
+            val marks = fetchForAWeek(login).filter { it.subjectId == subjectId }
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
+    fun fetchYearSubjectAVG(login: String, subjectId: Int): ForAvg {
+        return transaction {
+            val marks = fetchForUser(login).filter { it.subjectId == subjectId }
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
+
     fun fetchWeekAVG(login: String): ForAvg {
         return transaction {
             val marks = fetchForAWeek(login)
+
+            println("avg: $marks")
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
+    fun fetchYearAVG(login: String): ForAvg {
+        return transaction {
+            val marks = fetchForUser(login)
 
             println("avg: $marks")
             ForAvg(

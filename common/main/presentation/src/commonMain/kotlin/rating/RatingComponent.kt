@@ -9,9 +9,9 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
+import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import di.Inject
-import home.HomeComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
@@ -30,11 +30,32 @@ class RatingComponent(
     val subjectsListComponent = ListComponent(
         componentContext,
         storeFactory,
-        name = "SubjectsListComponent",
-        onItemClick = {onItemClick(it.id.toInt())}
+        name = "RatingSubjectsListComponent",
+        onItemClick = {onSubjectItemClick(it.id.toInt())}
+    )
+    val formsListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "RatingFormNumsListComponent",
+        onItemClick = {onFormItemClick(it.id.toInt())}
+    )
+    val periodListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "RatingPeriodListComponent",
+        onItemClick = {onPeriodItemClick(it.id.toInt())}
     )
 
-    private fun onItemClick(id: Int) {
+    private fun onFormItemClick(id: Int) {
+        onEvent(RatingStore.Intent.ClickOnForm(id))
+        formsListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+    }
+    private fun onPeriodItemClick(id: Int) {
+        onEvent(RatingStore.Intent.ClickOnPeriod(id))
+        periodListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+    }
+
+    private fun onSubjectItemClick(id: Int) {
         onEvent(RatingStore.Intent.ClickOnSubject(id))
         subjectsListComponent.onEvent(ListDialogStore.Intent.HideDialog)
     }
@@ -66,6 +87,27 @@ class RatingComponent(
     }
 
     init {
+        formsListComponent.onEvent(
+            ListDialogStore.Intent.InitList(
+                listOf(Pair(0, "Все"), Pair(1, "5-8 классы"), Pair(2, "9-11 классы")).map {
+                    ListItem(
+                        id = it.first.toString(),
+                        text = it.second
+                    )
+                }
+            )
+        )
+        periodListComponent.onEvent(
+            ListDialogStore.Intent.InitList(
+                listOf(Pair(0, "За неделю"), Pair(1, "За модуль"), Pair(2, "За год")).map {
+                    ListItem(
+                        id = it.first.toString(),
+                        text = it.second
+                    )
+                }
+            )
+        )
+
         onEvent(RatingStore.Intent.Init)
         //.Init(
         //            avatarId = authRepository.fetchAvatarId(),

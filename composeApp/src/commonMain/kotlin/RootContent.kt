@@ -125,6 +125,7 @@ import view.ViewManager
 import view.WindowScreen
 import groups.GroupsContent
 import home.HomeStore
+import journal.JournalStore
 import root.RootComponent.Child.HomeSettings
 import root.RootComponent.Child.MainRating
 
@@ -241,6 +242,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             is Child.HomeAllGroupMarks -> if (isExpanded) fade() else iosSlide()
                             is Child.AdminSchedule -> iosSlide()
                             is Child.AdminCabinets -> if (isExpanded) fade() else iosSlide()
+                            is Child.HomeTasks -> if (isExpanded) fade() else iosSlide()
                         }
                     },
                     selector = { initialBackEvent, _, _ ->
@@ -267,7 +269,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     child.journalComponent,
                                     role = model.role,
                                     moderation = model.moderation,
-                                    onRefresh = { child.homeComponent.onEvent(HomeStore.Intent.Init) }
+                                    onRefresh = { child.journalComponent.onEvent(JournalStore.Intent.Refresh); child.homeComponent.onEvent(HomeStore.Intent.Init) }
                                 )
                             } else {
                                 RatingContent(child.ratingComponent)
@@ -282,7 +284,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 child.journalComponent,
                                 role = model.role,
                                 moderation = model.moderation,
-                                onRefresh = { child.homeComponent.onEvent(HomeStore.Intent.Init) }
+                                onRefresh = { child.journalComponent.onEvent(JournalStore.Intent.Refresh); child.homeComponent.onEvent(HomeStore.Intent.Init) }
                             )
                         },
                         firstScreen = { HomeContent(child.homeComponent) },
@@ -291,7 +293,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 child.journalComponent,
                                 role = model.role,
                                 moderation = model.moderation,
-                                onRefresh = { child.homeComponent.onEvent(HomeStore.Intent.Init) }
+                                onRefresh = { child.journalComponent.onEvent(JournalStore.Intent.Refresh); child.homeComponent.onEvent(HomeStore.Intent.Init) }
                             )
                         }
                     )
@@ -412,7 +414,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     child.journalComponent,
                                     role = model.role,
                                     moderation = model.moderation,
-                                    onRefresh = { }
+                                    onRefresh = { child.journalComponent.onEvent(JournalStore.Intent.Refresh) }
                                 )
                             }
                         )
@@ -426,6 +428,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             ProfileContent(child.profileComponent)
                         }
                     )
+
                     is Child.AdminCabinets -> MultiPaneAdmin(
                         isExpanded,
                         adminComponent = child.adminComponent,
@@ -439,6 +442,15 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         firstScreen = { HomeContent(child.homeComponent) },
                         secondScreen = {
                             RatingContent(child.ratingComponent)
+                        }
+                    )
+
+                    is Child.HomeTasks -> MultiPaneSplit(
+                        isExpanded = isExpanded,
+                        currentScreen = { HomeTasksContent(child.homeTasksComponent) },
+                        firstScreen = { HomeContent(child.homeComponent) },
+                        secondScreen = {
+                            HomeTasksContent(child.homeTasksComponent)
                         }
                     )
                 }

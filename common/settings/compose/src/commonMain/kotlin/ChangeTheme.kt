@@ -20,15 +20,13 @@ fun changeColorSeed(viewManager: ViewManager, colorSeed: String) {
 fun changeTint(viewManager: ViewManager) {
     val theme = when (viewManager.tint.value) {
         ThemeTint.Auto ->
-            ThemeTint.Dark
-
-
-        ThemeTint.Dark ->
             ThemeTint.Light
 
+        ThemeTint.Dark ->
+            ThemeTint.Auto
 
         ThemeTint.Light ->
-            ThemeTint.Auto
+            ThemeTint.Dark
     }
     changeTint(
         viewManager,

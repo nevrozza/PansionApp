@@ -25,7 +25,7 @@ import report.RUpdateReportReceive
 import report.ServerRatingUnit
 
 open class RatingTable : Table() {
-//    val id = this.integer("id").autoIncrement().uniqueIndex()
+    //    val id = this.integer("id").autoIncrement().uniqueIndex()
     private val login = varchar("login", 30)
     private val name = varchar("name", 30)
     private val surname = varchar("surname", 50)
@@ -38,6 +38,24 @@ open class RatingTable : Table() {
     private val formShortTitle = varchar("formShortTitle", 11)
     private val formNum = integer("formNum")
     private val subjectId = integer("subjectId")
+
+    fun insert(i: RatingTableDTO) {
+        this@RatingTable.insert {
+            it[login] = i.login
+            it[name] = i.name
+            it[surname] = i.surname
+            it[praname] = i.praname
+            it[avatarId] = i.avatarId
+            it[stups] = i.stups
+            it[top] = i.top
+            it[groupName] = i.groupName
+            it[formNum] = i.formNum
+            it[formShortTitle] = i.formShortTitle
+            it[avg] = i.avg
+            it[subjectId] = i.subjectId
+        }
+
+    }
 
     fun fetchAllRatings(): List<RatingTableDTO> {
         return transaction {
@@ -63,7 +81,7 @@ open class RatingTable : Table() {
     fun saveRatings(list: List<RatingTableDTO>) {
         return transaction {
             this@RatingTable.deleteAll()
-            list.forEach {i ->
+            list.forEach { i ->
                 this@RatingTable.insert {
                     it[login] = i.login
                     it[name] = i.name
@@ -81,5 +99,4 @@ open class RatingTable : Table() {
             }
         }
     }
-
 }

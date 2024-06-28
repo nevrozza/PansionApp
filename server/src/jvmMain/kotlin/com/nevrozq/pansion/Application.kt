@@ -6,8 +6,16 @@ import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
-import com.nevrozq.pansion.database.ratingTable.RatingTableDTO
-import com.nevrozq.pansion.database.ratingTable.RatingWeekTable
+import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
+import com.nevrozq.pansion.database.ratingTable.RatingModule1Table
+import com.nevrozq.pansion.database.ratingTable.RatingModule2Table
+import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
+import com.nevrozq.pansion.database.ratingTable.RatingWeek1Table
+import com.nevrozq.pansion.database.ratingTable.RatingWeek2Table
+import com.nevrozq.pansion.database.ratingTable.RatingYear0Table
+import com.nevrozq.pansion.database.ratingTable.RatingYear1Table
+import com.nevrozq.pansion.database.ratingTable.RatingYear2Table
+import com.nevrozq.pansion.database.ratingTable.updateRatings
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
@@ -15,7 +23,6 @@ import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
-import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -30,13 +37,9 @@ import com.nevrozq.pansion.features.user.manageOld.configureUserManageRouting
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
 import com.nevrozq.pansion.plugins.configureCORS
-import com.nevrozq.pansion.utils.createLogin
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import report.RUpdateReportReceive
-import server.Moderation
-import server.Roles
 
 // app: учителя,3333
 // server: типы уроков(айди, название, какие типы включает другие типы), классы (номер, направление), кабинеты
@@ -68,8 +71,17 @@ fun main() {
             Stups,
             Cabinets,
             Schedule,
-            RatingWeekTable
+            RatingWeek0Table,
+            RatingWeek1Table,
+            RatingWeek2Table,
+            RatingModule0Table,
+            RatingModule1Table,
+            RatingModule2Table,
+            RatingYear0Table,
+            RatingYear1Table,
+            RatingYear2Table,
         )
+        updateRatings()
 //        Users.deleteAll()
 //        Users.insert(
 //            UserDTO(
@@ -86,7 +98,7 @@ fun main() {
 //                isActive = true
 //            )
 //        )
-//        RatingWeekTable.saveRatings(
+//        RatingWeek0Table.saveRatings(
 //            listOf(
 //                RatingTableDTO(
 //                    login = "a.matashkov1",

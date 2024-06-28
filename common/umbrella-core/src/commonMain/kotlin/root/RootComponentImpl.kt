@@ -41,6 +41,7 @@ import dnevnikRuMarks.DnevnikRuMarksComponent
 import groups.GroupsComponent
 import home.HomeComponent
 import home.HomeStore
+import homeTasks.HomeTasksComponent
 import journal.JournalComponent
 import journal.JournalStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -100,7 +101,7 @@ class RootComponentImpl(
 
     private fun isBottomBarShowing(): Boolean {
         //!!!!!! stack?
-        return if(stack != null) stack.value.active.configuration in listOf(
+        return if (stack != null) stack.value.active.configuration in listOf(
             Config.MainHome,
             Config.MainAdmin,
             Config.MainRating,
@@ -109,14 +110,15 @@ class RootComponentImpl(
     }
 
     private fun getFirstScreen(): Config {
-        return  Config.AuthActivation //if (authRepository.isUserLoggedIn()) Config.MainHome else
+        return Config.AuthActivation //if (authRepository.isUserLoggedIn()) Config.MainHome else
     }
 
     override fun onBackClicked() {
-        when(val child = childStack.active.instance) {
+        when (val child = childStack.active.instance) {
             is Child.HomeSettings -> {
                 onHomeSettingsOutput(SettingsComponent.Output.BackToHome)
             }
+
             else -> {
                 navigation.pop()
                 val root = getRoot(childStack.active.instance)
@@ -202,7 +204,8 @@ class RootComponentImpl(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
                 journalComponent = getMainJournalComponent(
-                    componentContext
+                    componentContext,
+                    //true
                 ),
                 output = ::onHomeOutput
             )
@@ -249,7 +252,7 @@ class RootComponentImpl(
             is Config.MainHome -> {
                 Child.MainHome(
                     homeComponent = getMainHomeComponent(componentContext),
-                    journalComponent = getMainJournalComponent(componentContext),
+                    journalComponent = mainHomeComponent!!.journalComponent!!,//getMainJournalComponent(componentContext),
                     ratingComponent = getMainRatingComponent(componentContext)
                 )
             }
@@ -300,7 +303,6 @@ class RootComponentImpl(
                 )
             }
 
-//            Config.AdminStudents -> TODO()
             is Config.LessonReport -> {
                 Child.LessonReport(
                     lessonReport = LessonReportComponent(
@@ -377,6 +379,7 @@ class RootComponentImpl(
                     }
                 )
             )
+
             Config.AdminSchedule -> Child.AdminSchedule(
                 scheduleComponent = ScheduleComponent(
                     componentContext,
@@ -398,8 +401,24 @@ class RootComponentImpl(
                 homeComponent = getMainHomeComponent(componentContext, true),
                 ratingComponent = getMainRatingComponent(componentContext, true)
             )
+
+            is Config.HomeTasks -> Child.HomeTasks(
+                homeComponent = getMainHomeComponent(componentContext, true),
+                homeTasksComponent = HomeTasksComponent(
+                    componentContext,
+                    storeFactory,
+                    output = ::onHomeTasksOutput
+                )
+            )
         }
     }
+
+    private fun onHomeTasksOutput(output: HomeTasksComponent.Output): Unit =
+        when (output) {
+            HomeTasksComponent.Output.BackToHome -> navigateToHome {
+                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
+            }
+        }
 
     private fun onAdminCabinetsOutput(output: CabinetsComponent.Output): Unit =
         when (output) {
@@ -467,6 +486,7 @@ class RootComponentImpl(
                 navigation.replaceAll(it)
             }
         }
+
     private fun onHomeProfileOutput(output: ProfileComponent.Output): Unit =
         when (output) {
 
@@ -581,6 +601,13 @@ class RootComponentImpl(
             ) {
                 navigation.bringToFront(it)
             }
+
+            is HomeComponent.Output.NavigateToTasks -> navigateToHomeTasks(
+                studentLogin = output.studentLogin,
+                avatarId = output.avatarId
+            ) {
+                navigation.bringToFront(it)
+            }
         }
 
     override fun onEvent(event: RootStore.Intent) {
@@ -655,6 +682,17 @@ class RootComponentImpl(
 
     private fun navigateToHomeSettings(post: (Config) -> Unit) {
         val d = Config.HomeSettings
+        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
+        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
+        post(d)
+    }
+
+    private fun navigateToHomeTasks(
+        studentLogin: String,
+        avatarId: Int,
+        post: (Config) -> Unit
+    ) {
+        val d = Config.HomeTasks(studentLogin = studentLogin, avatarId = avatarId)
         rootStore.accept(RootStore.Intent.BottomBarShowing(false))
         rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
         post(d)

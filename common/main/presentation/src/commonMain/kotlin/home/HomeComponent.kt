@@ -102,6 +102,8 @@ class HomeComponent(
         data class NavigateToProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Output()
         data object NavigateToSettings : Output()
 
+        data class NavigateToTasks(val studentLogin: String, val avatarId: Int) : Output()
+
         data class NavigateToDnevnikRuMarks(val studentLogin: String) : Output()
         data class NavigateToDetailedStups(val studentLogin: String, val reason: Int) : Output()
         data class NavigateToAllGroupMarks(val subjectId: Int, val subjectName: String, val groupId: Int, val groupName: String) : Output()

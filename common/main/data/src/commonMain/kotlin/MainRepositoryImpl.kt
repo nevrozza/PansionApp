@@ -78,13 +78,15 @@ class MainRepositoryImpl(
     override suspend fun fetchSubjectRating(
         login: String,
         subjectId: Int,
-        period: Int
+        period: Int,
+        forms: Int
     ): RFetchSubjectRatingResponse {
         return remoteDataSource.fetchSubjectRating(
             RFetchSubjectRatingReceive(
                 login = login,
                 subjectId = subjectId,
-                period = period
+                period = period,
+                forms = forms
             )
         )
     }

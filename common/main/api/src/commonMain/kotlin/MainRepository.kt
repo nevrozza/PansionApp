@@ -29,5 +29,5 @@ interface MainRepository {
 
     suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse
 
-    suspend fun fetchSubjectRating(login: String, subjectId: Int, period: Int): RFetchSubjectRatingResponse
+    suspend fun fetchSubjectRating(login: String, subjectId: Int, period: Int, forms: Int): RFetchSubjectRatingResponse
 }

@@ -19,6 +19,7 @@ import groups.GroupsComponent
 import kotlinx.coroutines.flow.StateFlow
 import login.LoginComponent
 import home.HomeComponent
+import homeTasks.HomeTasksComponent
 import journal.JournalComponent
 import kotlinx.serialization.Serializable
 import profile.ProfileComponent
@@ -86,6 +87,11 @@ interface RootComponent : BackHandlerOwner {
         class HomeProfile(
             val homeComponent: HomeComponent,
             val profileComponent: ProfileComponent
+        ) : Child()
+
+        class HomeTasks(
+            val homeComponent: HomeComponent,
+            val homeTasksComponent: HomeTasksComponent
         ) : Child()
 
         class AdminSchedule(
@@ -159,6 +165,8 @@ interface RootComponent : BackHandlerOwner {
 
         @Serializable
         data class HomeProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Config
+        @Serializable
+        data class HomeTasks(val studentLogin: String, val avatarId: Int) : Config
 
 
         @Serializable

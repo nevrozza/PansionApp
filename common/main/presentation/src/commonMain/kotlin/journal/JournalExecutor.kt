@@ -1,5 +1,6 @@
 package journal
 
+import CDispatcher
 import MainRepository
 import ReportData
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -37,7 +38,7 @@ class JournalExecutor(
             }
 
             Intent.CreateReport -> {
-                scope.launch {
+                scope.launch(CDispatcher) {
                     try {
                         studentsInGroupCAlertDialogComponent.nInterface.nStartLoading()
                         val id = mainRepository.createReport(RCreateReportReceive(
@@ -46,7 +47,9 @@ class JournalExecutor(
                             time = state().time,
                             studentLogins = state().studentsInGroup.map { it.login }
                         )).reportId
-                        dispatch(Message.ReportCreated(id))
+                        scope.launch {
+                            dispatch(Message.ReportCreated(id))
+                        }
                         studentsInGroupCAlertDialogComponent.nInterface.nSuccess()
                         fetchHeaders()
                     } catch (_: Throwable) {
@@ -125,18 +128,17 @@ class JournalExecutor(
     }
 
     private fun fetchHeaders() {
-        print("started1")
-        scope.launch {
-            print("started2")
+        scope.launch(CDispatcher) {
             try {
-                print("started3")
                 nInterface.nStartLoading()
+                println("state: ${nInterface.networkModel.value.state}")
 //                groupListComponent.nInterface.nStartLoading()
                 val headers = mainRepository.fetchReportHeaders().reportHeaders
-                println("xx $headers")
-                dispatch(Message.HeadersUpdated(headers))
+                scope.launch {
+                    dispatch(Message.HeadersUpdated(headers))
+                    nInterface.nSuccess()
+                }
 //                groupListComponent.nInterface.nSuccess()
-                nInterface.nSuccess()
 
             } catch (e: Throwable) {
                 println(e)

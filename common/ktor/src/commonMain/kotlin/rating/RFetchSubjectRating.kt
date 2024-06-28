@@ -10,7 +10,8 @@ import kotlinx.serialization.Serializable
 data class RFetchSubjectRatingReceive(
     val login: String,
     val subjectId: Int,
-    val period: Int
+    val period: Int,
+    val forms: Int
 )
 
 @Serializable

@@ -420,7 +420,8 @@ fun TeacherHomeContent(
                         component.journalComponent!!, journalModel
                     )
                 AnimatedVisibility(
-                    nJournalOpenReportModel.state != NetworkState.None, modifier = Modifier.align(Alignment.Center),
+                    nJournalOpenReportModel.state != NetworkState.None,
+                    modifier = Modifier.align(Alignment.Center),
                     enter = fadeIn() + scaleIn(),
                     exit = fadeOut() + scaleOut()
                 ) {
@@ -431,8 +432,11 @@ fun TeacherHomeContent(
                             shadowElevation = 10.dp,
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            when(it) {
-                                NetworkState.Error -> Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            when (it) {
+                                NetworkState.Error -> Column(
+                                    modifier = Modifier.padding(10.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
                                     Text("Не удалось загрузить отчёт")
                                     CustomTextButton("Закрыть") {
                                         component.journalComponent!!.nOpenReportInterface.goToNone()
@@ -449,8 +453,12 @@ fun TeacherHomeContent(
                     title = "Отчёты"
                 ) {
                     Crossfade(nJournalOpenReportModel.state) {
-                        when(it) {
-                            NetworkState.None -> Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        when (it) {
+                            NetworkState.None -> Column(
+                                modifier = Modifier.verticalScroll(
+                                    rememberScrollState()
+                                )
+                            ) {
                                 model.someHeaders.sortedBy { it.reportId }.forEach { item ->
                                     JournalItemCompose(
                                         subjectName = item.subjectName,
@@ -470,8 +478,12 @@ fun TeacherHomeContent(
                                     }
                                 }
                             }
+
                             NetworkState.Loading -> CircularProgressIndicator()
-                            NetworkState.Error -> Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            NetworkState.Error -> Column(
+                                modifier = Modifier.padding(10.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Text("Не удалось загрузить отчёт")
                                 CustomTextButton("Выбрать ещё раз") {
                                     component.journalComponent!!.nOpenReportInterface.goToNone()
@@ -686,15 +698,17 @@ fun StudentHomeContent(
                             ) {
                                 Box(
                                     modifier = Modifier.clip(CircleShape).clickable {
-                                        component.onOutput(HomeComponent.Output.NavigateToProfile(
-                                            studentLogin = model.login,
-                                            fio = FIO(
-                                                name = model.name,
-                                                praname = model.praname,
-                                                surname = model.surname
-                                            ),
-                                            avatarId = model.avatarId
-                                        ))
+                                        component.onOutput(
+                                            HomeComponent.Output.NavigateToProfile(
+                                                studentLogin = model.login,
+                                                fio = FIO(
+                                                    name = model.name,
+                                                    praname = model.praname,
+                                                    surname = model.surname
+                                                ),
+                                                avatarId = model.avatarId
+                                            )
+                                        )
                                     }
                                 ) {
                                     GetAvatar(
@@ -816,7 +830,12 @@ fun StudentHomeContent(
                                 Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
                                     .weight(1f)
                                     .clickable() {
-
+                                        component.onOutput(
+                                            HomeComponent.Output.NavigateToTasks(
+                                                studentLogin = model.login,
+                                                avatarId = model.avatarId
+                                            )
+                                        )
                                     }
                             ) {
                                 Column(
@@ -1397,7 +1416,6 @@ private fun QuickTabNotNull(
         onClick()
     }
 }
-
 
 
 val dotSize = 24.dp // made it bigger for demo

@@ -26,37 +26,50 @@ class RatingExecutor(
             Intent.Init -> init()
             is Intent.ClickOnSubject -> {
                 dispatch(Message.OnSubjectClicked(intent.subjectId))
-                fetchRating(intent.subjectId)
+                fetchRating(intent.subjectId, state().period, state().forms)
+            }
+
+            is Intent.ClickOnForm -> {
+                dispatch(Message.OnFormClicked(intent.formNum))
+                fetchRating(state().currentSubject, state().period, intent.formNum)
+            }
+
+            is Intent.ClickOnPeriod -> {
+                dispatch(Message.OnPeriodClicked(intent.period))
+                fetchRating(state().currentSubject, intent.period, forms = state().forms)
             }
         }
     }
 
     private fun init() {
         fetchSubjects()
-        fetchRating(state().currentSubject)
+        fetchRating(state().currentSubject, state().period, state().forms)
     }
 
-    private fun fetchRating(subjectId: Int, period: Int = 0) {
+    private fun fetchRating(subjectId: Int, period: Int, forms: Int) {
         scope.launch(CDispatcher) {
             try {
                 nInterface.nStartLoading()
                 val response = mainRepository.fetchSubjectRating(
                     login = state().login,
                     subjectId = subjectId,
-                    period = period
+                    period = period,
+                    forms = forms
                 )
 
                 scope.launch {
-                    dispatch(Message.RatingUpdated(
-                        items = state().items + response.hash,
-                        me = state().me + response.me
-                    ))
-                   nInterface.nSuccess()
+                    dispatch(
+                        Message.RatingUpdated(
+                            items = state().items + response.hash,
+                            me = state().me + response.me
+                        )
+                    )
+                    nInterface.nSuccess()
                 }
             } catch (e: Throwable) {
                 println(e)
                 nInterface.nError("Не удалось загрузить рейтинг") {
-                   fetchRating(subjectId)
+                    fetchRating(subjectId, period = period, forms = forms)
                 }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
             }
@@ -70,6 +83,7 @@ class RatingExecutor(
                 val subjects =
                     mainRepository.fetchScheduleSubjects().subjects.toMutableList()
                 subjects.add(0, startSubject)
+                subjects.add(1, mvdSubject)
                 scope.launch {
                     dispatch(Message.SubjectsUpdated(subjects))
                     subjectsListComponent.onEvent(ListDialogStore.Intent.InitList(

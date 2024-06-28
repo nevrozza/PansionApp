@@ -41,9 +41,15 @@ import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
-import com.nevrozq.pansion.database.ratingEntities.Marks
-import com.nevrozq.pansion.database.ratingEntities.Stups
-import com.nevrozq.pansion.database.ratingTable.RatingWeekTable
+import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
+import com.nevrozq.pansion.database.ratingTable.RatingModule1Table
+import com.nevrozq.pansion.database.ratingTable.RatingModule2Table
+import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
+import com.nevrozq.pansion.database.ratingTable.RatingWeek1Table
+import com.nevrozq.pansion.database.ratingTable.RatingWeek2Table
+import com.nevrozq.pansion.database.ratingTable.RatingYear0Table
+import com.nevrozq.pansion.database.ratingTable.RatingYear1Table
+import com.nevrozq.pansion.database.ratingTable.RatingYear2Table
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.schedule.ScheduleDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
@@ -67,7 +73,6 @@ import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
-import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
 import rating.RFetchScheduleSubjectsResponse
@@ -87,10 +92,22 @@ class LessonsController() {
             val r = call.receive<RFetchSubjectRatingReceive>()
             try {
                 val table = when (r.period) {
-//                    0 -> RatingWeekTable
-//                    1 -> RatingModuleTable
-//                    2 -> RatingYearTable
-                    else -> RatingWeekTable
+                    1 -> when (r.forms) {
+                        1 -> RatingModule1Table
+                        2 -> RatingModule2Table
+                        else -> RatingModule0Table
+                    }
+                    2 -> when (r.forms) {
+                        1 -> RatingYear1Table
+                        2 -> RatingYear2Table
+                        else -> RatingYear0Table
+                    }
+
+                    else -> when (r.forms) {
+                        1 -> RatingWeek1Table
+                        2 -> RatingWeek2Table
+                        else -> RatingWeek0Table
+                    }
                 }
                 val allItems = table.fetchAllRatings()
                 val items = allItems.filter { it.subjectId == r.subjectId }
