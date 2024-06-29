@@ -10,6 +10,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -38,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -59,6 +61,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -111,7 +114,8 @@ fun DnevnikRuMarkContent(
                         style = viewManager.hazeStyle!!.value
                     )
                     else Modifier
-                )
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AppBar(
                     containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
@@ -146,26 +150,39 @@ fun DnevnikRuMarkContent(
 //                        else Modifier
 //                    )
                 ) {
-                    SecondaryTabRow(
-                        selectedTabIndex = (model.tabIndex ?: 0) - 1,
-                        divider = {
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outline.copy(
-                                    alpha = .4f
+                    BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        SecondaryScrollableTabRow(
+                            selectedTabIndex = (model.tabIndex ?: 0) - 1,
+                            divider = {
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outline.copy(
+                                        alpha = .4f
+                                    )
                                 )
-                            )
-                        },
-                        containerColor = Color.Transparent
-                    ) {
-                        for (i in 1..model.tabsCount) {
-                            Tab(
-                                selected = ((model.tabIndex ?: 0) - 1) == i,
-                                onClick = {
+                            },
+                            containerColor = Color.Transparent,
+                            edgePadding = 0.dp
+                        ) {
+                            for (i in 1..model.tabsCount) {
+                                val tabText =
+                                    "$i ${if (model.isQuarters == true) "модуль" else "полугодие"}"
+                                Tab(
+                                    selected = ((model.tabIndex ?: 0) - 1) == i,
+                                    onClick = {
 //                                    if (((model.tabIndex ?: 0) - 1) != i) {
                                         component.onEvent(DnevnikRuMarkStore.Intent.ClickOnTab(i))
 //                                    }
-                                },
-                                text = { Text("$i ${if (model.isQuarters == true) "модуль" else "полугодие"}") })
+                                    },
+                                    text = {
+                                        Text(
+                                            tabText,
+                                            overflow = TextOverflow.Ellipsis,
+                                            maxLines = 2
+                                        )
+                                    },
+                                    modifier = Modifier.width(((this@BoxWithConstraints.maxWidth / model.tabsCount.toFloat()) - 1.dp).coerceAtLeast(100.dp))
+                                )
+                            }
                         }
                     }
                 }
