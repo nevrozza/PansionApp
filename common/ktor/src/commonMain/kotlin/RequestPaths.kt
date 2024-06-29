@@ -46,6 +46,8 @@ object RequestPaths {
         const val SaveSchedule = "server/admin/schedule/save"
         const val FetchPersonSchedule = "server/PersonSchedule"
 
+        const val FetchCalendar = "server/admin/fetchCalendar"
+        const val UpdateCalendar = "server/admin/updateCalendar"
 
 
         const val FetchCabinets = "server/admin/fetchCabinets"

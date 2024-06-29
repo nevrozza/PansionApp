@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RFetchDnevnikRuMarksReceive(
     val login: String,
-    val quartersNum: String
+    val quartersNum: String,
+    val isQuarters: Boolean
 )
 
 @Serializable

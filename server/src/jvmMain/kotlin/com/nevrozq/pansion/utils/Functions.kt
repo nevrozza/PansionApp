@@ -1,5 +1,7 @@
 package com.nevrozq.pansion.utils
 
+import com.nevrozq.pansion.database.calendar.Calendar
+import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -8,22 +10,29 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import com.nevrozq.pansion.database.users.Users
 import io.ktor.server.application.ApplicationCall
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.minus
-import kotlinx.datetime.plus
 import server.Moderation
 import server.Roles
 import server.cut
+import server.getLocalDate
 import server.latin
-import server.twoNums
 import java.lang.IllegalArgumentException
-import java.time.LocalDateTime
 import java.util.*
 
 fun List<String>?.toStr(): String? = this?.joinToString("/-")
 fun String?.toList(): List<String>? = this?.split("/-")
 
+
+fun getModuleByDate(date: String): CalendarDTO? {
+    val d = getLocalDate(date).toEpochDays()
+    val modules = Calendar.getAllModules()
+    modules.reversed().forEach { m ->
+        val l = getLocalDate(m.start).toEpochDays()
+        if(d >= l) {
+            return m
+        }
+    }
+    return null
+}
 
 fun createLogin(name: String, surname: String): String {
     val nameSubstring = if (name.lowercase().latin().length < 2) name.lowercase().latin() else name.lowercase().latin().subSequence(0, 1)

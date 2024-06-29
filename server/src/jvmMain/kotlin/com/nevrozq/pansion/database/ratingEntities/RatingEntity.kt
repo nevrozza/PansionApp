@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.database.ratingEntities
 
+import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentLines.StudentLinesDTO
@@ -234,11 +235,13 @@ open class RatingEntity : Table() {
         }
     }
 
-    fun fetchForUserQuarters(login: String, quartersNum: String) : List<RatingEntityDTO> {
+    fun fetchForUserQuarters(login: String, quartersNum: String, isQuarters: Boolean) : List<RatingEntityDTO> {
+        val x = if(isQuarters) quartersNum else Calendar.getAllModulesOfHalfAsString(quartersNum.toInt())
+        val quartersList = x.map { it.toString() }
         return transaction {
             try {
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.part inList quartersNum.map { it.toString() }) }
+                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.part inList quartersList) }
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],

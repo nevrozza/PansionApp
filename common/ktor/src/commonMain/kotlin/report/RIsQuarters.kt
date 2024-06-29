@@ -9,5 +9,7 @@ data class RIsQuartersReceive(
 
 @Serializable
 data class RIsQuartersResponse(
-    val isQuarter: Boolean
+    val isQuarters: Boolean,
+    val num: Int,
+    val currentIndex: Int
 )

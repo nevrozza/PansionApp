@@ -200,7 +200,8 @@ private fun sortRatings() {
     )) {
         var top = 0
         var previousSubjectId = 0
-        val items = i.fetchAllRatings().filter { it.stups > 0 && it.avg.toFloat() > 2 }.sortedBy { it.stups }.sortedBy { it.subjectId }.reversed().map { x ->
+        val items = i.fetchAllRatings().filter { it.stups > 0 && it.avg.toFloat() > 2 }.sortedWith(
+            compareBy({it.subjectId}, {it.stups})).reversed().map { x ->
             if(previousSubjectId != x.subjectId) {
                 previousSubjectId = x.subjectId
                 top = 0

@@ -5,6 +5,9 @@ import Person
 import admin.cabinets.CabinetItem
 import admin.cabinets.RFetchCabinetsResponse
 import admin.cabinets.RUpdateCabinetsReceive
+import admin.calendar.CalendarModuleItem
+import admin.calendar.RFetchCalendarResponse
+import admin.calendar.RUpdateCalendarReceive
 import admin.groups.forms.RCreateFormGroupReceive
 import admin.groups.forms.RFetchCutedGroupsResponse
 import admin.groups.forms.RFetchFormGroupsReceive
@@ -30,6 +33,8 @@ import admin.schedule.SchedulePerson
 import admin.schedule.ScheduleSubject
 import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.cabinets.CabinetsDTO
+import com.nevrozq.pansion.database.calendar.Calendar
+import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.formGroups.FormGroupDTO
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.formGroups.mapToFormGroup
@@ -86,6 +91,52 @@ import schedule.RScheduleList
 
 class LessonsController() {
 
+
+    suspend fun fetchCalendar(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+                val calendar = Calendar.getAllModules()
+                call.respond(RFetchCalendarResponse(
+                    items = calendar.map {
+                        CalendarModuleItem(
+                            num = it.num,
+                            start = it.start,
+                            halfNum = it.halfNum
+                        )
+                    }
+                ))
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch calendar: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+    suspend fun updateCalendar(call: ApplicationCall) {
+        if (call.isModer) {
+            val r = call.receive<RUpdateCalendarReceive>()
+            try {
+                Calendar.insertList(r.items.map {
+                    CalendarDTO(
+                        num = it.num,
+                        start = it.start,
+                        halfNum = it.halfNum
+                    )
+                })
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Calendar already exists")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't create calendar: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
 
     suspend fun fetchRating(call: ApplicationCall) {
         if (call.isMember) {

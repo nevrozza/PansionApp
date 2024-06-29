@@ -243,6 +243,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             is Child.AdminSchedule -> iosSlide()
                             is Child.AdminCabinets -> if (isExpanded) fade() else iosSlide()
                             is Child.HomeTasks -> if (isExpanded) fade() else iosSlide()
+                            is Child.AdminCalendar -> if (isExpanded) fade() else iosSlide()
                         }
                     },
                     selector = { initialBackEvent, _, _ ->
@@ -452,6 +453,13 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         secondScreen = {
                             HomeTasksContent(child.homeTasksComponent)
                         }
+                    )
+
+                    is Child.AdminCalendar -> MultiPaneAdmin(
+                        isExpanded,
+                        adminComponent = child.adminComponent,
+                        currentRouting = AdminComponent.Output.NavigateToCalendar,
+                        secondScreen = { CalendarContent(child.calendarComponent) }
                     )
                 }
             }

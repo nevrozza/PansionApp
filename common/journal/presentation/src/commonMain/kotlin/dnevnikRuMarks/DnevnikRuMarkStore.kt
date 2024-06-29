@@ -11,9 +11,10 @@ import report.ServerRatingUnit
 interface DnevnikRuMarkStore : Store<Intent, State, Label> {
     data class State(
         val studentLogin: String,
-        val subjects: List<DnevnikRuMarksSubject> = emptyList(),
+        val subjects: HashMap<Int, List<DnevnikRuMarksSubject>> = hashMapOf(),
         val isQuarters: Boolean? = null,
-        val tabIndex: Int? = null
+        val tabIndex: Int? = null,
+        val tabsCount: Int = 0
     )
 
     sealed interface Intent {
@@ -23,7 +24,7 @@ interface DnevnikRuMarkStore : Store<Intent, State, Label> {
 
     sealed interface Message {
         data class SubjectsUpdated(val subjects: List<DnevnikRuMarksSubject>) : Message
-        data class IsQuartersInited(val isQuarters: Boolean, val tabIndex: Int) : Message
+        data class IsQuartersInited(val isQuarters: Boolean, val tabIndex: Int, val tabsCount: Int) : Message
         data class OnTabClicked(val index: Int) : Message
     }
 

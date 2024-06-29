@@ -157,13 +157,13 @@ fun DnevnikRuMarkContent(
                         },
                         containerColor = Color.Transparent
                     ) {
-                        for (i in if (model.isQuarters == true) 1..4 else 1..2) {
+                        for (i in 1..model.tabsCount) {
                             Tab(
                                 selected = ((model.tabIndex ?: 0) - 1) == i,
                                 onClick = {
-                                    if (((model.tabIndex ?: 0) - 1) != i) {
+//                                    if (((model.tabIndex ?: 0) - 1) != i) {
                                         component.onEvent(DnevnikRuMarkStore.Intent.ClickOnTab(i))
-                                    }
+//                                    }
                                 },
                                 text = { Text("$i ${if (model.isQuarters == true) "модуль" else "полугодие"}") })
                         }
@@ -181,7 +181,7 @@ fun DnevnikRuMarkContent(
                         bottom = padding.calculateBottomPadding()
                     )
                 ) {
-                    items(model.subjects) {
+                    items(model.subjects[(model.tabIndex ?: 0)] ?: listOf()) {
                         SubjectMarksItem(
                             title = it.subjectName,
                             marks = it.marks.sortedBy { it.date }.reversed(),

@@ -1,5 +1,7 @@
 package com.nevrozq.pansion.features.reports
 
+import com.nevrozq.pansion.database.calendar.Calendar
+import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.ratingEntities.Marks
@@ -11,6 +13,7 @@ import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.utils.getModuleByDate
 import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.isTeacher
@@ -50,6 +53,7 @@ import report.RUpdateReportReceive
 import report.ReportHeader
 import report.ServerStudentLine
 import report.UserMark
+import server.getCurrentDate
 
 class ReportsController() {
 
@@ -169,7 +173,16 @@ class ReportsController() {
         if (call.isMember) {
             try {
                 val isQuarter = isQuarter(r)
-                call.respond(RIsQuartersResponse(isQuarter))
+                val currentModule = getModuleByDate(getCurrentDate().second) ?: CalendarDTO(
+                    num = 1,
+                    start = "01.01.2000",
+                    halfNum = 1
+                )
+                call.respond(RIsQuartersResponse(
+                    isQuarters = isQuarter,
+                    num = if(isQuarter) Calendar.getAllModules().size else 2,
+                    currentIndex = if(isQuarter) currentModule.num else currentModule.halfNum
+                ))
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
             } catch (e: Throwable) {
@@ -375,8 +388,8 @@ class ReportsController() {
             try {
                 val allSubjects = Subjects.fetchAllSubjects()
 
-                val marks = Marks.fetchForUserQuarters(login = r.login, quartersNum = r.quartersNum)
-                val stups = Stups.fetchForUserQuarters(login = r.login, quartersNum = r.quartersNum).filter { it.reason.subSequence(0, 3) != "!ds" }
+                val marks = Marks.fetchForUserQuarters(login = r.login, quartersNum = r.quartersNum, isQuarters = r.isQuarters)
+                val stups = Stups.fetchForUserQuarters(login = r.login, quartersNum = r.quartersNum, isQuarters = r.isQuarters).filter { it.reason.subSequence(0, 3) != "!ds" }
 
                 val responseList = mutableListOf<DnevnikRuMarksSubject>()
 

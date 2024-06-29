@@ -1,6 +1,9 @@
 import admin.cabinets.CabinetItem
 import admin.cabinets.RFetchCabinetsResponse
 import admin.cabinets.RUpdateCabinetsReceive
+import admin.calendar.CalendarModuleItem
+import admin.calendar.RFetchCalendarResponse
+import admin.calendar.RUpdateCalendarReceive
 import admin.groups.GroupInit
 import admin.groups.forms.FormInit
 import admin.groups.forms.RCreateFormGroupReceive
@@ -38,6 +41,14 @@ class AdminRepositoryImpl(
 ) : AdminRepository {
     override suspend fun fetchInitSchedule(): RFetchInitScheduleResponse {
         return remoteDataSource.fetchInitSchedule()
+    }
+
+    override suspend fun fetchCalendar(): RFetchCalendarResponse {
+        return remoteDataSource.fetchCalendar()
+    }
+
+    override suspend fun updateCalendar(calendar: List<CalendarModuleItem>) {
+        remoteDataSource.updateCalendar(RUpdateCalendarReceive(items = calendar))
     }
 
     override suspend fun fetchCabinets(): RFetchCabinetsResponse {

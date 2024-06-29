@@ -1,7 +1,9 @@
-package cabinets
+package calendar
 
 import AdminRepository
 import asValue
+import cabinets.CabinetsStore
+import cabinets.CabinetsStoreFactory
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
@@ -9,7 +11,7 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
 import di.Inject
 
-class CabinetsComponent(
+class CalendarComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
@@ -17,15 +19,15 @@ class CabinetsComponent(
     val nInterface = NetworkInterface(
         componentContext,
         storeFactory,
-        "cabinetsComponentNInterface"
+        "calendarComponentNInterface"
     )
 
     private val adminRepository: AdminRepository = Inject.instance()
 
 
-    private val cabinetsStore =
+    private val calendarStore =
         instanceKeeper.getStore {
-            CabinetsStoreFactory(
+            CalendarStoreFactory(
                 storeFactory = storeFactory,
                 adminRepository = adminRepository,
                 nInterface = nInterface
@@ -39,16 +41,16 @@ class CabinetsComponent(
 
     init {
         backHandler.register(backCallback)
-        onEvent(CabinetsStore.Intent.Init)
+        onEvent(CalendarStore.Intent.Init)
     }
 
-    val model = cabinetsStore.asValue()
+    val model = calendarStore.asValue()
 
 //    @OptIn(ExperimentalCoroutinesApi::class)
 //    val state: StateFlow<UsersStore.State> = usersStore.stateFlow
 
-    fun onEvent(event: CabinetsStore.Intent) {
-        cabinetsStore.accept(event)
+    fun onEvent(event: CalendarStore.Intent) {
+        calendarStore.accept(event)
     }
 
     fun onOutput(output: Output) {

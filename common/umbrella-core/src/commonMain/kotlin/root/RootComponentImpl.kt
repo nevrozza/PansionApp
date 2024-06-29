@@ -12,6 +12,7 @@ import admin.AdminStore
 import allGroupMarks.AllGroupMarksComponent
 import asValue
 import cabinets.CabinetsComponent
+import calendar.CalendarComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -410,6 +411,15 @@ class RootComponentImpl(
                     output = ::onHomeTasksOutput
                 )
             )
+
+            Config.AdminCalendar -> Child.AdminCalendar(
+                adminComponent = getMainAdminComponent(componentContext, true),
+                calendarComponent = CalendarComponent(
+                    componentContext = componentContext,
+                    storeFactory = storeFactory,
+                    output = ::onAdminCalendarOutput
+                )
+            )
         }
     }
 
@@ -423,6 +433,13 @@ class RootComponentImpl(
     private fun onAdminCabinetsOutput(output: CabinetsComponent.Output): Unit =
         when (output) {
             CabinetsComponent.Output.BackToAdmin -> navigateToAdmin {
+                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
+            }
+        }
+
+    private fun onAdminCalendarOutput(output: CalendarComponent.Output): Unit =
+        when (output) {
+            CalendarComponent.Output.BackToAdmin -> navigateToAdmin {
                 navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
             }
         }
@@ -547,6 +564,10 @@ class RootComponentImpl(
 //                navigation.bringToFront(it)
 //            }
             AdminComponent.Output.NavigateToCabinets -> navigateToAdminCabinets {
+                navigation.bringToFront(it)
+            }
+
+            AdminComponent.Output.NavigateToCalendar -> navigateToAdminCalendar {
                 navigation.bringToFront(it)
             }
         }
@@ -776,6 +797,12 @@ class RootComponentImpl(
 
     private fun navigateToAdminCabinets(post: (Config) -> Unit) {
         val d = Config.AdminCabinets
+        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
+        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
+        post(d)
+    }
+    private fun navigateToAdminCalendar(post: (Config) -> Unit) {
+        val d = Config.AdminCalendar
         rootStore.accept(RootStore.Intent.BottomBarShowing(false))
         rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
         post(d)

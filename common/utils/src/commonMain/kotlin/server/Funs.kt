@@ -6,6 +6,7 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
@@ -17,6 +18,19 @@ import kotlin.math.roundToInt
 fun String.toMinutes(): Int {
     val parts = this.split(":")
     return parts[0].toInt() * 60 + parts[1].toInt()
+}
+
+
+fun getLocalDate(date: String): LocalDate {
+    val s = date.replace(".", "")
+    val day = s.substring(0, 2).toInt()
+    val month = s.substring(2, 4).toInt()
+    val year = s.substring(4).toInt()
+    return LocalDate(
+        year = year,
+        monthNumber = month,
+        dayOfMonth = day
+    )
 }
 
 fun getCurrentDayTime() : String {

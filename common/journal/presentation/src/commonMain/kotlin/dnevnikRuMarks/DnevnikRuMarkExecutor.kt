@@ -38,7 +38,7 @@ class DnevnikRuMarkExecutor(
         scope.launch {
             nInterface.nStartLoading()
             try {
-                val subjects = journalRepository.fetchDnevnikRuMarks(state().studentLogin, getQuartersNum()).subjects
+                val subjects = journalRepository.fetchDnevnikRuMarks(state().studentLogin, quartersNum = state().tabIndex!!.toString(), isQuarters = state().isQuarters!!).subjects
                 dispatch(Message.SubjectsUpdated(subjects))
                 nInterface.nSuccess()
             } catch (_: Throwable) {
@@ -54,10 +54,11 @@ class DnevnikRuMarkExecutor(
             nInterface.nStartLoading()
             try {
                 println("eren")
-                val isQuarters = journalRepository.fetchIsQuarter(state().studentLogin).isQuarter
+                val isQuarters = journalRepository.fetchIsQuarter(state().studentLogin)
                 println("qq: $isQuarters")
-                val tabIndex = if (isQuarters) 4 else 2
-                dispatch(Message.IsQuartersInited(isQuarters, tabIndex))
+                val tabsCount = if (isQuarters.isQuarters) isQuarters.num else 2
+                dispatch(Message.IsQuartersInited(isQuarters = isQuarters.isQuarters, tabIndex = isQuarters.currentIndex, tabsCount = tabsCount))
+                println("IT OK")
                 fetchSubjects()
             } catch (_: Throwable) {
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
@@ -68,11 +69,11 @@ class DnevnikRuMarkExecutor(
         }
     }
 
-    private fun getQuartersNum(): String {
-        return if (state().isQuarters!!) (state().tabIndex!!).toString() else when(state().tabIndex!!) {
-            1 -> "12"
-            2 -> "34"
-            else -> "12"
-        }
-    }
+//    private fun getQuartersNum(): String {
+//        return if (state().isQuarters!!) (state().tabIndex!!).toString() else when(state().tabIndex!!) {
+//            1 -> "12"
+//            2 -> "34"
+//            else -> "12"
+//        }
+//    }
 }

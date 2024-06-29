@@ -11,7 +11,7 @@ interface JournalRepository {
     suspend fun updateWholeReport(r: RUpdateReportReceive)
     suspend fun fetchReportStudents(r: RFetchReportStudentsReceive) : RFetchReportStudentsResponse
 
-    suspend fun fetchDnevnikRuMarks(login: String, quartersNum: String) : RFetchDnevnikRuMarksResponse
+    suspend fun fetchDnevnikRuMarks(login: String, quartersNum: String, isQuarters: Boolean) : RFetchDnevnikRuMarksResponse
 
     suspend fun fetchSubjectQuarterMarks(login: String, subjectId: Int, quartersNum: String) : RFetchSubjectQuarterMarksResponse
 

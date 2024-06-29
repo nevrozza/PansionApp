@@ -18,19 +18,6 @@ object Cabinets : Table() {
     private val login = Cabinets.varchar("login", 30).uniqueIndex()
     private val cabinet = Cabinets.integer("cabinet")
 
-
-//    private fun deleteLogin(login: String) {
-//        try {
-//            transaction {
-//                 {
-//                    (Cabinets.login eq login)
-//                }
-//            }
-//        } catch (e: Throwable) {
-//            println(e)
-//        }
-//    }
-
     fun insertList(cabinetDTOs: List<CabinetsDTO>) {
         try {
             transaction {
@@ -59,37 +46,4 @@ object Cabinets : Table() {
             }
         }
     }
-
-//    fun delete(formGroupsDTO: CabinetsDTO) {
-//        try {
-//            transaction {
-//               Cabinets.deleteWhere { (groupId eq formGroupsDTO.groupId) and
-//                        (subjectId eq formGroupsDTO.subjectId) and
-//                        (formId eq formGroupsDTO.formId) }
-//            }
-//        } catch (e: Throwable) {
-//            println(e)
-//        }
-//    }
-//
-//    fun getGroupsOfThisForm(formId: Int): List<CabinetsDTO> {
-//        return transaction {
-//            try {
-//                val groups =
-//                    Cabinets.select { Cabinets.formId eq formId }
-//                groups.map {
-//                    CabinetsDTO(
-//                        formId = it[Cabinets.formId],
-//                        subjectId = it[subjectId],
-//                        groupId = it[groupId]
-//                    )
-//                }
-//            } catch (e: Throwable) {
-//                println(e)
-//                listOf()
-//            }
-//        }
-//    }
-
-    //DELETE
 }

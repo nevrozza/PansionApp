@@ -9,6 +9,14 @@ fun Application.configureLessonsRouting() {
         val lessonsController = LessonsController()
 
 
+        post(RequestPaths.Lessons.FetchCalendar) {
+            lessonsController.fetchCalendar(call)
+        }
+
+        post(RequestPaths.Lessons.UpdateCalendar) {
+            lessonsController.updateCalendar(call)
+        }
+
         post(RequestPaths.Main.FetchScheduleSubjects) {
             lessonsController.fetchScheduleSubjects(call)
         }

@@ -9,6 +9,7 @@ import activation.ActivationComponent
 import admin.AdminComponent
 import allGroupMarks.AllGroupMarksComponent
 import cabinets.CabinetsComponent
+import calendar.CalendarComponent
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
@@ -102,6 +103,13 @@ interface RootComponent : BackHandlerOwner {
             val adminComponent: AdminComponent,
             val cabinetsComponent: CabinetsComponent
         ) : Child()
+
+        class AdminCalendar(
+            val adminComponent: AdminComponent,
+            val calendarComponent: CalendarComponent
+        ) : Child()
+
+
     }
 
     fun onOutput(output: Output)
@@ -154,6 +162,9 @@ interface RootComponent : BackHandlerOwner {
 
         @Serializable
         data object AdminSchedule : Config
+
+        @Serializable
+        data object AdminCalendar : Config
 
         //        @Serializable
 //        data object AdminStudents : Config

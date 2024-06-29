@@ -3,6 +3,8 @@ package ktor
 import RequestPaths
 import admin.cabinets.RFetchCabinetsResponse
 import admin.cabinets.RUpdateCabinetsReceive
+import admin.calendar.RFetchCalendarResponse
+import admin.calendar.RUpdateCalendarReceive
 import admin.groups.forms.RCreateFormGroupReceive
 import admin.groups.forms.RFetchCutedGroupsResponse
 import admin.users.RClearUserPasswordReceive
@@ -105,6 +107,25 @@ class KtorAdminRemoteDataSource(
             }
         }.status.value.checkOnNoOk()
 
+    }
+
+    suspend fun updateCalendar(r: RUpdateCalendarReceive) {
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.UpdateCalendar)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+    suspend fun fetchCalendar() : RFetchCalendarResponse {
+        return httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.FetchCalendar)
+            }
+        }.body()
     }
 
     suspend fun updateCabinets(r: RUpdateCabinetsReceive) {

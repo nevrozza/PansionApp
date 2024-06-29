@@ -42,6 +42,7 @@ class AdminComponent(
         data object NavigateToGroups : Output()
 
         data object NavigateToCabinets : Output()
+        data object NavigateToCalendar : Output()
 //        data object NavigateToStudents : Output()
 
     }

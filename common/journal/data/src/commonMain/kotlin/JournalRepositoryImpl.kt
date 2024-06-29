@@ -25,8 +25,8 @@ class JournalRepositoryImpl(
         return remoteDataSource.fetchReportStudents(r)
     }
 
-    override suspend fun fetchDnevnikRuMarks(login: String, quartersNum: String): RFetchDnevnikRuMarksResponse {
-        return remoteDataSource.fetchDnevnikRuMarks(RFetchDnevnikRuMarksReceive(login, quartersNum))
+    override suspend fun fetchDnevnikRuMarks(login: String, quartersNum: String, isQuarters: Boolean): RFetchDnevnikRuMarksResponse {
+        return remoteDataSource.fetchDnevnikRuMarks(RFetchDnevnikRuMarksReceive(login, quartersNum, isQuarters))
     }
 
     override suspend fun fetchSubjectQuarterMarks(
