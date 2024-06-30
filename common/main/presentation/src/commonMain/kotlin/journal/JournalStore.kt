@@ -18,7 +18,8 @@ interface JournalStore : Store<Intent, State, Label> {
         val headers: List<ReportHeader> = emptyList(),
         val creatingReportId: Int = -1,
         val openingReportData: ReportData? = null,
-        val time: String = getSixTime()
+        val time: String = getSixTime(),
+        val currentModule: String = ""
     )
 
     sealed interface Intent {
@@ -36,7 +37,7 @@ interface JournalStore : Store<Intent, State, Label> {
 
     sealed interface Message {
         data class StudentsInGroupUpdated(val students: List<Person>, val groupId: Int) : Message
-        data class HeadersUpdated(val headers: List<ReportHeader>) : Message
+        data class HeadersUpdated(val headers: List<ReportHeader>, val currentModule: String) : Message
         data class TeacherGroupsUpdated(val teacherGroups: List<TeacherGroup>) : Message
         data class ReportCreated(val id: Int) : Message
 

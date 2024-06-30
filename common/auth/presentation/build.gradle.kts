@@ -11,6 +11,7 @@ kotlin {
                 implementation(project(":common:core"))
                 api(project(":common:auth:api"))
                 api(project(":common:settings:api"))
+                api(project(":common:admin:api"))
 
                 implementation(project(":common:utils"))
                 implementation(libs.decompose.core)

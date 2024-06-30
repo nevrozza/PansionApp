@@ -20,6 +20,8 @@ fun String.toMinutes(): Int {
     return parts[0].toInt() * 60 + parts[1].toInt()
 }
 
+fun List<String>.sortedDate() = this.sortedBy { getLocalDate(it).toEpochDays() }
+
 
 fun getLocalDate(date: String): LocalDate {
     val s = date.replace(".", "")

@@ -9,7 +9,7 @@ object JournalReducer : Reducer<State, Message> {
         return when (msg) {
             is Message.StudentsInGroupUpdated -> copy(studentsInGroup = msg.students, currentGroupId = msg.groupId)
             is Message.HeadersUpdated ->  {
-                copy(headers = msg.headers)
+                copy(headers = msg.headers, currentModule = msg.currentModule)
             }
 
             is Message.TeacherGroupsUpdated -> copy(teacherGroups = msg.teacherGroups)

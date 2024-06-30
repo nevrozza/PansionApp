@@ -10,6 +10,12 @@ object ProfileReducer : Reducer<State, Message> {
             is Message.TabChanged -> copy(tabIndex = msg.index)
             is Message.NewAvatarIdChanged -> copy(newAvatarId = msg.avatarId)
             Message.AvatarIdSaved -> copy(avatarId = newAvatarId)
+            is Message.AboutMeUpdated -> copy(
+                groups = msg.groups,
+                subjects = msg.subjects,
+                teachers = msg.teachers,
+                form = msg.form
+            )
         }
     }
 }

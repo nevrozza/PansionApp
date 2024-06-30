@@ -2,6 +2,9 @@ package com.nevrozq.pansion.features.auth
 
 import FIO
 import admin.cabinets.RUpdateCabinetsReceive
+import admin.groups.Group
+import admin.groups.GroupInit
+import admin.groups.Subject
 import admin.users.UserInit
 import auth.ActivationReceive
 import auth.ActivationResponse
@@ -11,8 +14,16 @@ import auth.LoginReceive
 import auth.LoginResponse
 import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
+import auth.RFetchAboutMeReceive
+import auth.RFetchAboutMeResponse
 import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.cabinets.CabinetsDTO
+import com.nevrozq.pansion.database.formGroups.FormGroups
+import com.nevrozq.pansion.database.forms.Forms
+import com.nevrozq.pansion.database.forms.mapToForm
+import com.nevrozq.pansion.database.studentGroups.StudentGroups
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
+import com.nevrozq.pansion.database.subjects.Subjects
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -24,6 +35,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.tokens.TokenDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.nullUUID
@@ -33,10 +45,61 @@ import server.DataLength
 import server.Moderation
 import server.Roles
 import server.cut
+import java.util.HashMap
 import java.util.UUID
 
 class AuthController {
 
+
+    suspend fun fetchAboutMe(call: ApplicationCall) {
+        if (call.isMember) {
+            val r = call.receive<RFetchAboutMeReceive>()
+            try {
+                val form = Forms.fetchById(StudentsInForm.fetchFormIdOfLogin(r.studentLogin))
+                val groups =
+                    StudentGroups.fetchGroupsOfStudent(r.studentLogin).filter { it.isActive }
+                val subjects =
+                    Subjects.fetchAllSubjects().filter { it.id in groups.map { it.subjectId } }
+                        .filter { it.isActive }
+                val teachers = ( Users.fetchAllTeachers()
+                    .filter { it.isActive && it.login in groups.map { it.teacherLogin } } + Users.fetchAllMentors().firstOrNull { it.login == form.mentorLogin }).filterNotNull()
+                call.respond(
+                    RFetchAboutMeResponse(
+                        form = form.mapToForm(),
+                        groups = groups.map {
+                            Group(
+                                id = it.id,
+                                group = GroupInit(
+                                    name = it.name,
+                                    teacherLogin = it.teacherLogin,
+                                    subjectId = it.subjectId,
+                                    difficult = it.difficult
+                                ),
+                                isActive = it.isActive
+                            )
+                        },
+                        subjects = subjects.map {
+                            Subject(
+                                id = it.id,
+                                name = it.name,
+                                isActive = it.isActive
+                            )
+                        },
+                        teachers = HashMap(teachers.associateBy({
+                            it.login
+                        }, { "${it.surname} ${it.name[0]}. ${(it.praname ?: " ")[0]}." }
+                        ))
+                    ))
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict when get about me")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch about me: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
 
     suspend fun updateAvatarId(call: ApplicationCall) {
         if (call.isModer) {
@@ -83,15 +146,17 @@ class AuthController {
             moderation = user.moderation
             avatarId = user.avatarId
         }
-        call.respond(RCheckConnectionResponse(
-            isTokenValid = isTokenValid,
-            name = name,
-            surname = surname,
-            praname = praname,
-            role = role,
-            moderation = moderation,
-            avatarId = avatarId
-        ))
+        call.respond(
+            RCheckConnectionResponse(
+                isTokenValid = isTokenValid,
+                name = name,
+                surname = surname,
+                praname = praname,
+                role = role,
+                moderation = moderation,
+                avatarId = avatarId
+            )
+        )
 
     }
 
@@ -260,7 +325,7 @@ class AuthController {
     }
 }
 
-private fun errorLogin(reason: String) : LoginResponse {
+private fun errorLogin(reason: String): LoginResponse {
     return LoginResponse(
         activation = ActivationResponse(
             token = reason,

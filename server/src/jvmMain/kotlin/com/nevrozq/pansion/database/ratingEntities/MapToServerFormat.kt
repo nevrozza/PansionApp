@@ -8,6 +8,9 @@ fun List<RatingEntityDTO>.mapToServerRatingUnit() = map {
         id = it.id,
         content = it.content,
         reason = it.reason,
-        isGoToAvg = it.isGoToAvg
+        isGoToAvg = it.isGoToAvg,
+        deployTime = it.deployTime,
+        deployDate = it.deployDate,
+        deployLogin = it.deployLogin
     )
 }

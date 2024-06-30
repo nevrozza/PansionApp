@@ -3,9 +3,13 @@
     ExperimentalMaterial3Api::class
 )
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -79,6 +83,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import report.UserMark
 import server.fetchReason
+import server.getLocalDate
 import server.roundTo
 import view.LocalViewManager
 import view.handy
@@ -201,7 +206,7 @@ fun DnevnikRuMarkContent(
                     items(model.subjects[(model.tabIndex ?: 0)] ?: listOf()) {
                         SubjectMarksItem(
                             title = it.subjectName,
-                            marks = it.marks.sortedBy { it.date }.reversed(),
+                            marks = it.marks.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed(),//.sortedBy { it.date }.reversed(),
                             stupsCount = it.stupCount,
                             coroutineScope = coroutineScope
                         )
@@ -269,10 +274,8 @@ private fun SubjectMarksItem(
 
     ElevatedCard(
         Modifier.fillMaxWidth().padding(top = 10.dp) //.padding(horizontal = 10.dp)
-            .animateContentSize().clip(CardDefaults.elevatedShape).clickable {
-                isFullView.value = !isFullView.value
-            }) {
-        Column(Modifier.padding(5.dp).padding(start = 5.dp)) {
+            .clip(CardDefaults.elevatedShape)) {
+        Column(Modifier.padding(5.dp).padding(start = 5.dp).animateContentSize()) {
             Row(
                 Modifier.fillMaxWidth().padding(end = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -305,6 +308,22 @@ private fun SubjectMarksItem(
                 FlowRow(rowModifier) {
                     marks.forEach {
                         cMark(it, coroutineScope = coroutineScope)
+                    }
+                }
+            }
+
+            if(marks.isNotEmpty()) {
+                Box(
+                    Modifier.fillMaxWidth().padding(end = 5.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    AnimatedContent(
+                        if (isFullView.value) "Закрыть" else "Открыть все оценки",
+                        transitionSpec = { fadeIn().togetherWith(fadeOut()) }
+                    ) {
+                        CustomTextButton(text = it) {
+                            isFullView.value = !isFullView.value
+                        }
                     }
                 }
             }

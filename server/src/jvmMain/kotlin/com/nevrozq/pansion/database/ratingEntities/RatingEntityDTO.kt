@@ -21,7 +21,10 @@ data class RatingEntityDTO(
     val id: Int,
     val part: String,
     val isGoToAvg: Boolean,
-    val date: String
+    val date: String,
+    val deployDate: String,
+    val deployTime: String,
+    val deployLogin: String
 )
 
 //fun GroupDTO.mapToGroup() =

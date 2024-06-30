@@ -16,6 +16,7 @@ class ProfileStoreFactory(
     private val fio: FIO,
     private val avatarId: Int,
     private val nAvatarInterface: NetworkInterface,
+    private val nAboutMeInterface: NetworkInterface,
     private val changeAvatarOnMain: (Int) -> Unit
 ) {
 
@@ -35,7 +36,8 @@ class ProfileStoreFactory(
             executorFactory = { ProfileExecutor(
                 authRepository = authRepository,
                 nAvatarInterface = nAvatarInterface,
-                changeAvatarOnMain = { changeAvatarOnMain(it) }
+                changeAvatarOnMain = { changeAvatarOnMain(it) },
+                nAboutMeInterface = nAboutMeInterface
             ) },
             reducer = ProfileReducer
         )

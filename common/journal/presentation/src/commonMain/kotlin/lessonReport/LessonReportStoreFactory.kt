@@ -1,5 +1,6 @@
 package lessonReport
 
+import AuthRepository
 import JournalRepository
 import ReportData
 import com.arkivanov.mvikotlin.core.store.Store
@@ -16,6 +17,7 @@ class LessonReportStoreFactory(
     private val setLateTimeMenuComponent: ListComponent,
     private val nInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
+    private val authRepository: AuthRepository,
     private val data: ReportData,
     private val marksDialogComponent: CAlertDialogComponent,
 ) {
@@ -53,7 +55,9 @@ class LessonReportStoreFactory(
                     setLateTimeMenuComponent = setLateTimeMenuComponent,
                     nInterface = nInterface,
                     journalRepository = journalRepository,
-                    marksDialogComponent = marksDialogComponent
+                    marksDialogComponent = marksDialogComponent,
+                    authRepository = authRepository,
+                    header = data.header
                 )
             },
             reducer = LessonReportReducer

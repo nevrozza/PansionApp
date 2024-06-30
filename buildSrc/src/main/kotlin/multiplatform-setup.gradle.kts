@@ -30,7 +30,11 @@ kotlin {
 ////        useCommonJs()
 //        binaries.executable()
 //    }
-
+    sourceSets {
+        commonMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+        }
+    }
     js(IR) {
         browser()
 //        useCommonJs()

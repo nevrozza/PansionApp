@@ -1,5 +1,6 @@
 package lessonReport
 
+import AuthRepository
 import JournalRepository
 import ReportData
 import asValue
@@ -34,6 +35,7 @@ class LessonReportComponent(
         NetworkInterface(componentContext, storeFactory, "LessonReportComponent")
 
     private val journalRepository: JournalRepository = Inject.instance()
+    private val authRepository: AuthRepository = Inject.instance()
 
     val marksDialogComponent = CAlertDialogComponent(
         componentContext = componentContext,
@@ -120,8 +122,8 @@ class LessonReportComponent(
                 nInterface = nInterface,
                 journalRepository = journalRepository,
                 data = reportData,
-                marksDialogComponent = marksDialogComponent
-//                authRepository = authRepository
+                marksDialogComponent = marksDialogComponent,
+                authRepository = authRepository
             ).create()
         }
 

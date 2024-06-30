@@ -13,6 +13,7 @@ import profile.ProfileStore.Message
 class ProfileExecutor(
     private val authRepository: AuthRepository,
     private val nAvatarInterface: NetworkInterface,
+    private val nAboutMeInterface: NetworkInterface,
     private val changeAvatarOnMain: (Int) -> Unit
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
@@ -20,6 +21,31 @@ class ProfileExecutor(
             is Intent.ChangeTab -> dispatch(Message.TabChanged(intent.index))
             is Intent.SetNewAvatarId -> dispatch(Message.NewAvatarIdChanged(intent.avatarId))
             Intent.SaveAvatarId -> saveAvatarId()
+            Intent.Init -> init()
+        }
+    }
+
+    private fun init() {
+        scope.launch(CDispatcher) {
+            nAboutMeInterface.nStartLoading()
+            try {
+                val aboutMe = authRepository.fetchAboutMe(state().studentLogin)
+                scope.launch {
+                    dispatch(Message.AboutMeUpdated(
+                        form = aboutMe.form,
+                        groups = aboutMe.groups,
+                        subjects = aboutMe.subjects,
+                        teachers = aboutMe.teachers
+                    ))
+                    nAboutMeInterface.nSuccess()
+                }
+            } catch (_: Throwable) {
+                with(nAboutMeInterface) {
+                    nError("Не удалось загрузить 'обо мне' =/", onFixErrorClick = {
+                        init()
+                    })
+                }
+            }
         }
     }
 

@@ -53,7 +53,9 @@ import report.RUpdateReportReceive
 import report.ReportHeader
 import report.ServerStudentLine
 import report.UserMark
+import report.UserMarkPlus
 import server.getCurrentDate
+import server.getDate
 
 class ReportsController() {
 
@@ -135,12 +137,13 @@ class ReportsController() {
                         val avg = Marks.fetchWeekAVG(r.login)
                         val stups = Stups.fetchForAWeek(r.login)
 
-                        val notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }.map { it.content.toInt() }.sum()
+                        val notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                            .map { it.content.toInt() }.sum()
                         val allStups = stups.map { it.content.toInt() }.sum()
                         call.respond(
                             RFetchMainAVGResponse(
                                 avg = avg.sum / avg.count.toFloat(),
-                                stups = Pair(notDsStups, (allStups-notDsStups) )
+                                stups = Pair(notDsStups, (allStups - notDsStups))
                             )
                         )
                     }
@@ -167,7 +170,6 @@ class ReportsController() {
     }
 
 
-
     suspend fun fetchIsQuarter(call: ApplicationCall) {
         val r = call.receive<RIsQuartersReceive>()
         if (call.isMember) {
@@ -178,11 +180,13 @@ class ReportsController() {
                     start = "01.01.2000",
                     halfNum = 1
                 )
-                call.respond(RIsQuartersResponse(
-                    isQuarters = isQuarter,
-                    num = if(isQuarter) Calendar.getAllModules().size else 2,
-                    currentIndex = if(isQuarter) currentModule.num else currentModule.halfNum
-                ))
+                call.respond(
+                    RIsQuartersResponse(
+                        isQuarters = isQuarter,
+                        num = if (isQuarter) Calendar.getAllModules().size else 2,
+                        currentIndex = if (isQuarter) currentModule.num else currentModule.halfNum
+                    )
+                )
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
             } catch (e: Throwable) {
@@ -205,39 +209,57 @@ class ReportsController() {
                 val students = StudentGroups.fetchStudentsOfGroup(r.groupId)
                 students.forEach { s ->
                     val isQuarter = isQuarter(RIsQuartersReceive(s.login))
-                    val marks = Marks.fetchForUserSubjectQuarter(
+                    val marks = Marks.fetchForUserSubject(
                         login = s.login,
-                        subjectId = r.subjectId,
-                        quartersNum = if (isQuarter) "4" else "34"
+                        subjectId = r.subjectId
                     ).map {
-                        UserMark(
-                            id = it.id,
-                            content = it.content,
-                            reason = it.reason,
-                            isGoToAvg = it.isGoToAvg,
-                            groupId = it.groupId,
-                            date = it.date
+                        UserMarkPlus(
+                            mark = UserMark(
+                                id = it.id,
+                                content = it.content,
+                                reason = it.reason,
+                                isGoToAvg = it.isGoToAvg,
+                                groupId = it.groupId,
+                                date = it.date
+                            ),
+                            module = it.part,
+                            deployDate = it.deployDate,
+                            deployTime = it.deployTime,
+                            deployLogin = it.deployLogin
                         )
                     }
-                    val stups = Stups.fetchForUserSubjectQuarter(
+                    val stups = Stups.fetchForUserSubject(
                         login = s.login,
-                        subjectId = r.subjectId,
-                        quartersNum = if (isQuarter) "4" else "34"
+                        subjectId = r.subjectId
                     ).map {
-                        UserMark(
-                            id = it.id,
-                            content = it.content,
-                            reason = it.reason,
-                            isGoToAvg = it.isGoToAvg,
-                            groupId = it.groupId,
-                            date = it.date
+                        UserMarkPlus(
+                            mark = UserMark(
+                                id = it.id,
+                                content = it.content,
+                                reason = it.reason,
+                                isGoToAvg = it.isGoToAvg,
+                                groupId = it.groupId,
+                                date = it.date
+                            ),
+                            module = it.part,
+                            deployDate = it.deployDate,
+                            deployTime = it.deployTime,
+                            deployLogin = it.deployLogin
                         )
                     }
 
                     val shortFio =
                         "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}"
 
-                    result.add(AllGroupMarksStudent(login = s.login, shortFIO = shortFio, marks = marks, stups = stups))
+                    result.add(
+                        AllGroupMarksStudent(
+                            login = s.login,
+                            shortFIO = shortFio,
+                            marks = marks,
+                            stups = stups,
+                            isQuarters = isQuarter
+                        )
+                    )
                 }
                 call.respond(RFetchAllGroupMarksResponse(result))
 
@@ -306,7 +328,7 @@ class ReportsController() {
                         reason = p.reason,
                         date = p.date,
                         reportId = p.reportId,
-                        subjectName = subjects.first { it.id ==  p.subjectId}.name
+                        subjectName = subjects.first { it.id == p.subjectId }.name
                     )
                 }
                 println("grades: $grades")
@@ -388,8 +410,16 @@ class ReportsController() {
             try {
                 val allSubjects = Subjects.fetchAllSubjects()
 
-                val marks = Marks.fetchForUserQuarters(login = r.login, quartersNum = r.quartersNum, isQuarters = r.isQuarters)
-                val stups = Stups.fetchForUserQuarters(login = r.login, quartersNum = r.quartersNum, isQuarters = r.isQuarters).filter { it.reason.subSequence(0, 3) != "!ds" }
+                val marks = Marks.fetchForUserQuarters(
+                    login = r.login,
+                    quartersNum = r.quartersNum,
+                    isQuarters = r.isQuarters
+                )
+                val stups = Stups.fetchForUserQuarters(
+                    login = r.login,
+                    quartersNum = r.quartersNum,
+                    isQuarters = r.isQuarters
+                ).filter { it.reason.subSequence(0, 3) != "!ds" }
 
                 val responseList = mutableListOf<DnevnikRuMarksSubject>()
 
@@ -457,7 +487,11 @@ class ReportsController() {
                             val shortFio =
                                 "${user.surname} ${user.name[0]}.${if (user.praname != null) " " + user.praname[0] + "." else ""}"
                             val forAvg =
-                                Marks.fetchAVG(it.login, Groups.fetchSubjectIdOfGroup(it.groupId))
+                                Marks.fetchModuleSubjectAVG(
+                                    it.login,
+                                    Groups.fetchSubjectIdOfGroup(it.groupId),
+                                    module = r.module.toString()
+                                )
                             AddStudentLine(
                                 serverStudentLine = ServerStudentLine(
                                     login = it.login,
@@ -465,8 +499,8 @@ class ReportsController() {
                                     isLiked = it.isLiked
                                 ),
                                 shortFio = shortFio,
-                                prevSum = forAvg.sum,
-                                prevCount = forAvg.count
+                                prevSum = forAvg.sum - marks.sumOf { it.content.toInt() },
+                                prevCount = forAvg.count - marks.size
                             )
                         },
                         marks = marks.mapToServerRatingUnit(),
@@ -503,16 +537,23 @@ class ReportsController() {
                         date = it.date,
                         time = it.time,
                         status = it.status,
+                        module = it.module
 //                            ids = it.ids,
 //                            isMentorWas = it.isMentorWas
                     )
                 }
-                if(call.isTeacher) {
+                if (call.isTeacher) {
                     val groups = Groups.getGroupsOfTeacher(call.login)
                     headers = headers.filter { it.groupId in groups.map { it.id } }
                 }
 
-                call.respond(RFetchHeadersResponse(headers))
+                call.respond(
+                    RFetchHeadersResponse(
+                        headers, currentModule = getModuleByDate(
+                            getCurrentDate().second
+                        )?.num.toString()
+                    )
+                )
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
             } catch (e: Throwable) {

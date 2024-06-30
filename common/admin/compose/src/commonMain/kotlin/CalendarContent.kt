@@ -191,6 +191,7 @@ fun CalendarContent(
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
+                        Spacer(Modifier.height(5.dp))
                         LazyRow {
                             items(model.modules.filter { it.halfNum == 1 }) { m ->
                                 ModuleButton(
@@ -231,6 +232,7 @@ fun CalendarContent(
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
+                        Spacer(Modifier.height(5.dp))
                         LazyRow {
                             items(model.modules.filter { it.halfNum == 2 }) { m ->
                                 ModuleButton(

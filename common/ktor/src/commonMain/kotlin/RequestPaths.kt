@@ -39,6 +39,8 @@ object RequestPaths {
         const val CheckConnection = "server/checkConnection"
 
         const val ChangeAvatarId = "server/changeAvatarId"
+
+        const val FetchAboutMe = "server/fetchAboutMe"
     }
 
     object Lessons {

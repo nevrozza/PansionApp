@@ -23,7 +23,7 @@ class ProfileComponent(
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     private val authRepository: AuthRepository = Inject.instance()
-    val nInterface = NetworkInterface(
+    val nAboutMeInterface = NetworkInterface(
         componentContext,
         storeFactory,
         "profileStoreNetworkInterface"
@@ -42,6 +42,7 @@ class ProfileComponent(
                 studentLogin = studentLogin,
                 avatarId = avatarId,
                 nAvatarInterface = nAvatarInterface,
+                nAboutMeInterface = nAboutMeInterface,
                 changeAvatarOnMain = { changeAvatarOnMain(it) }
             ).create()
         }
@@ -57,6 +58,10 @@ class ProfileComponent(
 
     fun onOutput(output: Output) {
         output(output)
+    }
+
+    init {
+        onEvent(ProfileStore.Intent.Init)
     }
 
     sealed class Output {

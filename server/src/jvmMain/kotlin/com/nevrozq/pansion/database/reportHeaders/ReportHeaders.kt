@@ -12,6 +12,7 @@ import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.utils.getModuleByDate
 import com.nevrozq.pansion.utils.toList
 import com.nevrozq.pansion.utils.toStr
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -27,6 +28,9 @@ import report.RCreateReportReceive
 import report.RFetchReportDataReceive
 import report.RUpdateReportReceive
 import report.ServerRatingUnit
+import server.getDate
+import kotlin.math.abs
+import kotlin.math.absoluteValue
 
 object ReportHeaders : Table() {
     val id = ReportHeaders.integer("id").autoIncrement().uniqueIndex()
@@ -45,6 +49,7 @@ object ReportHeaders : Table() {
     private val isMentorWas = ReportHeaders.bool("isMentorWas")
     private val status = ReportHeaders.varchar("status", 1)
     private val ids = ReportHeaders.integer("ids")
+    private val module = ReportHeaders.varchar("module", 1)
 
 
     private fun deleteReportHeader(reportId: Int) {
@@ -79,7 +84,8 @@ object ReportHeaders : Table() {
                     subjectName = it[subjectName],
                     groupName = it[groupName],
                     teacherLogin = it[ReportHeaders.teacherLogin],
-                    teacherName = it[teacherName]
+                    teacherName = it[teacherName],
+                    module = it[module]
                 )
             }
 
@@ -112,6 +118,7 @@ object ReportHeaders : Table() {
                 it[groupName] = Groups.getName(r.groupId)
                 it[ReportHeaders.teacherLogin] = teacherLogin
                 it[teacherName] = tN
+                it[module] = getModuleByDate(r.date)?.num.toString()
             }[ReportHeaders.id]
 
             r.studentLogins.forEach {
@@ -199,7 +206,10 @@ object ReportHeaders : Table() {
                         id = it.id,
                         content = it.content,
                         reason = it.reason,
-                        isGoToAvg = it.isGoToAvg
+                        isGoToAvg = it.isGoToAvg,
+                        deployTime = it.deployTime,
+                        deployDate = it.deployDate,
+                        deployLogin = it.deployLogin
                     )
                 }
                 val toDelete = p - c.toSet()
@@ -208,7 +218,7 @@ object ReportHeaders : Table() {
                 for (i in toDelete) {
                     db.delete(id = i.id, reportId = r.lessonReportId)
                 }
-                for (i in toAdd) {
+                for (i in toAdd.filter { abs(it.content.toInt()) > 0 }) {
                     db.insert(
                         r = RatingEntityDTO(
                             groupId = pHeader.groupId,
@@ -217,10 +227,13 @@ object ReportHeaders : Table() {
                             content = i.content,
                             reason = i.reason,
                             id = i.id,
-                            part = "4",
+                            part = pHeader.module,
                             isGoToAvg = i.isGoToAvg,
                             subjectId = pHeader.subjectId,
-                            date = pHeader.date
+                            date = pHeader.date,
+                            deployTime = i.deployTime,
+                            deployLogin = i.deployLogin,
+                            deployDate = i.deployDate
                         ),
                         isDelete = false
                     )
@@ -251,7 +264,8 @@ object ReportHeaders : Table() {
                     subjectName = it[subjectName],
                     groupName = it[groupName],
                     teacherName = it[teacherName],
-                    teacherLogin = it[teacherLogin]
+                    teacherLogin = it[teacherLogin],
+                    module = it[module]
                 )
             }.first()
         }

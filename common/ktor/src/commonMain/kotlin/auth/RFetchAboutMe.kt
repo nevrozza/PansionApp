@@ -1,0 +1,19 @@
+package auth
+
+import admin.groups.Group
+import admin.groups.Subject
+import admin.groups.forms.Form
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RFetchAboutMeReceive(
+    val studentLogin: String
+)
+
+@Serializable
+data class RFetchAboutMeResponse(
+    val form: Form,
+    val groups: List<Group>,
+    val subjects: List<Subject>,
+    val teachers: HashMap<String, String>
+)

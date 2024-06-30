@@ -11,9 +11,11 @@ import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.utils.getModuleByDate
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import server.cut
+import server.getCurrentDate
 
 
 private data class AddItem(
@@ -45,7 +47,7 @@ private fun MutableList<AddItem>.pAdd(
             AddItem(
                 subjectId = subjectId,
                 stups = stups.sumOf { it.content.toInt() },
-                avg =  (avg.sum / avg.count.toFloat()).toString().cut(4),
+                avg = (avg.sum / avg.count.toFloat()).toString().cut(4),
                 table = table
             )
         )
@@ -53,19 +55,56 @@ private fun MutableList<AddItem>.pAdd(
 }
 
 private fun initItems(login: String, r: RTables): MutableList<AddItem> {
+    val module = getModuleByDate(date = getCurrentDate().second)?.num.toString()
     val items: MutableList<AddItem> = mutableListOf()
-    val allStupsWeekCount = Stups.fetchForAWeek(login)
-    val allStupsYearCount = Stups.fetchForUser(login)
+
+    val stupsWeekCount = Stups.fetchForAWeek(login)
+    val stupsYearCount = Stups.fetchForUser(login)
+    val stupsModuleCount = stupsYearCount.filter {
+        it.part == module
+    }
+
+    val allStupsWeekCount = stupsWeekCount.filter {
+        it.reason.subSequence(0, 3) != "!ds"
+
+    }
+    val allStupsYearCount = stupsYearCount.filter {
+        it.reason.subSequence(0, 3) != "!ds"
+    }
+    val allStupsModuleCount = stupsModuleCount.filter {
+        it.reason.subSequence(0, 3) != "!ds"
+    }
+
+    val dsStupsWeekCount = stupsWeekCount.filter {
+        it.reason.subSequence(0, 3) == "!ds"
+    }
+    val dsStupsYearCount = stupsYearCount.filter {
+        it.reason.subSequence(0, 3) == "!ds"
+    }
+    val dsStupsModuleCount = stupsModuleCount.filter {
+        it.reason.subSequence(0, 3) == "!ds"
+    }
+
+
+
     val allWeekAvg = Marks.fetchWeekAVG(login)
     val allYearAvg = Marks.fetchYearAVG(login)
+    val allModuleAvg = Marks.fetchModuleAVG(login, module = module)
 
 
     items.pAdd(subjectId = -1, stups = allStupsWeekCount, avg = allWeekAvg, table = r.weekT)
     items.pAdd(subjectId = -1, stups = allStupsYearCount, avg = allYearAvg, table = r.yearT)
+    items.pAdd(subjectId = -1, stups = allStupsModuleCount, avg = allModuleAvg, table = r.moduleT)
+
+    items.pAdd(subjectId = -2, stups = dsStupsWeekCount, avg = allWeekAvg, table = r.weekT)
+    items.pAdd(subjectId = -2, stups = dsStupsYearCount, avg = allYearAvg, table = r.yearT)
+    items.pAdd(subjectId = -2, stups = dsStupsModuleCount, avg = allModuleAvg, table = r.moduleT)
     return items
 }
 
 fun updateRatings() {
+
+    val module = getModuleByDate(getCurrentDate().second)?.num.toString()
     transaction {
         for (i in listOf(
             RatingWeek0Table,
@@ -89,16 +128,18 @@ fun updateRatings() {
     val studentsInGroup = StudentGroups.fetchAll()
     val studentsInForm = StudentsInForm.fetchAll()
     val students0 = Users.fetchAllStudents()
-        .filter { s -> s.isActive &&
-                studentsInForm.firstOrNull { it.login == s.login } != null &&
-                studentsInGroup.firstOrNull { it.studentLogin == s.login } != null }
+        .filter { s ->
+            s.isActive &&
+                    studentsInForm.firstOrNull { it.login == s.login } != null &&
+                    studentsInGroup.firstOrNull { it.studentLogin == s.login } != null
+        }
 
     val students1 = students0.filter { s ->
-        forms.first {it.formId == studentsInForm.first { it.login == s.login }.formId }.classNum in (5..8)
+        forms.first { it.formId == studentsInForm.first { it.login == s.login }.formId }.classNum in (5..8)
     }
 
     val students2 = students0.filter { s ->
-        forms.first {it.formId == studentsInForm.first { it.login == s.login }.formId }.classNum  in (9..11)
+        forms.first { it.formId == studentsInForm.first { it.login == s.login }.formId }.classNum in (9..11)
     }
 
     val iterationsMode = listOf(
@@ -127,7 +168,6 @@ fun updateRatings() {
             )
         ),
     )
-
     iterationsMode.forEach { x ->
         for (s in x.students) {
             val groupList = studentsInGroup.filter { it.studentLogin == s.login }
@@ -138,21 +178,38 @@ fun updateRatings() {
                 forms.first { studentsInForm.first { it.login == s.login }.formId == it.formId }
 
             val items = initItems(s.login, x.r)
-
+            val weekStups = Stups.fetchForAWeek(login = s.login).filter {
+                it.reason.subSequence(0, 3) != "!ds"
+            }
+            val yearStups = Stups.fetchForUser(login = s.login).filter {
+                it.reason.subSequence(0, 3) != "!ds"
+            }
             for (i in subjectList) {
-                val stupsWeekCount =
-                    Stups.fetchForAWeek(login = s.login).filter { it.subjectId == i.id }
+                val stupsWeekCount = weekStups
+                    .filter { it.subjectId == i.id }
                 val stupsYearCount =
-                    Stups.fetchForUser(login = s.login).filter { it.subjectId == i.id }
+                    yearStups.filter { it.subjectId == i.id }
+                val stupsModuleCount = yearStups.filter {
+                    it.subjectId == i.id &&
+                            it.part == module
+                }
 
                 val weekAvg = Marks.fetchWeekSubjectAVG(login = s.login, subjectId = i.id)
                 val yearAvg = Marks.fetchYearSubjectAVG(login = s.login, subjectId = i.id)
+                val moduleAvg =
+                    Marks.fetchModuleSubjectAVG(login = s.login, subjectId = i.id, module = module)
 
                 items.pAdd(
                     subjectId = i.id,
                     stups = stupsWeekCount,
                     avg = weekAvg,
                     table = x.r.weekT
+                )
+                items.pAdd(
+                    subjectId = i.id,
+                    stups = stupsModuleCount,
+                    avg = moduleAvg,
+                    table = x.r.moduleT
                 )
                 items.pAdd(
                     subjectId = i.id,
@@ -173,7 +230,7 @@ fun updateRatings() {
                         stups = y.stups,
                         avg = y.avg,
                         top = 0,
-                        groupName = if(y.subjectId > 0) groups.first { it.id == groupList.first { it.subjectId == y.subjectId }.groupId }.name else "Общий рейтинг",
+                        groupName = if (y.subjectId > 0) groups.first { it.id == groupList.first { it.subjectId == y.subjectId }.groupId }.name else if(y.subjectId == -1) "Общий рейтинг" else "Дисциплина",
                         formNum = form.classNum,
                         subjectId = y.subjectId,
                         formShortTitle = form.shortTitle
@@ -201,8 +258,9 @@ private fun sortRatings() {
         var top = 0
         var previousSubjectId = 0
         val items = i.fetchAllRatings().filter { it.stups > 0 && it.avg.toFloat() > 2 }.sortedWith(
-            compareBy({it.subjectId}, {it.stups})).reversed().map { x ->
-            if(previousSubjectId != x.subjectId) {
+            compareBy({ it.subjectId }, { it.stups })
+        ).reversed().map { x ->
+            if (previousSubjectId != x.subjectId) {
                 previousSubjectId = x.subjectId
                 top = 0
             }

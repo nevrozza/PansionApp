@@ -15,6 +15,17 @@ import io.ktor.http.path
 class KtorAuthRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun fetchAboutMe(r: RFetchAboutMeReceive): RFetchAboutMeResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Auth.FetchAboutMe)
+            }
+        }.body()
+    }
+
     suspend fun checkConnection(): RCheckConnectionResponse {
         return httpClient.post {
             url {

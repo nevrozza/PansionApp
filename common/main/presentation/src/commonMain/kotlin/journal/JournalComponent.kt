@@ -75,8 +75,9 @@ class JournalComponent(
             teacherName = "${authRepository.fetchSurname()} ${authRepository.fetchName()[0]}. ${authRepository.fetchPraname()[0]}.",
             teacherLogin = authRepository.fetchLogin(),
             date = getDate(),
-            time = model.value.time,
+            time = getSixTime(),
             status = "0",
+            module = state.value.currentModule,
         )
     }
 

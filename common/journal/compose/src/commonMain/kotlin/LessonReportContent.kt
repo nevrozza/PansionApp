@@ -1420,7 +1420,7 @@ fun LessonTable(
                                                 Stepper(
                                                     isEditable = model.isEditable,
                                                     count = (student.stupsOfCurrentLesson.firstOrNull { it.reason == column.type }
-                                                        ?: Stup(0, "", id = model.ids)).value,
+                                                        ?: Stup(0, "", id = model.ids, deployTime = "", deployLogin = "", deployDate = "")).value,
                                                     maxCount =
                                                     when (reason) {
                                                         "!ds1" -> 1

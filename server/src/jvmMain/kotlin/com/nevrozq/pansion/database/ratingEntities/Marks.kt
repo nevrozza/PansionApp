@@ -35,6 +35,15 @@ object Marks : RatingEntity() {
             )
         }
     }
+    fun fetchModuleSubjectAVG(login: String, subjectId: Int, module: String): ForAvg {
+        return transaction {
+            val marks = fetchForUser(login).filter { it.subjectId == subjectId && it.part == module}
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
 
     fun fetchWeekAVG(login: String): ForAvg {
         return transaction {
@@ -50,6 +59,17 @@ object Marks : RatingEntity() {
     fun fetchYearAVG(login: String): ForAvg {
         return transaction {
             val marks = fetchForUser(login)
+
+            println("avg: $marks")
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
+    fun fetchModuleAVG(login: String, module: String): ForAvg {
+        return transaction {
+            val marks = fetchForUser(login).filter { it.part == module}
 
             println("avg: $marks")
             ForAvg(

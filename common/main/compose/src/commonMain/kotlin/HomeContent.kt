@@ -133,6 +133,7 @@ import resources.Images
 import server.Roles
 import server.fetchReason
 import server.getCurrentDayTime
+import server.getLocalDate
 import server.roundTo
 import server.toMinutes
 import server.weekPairs
@@ -886,8 +887,7 @@ fun StudentHomeContent(
                             ) {
                                 when (it) {
                                     NetworkState.None -> LazyRow(Modifier.fillMaxWidth()) {
-                                        items(model.grades.sortedBy { it.date }
-                                            .reversed()) {
+                                        items(model.grades.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed()) {
                                             cGrade(it, coroutineScope)
                                         }
                                     }

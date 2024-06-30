@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RFetchReportStudentsReceive(
-    val reportId: Int
+    val reportId: Int,
+    val module: Int
 )
 
 @Serializable

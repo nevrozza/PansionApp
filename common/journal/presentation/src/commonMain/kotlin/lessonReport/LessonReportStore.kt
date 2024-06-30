@@ -175,7 +175,10 @@ data class Stup(
     val value: Int,
     //val category: String,
     val reason: String,
-    val id: Int
+    val id: Int,
+    val deployTime: String,
+    val deployLogin: String,
+    val deployDate: String
 )
 
 data class Attented(
@@ -194,5 +197,8 @@ data class Mark(
     val reason: String,
     val isGoToAvg: Boolean,
     val id: Int,
-    val date: String
+    val date: String,
+    val deployTime: String,
+    val deployLogin: String,
+    val deployDate: String
 )

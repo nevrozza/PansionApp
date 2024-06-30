@@ -20,7 +20,7 @@ data class RFetchDnevnikRuMarksResponse(
 data class DnevnikRuMarksSubject(
     val subjectId: Int,
     val subjectName: String,
-    val marks: List<UserMark>,
+    val marks: List<UserMark>, //UserMark
     val stupCount: Int
 )
 
@@ -32,4 +32,13 @@ data class UserMark(
     val isGoToAvg: Boolean,
     val groupId: Int,
     val date: String
+)
+
+@Serializable
+data class UserMarkPlus(
+    val mark: UserMark,
+    val module: String,
+    val deployDate: String,
+    val deployTime: String,
+    val deployLogin: String
 )

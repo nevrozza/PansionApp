@@ -133,9 +133,9 @@ class JournalExecutor(
                 nInterface.nStartLoading()
                 println("state: ${nInterface.networkModel.value.state}")
 //                groupListComponent.nInterface.nStartLoading()
-                val headers = mainRepository.fetchReportHeaders().reportHeaders
+                val headers = mainRepository.fetchReportHeaders()
                 scope.launch {
-                    dispatch(Message.HeadersUpdated(headers))
+                    dispatch(Message.HeadersUpdated(headers.reportHeaders, headers.currentModule))
                     nInterface.nSuccess()
                 }
 //                groupListComponent.nInterface.nSuccess()

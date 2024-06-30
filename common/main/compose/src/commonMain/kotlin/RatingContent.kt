@@ -357,11 +357,14 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false)
                     Text(
                         text = "${item.fio.surname} ${item.fio.name}",
                         fontSize = 18.sp, // Adjust font size for heading
+                        lineHeight = 19.sp,
                         fontWeight = FontWeight.Bold // Make text bold for emphasis
                     )
+                    Spacer(Modifier.height(1.dp))
                     Text(
-                        text = "${item.formShortTitle}: ${item.groupName}",
+                        text = "${item.formNum}${if (item.formShortTitle.length < 2) "-" else " "}${item.formShortTitle}: ${item.groupName}",
                         fontSize = 14.sp, // Adjust font size for body text
+                        lineHeight = 15.sp,
                         color = Color.Gray
                     )
                 }
@@ -369,12 +372,16 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = item.avg,
-                        fontSize = 18.sp
+                        fontSize = 18.sp,
+                        lineHeight = 19.sp
                     )
+                    Spacer(Modifier.height(1.dp))
                     Text(
                         text = "+${item.stups}",
-                        fontSize = 12.sp,
-                        color = Color.Green
+                        fontSize = 14.sp,
+                        lineHeight = 15.sp,
+                        color = MaterialTheme.colorScheme.primary,//Color.Green,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             } else {

@@ -3,9 +3,12 @@ import auth.LoginResponse
 import auth.CheckActivationResponse
 import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
+import auth.RFetchAboutMeResponse
 
 interface AuthRepository {
 
+
+    suspend fun fetchAboutMe(studentLogin: String): RFetchAboutMeResponse
 
     suspend fun checkConnection(): RCheckConnectionResponse
 

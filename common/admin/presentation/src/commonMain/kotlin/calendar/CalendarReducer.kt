@@ -9,7 +9,7 @@ object CalendarReducer : Reducer<State, Message> {
         return when (msg) {
             Message.CalendarClosed -> copy(isCalendarShowing = false)
             is Message.CalendarOpened -> copy(isCalendarShowing = true, selectedModuleNum = msg.selectedModuleNum, creatingHalfNum = msg.creatingHalfNum)
-            is Message.ModulesUpdated -> copy(modules = msg.modules)
+            is Message.ModulesUpdated -> copy(modules = msg.modules.sortedBy { it.num })
             is Message.IsAnimationSaved -> copy(isSavedAnimation = msg.isSaved)
         }
     }

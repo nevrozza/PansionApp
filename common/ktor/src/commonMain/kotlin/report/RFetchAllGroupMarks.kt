@@ -17,6 +17,7 @@ data class RFetchAllGroupMarksResponse(
 data class AllGroupMarksStudent(
     val login: String,
     val shortFIO: String,
-    val marks: List<UserMark>,
-    val stups: List<UserMark>
+    val isQuarters: Boolean,
+    val marks: List<UserMarkPlus>,
+    val stups: List<UserMarkPlus>
 )

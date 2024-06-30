@@ -62,6 +62,7 @@ import detailedStups.DetailedStupsComponent
 import detailedStups.DetailedStupsStore
 import report.UserMark
 import server.fetchReason
+import server.getLocalDate
 import view.LocalViewManager
 import view.rememberImeState
 
@@ -228,7 +229,7 @@ private fun DetailedStupsSubjectItem(
                             3
                         ) != "!ds" else true
                     }
-                        .sortedBy { it.date }.reversed().forEach {
+                        .sortedBy { getLocalDate(it.date).toEpochDays() }.reversed().forEach {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
                                     .padding(horizontal = 5.dp),

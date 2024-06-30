@@ -1,5 +1,6 @@
 package lessonReport
 
+import AuthRepository
 import CDispatcher
 import JournalRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -13,8 +14,11 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import report.RFetchReportStudentsReceive
 import report.RUpdateReportReceive
+import report.ReportHeader
 import report.ServerRatingUnit
 import report.ServerStudentLine
+import server.getDate
+import server.getLocalDate
 import server.getSixTime
 import server.toSixTime
 
@@ -24,7 +28,9 @@ class LessonReportExecutor(
     private val setLateTimeMenuComponent: ListComponent,
     private val nInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
+    private val authRepository: AuthRepository,
     private val marksDialogComponent: CAlertDialogComponent,
+    private val header: ReportHeader,
 ) :
     CoroutineExecutor<LessonReportStore.Intent, Unit, LessonReportStore.State, LessonReportStore.Message, LessonReportStore.Label>() {
     @OptIn(DelicateCoroutinesApi::class)
@@ -111,7 +117,10 @@ class LessonReportExecutor(
                         state().selectedMarkReason,
                         true,
                         id = state().ids + 1,
-                        date = state().date
+                        date = state().date,
+                        deployTime = getSixTime(),
+                        deployLogin = authRepository.fetchLogin(),
+                        deployDate = getDate()
                     )
                 )
 
@@ -159,7 +168,10 @@ class LessonReportExecutor(
                     Stup(
                         value = intent.value,
                         reason = intent.columnReason,
-                        id = state().ids
+                        id = state().ids,
+                        deployTime = getSixTime(),
+                        deployLogin = authRepository.fetchLogin(),
+                        deployDate = getDate()
                     )
                 )
 
@@ -282,7 +294,10 @@ class LessonReportExecutor(
                                         id = m.id,
                                         content = m.value.toString(),
                                         reason = m.reason,
-                                        isGoToAvg = m.isGoToAvg
+                                        isGoToAvg = m.isGoToAvg,
+                                        deployTime = m.deployTime,
+                                        deployDate = m.deployDate,
+                                        deployLogin = m.deployLogin
                                     )
                                 )
                             }
@@ -294,7 +309,10 @@ class LessonReportExecutor(
                                         id = m.id,
                                         content = m.value.toString(),
                                         reason = m.reason,
-                                        isGoToAvg = true
+                                        isGoToAvg = true,
+                                        deployTime = m.deployTime,
+                                        deployLogin = m.deployLogin,
+                                        deployDate = m.deployDate
                                     )
                                 )
                             }
@@ -354,7 +372,7 @@ class LessonReportExecutor(
                     nInterface.nStartLoading()
                     try {
                         val studentsData = journalRepository.fetchReportStudents(
-                            RFetchReportStudentsReceive(state().lessonReportId)
+                            RFetchReportStudentsReceive(state().lessonReportId, header.module.toInt())
                         )
 
                         val students = mutableListOf<StudentLine>()
@@ -381,7 +399,10 @@ class LessonReportExecutor(
                                                 reason = it.reason,
                                                 isGoToAvg = it.isGoToAvg,
                                                 id = it.id,
-                                                date = "sad"
+                                                date = "sad",
+                                                deployTime = it.deployTime,
+                                                deployDate = it.deployDate,
+                                                deployLogin = it.deployLogin
                                             )
                                         },
                                     stupsOfCurrentLesson = studentsData.stups.filter { it.login == student.serverStudentLine.login }
@@ -389,7 +410,10 @@ class LessonReportExecutor(
                                             Stup(
                                                 value = it.content.toInt(),
                                                 reason = it.reason,
-                                                id = it.id
+                                                id = it.id,
+                                                deployTime = it.deployTime,
+                                                deployDate = it.deployDate,
+                                                deployLogin = it.deployLogin
                                             )
                                         }
                                 )
@@ -430,7 +454,7 @@ class LessonReportExecutor(
                 dispatch(LessonReportStore.Message.DetailedMarksOpened(login))
                 marksDialogComponent.nInterface.nStartLoading()
                 marksDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                val marks = journalRepository.fetchSubjectQuarterMarks(login, subjectId = state().subjectId, quartersNum = "").marks.sortedBy { it.date }.reversed()
+                val marks = journalRepository.fetchSubjectQuarterMarks(login, subjectId = state().subjectId, quartersNum = "").marks.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed()
                 if(login == state().detailedMarksLogin) {
                     dispatch(LessonReportStore.Message.DetailedMarksFetched(marks))
                     marksDialogComponent.nInterface.nSuccess()

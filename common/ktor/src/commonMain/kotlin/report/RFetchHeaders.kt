@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RFetchHeadersResponse(
-    val reportHeaders: List<ReportHeader>
+    val reportHeaders: List<ReportHeader>,
+    val currentModule: String
 )
 
 
@@ -18,6 +19,7 @@ data class ReportHeader(
     val teacherName: String,
     val teacherLogin: String,
     val date: String,
+    val module: String,
     val time: String,
     val status: String,
 //    val ids: Int,

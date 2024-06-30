@@ -5,9 +5,15 @@
 
 import allGroupMarks.AllGroupMarksComponent
 import allGroupMarks.AllGroupMarksStore
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,6 +25,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -33,22 +40,30 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -63,11 +78,15 @@ import components.StupsButtons
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import lessonReport.LessonReportStore
 import report.UserMark
+import report.UserMarkPlus
 import server.fetchReason
+import server.getLocalDate
 import server.roundTo
 import view.LocalViewManager
+import view.handy
 import view.rememberImeState
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -172,16 +191,23 @@ fun AllGroupMarksContent(
                 Crossfade(nModel.state) { state ->
                     when (state) {
                         NetworkState.None -> CLazyColumn(padding = padding) {
-                            if(model.students.isNotEmpty()) {
+                            if (model.students.isNotEmpty()) {
                                 items(model.students) { s ->
+
                                     AllGroupMarksStudentItem(
                                         title = s.shortFIO,
                                         groupId = model.groupId,
-                                        marks = s.marks.sortedBy { it.date }.reversed(),
+                                        marks = s.marks.sortedBy { getLocalDate(it.mark.date).toEpochDays() }.reversed(),
                                         stups = s.stups,
+                                        isQuarters = s.isQuarters,
+                                        modifier = Modifier.padding(top = if (model.students.first() == s) 0.dp else 10.dp),
                                         coroutineScope = coroutineScope
                                     ) {
-                                        component.onEvent(AllGroupMarksStore.Intent.OpenDetailedStups(s.login))
+                                        component.onEvent(
+                                            AllGroupMarksStore.Intent.OpenDetailedStups(
+                                                s.login
+                                            )
+                                        )
                                     }
                                 }
 
@@ -224,16 +250,16 @@ fun AllGroupMarksContent(
                 titleXOffset = 5.dp
             ) {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    model.students.firstOrNull { it.login == model.detailedStupsLogin }?.stups?.forEach {
+                    model.students.firstOrNull { it.login == model.detailedStupsLogin }?.stups?.sortedBy { getLocalDate(it.mark.date).toEpochDays() }?.reversed()?.forEach {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)
                                 .padding(horizontal = 5.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(it.date)
-                            Text(fetchReason(it.reason))
-                            BorderStup(it.content)
+                            Text(it.mark.date)
+                            Text(fetchReason(it.mark.reason))
+                            BorderStup(it.mark.content)
                         }
                     }
                 }
@@ -247,27 +273,28 @@ fun AllGroupMarksContent(
 private fun AllGroupMarksStudentItem(
     title: String,
     groupId: Int,
-    marks: List<UserMark>,
-    stups: List<UserMark>,
+    marks: List<UserMarkPlus>,
+    stups: List<UserMarkPlus>,
+    isQuarters: Boolean,
 //    stupsCount: Int,
     coroutineScope: CoroutineScope,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-//    val isFullView = remember { mutableStateOf(false) }
+    val isFullView = remember { mutableStateOf(false) }
 
-    val rowModifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp).padding(top = 5.dp)
 
-    val AVGMarks = marks.filter { it.isGoToAvg }
-    val value = (AVGMarks.sumOf { it.content.toInt() }) / (AVGMarks.size).toFloat()
+    val modules = marks.map { it.module }.toSet().sorted().reversed()
+
 
     ElevatedCard(
-        Modifier.fillMaxWidth().padding(top = 10.dp)//.padding(horizontal = 10.dp)
+        modifier.fillMaxWidth()//.padding(horizontal = 10.dp)
             .animateContentSize().clip(CardDefaults.elevatedShape)
     ) {
 //            .clickable {
 //                isFullView.value = !isFullView.value
 //            }) {
-        Column(Modifier.padding(5.dp).padding(start = 5.dp)) {
+        Column(Modifier.padding(5.dp).padding(start = 8.dp)) {
             Row(
                 Modifier.fillMaxWidth().padding(end = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -280,37 +307,131 @@ private fun AllGroupMarksStudentItem(
 
                     StupsButtons(
                         stups = stups.map {
-                            Pair(it.content.toInt(), it.reason)
+                            Pair(it.mark.content.toInt(), it.mark.reason)
                         },
                         { onClick() }, { onClick() }
                     )
                 }
-                Text(
-                    text = if (value.isNaN()) {
-                        "NaN"
-                    } else {
-                        value.roundTo(2).toString()
-                    }, fontWeight = FontWeight.Bold, fontSize = 25.sp
-                )
             }
-//            if (!isFullView.value) {
-//                LazyRow(rowModifier, userScrollEnabled = false) {
-//                    items(marks) {
-//                        cMark(it, coroutineScope = coroutineScope)
-//                    }
-//                }
-//            } else {
-            FlowRow(rowModifier) {
-                marks.forEach {
-                    Box(Modifier.alpha(if (it.groupId != groupId) .2f else 1f)) {
-                        cMark(it, coroutineScope = coroutineScope)
+
+            if (modules.isNotEmpty()) {
+                ModuleView(
+                    moduleNum = modules.first().toInt(),
+                    isQuarters = isQuarters,
+                    marks.filter { it.module == modules.first() },
+                    groupId = groupId,
+                    coroutineScope = coroutineScope
+                )
+                Box(
+                    Modifier.fillMaxWidth().padding(end = 5.dp),//.offset(y = -5.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    AnimatedContent(
+                        if (isFullView.value) "Закрыть" else "Открыть все оценки",
+                        transitionSpec = { fadeIn().togetherWith(fadeOut()) }
+                    ) {
+                        CustomTextButton(text = it) {
+                            isFullView.value = !isFullView.value
+                        }
                     }
                 }
+                AnimatedVisibility(isFullView.value) {
+                    (modules - modules.first()).forEach { x ->
+                        ModuleView(
+                            moduleNum = x.toInt(),
+                            isQuarters = isQuarters,
+                            marks = marks.filter { it.module == x },
+                            groupId = groupId,
+                            coroutineScope = coroutineScope
+                        )
+                    }
+                }
+            } else {
+                Text("Пока нет оценок")
             }
+
+//            FlowRow(rowModifier) {
+//                marks.forEach {
+//                    Box(Modifier.alpha(if (it.mark.groupId != groupId) .2f else 1f)) {
+//                        cMark(it.mark, coroutineScope = coroutineScope)
+//                    }
+//                }
 //            }
 
         }
     }
 }
 
+@Composable
+private fun ModuleView(
+    moduleNum: Int,
+    isQuarters: Boolean,
+    marks: List<UserMarkPlus>,
+    groupId: Int,
+    coroutineScope: CoroutineScope
+) {
+    val rowModifier = Modifier.fillMaxWidth().padding(top = 5.dp, start = 2.dp)
+
+    val AVGMarks = marks.filter { it.mark.isGoToAvg }
+    val value = (AVGMarks.sumOf { it.mark.content.toInt() }) / (AVGMarks.size).toFloat()
+    Column(Modifier.fillMaxWidth().padding(top = 5.dp)) {
+        Row(
+            Modifier.fillMaxWidth().padding(end = 5.dp, start = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                "$moduleNum модуль",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            ) //is Quarters None ${if(isQuarters) "модуль" else "полугодие"} TODO
+            Text(
+                text = if (value.isNaN()) {
+                    "NaN"
+                } else {
+                    value.roundTo(2).toString()
+                }, fontWeight = FontWeight.SemiBold, fontSize = 20.sp
+            )
+        }
+        FlowRow(rowModifier) {
+            marks.forEach {
+                Box(Modifier.alpha(if (it.mark.groupId != groupId) .2f else 1f)) {
+                    cMarkPlus(it, coroutineScope = coroutineScope)
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun cMarkPlus(mark: UserMarkPlus, coroutineScope: CoroutineScope) {
+    val markSize = 30.dp
+    val yOffset = 2.dp
+    val tState = rememberTooltipState(isPersistent = true)
+    TooltipBox(
+        state = tState,
+        tooltip = {
+            PlainTooltip(modifier = Modifier.clickable {}) {
+                Text("Выставил ${mark.deployLogin}\nв ${mark.deployDate}-${mark.deployTime}\nОб уроке:\n${mark.mark.date}\n${fetchReason(mark.mark.reason)}", textAlign = TextAlign.Center)
+            }
+        },
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+    ) {
+        MarkContent(
+            mark.mark.content,
+            size = markSize,
+            textYOffset = yOffset,
+            addModifier = Modifier.clickable {
+                coroutineScope.launch {
+                    tState.show()
+                }
+            }.handy()
+                .pointerInput(PointerEventType.Press) {
+                    println("asd")
+                }
+        )
+    }
+}
 

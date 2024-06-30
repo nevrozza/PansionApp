@@ -12,6 +12,10 @@ fun Application.configureActivationRouting() {
             authController.activateUser(call)
         }
 
+        post(RequestPaths.Auth.FetchAboutMe) {
+            authController.fetchAboutMe(call)
+        }
+
         post(RequestPaths.Auth.ChangeAvatarId) {
             authController.updateAvatarId(call)
         }

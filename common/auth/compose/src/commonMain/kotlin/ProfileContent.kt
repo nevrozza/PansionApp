@@ -3,6 +3,10 @@
     ExperimentalMaterial3Api::class
 )
 
+import admin.groups.Group
+import admin.groups.Subject
+import admin.groups.forms.Form
+import admin.groups.forms.FormInit
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -30,6 +34,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,9 +47,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.CheckCircleOutline
+import androidx.compose.material.icons.rounded.LocalFireDepartment
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -106,11 +116,13 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.GetAvatar
+import components.LoadingAnimation
 import components.MarkContent
 import components.hazeHeader
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
+import io.ktor.util.Hash
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import profile.ProfileComponent
@@ -132,7 +144,7 @@ fun ProfileContent(
     component: ProfileComponent
 ) {
     val model by component.model.subscribeAsState()
-    val nModel by component.nInterface.networkModel.subscribeAsState()
+    val nAboutMeModel by component.nAboutMeInterface.networkModel.subscribeAsState()
     val nAvatarModel by component.nAvatarInterface.networkModel.subscribeAsState()
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
@@ -270,7 +282,7 @@ fun ProfileContent(
                     SmallFloatingActionButton(
                         onClick = {
                             if (it != NetworkState.Loading && model.avatarId != model.newAvatarId) {
-                                 component.onEvent(ProfileStore.Intent.SaveAvatarId)
+                                component.onEvent(ProfileStore.Intent.SaveAvatarId)
                             }
                         }
                     ) {
@@ -295,95 +307,220 @@ fun ProfileContent(
             }
         }
     ) { padding ->
-        Crossfade(nModel.state) {
-            when (it) {
-                NetworkState.None -> CLazyColumn(
-                    padding = PaddingValues(
-                        top = padding.calculateTopPadding(),
-                        bottom = padding.calculateBottomPadding()
-                    ),
-                    state = lazyListState
-                ) {
-                    when (model.tabIndex) {
-                        0 -> {}
-                        1 -> {
-                            item {
-                                BarChartPreview()
-                            }
-                            item {
-                                PieChartPreview()
-                            }
-                            item {
-                                DonutChartPreview()
-                            }
-                            item {
-                                RadarChartPreview()
-                            }
-                        }
+        CLazyColumn(
+            padding = PaddingValues(
+                top = padding.calculateTopPadding(),
+                bottom = padding.calculateBottomPadding()
+            ),
+            state = lazyListState
+        ) {
+            when (model.tabIndex) {
+                0 -> {
+                    item {
+                        Crossfade(nAboutMeModel.state) {
+                            when (it) {
+                                NetworkState.Loading -> {
+                                    Box(
+                                        Modifier.fillMaxWidth()
+                                            .height(viewManager.size!!.maxHeight - padding.calculateTopPadding()),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                }
 
-                        else -> {
-                            item {
-                                FlowRow(
-                                    Modifier.fillMaxWidth().padding(top = 10.dp),
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    for (i in Images.Avatars.avatarIds) {
-                                        AvatarButton(
-                                            currentAvatar = headerAvatar,
-                                            i = i,
-                                            name = model.fio.name
-                                        ) {
-                                            component.onEvent(ProfileStore.Intent.SetNewAvatarId(i))
+                                NetworkState.Error -> {
+                                    Column(
+                                        Modifier.fillMaxSize(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(nAboutMeModel.error)
+                                        Spacer(Modifier.height(7.dp))
+                                        CustomTextButton("Попробовать ещё раз") {
+                                            nAboutMeModel.onFixErrorClick()
                                         }
+                                    }
+                                }
+
+                                NetworkState.None -> {
+                                    Column {
+                                        Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+                                            if (model.form != null) {
+                                                ElevatedCard(
+                                                    Modifier.fillMaxWidth()
+                                                        .clip(CardDefaults.elevatedShape)
+                                                        .weight(1f)
+                                                ) {
+                                                    val modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .defaultMinSize(minHeight = 80.dp)
+                                                    Box(
+                                                        modifier = modifier.padding(
+                                                            vertical = 10.dp,
+                                                            horizontal = 15.dp
+                                                        )
+                                                    ) {
+                                                        Column(
+                                                            modifier = modifier
+                                                        ) {
+                                                            Text(
+                                                                "Класс",
+                                                                fontSize = 17.sp,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                            Spacer(Modifier.height(2.dp))
+                                                            Text("${model.form!!.form.classNum}${if (model.form!!.form.title.length > 1) " " else "-"}${model.form!!.form.title} ${if (model.form!!.form.shortTitle.length > 1) "(${model.form!!.form.shortTitle})" else ""}", maxLines = 1)
+                                                            Spacer(Modifier.height(2.dp))
+                                                            val mentorName =
+                                                                model.teachers[model.form!!.form.mentorLogin]
+                                                            if (mentorName != null) {
+                                                                Text(mentorName)
+                                                            }
+                                                        }
+                                                        Icon(
+                                                            Icons.Outlined.School,
+                                                            null,
+                                                            modifier = Modifier.align(Alignment.TopEnd)
+                                                        )
+                                                    }
+                                                }
+                                                Spacer(Modifier.width(15.dp))
+                                            }
+                                            ElevatedCard(
+                                                Modifier.fillMaxWidth()
+                                                    .clip(CardDefaults.elevatedShape)
+                                                    .weight(1f)
+                                                    .clickable() {
+
+                                                    }
+                                            ) {
+                                                Column(
+                                                    Modifier.padding(
+                                                        vertical = 10.dp,
+                                                        horizontal = 15.dp
+                                                    )
+                                                        .fillMaxWidth()
+                                                        .defaultMinSize(minHeight = 80.dp),
+                                                    verticalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        "Достижения",
+                                                        fontSize = 17.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                    Spacer(Modifier.height(5.dp))
+                                                    Box(
+                                                        Modifier.fillMaxWidth()
+                                                            .padding(end = 5.dp, bottom = 5.dp),
+                                                        contentAlignment = Alignment.CenterEnd
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Outlined.EmojiEvents,
+                                                            null,
+                                                            tint = MaterialTheme.colorScheme.secondary
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Spacer(Modifier.height(10.dp))
+                                        ElevatedCard(
+                                            Modifier.fillMaxWidth()
+                                                .clip(CardDefaults.elevatedShape)
+//                                            .weight(1f)
+                                        ) {
+                                            Column(Modifier.padding(
+                                                vertical = 10.dp,
+                                                horizontal = 15.dp
+                                            )) {
+                                                Text(
+                                                    "Предметы",
+                                                    fontSize = 17.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+//                                                Spacer(Modifier.height(2.dp))
+                                                model.groups.sortedBy { it.group.subjectId }.forEach {
+                                                    GroupsItem(
+                                                        subjects = model.subjects,
+                                                        teachers = model.teachers,
+                                                        group = it
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Spacer(Modifier.height(30.dp))
                                     }
                                 }
                             }
                         }
                     }
-//                        items(model.subjects) {
-//                            SubjectMarksItem(
-//                                title = it.subjectName,
-//                                marks = it.marks.sortedBy { it.date }.reversed(),
-//                                stupsCount = it.stupCount,
-//                                coroutineScope = coroutineScope
-//                            )
-//                        }
                 }
 
-                //.map {
-                //                                        Mark(
-                //                                            value = it.content.toInt(),
-                //                                            reason = it.reason,
-                //                                            isGoToAvg = it.isGoToAvg,
-                //                                            id = it.id,
-                //                                            date = it.date
-                //                                        )
-                //                                    }
-
-                NetworkState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                1 -> {
+                    item {
+                        BarChartPreview()
+                    }
+                    item {
+                        PieChartPreview()
+                    }
+                    item {
+                        DonutChartPreview()
+                    }
+                    item {
+                        RadarChartPreview()
                     }
                 }
 
-                NetworkState.Error -> {
-                    Column(
-                        Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(nModel.error)
-                        Spacer(Modifier.height(7.dp))
-                        CustomTextButton("Попробовать ещё раз") {
-                            nModel.onFixErrorClick()
+                else -> {
+                    item {
+                        FlowRow(
+                            Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 30.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            for (i in Images.Avatars.avatarIds) {
+                                AvatarButton(
+                                    currentAvatar = headerAvatar,
+                                    i = i,
+                                    name = model.fio.name
+                                ) {
+                                    component.onEvent(ProfileStore.Intent.SetNewAvatarId(i))
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-
-
     }
 }
+
+@Composable
+private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String>, group: Group) {
+    val subject = subjects.firstOrNull { it.id == group.group.subjectId }?.name ?: "Название"
+    val teacher = teachers[group.group.teacherLogin] ?: "Учитель"
+    Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        Column {
+            Row(Modifier.padding(start = 3.dp)) {
+                Text(subject, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.width(6.dp))
+                Text(group.group.name)
+            }
+            Row {
+                Icon(Icons.Rounded.Person, null)
+                Text(teacher)
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Rounded.LocalFireDepartment,
+                null,
+                modifier = Modifier.size(30.dp)
+            )
+            Text(group.group.difficult, fontSize = 19.sp)
+        }
+    }
+}
+
 
 @Composable
 private fun AvatarButton(currentAvatar: Int, i: Int, name: String, onClick: () -> Unit) {
