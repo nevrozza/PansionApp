@@ -57,6 +57,9 @@ interface HomeStore : Store<Intent, State, Label> {
 
         data class UpdateSomeHeaders(val someHeaders: List<ReportHeader>) : Intent
         data class UpdateAvatarId(val avatarId: Int) : Intent
+
+
+        data object ChangePeriod: Intent
 //        data class ChangeDate()
         //val avatarId: Int,
         //                        val login: String,
@@ -84,6 +87,7 @@ interface HomeStore : Store<Intent, State, Label> {
         data class DateChanged(val date: Pair<Int, String>) : Message
 
         data object IsDatesShownChanged : Message
+        data class PeriodChanged(val period: Period) : Message
     }
 
     sealed interface Label

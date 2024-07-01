@@ -164,7 +164,8 @@ fun DetailedStupsContent(
                     NetworkState.Error -> {
                         Column(
                             Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
                             Text(nModel.error)
                             Spacer(Modifier.height(7.dp))

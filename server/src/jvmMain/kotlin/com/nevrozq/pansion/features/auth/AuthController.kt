@@ -102,7 +102,7 @@ class AuthController {
     }
 
     suspend fun updateAvatarId(call: ApplicationCall) {
-        if (call.isModer) {
+        if (call.isMember) {
             val r = call.receive<RChangeAvatarIdReceive>()
             try {
                 Users.updateAvatarId(
@@ -118,6 +118,10 @@ class AuthController {
                     "Can't change avatarId: ${e.localizedMessage}"
                 )
             }
+        } else {
+            call.respond(
+                HttpStatusCode.Forbidden
+            )
         }
     }
 

@@ -28,6 +28,7 @@ import admin.groups.subjects.RFetchTeachersResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
 import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
 import admin.schedule.RFetchInitScheduleResponse
+import admin.schedule.ScheduleFormValue
 import admin.schedule.ScheduleGroup
 import admin.schedule.SchedulePerson
 import admin.schedule.ScheduleSubject
@@ -46,6 +47,8 @@ import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
+import com.nevrozq.pansion.database.ratingEntities.Marks
+import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
 import com.nevrozq.pansion.database.ratingTable.RatingModule1Table
 import com.nevrozq.pansion.database.ratingTable.RatingModule2Table
@@ -84,10 +87,14 @@ import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
 import rating.RatingItem
+import report.UserMark
 import schedule.PersonScheduleItem
+import schedule.RFetchPersonScheduleReceive
 import schedule.RFetchScheduleDateReceive
 import schedule.RPersonScheduleList
 import schedule.RScheduleList
+import server.toMinutes
+import java.util.HashMap
 
 class LessonsController() {
 
@@ -115,6 +122,7 @@ class LessonsController() {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
+
     suspend fun updateCalendar(call: ApplicationCall) {
         if (call.isModer) {
             val r = call.receive<RUpdateCalendarReceive>()
@@ -148,6 +156,7 @@ class LessonsController() {
                         2 -> RatingModule2Table
                         else -> RatingModule0Table
                     }
+
                     2 -> when (r.forms) {
                         1 -> RatingYear1Table
                         2 -> RatingYear2Table
@@ -248,8 +257,8 @@ class LessonsController() {
 
     suspend fun fetchPersonSchedule(call: ApplicationCall) {
         if (call.isMember) {
-            val r = call.receive<RFetchScheduleDateReceive>()
-
+            val r = call.receive<RFetchPersonScheduleReceive>()
+            val alreadyGroups = mutableListOf<Int>()
             try {
                 var items = Schedule.getOnDate(r.day)
                 if (items.isEmpty()) {
@@ -257,9 +266,9 @@ class LessonsController() {
                 }
 
                 items = if (call.isTeacher) {
-                    items.filter { it.teacherLogin == call.login }
+                    items.filter { it.teacherLogin == r.login }
                 } else {
-                    val idList = StudentGroups.fetchGroupsOfStudent(call.login)
+                    val idList = StudentGroups.fetchGroupsOfStudent(r.login)
 
 //                    val parts = r.day.split(".")
 //                    val date = "${parts[0]}.${parts[1]}.${parts[2]}"
@@ -274,13 +283,20 @@ class LessonsController() {
 
                 val personItems = items.mapNotNull {
                     val group = groups.firstOrNull { group -> group.id == it.groupId }
+                    alreadyGroups.add(it.groupId)
                     val teacher =
                         teachers.firstOrNull { teacher -> teacher.login == it.teacherLogin }
+
+                    val marks = Marks.fetchUserByDate(login = r.login, date = r.day).filter { x -> x.groupId == it.groupId }
+                    val stups = Stups.fetchUserByDate(login = r.login, date = r.day).filter { x -> x.groupId == it.groupId }
+
+
                     val fio = FIO(
                         name = teacher?.name ?: "null",
                         surname = teacher?.surname ?: "null",
                         praname = teacher?.praname
                     )
+
                     if (group != null) {
                         PersonScheduleItem(
                             groupId = it.groupId,
@@ -289,7 +305,18 @@ class LessonsController() {
                             end = it.t.end,
                             subjectName = subjects.first { it.id == group.subjectId }.name,
                             groupName = group.name,
-                            teacherFio = fio
+                            teacherFio = fio,
+                            marks = if ((alreadyGroups.find { x -> x == it.groupId } ?: 0) > 1) listOf() else marks.map {
+                                UserMark(
+                                    id = it.id,
+                                    content = it.content,
+                                    reason = it.reason,
+                                    isGoToAvg = it.isGoToAvg,
+                                    groupId = it.groupId,
+                                    date = it.date
+                                )
+                            },
+                            stupsSum = stups.sumOf { it.content.toInt() }
                         )
                     } else {
                         null
@@ -439,6 +466,17 @@ class LessonsController() {
                 val teachers = mutableListOf<SchedulePerson>()
                 val students = mutableListOf<SchedulePerson>()
 
+
+                val ff = Forms.getAllForms().filter { it.isActive }
+                val fs = StudentsInForm.fetchAll()
+                val forms = ff.map {
+                    it.formId to ScheduleFormValue(
+                        num = it.classNum,
+                        shortTitle = it.shortTitle,
+                        logins = fs.filter { x -> x.formId == it.formId }.map { it.login }
+                    )
+                }.toMap(HashMap())
+
                 val tt = Users.fetchAllTeachers().filter { it.isActive }
                 val ss = Users.fetchAllStudents().filter { it.isActive }
                 val gg = Groups.getAllGroups().filter { it.isActive }
@@ -496,7 +534,8 @@ class LessonsController() {
                                 id = it.id,
                                 name = it.name
                             )
-                        }
+                        },
+                        forms = forms
                     )
                 )
 

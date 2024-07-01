@@ -3,6 +3,7 @@ package com.nevrozq.pansion.database.calendar
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -25,6 +26,13 @@ object Calendar : Table() {
             }
         } catch (e: Throwable) {
             println(e)
+        }
+    }
+
+
+    fun getHalfOfModule(module: Int): Int {
+        return transaction {
+            Calendar.select { num eq module }.firstOrNull()?.get(halfNum) ?: 1
         }
     }
 

@@ -18,6 +18,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -110,12 +111,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
+import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
 import components.DateButton
 import components.GetAvatar
 import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
+import components.cMark
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -129,6 +132,7 @@ import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
+import report.UserMark
 import resources.Images
 import server.Roles
 import server.fetchReason
@@ -532,7 +536,9 @@ private fun RaspisanieTable(
                                     component = component,
                                     groupId = it.groupId,
                                     model = model,
-                                    journalModel = journalModel
+                                    journalModel = journalModel,
+                                    marks = it.marks,
+                                    stupsSum = it.stupsSum
                                 )
                                 Spacer(Modifier.padding(10.dp))
                             }
@@ -728,18 +734,24 @@ fun StudentHomeContent(
                                             fontSize = 20.sp,
                                             fontWeight = FontWeight.Bold,
                                         )
-
-                                        CustomTextButton(
-                                            text = when (model.period) {
+                                        AnimatedContent(
+                                            when (model.period) {
                                                 HomeStore.Period.WEEK -> "неделя"
                                                 HomeStore.Period.MODULE -> "модуль"
                                                 HomeStore.Period.HALF_YEAR -> "полугодие"
                                                 HomeStore.Period.YEAR -> "год"
                                             },
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.secondary
+                                            transitionSpec = {
+                                                fadeIn().togetherWith(fadeOut())
+                                            }
                                         ) {
-
+                                            CustomTextButton(
+                                                text = it,
+                                                fontWeight = FontWeight.Bold,
+                                                //color = MaterialTheme.colorScheme.primary//secondary
+                                            ) {
+                                                component.onEvent(HomeStore.Intent.ChangePeriod)
+                                            }
                                         }
                                     }
                                     Crossfade(nQuickTabModel.state) {
@@ -880,21 +892,26 @@ fun StudentHomeContent(
                             }
                         }
                         Spacer(Modifier.height(15.dp))
-                        Crossfade(nGradesModel.state, modifier = Modifier.animateContentSize()) {
+                        Crossfade(
+                            nGradesModel.state,
+                            modifier = Modifier.animateContentSize()
+                        ) {
                             Box(
                                 Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
                                 when (it) {
                                     NetworkState.None -> LazyRow(Modifier.fillMaxWidth()) {
-                                        items(model.grades.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed()) {
+                                        items(model.grades.sortedBy { getLocalDate(it.date).toEpochDays() }
+                                            .reversed()) {
                                             cGrade(it, coroutineScope)
                                         }
                                     }
 
                                     NetworkState.Loading -> {
                                         Box(
-                                            Modifier.height(60.dp).offset(y = 5.dp).fillMaxWidth(),
+                                            Modifier.height(60.dp).offset(y = 5.dp)
+                                                .fillMaxWidth(),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             LoadingAnimation()
@@ -1035,10 +1052,16 @@ fun Lesson(
     date: String,
     today: String,
     role: String,
+    marks: List<UserMark>,
+    stupsSum: Int,
     component: HomeComponent,
     model: HomeStore.State,
     journalModel: JournalStore.State?
 ) {
+    val firstElement =
+        model.items[date]?.sortedBy { it.start.toMinutes() }?.first { it.groupId == groupId }
+    val isFirst = firstElement?.start == start
+    val coroutineScope = rememberCoroutineScope()
     val todayParts = today.substring(0, 5).split(".")
     val dateParts = date.substring(0, 5).split(".")
     val currentTime = getCurrentDayTime().toMinutes()
@@ -1121,17 +1144,41 @@ fun Lesson(
                     isEnded || today == date
                 ) {
                     val notNow = minutesOst > 0 && !isEnded
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (notNow) {
-                            Icon(Icons.Rounded.Schedule, null, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(5.dp))
+                    if (notNow || !isEnded || (marks.isEmpty() && stupsSum == 0)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (notNow) {
+                                Icon(
+                                    Icons.Rounded.Schedule,
+                                    null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(Modifier.width(5.dp))
+                            }
+                            Text(
+                                if (notNow) "$minutesOst мин."
+                                else if (!isEnded) "Начался"
+                                else "Нет оценок",
+                                lineHeight = 5.sp
+                            )
                         }
-                        Text(
-                            if (notNow) "$minutesOst мин."
-                            else if (!isEnded) "Начался"
-                            else "Нет оценок",
-                            lineHeight = 5.sp
-                        )
+                    } else if (isFirst) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            LazyRow {
+                                items(items = marks) {
+                                    cMark(
+                                        mark = it,
+                                        coroutineScope = coroutineScope,
+                                        showDate = false
+                                    )
+                                }
+                            }
+                            if (stupsSum != 0) {
+                                Spacer(Modifier.width(7.dp))
+                                Box(modifier = Modifier.padding(top = 3.dp)) {
+                                    BorderStup(stupsSum.toString())
+                                }
+                            }
+                        }
                     }
                 }
             } else if (journalModel != null) {
@@ -1149,7 +1196,11 @@ fun Lesson(
                                     if (headers.size == 1) {
                                         onEvent(JournalStore.Intent.FetchReportData(headers.first()))
                                     } else {
-                                        component.onEvent(HomeStore.Intent.UpdateSomeHeaders(headers))
+                                        component.onEvent(
+                                            HomeStore.Intent.UpdateSomeHeaders(
+                                                headers
+                                            )
+                                        )
                                         component.reportsDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
                                     }
                                 } else if (!isEnded) {

@@ -85,6 +85,6 @@ fun BorderStup(string: String) {
 private fun CostilText(string: String) {
 
     Text(
-        "${if(!string.contains("-")) "+" else ""}${string}", modifier = Modifier.offset(x = -2.dp)
+        "${if(!string.contains("-")) "+" else ""}${string}"//, modifier = Modifier.offset(x = -2.dp)
     )
 }

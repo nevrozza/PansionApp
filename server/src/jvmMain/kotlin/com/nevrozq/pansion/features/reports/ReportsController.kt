@@ -4,6 +4,7 @@ import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
+import com.nevrozq.pansion.database.ratingEntities.ForAvg
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingEntities.mapToServerRatingUnit
@@ -56,6 +57,7 @@ import report.UserMark
 import report.UserMarkPlus
 import server.getCurrentDate
 import server.getDate
+import server.toMinutes
 
 class ReportsController() {
 
@@ -132,29 +134,63 @@ class ReportsController() {
         val r = call.receive<RFetchMainAVGReceive>()
         if (call.isMember) {
             try {
+                val module =  (getModuleByDate(getDate())?.num ?: 1).toString()
+                val avg: ForAvg
+                val notDsStups: Int
+                val allStups: Int
                 when (r.period) {
                     "0" -> { //week
-                        val avg = Marks.fetchWeekAVG(r.login)
+                        avg = Marks.fetchWeekAVG(r.login)
                         val stups = Stups.fetchForAWeek(r.login)
-
-                        val notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                        notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
                             .map { it.content.toInt() }.sum()
-                        val allStups = stups.map { it.content.toInt() }.sum()
-                        call.respond(
-                            RFetchMainAVGResponse(
-                                avg = avg.sum / avg.count.toFloat(),
-                                stups = Pair(notDsStups, (allStups - notDsStups))
-                            )
-                        )
+                        allStups = stups.map { it.content.toInt() }.sum()
                     }
 
-                    "1" -> {} //module
-                    "2" -> {} //halfyear
-                    "3" -> {} //year
+                    "1" -> { //module
+
+                        avg = Marks.fetchModuleAVG(r.login, module)
+                        val stups = Stups.fetchForUserQuarters(
+                            login = r.login,
+                            quartersNum = module,
+                            isQuarters = true
+                        )
+                        notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                            .map { it.content.toInt() }.sum()
+                        allStups = stups.map { it.content.toInt() }.sum()
+                    }
+                    "2" -> { //halfyear
+                        avg = Marks.fetchHalfYearAVG(r.login, module)
+                        val c = Calendar.getHalfOfModule(module.toInt())
+                        val stups = Stups.fetchForUserQuarters(
+                            login = r.login,
+                            quartersNum = c.toString(),
+                            isQuarters = false
+                        )
+                        notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                            .map { it.content.toInt() }.sum()
+                        allStups = stups.map { it.content.toInt() }.sum()
+                    }
+                    "3" -> {
+                        avg = Marks.fetchYearAVG(r.login)
+                        val stups = Stups.fetchForUser(
+                            login = r.login
+                        )
+                        notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                            .map { it.content.toInt() }.sum()
+                        allStups = stups.map { it.content.toInt() }.sum()
+                    } //year
                     else -> {
                         call.respond(HttpStatusCode.BadRequest)
+                        return;
                     }
                 }
+                call.respond(
+                    RFetchMainAVGResponse(
+                        avg = avg.sum / avg.count.toFloat(),
+                        stups = Pair(notDsStups, (allStups - notDsStups))
+                    )
+                )
 
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
@@ -212,7 +248,7 @@ class ReportsController() {
                     val marks = Marks.fetchForUserSubject(
                         login = s.login,
                         subjectId = r.subjectId
-                    ).map {
+                    ).sortedBy { it.deployTime.toMinutes() }.map {
                         UserMarkPlus(
                             mark = UserMark(
                                 id = it.id,
@@ -231,7 +267,7 @@ class ReportsController() {
                     val stups = Stups.fetchForUserSubject(
                         login = s.login,
                         subjectId = r.subjectId
-                    ).map {
+                    ).sortedBy { it.deployTime.toMinutes() }.map {
                         UserMarkPlus(
                             mark = UserMark(
                                 id = it.id,
@@ -286,7 +322,7 @@ class ReportsController() {
                     login = r.login,
                     subjectId = r.subjectId,
                     quartersNum = if (isQuarter) "4" else "34"
-                ).map {
+                ).sortedBy { it.deployTime.toMinutes() }.map {
                     UserMark(
                         id = it.id,
                         content = it.content,
@@ -322,7 +358,7 @@ class ReportsController() {
                     login = r.login,
                     limit = 7
                 ) + Stups.fetchRecentForUser(r.login, 7))
-                val grades = preGrades.map { p ->
+                val grades = preGrades.sortedBy { it.deployTime.toMinutes() }.map { p ->
                     Grade(
                         content = p.content,
                         reason = p.reason,
@@ -331,7 +367,6 @@ class ReportsController() {
                         subjectName = subjects.first { it.id == p.subjectId }.name
                     )
                 }
-                println("grades: $grades")
 
                 call.respond(
                     RFetchRecentGradesResponse(grades)
@@ -414,7 +449,7 @@ class ReportsController() {
                     login = r.login,
                     quartersNum = r.quartersNum,
                     isQuarters = r.isQuarters
-                )
+                ).sortedBy { it.deployTime.toMinutes() }
                 val stups = Stups.fetchForUserQuarters(
                     login = r.login,
                     quartersNum = r.quartersNum,
@@ -450,7 +485,17 @@ class ReportsController() {
                                     date = it.date
                                 )
                             },
-                            stupCount = iStups.sumOf { it.content.toInt() }
+                            stupCount = iStups.sumOf { it.content.toInt() },
+                            stups = iStups.map {
+                                UserMark(
+                                    id = it.id,
+                                    content = it.content,
+                                    reason = it.reason,
+                                    isGoToAvg = it.isGoToAvg,
+                                    groupId = it.groupId,
+                                    date = it.date
+                                )
+                            }
                         )
                     )
                 }
@@ -478,8 +523,8 @@ class ReportsController() {
         if (call.isTeacher || call.isModer) {
             try {
                 val students = StudentLines.fetchStudentLinesOfReport(r.reportId)
-                val marks = Marks.fetchForReport(r.reportId)
-                val stups = Stups.fetchForReport(r.reportId)
+                val marks = Marks.fetchForReport(r.reportId).sortedBy { it.deployTime.toMinutes() }
+                val stups = Stups.fetchForReport(r.reportId).sortedBy { it.deployTime.toMinutes() }
                 call.respond(
                     RFetchReportStudentsResponse(
                         students = students.map {

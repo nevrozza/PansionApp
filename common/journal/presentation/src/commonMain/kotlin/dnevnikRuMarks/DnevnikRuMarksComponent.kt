@@ -35,14 +35,21 @@ class DnevnikRuMarksComponent(
 
     val journalRepository: JournalRepository = Inject.instance()
 
+    val stupsDialogComponent = CAlertDialogComponent(
+        componentContext,
+        storeFactory,
+        name = "StupsDialogComponentIntDnevnikRuMarks",
+        {}
+    )
 
     private val dnevnikRuMarkStore =
-        instanceKeeper.getStore(key = "dnevnikRuMarkN$studentLogin") {
+        instanceKeeper.getStore(key = "dnevnikRuMark/$studentLogin") {
             DnevnikRuMarkStoreFactory(
                 storeFactory = storeFactory,
                 login = studentLogin,
                 nInterface = nInterface,
-                journalRepository = journalRepository
+                journalRepository = journalRepository,
+                stupsDialogComponent = stupsDialogComponent
             ).create()
         }
 

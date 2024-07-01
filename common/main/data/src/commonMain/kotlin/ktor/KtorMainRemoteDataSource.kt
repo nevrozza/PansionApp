@@ -24,6 +24,7 @@ import report.RFetchRecentGradesReceive
 import report.RFetchRecentGradesResponse
 import report.RFetchReportDataReceive
 import report.RFetchReportDataResponse
+import schedule.RFetchPersonScheduleReceive
 import schedule.RFetchScheduleDateReceive
 import schedule.RPersonScheduleList
 import schedule.RScheduleList
@@ -53,7 +54,7 @@ class KtorMainRemoteDataSource(
     }
 
 
-    suspend fun fetchPersonSchedule(r: RFetchScheduleDateReceive): RPersonScheduleList {
+    suspend fun fetchPersonSchedule(r: RFetchPersonScheduleReceive): RPersonScheduleList {
         return httpClient.post {
             url {
                 bearer()

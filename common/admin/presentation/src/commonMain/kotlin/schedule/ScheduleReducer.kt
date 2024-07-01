@@ -13,7 +13,8 @@ object ScheduleReducer : Reducer<State, Message> {
                     students = msg.students,
                     subjects = msg.subjects,
                     groups = msg.groups,
-                    cabinets = msg.cabinets
+                    cabinets = msg.cabinets,
+                    forms = msg.forms
                 )
             }
 
@@ -72,6 +73,7 @@ object ScheduleReducer : Reducer<State, Message> {
 
             is Message.EditStarted -> copy(
                 eiIndex = msg.index,
+                eiFormId = msg.formId,
                 eiTiming = null,
                 eiState = ScheduleStore.EditState.Preview,
                 eiCabinetErrorGroupId = 0,
@@ -130,6 +132,7 @@ object ScheduleReducer : Reducer<State, Message> {
 //            }
             is Message.TeacherListUpdated -> copy(activeTeachers = msg.activeTeachers)
             is Message.IsSavedAnimation -> copy(isSavedAnimation = msg.isSavedAnimation)
+            Message.ChangeIsTeacherView -> copy(isTeachersView = !isTeachersView)
         }
     }
 }

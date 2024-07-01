@@ -25,7 +25,7 @@ interface MainRepository {
 
     suspend fun fetchRecentGrades(login: String): RFetchRecentGradesResponse
 
-    suspend fun fetchPersonSchedule(dayOfWeek: String, date: String): RPersonScheduleList
+    suspend fun fetchPersonSchedule(dayOfWeek: String, date: String, login: String): RPersonScheduleList
 
     suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse
 

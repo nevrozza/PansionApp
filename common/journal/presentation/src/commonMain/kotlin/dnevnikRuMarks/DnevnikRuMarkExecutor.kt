@@ -1,7 +1,11 @@
 package dnevnikRuMarks
 
+import CDispatcher
 import JournalRepository
+import allGroupMarks.AllGroupMarksStore
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
+import components.cAlertDialog.CAlertDialogComponent
+import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import dnevnikRuMarks.DnevnikRuMarkStore.Intent
 import dnevnikRuMarks.DnevnikRuMarkStore.Label
@@ -18,7 +22,8 @@ import report.RFetchReportStudentsReceive
 
 class DnevnikRuMarkExecutor(
     private val journalRepository: JournalRepository,
-    private val nInterface: NetworkInterface
+    private val nInterface: NetworkInterface,
+    private val stupsDialogComponent: CAlertDialogComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -29,6 +34,15 @@ class DnevnikRuMarkExecutor(
             is Intent.ClickOnTab -> {
                 dispatch(Message.OnTabClicked(intent.index))
                 fetchSubjects()
+            }
+
+            is Intent.ClickOnStupsSubject -> {
+                scope.launch {
+                    stupsDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                    dispatch(
+                        Message.OnStupsSubjectClicked(intent.id)
+                    )
+                }
             }
         }
     }
@@ -50,16 +64,21 @@ class DnevnikRuMarkExecutor(
     }
 
     private fun init() {
-        scope.launch {
+        scope.launch(CDispatcher) {
             nInterface.nStartLoading()
             try {
-                println("eren")
                 val isQuarters = journalRepository.fetchIsQuarter(state().studentLogin)
-                println("qq: $isQuarters")
                 val tabsCount = if (isQuarters.isQuarters) isQuarters.num else 2
-                dispatch(Message.IsQuartersInited(isQuarters = isQuarters.isQuarters, tabIndex = isQuarters.currentIndex, tabsCount = tabsCount))
-                println("IT OK")
-                fetchSubjects()
+                scope.launch {
+                    dispatch(
+                        Message.IsQuartersInited(
+                            isQuarters = isQuarters.isQuarters,
+                            tabIndex = isQuarters.currentIndex,
+                            tabsCount = tabsCount
+                        )
+                    )
+                    fetchSubjects()
+                }
             } catch (_: Throwable) {
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
                 nInterface.nError("Не удалось загрузить список оценок") {

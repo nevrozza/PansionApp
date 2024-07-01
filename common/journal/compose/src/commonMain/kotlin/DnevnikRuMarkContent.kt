@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.CardDefaults
@@ -70,12 +72,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
+import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
 import components.MarkContent
 import components.StupsButton
 import components.StupsButtons
+import components.cMark
 import components.networkInterface.NetworkState
+import decomposeComponents.CAlertDialogContent
 import dev.chrisbanes.haze.hazeChild
 import dnevnikRuMarks.DnevnikRuMarkStore
 import dnevnikRuMarks.DnevnikRuMarksComponent
@@ -208,7 +213,9 @@ fun DnevnikRuMarkContent(
                             title = it.subjectName,
                             marks = it.marks.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed(),//.sortedBy { it.date }.reversed(),
                             stupsCount = it.stupCount,
-                            coroutineScope = coroutineScope
+                            coroutineScope = coroutineScope,
+                            component = component,
+                            subjectId = it.subjectId
                         )
                     }
                 }
@@ -232,7 +239,8 @@ fun DnevnikRuMarkContent(
                 NetworkState.Error -> {
                     Column(
                         Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Text(nModel.error)
                         Spacer(Modifier.height(7.dp))
@@ -246,6 +254,27 @@ fun DnevnikRuMarkContent(
 
         }
 
+
+        CAlertDialogContent(
+            component = component.stupsDialogComponent,
+            title = "Ступени: ${model.subjects[model.tabIndex]?.firstOrNull { it.subjectId == model.pickedSubjectId }?.subjectName}",
+            titleXOffset = 5.dp
+        ) {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                model.subjects[model.tabIndex]?.firstOrNull { it.subjectId == model.pickedSubjectId }?.stups?.sortedBy { getLocalDate(it.date).toEpochDays() }?.reversed()?.forEach {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)
+                            .padding(horizontal = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(it.date)
+                        Text(fetchReason(it.reason))
+                        BorderStup(it.content)
+                    }
+                }
+            }
+        }
     }
 
 
@@ -263,7 +292,9 @@ private fun SubjectMarksItem(
     title: String,
     marks: List<UserMark>,
     stupsCount: Int,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    component: DnevnikRuMarksComponent,
+    subjectId: Int
 ) {
     val isFullView = remember { mutableStateOf(false) }
 
@@ -285,10 +316,18 @@ private fun SubjectMarksItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(title, fontWeight = FontWeight.Bold, fontSize = 25.sp)
-                    Spacer(Modifier.width(5.dp))
-                    StupsButton(
-                        stupsCount
-                    ) {}
+                    if(stupsCount != 0) {
+                        Spacer(Modifier.width(5.dp))
+                        StupsButton(
+                            stupsCount
+                        ) {
+                            component.onEvent(
+                                DnevnikRuMarkStore.Intent.ClickOnStupsSubject(
+                                    subjectId
+                                )
+                            )
+                        }
+                    }
                 }
                 Text(
                     text = if (value.isNaN()) {
@@ -333,34 +372,3 @@ private fun SubjectMarksItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun cMark(mark: UserMark, coroutineScope: CoroutineScope) {
-    val markSize = 30.dp
-    val yOffset = 2.dp
-    val tState = rememberTooltipState(isPersistent = false)
-    TooltipBox(
-        state = tState,
-        tooltip = {
-            PlainTooltip(modifier = Modifier.clickable {}) {
-                println(mark.reason)
-                Text("${mark.date}\n${fetchReason(mark.reason)}", textAlign = TextAlign.Center)
-            }
-        },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
-    ) {
-        MarkContent(
-            mark.content,
-            size = markSize,
-            textYOffset = yOffset,
-            addModifier = Modifier.clickable {
-                coroutineScope.launch {
-                    tState.show()
-                }
-            }.handy()
-                .pointerInput(PointerEventType.Press) {
-                    println("asd")
-                }
-        )
-    }
-}

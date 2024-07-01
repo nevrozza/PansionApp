@@ -38,7 +38,20 @@ class HomeExecutor(
 
             is Intent.UpdateSomeHeaders -> dispatch(Message.SomeHeadersUpdated(intent.someHeaders))
             is Intent.UpdateAvatarId -> dispatch(Message.AvatarIdUpdated(intent.avatarId))
+            Intent.ChangePeriod -> changePeriod(
+                period = when (state().period) {
+                    HomeStore.Period.WEEK -> HomeStore.Period.MODULE
+                    HomeStore.Period.MODULE -> HomeStore.Period.HALF_YEAR
+                    HomeStore.Period.HALF_YEAR -> HomeStore.Period.YEAR
+                    HomeStore.Period.YEAR -> HomeStore.Period.WEEK
+                }
+            )
         }
+    }
+
+    private fun changePeriod(period: HomeStore.Period) {
+        dispatch(Message.PeriodChanged(period))
+        fetchQuickTab(period)
     }
 
     private fun init() {
@@ -57,25 +70,29 @@ class HomeExecutor(
     private fun fetchSchedule(dayOfWeek: String, date: String) {
         scope.launch(CDispatcher) {
 //            if ((state().items[date] ?: listOf()).isEmpty()) {
-                try {
-                    scheduleNInterface.nStartLoading()
-                    val response =
-                        mainRepository.fetchPersonSchedule(dayOfWeek = dayOfWeek, date = date)
-                    val newList = state().items.toMutableMap()
-                    response.list.forEach {
-                        newList[it.key] = it.value
-                    }
-                    scope.launch {
-                        dispatch(Message.ItemsUpdated(newList.toMap(HashMap())))
-                        scheduleNInterface.nSuccess()
-                    }
-                } catch (e: Throwable) {
-                    println(e)
-                    scheduleNInterface.nError("Не удалось загрузить расписание") {
-                        fetchSchedule(dayOfWeek = dayOfWeek, date = date)
-                    }
-//                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
+            try {
+                scheduleNInterface.nStartLoading()
+                val response =
+                    mainRepository.fetchPersonSchedule(
+                        dayOfWeek = dayOfWeek,
+                        date = date,
+                        login = state().login
+                    )
+                val newList = state().items.toMutableMap()
+                response.list.forEach {
+                    newList[it.key] = it.value
                 }
+                scope.launch {
+                    dispatch(Message.ItemsUpdated(newList.toMap(HashMap())))
+                    scheduleNInterface.nSuccess()
+                }
+            } catch (e: Throwable) {
+                println(e)
+                scheduleNInterface.nError("Не удалось загрузить расписание") {
+                    fetchSchedule(dayOfWeek = dayOfWeek, date = date)
+                }
+//                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
+            }
 //            }
         }
     }

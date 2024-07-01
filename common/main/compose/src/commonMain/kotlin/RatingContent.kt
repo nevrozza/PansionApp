@@ -37,6 +37,7 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ChipElevation
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -74,9 +75,11 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
+import components.CustomTextButton
 import components.GetAvatar
 import components.hazeHeader
 import components.listDialog.ListDialogStore
+import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
@@ -233,7 +236,8 @@ fun RatingContent(
                                 onClick = { component.formsListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
                                 label = {
                                     AnimatedContent(
-                                        component.formsListComponent.state.value.list.firstOrNull { it.id.toInt() == model.forms }?.text ?: "Загрузка.."
+                                        component.formsListComponent.state.value.list.firstOrNull { it.id.toInt() == model.forms }?.text
+                                            ?: "Загрузка.."
                                     ) {
                                         Text(
                                             it, maxLines = 1,
@@ -252,7 +256,8 @@ fun RatingContent(
                                 onClick = { component.periodListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
                                 label = {
                                     AnimatedContent(
-                                        component.periodListComponent.state.value.list.firstOrNull { it.id.toInt() == model.period }?.text ?: "Загрузка.."
+                                        component.periodListComponent.state.value.list.firstOrNull { it.id.toInt() == model.period }?.text
+                                            ?: "Загрузка.."
 
                                     ) {
                                         Text(
@@ -276,12 +281,24 @@ fun RatingContent(
                     }
                 } else {
                     item {
-                        Text(
-                            text = "Здесь пусто 0_0",
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(top = viewManager.size!!.maxHeight / 2 - padding.calculateTopPadding() - viewManager.topPadding),
-                            textAlign = TextAlign.Center
-                        )
+                        Column(
+                            Modifier.fillMaxWidth().padding(top = viewManager.size!!.maxHeight / 2 - padding.calculateTopPadding() - viewManager.topPadding),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (nModel.state != NetworkState.Loading) {
+                                Text(
+                                    text = if (nModel.state == NetworkState.None) "Здесь пусто 0_0\nТребования для участия в таблице рейтинга:\nСтупени >= 1 & Ср. Балл >=4" else if (nModel.state == NetworkState.Error) "Произошла ошибка" else "",
+                                    textAlign = TextAlign.Center
+                                )
+                                if(nModel.state == NetworkState.Error) {
+                                    CustomTextButton(text = "Попробовать ещё раз") {
+                                        nModel.onFixErrorClick()
+                                    }
+                                }
+                            } else {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                 }
             }
@@ -293,7 +310,7 @@ fun RatingContent(
             PullRefreshIndicator(
                 modifier = Modifier.align(alignment = Alignment.TopCenter)
                     .padding(top = padding.calculateTopPadding()),
-                refreshing = nModel.state == NetworkState.Loading,
+                refreshing = nModel.state == NetworkState.Loading && model.items[model.currentSubject].isNullOrEmpty(),
                 state = refreshState,
             )
         }

@@ -15,6 +15,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":common:utils"))
+                implementation(project(":common:ktor"))
                 implementation(project(":common:core"))
                 implementation(libs.compose.materialKolor)
                 implementation(compose.components.resources)

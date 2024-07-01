@@ -1,5 +1,6 @@
 import androidx.compose.material3.CalendarLocale
+import java.util.Locale
 
 actual fun getCalendarLocale(): CalendarLocale {
-    return CalendarLocale(language = "Ru")
+    return Locale.getDefault()
 }

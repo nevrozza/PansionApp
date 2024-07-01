@@ -14,6 +14,7 @@ object DnevnikRuMarkReducer : Reducer<State, Message> {
             }
             is Message.IsQuartersInited -> copy(isQuarters = msg.isQuarters, tabIndex = msg.tabIndex, tabsCount = msg.tabsCount)
             is Message.OnTabClicked -> copy(tabIndex = msg.index)
+            is Message.OnStupsSubjectClicked -> copy(pickedSubjectId = msg.id)
         }
     }
 }

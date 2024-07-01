@@ -9,7 +9,8 @@ data class RFetchInitScheduleResponse(
     val teachers: List<SchedulePerson>,
     val students: List<SchedulePerson>,
     val groups: List<ScheduleGroup>,
-    val subjects: List<ScheduleSubject>
+    val subjects: List<ScheduleSubject>,
+    val forms: HashMap<Int, ScheduleFormValue>
 )
 
 @Serializable
@@ -30,4 +31,12 @@ data class ScheduleGroup(
 data class ScheduleSubject(
     val id: Int,
     val name: String
+)
+
+
+@Serializable
+data class ScheduleFormValue(
+    val num: Int,
+    val shortTitle: String,
+    val logins: List<String>
 )

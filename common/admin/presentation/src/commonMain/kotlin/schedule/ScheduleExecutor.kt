@@ -89,7 +89,7 @@ class ScheduleExecutor(
 
             is Intent.StartEdit -> scope.launch {
                 mpEditItem.onEvent(mpChoseStore.Intent.ShowDialog)
-                dispatch(Message.EditStarted(index = intent.index))
+                dispatch(Message.EditStarted(index = intent.index, formId = intent.formId))
             }
 
             is Intent.eiChooseGroup -> scope.launch {
@@ -175,6 +175,7 @@ class ScheduleExecutor(
 
             Intent.SaveSchedule -> saveItems()
             is Intent.IsSavedAnimation -> dispatch(Message.IsSavedAnimation(intent.isSavedAnimation))
+            Intent.ChangeIsTeacherView -> dispatch(Message.ChangeIsTeacherView)
         }
     }
 
@@ -462,7 +463,8 @@ class ScheduleExecutor(
                             students = r.students,
                             subjects = r.subjects,
                             groups = r.groups,
-                            cabinets = cabinets
+                            cabinets = cabinets,
+                            forms = r.forms
                         )
                     )
                     nInterface.nSuccess()

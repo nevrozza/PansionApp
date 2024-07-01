@@ -2,6 +2,7 @@ package schedule
 
 import FIO
 import kotlinx.serialization.Serializable
+import report.UserMark
 
 @Serializable
 data class ScheduleItem(
@@ -19,7 +20,9 @@ data class PersonScheduleItem(
     val start: String,
     val end: String,
     val subjectName: String,
-    val groupName: String
+    val groupName: String,
+    val marks: List<UserMark>,
+    val stupsSum: Int
 )
 
 @Serializable

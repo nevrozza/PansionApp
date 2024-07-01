@@ -16,6 +16,7 @@ import report.RFetchRecentGradesReceive
 import report.RFetchRecentGradesResponse
 import report.RFetchReportDataReceive
 import report.RFetchReportDataResponse
+import schedule.RFetchPersonScheduleReceive
 import schedule.RFetchScheduleDateReceive
 import schedule.RPersonScheduleList
 import schedule.RScheduleList
@@ -62,11 +63,12 @@ class MainRepositoryImpl(
         return remoteDataSource.fetchRecentGrades(RFetchRecentGradesReceive(login))
     }
 
-    override suspend fun fetchPersonSchedule(dayOfWeek: String, date: String): RPersonScheduleList {
+    override suspend fun fetchPersonSchedule(dayOfWeek: String, date: String, login: String): RPersonScheduleList {
         return remoteDataSource.fetchPersonSchedule(
-            RFetchScheduleDateReceive(
+            RFetchPersonScheduleReceive(
                 dayOfWeek = dayOfWeek,
-                day = date
+                day = date,
+                login = login
             )
         )
     }

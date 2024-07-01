@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.database.ratingEntities
 
+import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.features.reports.isQuarter
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -72,6 +73,19 @@ object Marks : RatingEntity() {
             val marks = fetchForUser(login).filter { it.part == module}
 
             println("avg: $marks")
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
+
+    fun fetchHalfYearAVG(login: String, module: String): ForAvg {
+        return transaction {
+            val c = Calendar.getHalfOfModule(module.toInt())
+            val x = Calendar.getAllModulesOfHalfAsString(c)
+            val marks = fetchForUser(login).filter { it.part in x.map { it.toString() } }
+
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }

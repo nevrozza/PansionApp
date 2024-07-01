@@ -4,6 +4,7 @@ import JournalRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
 import dnevnikRuMarks.DnevnikRuMarkStore.Intent
 import dnevnikRuMarks.DnevnikRuMarkStore.Label
@@ -14,7 +15,8 @@ class DnevnikRuMarkStoreFactory(
     private val storeFactory: StoreFactory,
     private val login: String,
     private val nInterface: NetworkInterface,
-    private val journalRepository: JournalRepository
+    private val journalRepository: JournalRepository,
+    private val stupsDialogComponent: CAlertDialogComponent
 ) {
 
     fun create(): DnevnikRuMarkStore {
@@ -26,7 +28,7 @@ class DnevnikRuMarkStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "DnevnikRuMarkStore",
             initialState = DnevnikRuMarkStore.State(studentLogin = login),
-            executorFactory = { DnevnikRuMarkExecutor(journalRepository = journalRepository, nInterface = nInterface) },
+            executorFactory = { DnevnikRuMarkExecutor(journalRepository = journalRepository, nInterface = nInterface, stupsDialogComponent = stupsDialogComponent) },
             reducer = DnevnikRuMarkReducer
         )
 }

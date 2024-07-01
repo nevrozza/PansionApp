@@ -1,6 +1,7 @@
 package schedule
 
 import admin.cabinets.CabinetItem
+import admin.schedule.ScheduleFormValue
 import admin.schedule.ScheduleGroup
 import admin.schedule.SchedulePerson
 import admin.schedule.ScheduleSubject
@@ -27,6 +28,8 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val subjects: List<ScheduleSubject> = emptyList(),
         val cabinets: List<CabinetItem> = emptyList(),
         val groups: List<ScheduleGroup> = emptyList(),
+        val forms: HashMap<Int, ScheduleFormValue> = hashMapOf(),
+        val isTeachersView: Boolean = true,
         val activeTeachers: HashMap<String, List<String>> = hashMapOf(), // changed List<Pair<String, List<String>>> to HashMap<String, List<String>>
         val items: HashMap<String, List<ScheduleItem>> = hashMapOf(), // changed List<Pair<String, List<ScheduleItem>>> to HashMap<String, List<ScheduleItem>>
         val ciLogin: String? = null,
@@ -40,6 +43,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
 
         val eiState: EditState = EditState.Preview,
         val eiIndex: Int? = null,
+        val eiFormId: Int? = null,
         val eiCabinet: Int? = null,
         val eiGroupId: Int? = null,
         val eiTiming: Pair<String, String>? = null,
@@ -58,6 +62,8 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data object Init : Intent
         data class IsSavedAnimation(val isSavedAnimation: Boolean): Intent
 
+        data object ChangeIsTeacherView: Intent
+
 
         data object ChangeEditMode : Intent
 
@@ -65,7 +71,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data class ChangeCurrentDate(val date: Pair<Int, String>) : Intent
 
 
-        data class StartEdit(val index: Int) : Intent
+        data class StartEdit(val index: Int, val formId: Int) : Intent
 
         data class eiChooseGroup(val groupId: Int) : Intent
 
@@ -116,6 +122,9 @@ interface ScheduleStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+
+        data object ChangeIsTeacherView: Message
+
         data class IsSavedAnimation(val isSavedAnimation: Boolean): Message
 
         data class ListUpdated(val list: HashMap<String, List<ScheduleItem>>) : Message
@@ -130,12 +139,13 @@ interface ScheduleStore : Store<Intent, State, Label> {
             val students: List<SchedulePerson>,
             val subjects: List<ScheduleSubject>,
             val groups: List<ScheduleGroup>,
-            val cabinets: List<CabinetItem>
+            val cabinets: List<CabinetItem>,
+            val forms: HashMap<Int, ScheduleFormValue>
         ) : Message
 
         data object ciIsPairChanged : Message
 
-        data class EditStarted(val index: Int) : Message
+        data class EditStarted(val index: Int, val formId: Int) : Message
         data class eiGroupChosed(val groupId: Int) : Message
         data class eiTimingChanged(val timing: Pair<String, String>) : Message
         data class eiStateChanged(val state: EditState) : Message
