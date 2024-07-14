@@ -1,4 +1,6 @@
 object RequestPaths {
+    const val ip = "192.168.0.107:8081"
+
     object Tokens {
         const val logout = "server/profile/logout"
     }

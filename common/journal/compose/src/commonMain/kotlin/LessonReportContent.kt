@@ -4,10 +4,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,7 +16,6 @@ import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,7 +26,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -46,7 +40,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LocalPolice
 import androidx.compose.material.icons.rounded.MoreVert
@@ -75,7 +68,6 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.surfaceColorAtElevation
@@ -83,7 +75,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,8 +91,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
@@ -134,7 +123,6 @@ import components.listDialog.ListItem
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
-import decomposeComponents.listDialogComponent.ListDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import kotlinx.coroutines.delay
@@ -144,9 +132,6 @@ import lessonReport.LessonReportComponent
 import lessonReport.LessonReportStore
 import lessonReport.MarkColumn
 import lessonReport.Stup
-import lessonReport.opozdanie
-import lessonReport.prisut
-import lessonReport.srBall
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
 import server.getDate
@@ -1638,10 +1623,14 @@ fun Modifier.setMarksBind(
                 Key.NumPad2, Key.NumPad3, Key.NumPad4, Key.NumPad5
             ) && it.type == KeyEventType.KeyDown
         ) {
+            var mark = it.key.toString().split(" ", "-").last()
+            if(mark.toInt() > 9) {
+                mark = (mark.last().code +4).toString().last().toString()
+            }
             component.setMarkMenuComponent.onClick(
                 ListItem(
-                    id = it.key.toString().split(" ", "-").last(),
-                    text = it.key.toString().split(" ", "-").last()
+                    id = "no",
+                    text = mark
                 )
             )
         }

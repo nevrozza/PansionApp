@@ -50,7 +50,7 @@ class LessonReportComponent(
         name = "SetMarkMenuInReport",
         onItemClick = {
             try {
-                onSetMarkMenuItemClick(it.text)
+                onSetMarkMenuItemClick(it.text, it.id)
             } catch (_: Throwable) {
 
             }
@@ -94,9 +94,13 @@ class LessonReportComponent(
         customOnDismiss = { onEvent(LessonReportStore.Intent.ClearSelection) }
     )
 
-    private fun onSetMarkMenuItemClick(mark: String) {
+    private fun onSetMarkMenuItemClick(mark: String, id: String) {
         onEvent(LessonReportStore.Intent.SetMark(mark))
-        setMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
+        if(id != "no"
+            || state.value.students.first { state.value.selectedLogin == it.login }
+                .marksOfCurrentLesson.count { it.reason == state.value.selectedMarkReason } == 4) {
+            setMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
+        }
     }
 
     private fun onSetLateTimeMenuItemClick(mark: String) {

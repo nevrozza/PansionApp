@@ -39,8 +39,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
@@ -75,6 +77,7 @@ import org.jetbrains.jewel.window.styling.LocalTitleBarStyle
 import org.jetbrains.jewel.window.styling.TitleBarColors
 import org.jetbrains.jewel.window.styling.TitleBarMetrics
 import org.jetbrains.jewel.window.styling.TitleBarStyle
+import resources.Images
 import root.RootComponentImpl
 import server.DeviceTypex
 import view.AppTheme
@@ -136,14 +139,14 @@ fun main() {
             var isVisible by remember { mutableStateOf(true) }
 
             Tray(
-                icon = TrayIcon,
+                icon = painterResource("favicon.ico"),//TrayIcon,
                 menu = {
                     Item(
                         "Показать",
                         onClick = { isVisible = true }
                     )
                     Item(
-                        "Выход",
+                        "Закрыть",
                         onClick = ::exitApplication
                     )
                 },
@@ -326,7 +329,7 @@ object TrayIcon : Painter() {
     override val intrinsicSize = Size(256f, 256f)
 
     override fun DrawScope.onDraw() {
-        drawOval(Color(0xFFFFA500))
+//        this.drawImage(painterResource("resources/favicon.ico"))
     }
 }
 

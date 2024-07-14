@@ -1,6 +1,8 @@
 @file:Suppress("OPT_IN_USAGE")
 
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackCssMode
 
 plugins {
 //    id("compose-setup")
@@ -82,6 +84,9 @@ kotlin {
         browser {
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
+            }
+            distribution {
+                outputDirectory = file("$projectDir/build/jsDistribution/")
             }
         }
 //        browser()
@@ -253,7 +258,7 @@ android {
         compose = true
     }
     compose {
-        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0-RC2"
+        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0"
     }
 //    composeOptions {
 //        kotlinCompilerExtensionVersion = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0-RC2"
@@ -263,6 +268,19 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    buildTypes {
+        release {
+            // blah blah
+            this.matchingFallbacks.add("release")
+        }
+        debug {
+            // blah blah
+            this.matchingFallbacks.add("debug")
+
+        }
+    }
+
 //    buildTypes {
 //        getByName("release") {
 //            isMinifyEnabled = false
@@ -290,7 +308,7 @@ compose.desktop {
             windows {
                 menuGroup = "PansionApp"
                 upgradeUuid = "f11ae455-b203-4ff9-9a63-e28e6d7a4bdf"
-                this.iconFile.set(File("icon.png"))
+                this.iconFile.set(File("src/jvmMain/resources/favicon.ico"))
             }
 
             buildTypes.release.proguard {

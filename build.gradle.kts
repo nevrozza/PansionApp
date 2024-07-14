@@ -1,6 +1,6 @@
 plugins {
     id(libs.plugins.kotlin.get().pluginId).apply(false)
-    id(libs.plugins.android.get().pluginId).apply(false)
+//    id(libs.plugins.android.get().pluginId).apply(false)
 //    id(libs.plugins.compose.get().pluginId).apply(false)
     id(libs.plugins.cocoapods.get().pluginId).apply(false)
     id(libs.plugins.serialization.get().pluginId).apply(false)
@@ -20,6 +20,11 @@ allprojects {
         maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
         gradlePluginPortal()
         mavenLocal()
+
+//
+//        flatDir {
+//            dirs("libs")
+//        }
     }
 }
 
