@@ -9,6 +9,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.router.stack.webhistory.DefaultWebHistoryController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
@@ -31,7 +33,7 @@ import web.events.EventType
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class)
 fun main() {
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
@@ -48,9 +50,8 @@ fun main() {
             componentContext = DefaultComponentContext(
                 lifecycle = lifecycle
             ),
-//            deepLink = RootComponentImpl.DeepLink.Web(path = window.location.pathname),
-//            path = window.location.pathname,
-//            webHistoryController = DefaultWebHistoryController(),
+            deepLink = RootComponentImpl.DeepLink.None,//RootComponentImpl.DeepLink.Web(path = window.location.pathname),
+            webHistoryController = null,//DefaultWebHistoryController(),
             storeFactory = DefaultStoreFactory()
         )
 

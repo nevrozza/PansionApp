@@ -9,13 +9,15 @@ import allGroupMarks.AllGroupMarksStore.Message
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
+import components.networkInterface.NetworkState
 import kotlinx.coroutines.launch
 import lessonReport.LessonReportStore
 
 class AllGroupMarksExecutor(
     private val nInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
-    private val stupsDialogComponent: CAlertDialogComponent
+    private val stupsDialogComponent: CAlertDialogComponent,
+    private val nOpenReportInterface: NetworkInterface
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -25,6 +27,24 @@ class AllGroupMarksExecutor(
                 dispatch(
                     Message.DetailedStupsOpened(intent.studentLogin)
                 )
+            }
+
+            is Intent.OpenFullReport -> openFullReport(intent.reportId)
+            Intent.DeleteReport -> dispatch(Message.FullReportOpened(null))
+        }
+    }
+
+    private fun openFullReport(reportId: Int) {
+        scope.launch {
+            nOpenReportInterface.nStartLoading()
+            try {
+                val reportData = journalRepository.fetchFullReportData(reportId)
+                nInterface.nSuccess()
+                dispatch(Message.FullReportOpened(reportData))
+            } catch (_: Throwable) {
+                nOpenReportInterface.nError("Что-то пошло не так =/") {
+                    nOpenReportInterface.nSuccess()
+                }
             }
         }
     }

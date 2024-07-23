@@ -1,5 +1,6 @@
 package ktor
 
+import ReportData
 import RequestPaths
 import checkOnNoOk
 import io.ktor.client.HttpClient
@@ -13,6 +14,7 @@ import report.RFetchDetailedStupsReceive
 import report.RFetchDetailedStupsResponse
 import report.RFetchDnevnikRuMarksReceive
 import report.RFetchDnevnikRuMarksResponse
+import report.RFetchFullReportData
 import report.RFetchReportStudentsReceive
 import report.RFetchReportStudentsResponse
 import report.RFetchSubjectQuarterMarksReceive
@@ -24,6 +26,16 @@ import report.RUpdateReportReceive
 class KtorJournalRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+    suspend fun fetchFullReportData(r: RFetchFullReportData): ReportData {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Reports.FetchFullReportData)
+                setBody(r)
+            }
+        }.body()
+    }
+
     suspend fun fetchReportStudents(r: RFetchReportStudentsReceive): RFetchReportStudentsResponse {
         return httpClient.post {
             url {

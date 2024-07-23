@@ -18,6 +18,9 @@ import kotlinx.coroutines.flow.StateFlow
 class HomeTasksComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
+    login: String,
+    avatarId: Int,
+    name: String,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
@@ -31,7 +34,10 @@ class HomeTasksComponent(
     private val allGroupMarksStore =
         instanceKeeper.getStore {
             HomeTasksStoreFactory(
-                storeFactory = storeFactory
+                storeFactory = storeFactory,
+                login = login,
+                avatarId = avatarId,
+                name = name
             ).create()
         }
 

@@ -177,7 +177,7 @@ interface RootComponent : BackHandlerOwner {
         @Serializable
         data class HomeProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Config
         @Serializable
-        data class HomeTasks(val studentLogin: String, val avatarId: Int) : Config
+        data class HomeTasks(val studentLogin: String, val avatarId: Int, val name: String) : Config
 
 
         @Serializable
@@ -195,25 +195,30 @@ interface RootComponent : BackHandlerOwner {
         data object AdminCabinets: Config
     }
 
-//    companion object {
-//        const val WEB_PATH_AUTH_LOGIN = "auth/login"
-//        const val WEB_PATH_AUTH_ACTIVATION = "auth/activation"
-//        const val WEB_PATH_MAIN_HOME = "main/home"
-//        const val WEB_PATH_HOME_SETTINGS = "main/home/settings"
-//        const val WEB_PATH_MAIN_JOURNAL = "main/journal"
-//        const val WEB_PATH_MAIN_ADMIN = "main/admin"
-//
-//        //        const val WEB_PATH_ADMIN_MENTORS = "main/admin/teachers"
-//        const val WEB_PATH_ADMIN_USERS = "main/admin/teachers"
-//        const val WEB_PATH_ADMIN_GROUPS = "main/admin/students"
-//
-//        //        const val WEB_PATH_ADMIN_STUDENTS = "main/admin/students"
-//        const val WEB_PATH_JOURNAL_LESSON_REPORT = "main/journal/lesson_report"
-//        const val WEB_PATH_HOME_DNEVNIK_RU_MARKS = "main/home/marks"
-//        const val WEB_PATH_HOME_DETAILED_STUPS = "main/home/stups"
-//        const val WEB_PATH_HOME_ALL_GROUP_MARKS = "main/home/allGroupMarks"
-//        const val WEB_PATH_HOME_PROFILE = "main/home/profile"
-//    }
+    companion object {
+        const val WEB_PATH_AUTH_LOGIN = "auth/login"
+        const val WEB_PATH_AUTH_ACTIVATION = "auth/activation"
+        const val WEB_PATH_MAIN_HOME = "main/home"
+        const val WEB_PATH_HOME_SETTINGS = "main/home/settings"
+        const val WEB_PATH_MAIN_JOURNAL = "main/journal"
+        const val WEB_PATH_MAIN_ADMIN = "main/admin"
+        const val WEB_PATH_MAIN_RATING = "main/rating"
+
+        //        const val WEB_PATH_ADMIN_MENTORS = "main/admin/teachers"
+        const val WEB_PATH_ADMIN_USERS = "main/admin/teachers"
+        const val WEB_PATH_ADMIN_GROUPS = "main/admin/students"
+        const val WEB_PATH_ADMIN_CABINETS = "main/admin/cabinets"
+        const val WEB_PATH_ADMIN_CALENDAR = "main/admin/calendar"
+        const val WEB_PATH_ADMIN_SCHEDULE = "main/admin/schedule"
+
+        //        const val WEB_PATH_ADMIN_STUDENTS = "main/admin/students"
+        const val WEB_PATH_JOURNAL_LESSON_REPORT = "main/journal/lesson_report"
+        const val WEB_PATH_HOME_DNEVNIK_RU_MARKS = "main/home/marks"
+        const val WEB_PATH_HOME_DETAILED_STUPS = "main/home/stups"
+        const val WEB_PATH_HOME_ALL_GROUP_MARKS = "main/home/allGroupMarks"
+        const val WEB_PATH_HOME_PROFILE = "main/home/profile"
+        const val WEB_PATH_HOME_TASKS = "main/home/tasks"
+    }
 
     sealed interface RootCategories {
         data object Home : RootCategories

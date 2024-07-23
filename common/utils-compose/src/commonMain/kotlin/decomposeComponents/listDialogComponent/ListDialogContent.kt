@@ -278,7 +278,8 @@ fun DropdownVariant(
     isTooltip: Boolean,
     isFullHeight: Boolean,
     offset: DpOffset,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    title: String?
 ) {
     DropdownMenu(
         expanded = model.isDialogShowing && isTooltip,
@@ -293,6 +294,9 @@ fun DropdownVariant(
             nModel
         ) {
             Column() {
+                if(title != null) {
+                    Text(title, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 10.dp).padding(top = 5.dp), fontSize = 11.sp, lineHeight = 12.sp)
+                }
                 when (it.state) {
                     NetworkState.None -> {
 

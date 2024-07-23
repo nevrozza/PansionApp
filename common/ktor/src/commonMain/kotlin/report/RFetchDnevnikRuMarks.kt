@@ -32,7 +32,8 @@ data class UserMark(
     val reason: String,
     val isGoToAvg: Boolean,
     val groupId: Int,
-    val date: String
+    val date: String,
+    val reportId: Int
 )
 
 @Serializable

@@ -26,6 +26,11 @@ class JournalExecutor(
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent,
     private val nInterface: NetworkInterface,
     private val nOpenReportInterface: NetworkInterface,
+
+    private val fDateListComponent: ListComponent,
+    private val fGroupListComponent: ListComponent,
+    private val fTeachersListComponent: ListComponent,
+    private val fStatusListComponent: ListComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -69,11 +74,11 @@ class JournalExecutor(
                     try {
                         nOpenReportInterface.nStartLoading()
                         val rd = mainRepository.fetchReportData(intent.reportHeader.reportId)
+
                         dispatch(
                             Message.ReportDataFetched(
                                 ReportData(
                                     header = intent.reportHeader,
-                                    topic = rd.topic,
                                     description = rd.description,
                                     editTime = rd.editTime,
                                     ids = rd.ids,
@@ -97,13 +102,41 @@ class JournalExecutor(
 
             Intent.ResetReportData -> dispatch(Message.ReportDataReseted)
             Intent.Refresh -> initComponent()
+            Intent.ResetTime -> dispatch(Message.TimeChanged(""))
+            is Intent.FilterDate -> {
+                dispatch(Message.DateFiltered(intent.date))
+                fDateListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+            }
 
+            is Intent.FilterGroup -> {
+                dispatch(Message.GroupFiltered(intent.groupId))
+                fGroupListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+            }
+
+            is Intent.FilterStatus -> {
+                dispatch(Message.StatusFiltered(intent.bool))
+                fStatusListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+            }
+
+            is Intent.FilterTeacher -> {
+                val groupItemList = state().headers.filter {
+                    if (intent.teacherLogin != null) {
+                        it.teacherLogin == intent.teacherLogin
+                    } else true
+                }.map { ListItem(id = it.groupId.toString(), text = it.groupName) }.toSet().toList()
+                fGroupListComponent.onEvent(
+                    ListDialogStore.Intent.InitList(
+                        groupItemList
+                    )
+                )
+                dispatch(Message.TeacherFiltered(intent.teacherLogin))
+                fTeachersListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+            }
         }
     }
 
     private fun initComponent() {
         scope.launch {
-
             fetchHeaders() //async { }
             fetchTeacherGroups() //async { }
         }
@@ -117,12 +150,12 @@ class JournalExecutor(
                 dispatch(Message.StudentsInGroupUpdated(students, groupId))
                 studentsInGroupCAlertDialogComponent.nInterface.nSuccess()
             } catch (e: Throwable) {
-                println(e)
-//                studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.CallError("Не удалось загрузить список учеников =/") {
-//                    fetchStudentsInGroup(
-//                        groupId
-//                    )
-//                })
+                //CHECK
+                studentsInGroupCAlertDialogComponent.nInterface.nError(text = "Не удалось загрузить список учеников =/") {
+                    fetchStudentsInGroup(
+                        groupId
+                    )
+                }
             }
         }
     }
@@ -131,14 +164,46 @@ class JournalExecutor(
         scope.launch(CDispatcher) {
             try {
                 nInterface.nStartLoading()
-                println("state: ${nInterface.networkModel.value.state}")
-//                groupListComponent.nInterface.nStartLoading()
                 val headers = mainRepository.fetchReportHeaders()
                 scope.launch {
                     dispatch(Message.HeadersUpdated(headers.reportHeaders, headers.currentModule))
                     nInterface.nSuccess()
+
+                    val teacherItemsList = headers.reportHeaders.map {
+                        ListItem(
+                            id = it.teacherLogin,
+                            text = it.teacherName
+                        )
+                    }.toSet().toList()
+                    val dateItemList =
+                        headers.reportHeaders.map { ListItem(id = it.date, text = it.date) }.toSet()
+                            .toList()
+                    val groupItemList = headers.reportHeaders.map {
+                        ListItem(
+                            id = it.groupId.toString(),
+                            text = it.groupName
+                        )
+                    }.toSet().toList()
+
+                    fGroupListComponent.onEvent(
+                        ListDialogStore.Intent.InitList(
+                            groupItemList
+                        )
+                    )
+                    fTeachersListComponent.onEvent(
+                        ListDialogStore.Intent.InitList(
+                            teacherItemsList
+                        )
+                    )
+                    fDateListComponent.onEvent(
+                        ListDialogStore.Intent.InitList(
+                            dateItemList
+                        )
+                    )
                 }
-//                groupListComponent.nInterface.nSuccess()
+
+
+
 
             } catch (e: Throwable) {
                 println(e)

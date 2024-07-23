@@ -4,7 +4,7 @@ import report.ReportHeader
 @Serializable
 data class ReportData(
     val header: ReportHeader,
-    val topic: String,
+//    val topic: String,
     val description: String,
     val editTime: String,
     val ids: Int,

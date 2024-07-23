@@ -1,5 +1,9 @@
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,28 +13,39 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,6 +83,7 @@ import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import server.Moderation
 import server.Roles
+import server.fetchReason
 import view.LocalViewManager
 import view.WindowScreen
 import view.handy
@@ -216,7 +232,102 @@ private fun TrueJournalContent(
                                 modifier = Modifier.pullRefresh(refreshState),
                                 isBottomPaddingNeeded = true
                             ) {
-                                items(model.headers.sortedBy { it.reportId }.reversed()) { item ->
+                                item {
+                                    Row(Modifier.offset(y = -6.dp).horizontalScroll(
+                                        rememberScrollState()
+                                    )) {
+                                        Spacer(Modifier.width(7.dp))
+                                        Box() {
+                                            val isPicked = model.filterTeacherLogin != null
+                                            ElevatedAssistChip(
+                                                onClick = {
+                                                    component.fTeachersListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                                                },
+                                                label = {
+                                                    AnimatedContent(
+                                                        if (!isPicked) "Учитель" else component.fTeachersListComponent.state.value.list.first { it.id == model.filterTeacherLogin }.text
+                                                    ) {
+                                                        Text(
+                                                            it, maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis
+                                                        )
+                                                    }
+                                                },
+                                                colors = AssistChipDefaults.assistChipColors(
+                                                    containerColor = MaterialTheme.colorScheme.primary,
+                                                    labelColor = MaterialTheme.colorScheme.onPrimary,
+                                                    trailingIconContentColor = MaterialTheme.colorScheme.onPrimary
+                                                ),
+                                                modifier = Modifier.animateContentSize(),
+                                                trailingIcon = {
+                                                    CloseButton(isShown = isPicked) {
+                                                        component.onEvent(JournalStore.Intent.FilterTeacher(null))
+                                                    }
+                                                }
+                                            )
+                                            ListDialogDesktopContent(component.fTeachersListComponent)
+                                        }
+                                        Spacer(Modifier.width(5.dp))
+                                        Box() {
+                                            val isPicked = model.filterGroupId != null
+                                            InputChip(
+                                                selected = true,
+                                                onClick = { component.fGroupListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
+                                                label = {
+                                                    AnimatedContent(
+                                                        if (!isPicked) "Группа" else component.fGroupListComponent.state.value.list.first { it.id == model.filterGroupId.toString() }.text
+                                                    ) {
+                                                        Text(
+                                                            it, maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis
+                                                        )
+                                                    }
+                                                },
+                                                modifier = Modifier.animateContentSize(),
+                                                trailingIcon = {
+                                                    CloseButton(isShown = isPicked) {
+                                                        component.onEvent(JournalStore.Intent.FilterGroup(null))
+                                                    }
+                                                }
+                                            )
+                                            ListDialogDesktopContent(component.fGroupListComponent)
+                                        }
+                                        Spacer(Modifier.width(5.dp))
+
+                                        Box() {
+                                            val isPicked = model.filterDate != null
+                                            AssistChip(
+                                                onClick = { component.fDateListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
+                                                label = {
+                                                    AnimatedContent(
+                                                        if (!isPicked) "Дата" else model.filterDate.toString()
+                                                    ) {
+                                                        Text(
+                                                            it, maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis
+                                                        )
+                                                    }
+                                                },
+                                                modifier = Modifier.animateContentSize(),
+                                                trailingIcon = {
+                                                    CloseButton(isShown = isPicked) {
+                                                        component.onEvent(JournalStore.Intent.FilterDate(null))
+                                                    }
+                                                }
+                                            )
+                                            ListDialogDesktopContent(component.fDateListComponent)
+                                        }
+                                        Spacer(Modifier.width(15.dp))
+                                    }
+                                }
+                                items(model.headers
+                                    .asSequence()
+                                    .filter { if(model.filterStatus != null) it.status == model.filterStatus else true }
+                                    .filter { if(model.filterDate != null) it.date == model.filterDate else true }
+                                    .filter { if(model.filterGroupId != null) it.groupId == model.filterGroupId else true }
+                                    .filter { if(model.filterTeacherLogin != null) it.teacherLogin == model.filterTeacherLogin else true }
+                                    .sortedBy { it.reportId }
+                                    .toList().reversed()) { item ->
                                     JournalItemCompose(
                                         subjectName = item.subjectName,
                                         groupName = item.groupName,
@@ -225,7 +336,9 @@ private fun TrueJournalContent(
                                         teacher = item.teacherName,
                                         time = item.time,
                                         isEnabled = true,
-                                        isActive = true
+                                        isActive = true,
+                                        isEnded = item.status,
+                                        theme = item.theme
                                     ) {
                                         component.onEvent(JournalStore.Intent.FetchReportData(item))
                                     }
@@ -257,6 +370,10 @@ private fun TrueJournalContent(
                 state = refreshState,
             )
             ListDialogMobileContent(component.groupListComponent)
+            ListDialogMobileContent(component.fGroupListComponent)
+            ListDialogMobileContent(component.fStatusListComponent)
+            ListDialogMobileContent(component.fDateListComponent)
+            ListDialogMobileContent(component.fTeachersListComponent)
             StudentsPreviewDialog(
                 component, model
             )
@@ -313,7 +430,19 @@ fun StudentsPreviewDialog(
     }
 }
 
+@Composable
+private fun CloseButton(isShown: Boolean, onClick: () -> Unit) {
+    AnimatedVisibility(isShown) {
+        IconButton(
+            onClick = { onClick() },
+            modifier = Modifier.size(20.dp),
+        ) {
+            Icon(Icons.Rounded.Close, null)
+        }
+    }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JournalItemCompose(
     subjectName: String,
@@ -324,38 +453,57 @@ fun JournalItemCompose(
     time: String,
     isEnabled: Boolean,
     isActive: Boolean,
+    isEnded: Boolean,
+    theme: String,
     onClick: () -> Unit
 ) {
-    FilledTonalButton(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).handy(),
-        onClick = {
-            onClick()
+    val tState = rememberTooltipState(isPersistent = false)
+    TooltipBox(
+        state = tState,
+        tooltip = {
+            if(theme != "") {
+                PlainTooltip(modifier = Modifier.clickable {}) {
+                    Text(
+                        theme,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
         },
-        shape = RoundedCornerShape(30),
-        colors = ButtonDefaults.filledTonalButtonColors(
-            containerColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
-                2.dp
-            ),
-            contentColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-        )
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
     ) {
-        Row(
-            Modifier.fillMaxWidth().padding(vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            ReportTitle(
-                subjectName = subjectName,
-                groupName = groupName,
-                lessonReportId = lessonReportId,
-                date = date,
-                teacher = teacher,
-                time = time,
-                isFullView = true,
-                isStartPadding = false,
-                onClick = null
+        FilledTonalButton(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).handy(),
+            onClick = {
+                onClick()
+            },
+            shape = RoundedCornerShape(30),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
+                    2.dp
+                ),
+                contentColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
             )
-            Icon(Icons.Rounded.ArrowForwardIos, null)
+        ) {
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                ReportTitle(
+                    subjectName = subjectName,
+                    groupName = groupName,
+                    lessonReportId = lessonReportId,
+                    date = date,
+                    teacher = teacher,
+                    time = time,
+                    isFullView = true,
+                    isStartPadding = false,
+                    onClick = null,
+                    isEnded = isEnded
+                )
+                Icon(Icons.Rounded.ArrowForwardIos, null)
+            }
         }
     }
 }

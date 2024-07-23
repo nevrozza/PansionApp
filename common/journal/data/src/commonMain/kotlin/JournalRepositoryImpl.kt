@@ -5,6 +5,7 @@ import report.RFetchDetailedStupsReceive
 import report.RFetchDetailedStupsResponse
 import report.RFetchDnevnikRuMarksReceive
 import report.RFetchDnevnikRuMarksResponse
+import report.RFetchFullReportData
 import report.RFetchReportStudentsReceive
 import report.RFetchReportStudentsResponse
 import report.RFetchSubjectQuarterMarksReceive
@@ -27,6 +28,10 @@ class JournalRepositoryImpl(
 
     override suspend fun fetchDnevnikRuMarks(login: String, quartersNum: String, isQuarters: Boolean): RFetchDnevnikRuMarksResponse {
         return remoteDataSource.fetchDnevnikRuMarks(RFetchDnevnikRuMarksReceive(login, quartersNum, isQuarters))
+    }
+
+    override suspend fun fetchFullReportData(reportId: Int): ReportData {
+        return remoteDataSource.fetchFullReportData(RFetchFullReportData(reportId = reportId))
     }
 
     override suspend fun fetchSubjectQuarterMarks(

@@ -13,6 +13,10 @@ fun Application.configureReportsRouting() {
 //            reportsController.fetchAllSubjects(call)
 //        }
 
+        post(RequestPaths.Reports.FetchFullReportData) {
+            reportsController.fetchFullReportData(call)
+        }
+
         post(RequestPaths.Reports.FetchRecentGrades) {
             reportsController.fetchRecentGrades(call)
         }

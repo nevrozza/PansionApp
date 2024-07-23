@@ -19,7 +19,12 @@ interface JournalStore : Store<Intent, State, Label> {
         val creatingReportId: Int = -1,
         val openingReportData: ReportData? = null,
         val time: String = getSixTime(),
-        val currentModule: String = ""
+        val currentModule: String = "",
+
+        val filterTeacherLogin: String? = null,
+        val filterGroupId: Int? = null,
+        val filterDate: String? = null,
+        val filterStatus: Boolean? = null
     )
 
     sealed interface Intent {
@@ -33,6 +38,13 @@ interface JournalStore : Store<Intent, State, Label> {
         data class FetchReportData(val reportHeader: ReportHeader) : Intent
         data object ResetCreatingId : Intent
         data object ResetReportData : Intent
+        data object ResetTime : Intent
+
+
+        data class FilterTeacher(val teacherLogin: String?) : Intent
+        data class FilterGroup(val groupId: Int?) : Intent
+        data class FilterDate(val date: String?) : Intent
+        data class FilterStatus(val bool: Boolean?) : Intent
     }
 
     sealed interface Message {
@@ -47,6 +59,11 @@ interface JournalStore : Store<Intent, State, Label> {
         data object ReportDataReseted : Message
 
         data class TimeChanged(val time: String) : Message
+
+        data class TeacherFiltered(val teacherLogin: String?) : Message
+        data class GroupFiltered(val groupId: Int?) : Message
+        data class DateFiltered(val date: String?) : Message
+        data class StatusFiltered(val bool: Boolean?) : Message
     }
 
     sealed interface Label

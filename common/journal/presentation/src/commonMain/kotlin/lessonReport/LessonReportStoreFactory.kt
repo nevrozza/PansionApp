@@ -40,7 +40,7 @@ class LessonReportStoreFactory(
                 date = data.header.date,
                 time = data.header.time,
                 editTime = data.editTime,
-                topic = data.topic,
+                topic = data.header.theme,
                 description = data.description,
                 status = data.header.status,
                 ids = data.ids,

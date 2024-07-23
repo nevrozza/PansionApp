@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -51,10 +53,14 @@ import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.essenty.instancekeeper.InstanceKeeperDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
+import com.arkivanov.essenty.statekeeper.SerializableContainer
+import com.arkivanov.essenty.statekeeper.StateKeeperDispatcher
 import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import components.CustomTextButton
@@ -62,6 +68,9 @@ import di.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
@@ -89,140 +98,149 @@ import view.toRGB
 import view.toTint
 import java.awt.Dimension
 import java.awt.Robot
+import java.io.File
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.SwingUtilities
 
+private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
 
 // c53379fe-19a7-3f07-911c-0c9d195b1925
 @ExperimentalFoundationApi
 @OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class)
 fun main() {
+//
+//    val isAppRunning = AtomicBoolean(false)
+//    if (isAppRunning.compareAndSet(false, true)) {
+    GlobalScope.launch(Dispatchers.IO) {
+        com.nevrozq.pansion.main()
+    }
 
-    val isAppRunning = AtomicBoolean(false)
-    if (isAppRunning.compareAndSet(false, true)) {
-        GlobalScope.launch(Dispatchers.IO) {
-            com.nevrozq.pansion.main()
-        }
-        PlatformSDK.init(
-            configuration = PlatformConfiguration(),
-            cConfiguration = CommonPlatformConfiguration(
-                deviceName = getDeviceName() ?: "unknown",
-                deviceType = DeviceTypex.desktop,
-                deviceId = getDeviceId()
-            )
+    PlatformSDK.init(
+        configuration = PlatformConfiguration(),
+        cConfiguration = CommonPlatformConfiguration(
+            deviceName = getDeviceName() ?: "unknown",
+            deviceType = DeviceTypex.desktop,
+            deviceId = getDeviceId()
+        )
+    )
+    val stateKeeper = StateKeeperDispatcher(File(SAVED_STATE_FILE_NAME).readSerializableContainer())
+    val root = invokeOnAwtSync {
+
+        setMainThreadId(Thread.currentThread().id)
+        val lifecycle = LifecycleRegistry()
+        val rootComponent = RootComponentImpl(
+            componentContext = DefaultComponentContext(
+                lifecycle = lifecycle,
+                stateKeeper = stateKeeper,
+                instanceKeeper = InstanceKeeperDispatcher()
+            ),
+            storeFactory = DefaultStoreFactory(),
+            deepLink = RootComponentImpl.DeepLink.None,
+            webHistoryController = null
+        )
+        lifecycle.resume()
+
+        rootComponent
+    }
+//    stateKeeper.unregister("UsersStoreState")
+
+
+    application {
+
+
+        val windowState = rememberWindowState()
+        windowState.size = DpSize(950.dp, 480.dp) //950 480 //480 800
+
+        var isVisible by remember { mutableStateOf(true) }
+
+        Tray(
+            icon = painterResource("favicon.ico"),//TrayIcon,
+            menu = {
+                Item(
+                    "Показать",
+                    onClick = { isVisible = true }
+                )
+                Item(
+                    "Закрыть",
+                    onClick = ::exitApplication
+                )
+            },
+            tooltip = "Pansion App",
+            onAction = {
+                isVisible = true
+            }
         )
 
+        if (isVisible) {
+            var isCloseDialogVisible by remember { mutableStateOf(false) }
 
-        val root = invokeOnAwtSync {
-            setMainThreadId(Thread.currentThread().id)
-            val lifecycle = LifecycleRegistry()
-            val rootComponent = RootComponentImpl(
-                componentContext = DefaultComponentContext(
-                    lifecycle = lifecycle
-                ),
-                storeFactory = DefaultStoreFactory()
-            )
-            lifecycle.resume()
-            rootComponent
-        }
-
-
-        application {
-
-
-            val windowState = rememberWindowState()
-            windowState.size = DpSize(950.dp, 480.dp) //950 480 //480 800
-
-            var isVisible by remember { mutableStateOf(true) }
-
-            Tray(
-                icon = painterResource("favicon.ico"),//TrayIcon,
-                menu = {
-                    Item(
-                        "Показать",
-                        onClick = { isVisible = true }
-                    )
-                    Item(
-                        "Закрыть",
-                        onClick = ::exitApplication
-                    )
-                },
-                tooltip = "Pansion App",
-                onAction = {
-                    isVisible = true
-                }
-            )
-
-            if (isVisible) {
-                var isCloseDialogVisible by remember { mutableStateOf(false) }
-
-                val settingsRepository: SettingsRepository = Inject.instance()
-                val rgb = settingsRepository.fetchSeedColor().toRGB()
-                val themeDefinition = JewelTheme.darkThemeDefinition()
-                val viewManager = remember {
-                    ViewManager(
-                        seedColor = mutableStateOf(
-                            Color(
-                                red = rgb[0],
-                                green = rgb[1],
-                                blue = rgb[2]
-                            )
-                        ),
-                        tint = mutableStateOf(settingsRepository.fetchTint().toTint())
-                    )
-                }
-                CompositionLocalProvider(
-                    LocalViewManager provides viewManager
-                ) {
-                    IntUiTheme(
-                        themeDefinition,
-                        styling = ComponentStyling.decoratedWindow(
-                            titleBarStyle = TitleBarStyle.light()
+            val settingsRepository: SettingsRepository = Inject.instance()
+            val rgb = settingsRepository.fetchSeedColor().toRGB()
+            val themeDefinition = JewelTheme.darkThemeDefinition()
+            val viewManager = remember {
+                ViewManager(
+                    seedColor = mutableStateOf(
+                        Color(
+                            red = rgb[0],
+                            green = rgb[1],
+                            blue = rgb[2]
                         )
-                    ) {
-                        AppTheme {
-                            DecoratedWindow(
-                                onCloseRequest = { isCloseDialogVisible = true },
-                                state = windowState,
-                                title = "Pansion App", //Pansion App
-                                visible = isVisible,
-                                icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
+                    ),
+                    tint = mutableStateOf(settingsRepository.fetchTint().toTint())
+                )
+            }
+            CompositionLocalProvider(
+                LocalViewManager provides viewManager
+            ) {
+                IntUiTheme(
+                    themeDefinition,
+                    styling = ComponentStyling.decoratedWindow(
+                        titleBarStyle = TitleBarStyle.light()
+                    )
+                ) {
+                    AppTheme {
+                        DecoratedWindow(
+                            onCloseRequest = { isCloseDialogVisible = true },
+                            state = windowState,
+                            title = "Pansion App", //Pansion App
+                            visible = isVisible,
+                            icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 
-                            ) {
-                                val l = LocalTitleBarStyle.current
-                                viewManager.topPadding =
-                                    (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
-                                this.window.setMinSize(400, 600)
-                                Box(contentAlignment = Alignment.TopCenter) {
-                                    Root(root, WindowType.PC)
+                        ) {
+                            val l = LocalTitleBarStyle.current
+                            viewManager.topPadding =
+                                (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
+                            this.window.setMinSize(400, 600)
+                            Box(contentAlignment = Alignment.TopCenter) {
+                                Root(root, WindowType.PC)
 
-                                    MainTitleBar(viewManager, l)
-                                    if (isCloseDialogVisible) {
-                                        AlertDialog(
-                                            onDismissRequest = { isCloseDialogVisible = false },
-                                            confirmButton = {
-                                                CustomTextButton(
-                                                    text = "Свернуть в трею"
-                                                ) {
-                                                    isVisible = false
-                                                    isCloseDialogVisible = false
-                                                }
-                                            },
-                                            dismissButton = {
-                                                CustomTextButton(
-                                                    text = "Закрыть"
-                                                ) {
-                                                    exitApplication()
-                                                }
-                                            },
+                                MainTitleBar(viewManager, l)
+                                if (isCloseDialogVisible) {
+                                    AlertDialog(
+                                        onDismissRequest = { isCloseDialogVisible = false },
+                                        confirmButton = {
+                                            CustomTextButton(
+                                                text = "Свернуть в трею"
+                                            ) {
+                                                isVisible = false
+                                                isCloseDialogVisible = false
+                                            }
+                                        },
+                                        dismissButton = {
+                                            CustomTextButton(
+                                                text = "Закрыть"
+                                            ) {
+                                                stateKeeper.save().writeToFile(File(SAVED_STATE_FILE_NAME))
+                                                exitApplication()
+                                            }
+                                        },
 //                                            title = { Text("Закрыть приложение?") },
-                                            text = { Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)") }
+                                        text = { Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)") }
 
-                                        )
-                                    }
+                                    )
                                 }
                             }
                         }
@@ -230,21 +248,22 @@ fun main() {
                 }
             }
         }
-    } else {
-        application {
-            DialogWindow(
-                onCloseRequest = { ::exitApplication }
-            ) {
-                Row(
-                    Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text("Приложение уже работает на фоне")
-                }
-            }
-        }
     }
+//    } else {
+//        application {
+//            DialogWindow(
+//                onCloseRequest = { ::exitApplication }
+//            ) {
+//                Row(
+//                    Modifier.fillMaxSize(),
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.Center
+//                ) {
+//                    Text("Приложение уже работает на фоне")
+//                }
+//            }
+//        }
+//    }
 }
 
 @Composable
@@ -321,6 +340,23 @@ private fun DecoratedWindowScope.MainTitleBar(viewManager: ViewManager, l: Title
     }
 }
 
+
+@OptIn(ExperimentalSerializationApi::class)
+fun SerializableContainer.writeToFile(file: File) {
+    file.outputStream().use { output ->
+        Json.encodeToStream(SerializableContainer.serializer(), this, output)
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun File.readSerializableContainer(): SerializableContainer? =
+    takeIf(File::exists)?.inputStream()?.use { input ->
+        try {
+            Json.decodeFromStream(SerializableContainer.serializer(), input)
+        } catch (e: Exception) {
+            null
+        }
+    }
 
 //    JFrame().init(root)
 

@@ -11,9 +11,12 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,6 +33,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
@@ -42,6 +46,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -98,12 +103,22 @@ fun AllGroupMarksContent(
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+    val nOpenReportModel by component.nOpenReportInterface.networkModel.subscribeAsState()
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+
+    if(model.reportData != null) {
+        val reportData = model.reportData
+        component.onEvent(AllGroupMarksStore.Intent.DeleteReport)
+        component.onOutput(AllGroupMarksComponent.Output.OpenReport(reportData!!))
+    }
+
+
+
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     BoxWithConstraints {
@@ -197,11 +212,14 @@ fun AllGroupMarksContent(
                                     AllGroupMarksStudentItem(
                                         title = s.shortFIO,
                                         groupId = model.groupId,
-                                        marks = s.marks.sortedBy { getLocalDate(it.mark.date).toEpochDays() }.reversed(),
+                                        marks = s.marks.sortedBy { getLocalDate(it.mark.date).toEpochDays() }
+                                            .reversed(),
                                         stups = s.stups,
                                         isQuarters = s.isQuarters,
                                         modifier = Modifier.padding(top = if (model.students.first() == s) 0.dp else 10.dp),
-                                        coroutineScope = coroutineScope
+                                        coroutineScope = coroutineScope,
+                                        component = component,
+                                        login = model.login
                                     ) {
                                         component.onEvent(
                                             AllGroupMarksStore.Intent.OpenDetailedStups(
@@ -250,7 +268,11 @@ fun AllGroupMarksContent(
                 titleXOffset = 5.dp
             ) {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    model.students.firstOrNull { it.login == model.detailedStupsLogin }?.stups?.sortedBy { getLocalDate(it.mark.date).toEpochDays() }?.reversed()?.forEach {
+                    model.students.firstOrNull { it.login == model.detailedStupsLogin }?.stups?.sortedBy {
+                        getLocalDate(
+                            it.mark.date
+                        ).toEpochDays()
+                    }?.reversed()?.forEach {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)
                                 .padding(horizontal = 5.dp),
@@ -265,7 +287,39 @@ fun AllGroupMarksContent(
                 }
             }
         }
+
+        AnimatedVisibility(
+            nOpenReportModel.state != NetworkState.None,
+            modifier = Modifier.align(Alignment.Center),
+            enter = fadeIn() + scaleIn(),
+            exit = fadeOut() + scaleOut()
+        ) {
+            Crossfade(nOpenReportModel.state) {
+                Surface(
+                    color = MaterialTheme.colorScheme.background,
+                    tonalElevation = 5.dp,
+                    shadowElevation = 10.dp,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    when (it) {
+                        NetworkState.Error -> Column(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("Не удалось загрузить отчёт")
+                            CustomTextButton("Закрыть") {
+                                component.nOpenReportInterface.goToNone()
+                            }
+                        }
+
+                        else -> CircularProgressIndicator(Modifier.padding(10.dp))
+                    }
+                }
+            }
+        }
     }
+
+
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -279,6 +333,8 @@ private fun AllGroupMarksStudentItem(
 //    stupsCount: Int,
     coroutineScope: CoroutineScope,
     modifier: Modifier = Modifier,
+    component: AllGroupMarksComponent,
+    login: String,
     onClick: () -> Unit
 ) {
     val isFullView = remember { mutableStateOf(false) }
@@ -320,7 +376,9 @@ private fun AllGroupMarksStudentItem(
                     isQuarters = isQuarters,
                     marks.filter { it.module == modules.first() },
                     groupId = groupId,
-                    coroutineScope = coroutineScope
+                    coroutineScope = coroutineScope,
+                    component = component,
+                    login = login
                 )
                 Box(
                     Modifier.fillMaxWidth().padding(end = 5.dp),//.offset(y = -5.dp),
@@ -342,7 +400,9 @@ private fun AllGroupMarksStudentItem(
                             isQuarters = isQuarters,
                             marks = marks.filter { it.module == x },
                             groupId = groupId,
-                            coroutineScope = coroutineScope
+                            coroutineScope = coroutineScope,
+                            component = component,
+                            login = login
                         )
                     }
                 }
@@ -368,7 +428,9 @@ private fun ModuleView(
     isQuarters: Boolean,
     marks: List<UserMarkPlus>,
     groupId: Int,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    component: AllGroupMarksComponent,
+    login: String
 ) {
     val rowModifier = Modifier.fillMaxWidth().padding(top = 5.dp, start = 2.dp)
 
@@ -395,8 +457,8 @@ private fun ModuleView(
         }
         FlowRow(rowModifier) {
             marks.forEach {
-                Box(Modifier.alpha(if (it.mark.groupId != groupId) .2f else 1f)) {
-                    cMarkPlus(it, coroutineScope = coroutineScope)
+                Box(Modifier.alpha(if (it.deployLogin != login) .2f else 1f)) {
+                    cMarkPlus(it, component = component)
                 }
             }
         }
@@ -406,31 +468,42 @@ private fun ModuleView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun cMarkPlus(mark: UserMarkPlus, coroutineScope: CoroutineScope) {
+fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent) {
     val markSize = 30.dp
     val yOffset = 2.dp
     val tState = rememberTooltipState(isPersistent = true)
     TooltipBox(
         state = tState,
         tooltip = {
-            PlainTooltip(modifier = Modifier.clickable {}) {
-                Text("Выставил ${mark.deployLogin}\nв ${mark.deployDate}-${mark.deployTime}\nОб уроке:\n${mark.mark.date}\n${fetchReason(mark.mark.reason)}", textAlign = TextAlign.Center)
+            PlainTooltip() {
+                Text(
+                    "Выставил ${mark.deployLogin}\nв ${mark.deployDate}-${mark.deployTime}\nОб уроке:\n${mark.mark.date} №${mark.mark.reportId}\n${
+                        fetchReason(
+                            mark.mark.reason
+                        )
+                    }", textAlign = TextAlign.Center
+                )
             }
         },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        enableUserInput = true
     ) {
         MarkContent(
             mark.mark.content,
             size = markSize,
             textYOffset = yOffset,
-            addModifier = Modifier.clickable {
-                coroutineScope.launch {
-                    tState.show()
-                }
-            }.handy()
-                .pointerInput(PointerEventType.Press) {
-                    println("asd")
-                }
+            addModifier = Modifier.handy().clickable {
+                component.onEvent(AllGroupMarksStore.Intent.OpenFullReport(mark.mark.reportId))
+            }
+//                .combinedClickable(
+//                    onDoubleClick = {
+//                        println("Double Clicked")
+//                    }
+//                ) {
+//                    coroutineScope.launch {
+//                        tState.show()
+//                    }
+//                }
         )
     }
 }

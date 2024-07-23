@@ -9,9 +9,15 @@ import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
+import homeTasks.HomeTasksStore
+import homework.ClientReportHomeworkItem
+import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import lessonReport.LessonReportStore.Intent
 import report.RFetchReportStudentsReceive
 import report.RUpdateReportReceive
 import report.ReportHeader
@@ -32,11 +38,13 @@ class LessonReportExecutor(
     private val marksDialogComponent: CAlertDialogComponent,
     private val header: ReportHeader,
 ) :
-    CoroutineExecutor<LessonReportStore.Intent, Unit, LessonReportStore.State, LessonReportStore.Message, LessonReportStore.Label>() {
+    CoroutineExecutor<Intent, Unit, LessonReportStore.State, LessonReportStore.Message, LessonReportStore.Label>() {
     @OptIn(DelicateCoroutinesApi::class)
-    override fun executeIntent(intent: LessonReportStore.Intent) {
+    override fun executeIntent(intent: Intent) {
+
+
         when (intent) {
-            is LessonReportStore.Intent.CreateColumn -> {
+            is Intent.CreateColumn -> {
                 val newList = state().columnNames.toMutableList()
                 newList.add(
                     ReportColumn(
@@ -47,12 +55,10 @@ class LessonReportExecutor(
 
                 newList.sortBy { customOrder[it.type] }
 
-
                 dispatch(LessonReportStore.Message.ColumnsUpdated(newList.toList()))
-
             }
 
-            is LessonReportStore.Intent.DeleteColumnInit -> {
+            is Intent.DeleteColumnInit -> {
                 dispatch(
                     LessonReportStore.Message.DeleteColumnInited(
                         intent.reportColumn
@@ -60,7 +66,7 @@ class LessonReportExecutor(
                 )
             }
 
-            is LessonReportStore.Intent.DeleteColumn -> {
+            is Intent.DeleteColumn -> {
                 println("yes")
                 val newStudentList = state().students.toMutableList()
                 val finalStudentList = mutableListOf<StudentLine>()
@@ -79,13 +85,14 @@ class LessonReportExecutor(
                 dispatch(LessonReportStore.Message.StudentsUpdated(finalStudentList))
             }
 
-            LessonReportStore.Intent.ClearSelection -> dispatch(LessonReportStore.Message.SelectionCleared)
-            is LessonReportStore.Intent.OpenSetMarksMenu -> {
+            Intent.ClearSelection -> dispatch(LessonReportStore.Message.SelectionCleared)
+            is Intent.OpenSetMarksMenu -> {
                 dispatch(
                     LessonReportStore.Message.MarksMenuOpened(
                         reasonId = intent.reasonId,
                         studentLogin = intent.studentLogin,
-                        markValue = ""
+                        markValue = "",
+                        selectedDeploy = ""
                     )
                 )
                 setMarkMenuComponent.onEvent(
@@ -93,12 +100,13 @@ class LessonReportExecutor(
                 )
             }
 
-            is LessonReportStore.Intent.OpenDeleteMarkMenu -> {
+            is Intent.OpenDeleteMarkMenu -> {
                 dispatch(
                     LessonReportStore.Message.MarksMenuOpened(
                         reasonId = intent.reasonId,
                         studentLogin = intent.studentLogin,
-                        markValue = intent.markValue.toString()
+                        markValue = intent.markValue.toString(),
+                        selectedDeploy = intent.selectedDeploy
                     )
                 )
                 deleteMarkMenuComponent.onEvent(
@@ -106,7 +114,7 @@ class LessonReportExecutor(
                 )
             }
 
-            is LessonReportStore.Intent.SetMark -> {
+            is Intent.SetMark -> {
                 val newList = state().students.toMutableList()
                 val line = newList.first { it.login == state().selectedLogin }
                 newList.remove(line)
@@ -132,7 +140,7 @@ class LessonReportExecutor(
                 dispatch(LessonReportStore.Message.StudentsUpdated(newList))
             }
 
-            LessonReportStore.Intent.DeleteMark -> {
+            Intent.DeleteMark -> {
                 val newStudentList = state().students.toMutableList()
 
 
@@ -153,7 +161,7 @@ class LessonReportExecutor(
 
             }
 
-            is LessonReportStore.Intent.ChangeStups -> {
+            is Intent.ChangeStups -> {
 
                 val newList = state().students.toMutableList()
                 val line = newList.first { it.login == intent.login }
@@ -185,25 +193,25 @@ class LessonReportExecutor(
 
             }
 
-            is LessonReportStore.Intent.ChangeSettingsTab -> dispatch(
+            is Intent.ChangeSettingsTab -> dispatch(
                 LessonReportStore.Message.SettingsTabChanged(
                     intent.settingsTab
                 )
             )
 
-            is LessonReportStore.Intent.ChangeTopic -> dispatch(
+            is Intent.ChangeTopic -> dispatch(
                 LessonReportStore.Message.TopicChanged(
                     intent.topic
                 )
             )
 
-            is LessonReportStore.Intent.ChangeDescription -> dispatch(
+            is Intent.ChangeDescription -> dispatch(
                 LessonReportStore.Message.DescriptionChanged(
                     intent.description
                 )
             )
 
-            is LessonReportStore.Intent.DislikeStudent -> {
+            is Intent.DislikeStudent -> {
                 val newDislikedList = state().dislikedList.toMutableList()
                 val newLikedList = state().likedList.toMutableList()
                 newLikedList.remove(intent.studentLogin)
@@ -220,7 +228,7 @@ class LessonReportExecutor(
                 )
             }
 
-            is LessonReportStore.Intent.LikeStudent -> {
+            is Intent.LikeStudent -> {
                 val newLikedList = state().likedList.toMutableList()
                 val newDislikedList = state().dislikedList.toMutableList()
                 newDislikedList.remove(intent.studentLogin)
@@ -239,7 +247,7 @@ class LessonReportExecutor(
                 )
             }
 
-            is LessonReportStore.Intent.SetLateTime -> {
+            is Intent.SetLateTime -> {
                 val result = if (intent.chosenTime == "auto") {
                     val start = state().time.split(":")
                     val startMinutes = start[0].toInt() * 60 + start[1].toInt()
@@ -265,7 +273,7 @@ class LessonReportExecutor(
             }
 
 
-            is LessonReportStore.Intent.OpenSetLateTimeMenu -> {
+            is Intent.OpenSetLateTimeMenu -> {
 
 
                 dispatch(
@@ -278,101 +286,26 @@ class LessonReportExecutor(
                 )
             }
 
-            LessonReportStore.Intent.ChangeInfoShowing -> dispatch(LessonReportStore.Message.InfoShowingChanged)
-            LessonReportStore.Intent.UpdateWholeReport -> {
-                GlobalScope.launch (CDispatcher) {
-                    nInterface.nStartLoading()
-                    try {
-//                        dispatch(LessonReportStore.Message.isFABShowing(false))
-                        val marks = mutableListOf<ServerRatingUnit>()
-                        val stups = mutableListOf<ServerRatingUnit>()
-                        state().students.forEach { s ->
-                            s.marksOfCurrentLesson.forEach { m ->
-                                marks.add(
-                                    ServerRatingUnit(
-                                        login = s.login,
-                                        id = m.id,
-                                        content = m.value.toString(),
-                                        reason = m.reason,
-                                        isGoToAvg = m.isGoToAvg,
-                                        deployTime = m.deployTime,
-                                        deployDate = m.deployDate,
-                                        deployLogin = m.deployLogin
-                                    )
-                                )
-                            }
+            Intent.ChangeInfoShowing -> dispatch(LessonReportStore.Message.InfoShowingChanged)
+            Intent.UpdateWholeReport -> updateWholeReport()
 
-                            s.stupsOfCurrentLesson.forEach { m ->
-                                stups.add(
-                                    ServerRatingUnit(
-                                        login = s.login,
-                                        id = m.id,
-                                        content = m.value.toString(),
-                                        reason = m.reason,
-                                        isGoToAvg = true,
-                                        deployTime = m.deployTime,
-                                        deployLogin = m.deployLogin,
-                                        deployDate = m.deployDate
-                                    )
-                                )
-                            }
-                        }
-                        val editTime = getSixTime()
-
-                        val r = RUpdateReportReceive(
-                            lessonReportId = state().lessonReportId,
-//                            groupId = state().groupId,
-//                            date = state().date,
-//                            time = state().time,
-                            topic = state().topic,
-                            description = state().description,
-                            students = state().students.map {
-                                ServerStudentLine(
-                                    login = it.login,
-                                    lateTime = it.lateTime,
-                                    isLiked = if (it.login in state().likedList) "t" else if (it.login in state().dislikedList) "f" else "0",
-                                )
-                            },
-                            columnNames = state().columnNames.filter { it.type != ColumnTypes.prisut && it.type != ColumnTypes.opozdanie && it.type != ColumnTypes.srBall }
-                                .map { it.type },
-                            status = state().status,
-                            ids = state().ids,
-                            editTime = editTime,
-                            isMentorWas = state().isMentorWas,
-                            marks = marks,
-                            stups = stups
-                        )
-
-                        journalRepository.updateWholeReport(r)
-                        scope.launch {
-                            dispatch(LessonReportStore.Message.EditTimeChanged(editTime))
-                            dispatch(LessonReportStore.Message.IsSavedAnimation(true))
-                            nInterface.nSuccess()
-                        }
-                    } catch (_: Throwable) {
-//                        dispatch(LessonReportStore.Message.isFABShowing(true))
-                        nInterface.nError("Что-то пошло не так") {
-                            //TODO
-                            nInterface.goToNone()
-                        }
-                    }
-                }
-            }
-
-            LessonReportStore.Intent.ChangeIsMentorWas -> dispatch(LessonReportStore.Message.IsMentorWasChanged)
-            is LessonReportStore.Intent.ChangeStatus -> dispatch(
+            Intent.ChangeIsMentorWas -> dispatch(LessonReportStore.Message.IsMentorWasChanged)
+            is Intent.ChangeStatus -> dispatch(
                 LessonReportStore.Message.StatusChanged(
                     intent.status
                 )
             )
 
-            is LessonReportStore.Intent.Init -> {
+            is Intent.Init -> {
                 scope.launch {
 
                     nInterface.nStartLoading()
                     try {
                         val studentsData = journalRepository.fetchReportStudents(
-                            RFetchReportStudentsReceive(state().lessonReportId, header.module.toInt())
+                            RFetchReportStudentsReceive(
+                                state().lessonReportId,
+                                header.module.toInt()
+                            )
                         )
 
                         val students = mutableListOf<StudentLine>()
@@ -441,10 +374,159 @@ class LessonReportExecutor(
                         }
                     }
                 }
+
+                scope.launch(CDispatcher) {
+                    while (true) {
+                        delay(1000 * 60 * 3)
+                        if (state().isUpdateNeeded) {
+                            updateWholeReport()
+                        }
+                    }
+                }
             }
 
-            is LessonReportStore.Intent.OpenDetailedMarks -> openDetailedMarks(intent.studentLogin)
-            is LessonReportStore.Intent.IsSavedAnimation -> dispatch(LessonReportStore.Message.IsSavedAnimation(intent.isSaved))
+            is Intent.OpenDetailedMarks -> openDetailedMarks(intent.studentLogin)
+            is Intent.IsSavedAnimation -> dispatch(
+                LessonReportStore.Message.IsSavedAnimation(
+                    intent.isSaved
+                )
+            )
+
+            is Intent.IsErrorAnimation -> dispatch(
+                LessonReportStore.Message.IsErrorAnimation(
+                    intent.isError
+                )
+            )
+
+            is Intent.AddEmptyHomeTask -> dispatch(
+                LessonReportStore.Message.HomeTasksUpdated(
+                    state().hometasks + CreateReportHomeworkItem(
+                        id = ((state().hometasks.lastOrNull()?.id) ?: (-1)) + 1,
+                        type = "",
+                        text = "",
+                        stups = 0,
+                        fileIds = null,
+                        studentLogins = intent.studentLogins,
+                        exceptLogins = null,
+                        isNew = true
+                    )
+                )
+            )
+
+            is Intent.ChangeHomeTaskType -> scope.launch {
+                dispatch(
+                    LessonReportStore.Message.HomeTasksUpdated(
+                        state().hometasks.map {
+                            if (it.id == intent.id) it.copy(
+                                type = intent.type,
+                                stups = if (intent.type.contains("!st")) it.stups else 0
+                            )
+                            else it
+                        }
+                    ))
+            }
+
+            is Intent.ChangeHomeTaskAward -> scope.launch {
+                dispatch(
+                    LessonReportStore.Message.HomeTasksUpdated(
+                        state().hometasks.map {
+                            if (it.id == intent.id) it.copy(stups = intent.award)
+                            else it
+                        }
+                    ))
+            }
+
+            is Intent.ChangeHomeTaskText -> scope.launch {
+                dispatch(
+                    LessonReportStore.Message.HomeTasksUpdated(
+                        state().hometasks.map {
+                            if (it.id == intent.id) it.copy(text = intent.text)
+                            else it
+                        }
+                    ))
+            }
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun updateWholeReport() {
+        GlobalScope.launch(CDispatcher) {
+            nInterface.nStartLoading()
+            try {
+//                        dispatch(LessonReportStore.Message.isFABShowing(false))
+                val marks = mutableListOf<ServerRatingUnit>()
+                val stups = mutableListOf<ServerRatingUnit>()
+                state().students.forEach { s ->
+                    s.marksOfCurrentLesson.forEach { m ->
+                        marks.add(
+                            ServerRatingUnit(
+                                login = s.login,
+                                id = m.id,
+                                content = m.value.toString(),
+                                reason = m.reason,
+                                isGoToAvg = m.isGoToAvg,
+                                deployTime = m.deployTime,
+                                deployDate = m.deployDate,
+                                deployLogin = m.deployLogin
+                            )
+                        )
+                    }
+
+                    s.stupsOfCurrentLesson.forEach { m ->
+                        stups.add(
+                            ServerRatingUnit(
+                                login = s.login,
+                                id = m.id,
+                                content = m.value.toString(),
+                                reason = m.reason,
+                                isGoToAvg = true,
+                                deployTime = m.deployTime,
+                                deployLogin = m.deployLogin,
+                                deployDate = m.deployDate
+                            )
+                        )
+                    }
+                }
+                val editTime = "${getDate()} (${getSixTime()})"
+
+                val r = RUpdateReportReceive(
+                    lessonReportId = state().lessonReportId,
+//                            groupId = state().groupId,
+//                            date = state().date,
+//                            time = state().time,
+                    topic = state().topic,
+                    description = state().description,
+                    students = state().students.map {
+                        ServerStudentLine(
+                            login = it.login,
+                            lateTime = it.lateTime,
+                            isLiked = if (it.login in state().likedList) "t" else if (it.login in state().dislikedList) "f" else "0",
+                        )
+                    },
+                    columnNames = state().columnNames.filter { it.type != ColumnTypes.prisut && it.type != ColumnTypes.opozdanie && it.type != ColumnTypes.srBall }
+                        .map { it.type },
+                    status = state().status,
+                    ids = state().ids,
+                    editTime = editTime,
+                    isMentorWas = state().isMentorWas,
+                    marks = marks,
+                    stups = stups
+                )
+
+                journalRepository.updateWholeReport(r)
+                scope.launch {
+                    dispatch(LessonReportStore.Message.EditTimeChanged(editTime))
+                    dispatch(LessonReportStore.Message.IsSavedAnimation(true))
+                    nInterface.nSuccess()
+                }
+            } catch (_: Throwable) {
+                dispatch(LessonReportStore.Message.IsErrorAnimation(true))
+//                        dispatch(LessonReportStore.Message.isFABShowing(true))
+                nInterface.nError("Что-то пошло не так") {
+                    //TODO
+                    nInterface.goToNone()
+                }
+            }
         }
     }
 
@@ -454,8 +536,12 @@ class LessonReportExecutor(
                 dispatch(LessonReportStore.Message.DetailedMarksOpened(login))
                 marksDialogComponent.nInterface.nStartLoading()
                 marksDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                val marks = journalRepository.fetchSubjectQuarterMarks(login, subjectId = state().subjectId, quartersNum = "").marks.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed()
-                if(login == state().detailedMarksLogin) {
+                val marks = journalRepository.fetchSubjectQuarterMarks(
+                    login,
+                    subjectId = state().subjectId,
+                    quartersNum = ""
+                ).marks.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed()
+                if (login == state().detailedMarksLogin) {
                     dispatch(LessonReportStore.Message.DetailedMarksFetched(marks))
                     marksDialogComponent.nInterface.nSuccess()
                 }
@@ -469,7 +555,6 @@ class LessonReportExecutor(
     }
 
 }
-
 
 
 val customOrder = mapOf(

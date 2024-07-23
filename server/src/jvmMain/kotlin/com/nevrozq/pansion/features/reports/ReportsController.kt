@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.features.reports
 
+import ReportData
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.forms.Forms
@@ -39,6 +40,7 @@ import report.RFetchDetailedStupsReceive
 import report.RFetchDetailedStupsResponse
 import report.RFetchDnevnikRuMarksReceive
 import report.RFetchDnevnikRuMarksResponse
+import report.RFetchFullReportData
 import report.RFetchHeadersResponse
 import report.RFetchRecentGradesReceive
 import report.RFetchRecentGradesResponse
@@ -63,7 +65,7 @@ class ReportsController() {
 
     suspend fun updateReport(call: ApplicationCall) {
         val r = call.receive<RUpdateReportReceive>()
-        if (call.isTeacher) {
+        if (call.isTeacher || call.isModer) {
             try {
                 ReportHeaders.updateWholeReport(r)
 
@@ -74,6 +76,50 @@ class ReportsController() {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Can't update report: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun fetchFullReportData(call: ApplicationCall) {
+        val r = call.receive<RFetchFullReportData>()
+        if (call.isTeacher || call.isMember) {
+            try {
+                val l = ReportHeaders.fetchHeader(r.reportId)
+                println("DATE: ${l.date}")
+                println("TIME: ${l.time}")
+
+                call.respond(ReportData(
+                    header = ReportHeader(
+                        reportId = l.id,
+                        subjectName = l.subjectName,
+                        subjectId = l.subjectId,
+                        groupName = l.groupName,
+                        groupId = l.groupId,
+                        teacherName = l.teacherName,
+                        teacherLogin = l.teacherLogin,
+                        date = l.date,
+                        module = l.module,
+                        time = l.time,
+                        status = l.status,
+                        theme = l.topic
+                    ),
+//                    topic = l.topic,
+                    description = l.description,
+                    editTime = l.editTime,
+                    ids = l.ids,
+                    isMentorWas = l.isMentorWas,
+                    isEditable = call.login == l.teacherLogin || call.isModer,
+                    customColumns = l.customColumns
+                ))
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't create report: ${e.localizedMessage}"
                 )
             }
         } else {
@@ -256,7 +302,8 @@ class ReportsController() {
                                 reason = it.reason,
                                 isGoToAvg = it.isGoToAvg,
                                 groupId = it.groupId,
-                                date = it.date
+                                date = it.date,
+                                reportId = it.reportId
                             ),
                             module = it.part,
                             deployDate = it.deployDate,
@@ -275,7 +322,8 @@ class ReportsController() {
                                 reason = it.reason,
                                 isGoToAvg = it.isGoToAvg,
                                 groupId = it.groupId,
-                                date = it.date
+                                date = it.date,
+                                reportId = it.reportId
                             ),
                             module = it.part,
                             deployDate = it.deployDate,
@@ -329,7 +377,8 @@ class ReportsController() {
                         reason = it.reason,
                         isGoToAvg = it.isGoToAvg,
                         groupId = it.groupId,
-                        date = it.date
+                        date = it.date,
+                        reportId = it.reportId
                     )
                 }
 
@@ -414,7 +463,8 @@ class ReportsController() {
                                     reason = it.reason,
                                     isGoToAvg = it.isGoToAvg,
                                     groupId = it.groupId,
-                                    date = it.date
+                                    date = it.date,
+                                    reportId = it.reportId
                                 )
                             }
                         )
@@ -482,7 +532,8 @@ class ReportsController() {
                                     reason = it.reason,
                                     isGoToAvg = it.isGoToAvg,
                                     groupId = it.groupId,
-                                    date = it.date
+                                    date = it.date,
+                                    reportId = it.reportId
                                 )
                             },
                             stupCount = iStups.sumOf { it.content.toInt() },
@@ -493,7 +544,8 @@ class ReportsController() {
                                     reason = it.reason,
                                     isGoToAvg = it.isGoToAvg,
                                     groupId = it.groupId,
-                                    date = it.date
+                                    date = it.date,
+                                    reportId = it.reportId
                                 )
                             }
                         )
@@ -582,7 +634,8 @@ class ReportsController() {
                         date = it.date,
                         time = it.time,
                         status = it.status,
-                        module = it.module
+                        module = it.module,
+                        theme = it.topic
 //                            ids = it.ids,
 //                            isMentorWas = it.isMentorWas
                     )

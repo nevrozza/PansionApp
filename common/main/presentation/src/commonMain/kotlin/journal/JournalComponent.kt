@@ -12,6 +12,7 @@ import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
+import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import di.Inject
 import journal.init.TeacherGroup
@@ -40,9 +41,39 @@ class JournalComponent(
         storeFactory,
         name = "groupListInMainJournal",
         onItemClick = {
-//            onEvent(JournalStore.Intent.CreateUserForm(it.id))
             onEvent(JournalStore.Intent.OnGroupClicked(it.id.toInt(), getSixTime()))
         })
+
+    val fGroupListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "filterGroupListInMainJournal",
+        onItemClick = {
+            onEvent(JournalStore.Intent.FilterGroup(it.id.toInt()))
+        })
+    val fDateListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "filterDateListInMainJournal",
+        onItemClick = {
+            onEvent(JournalStore.Intent.FilterDate(it.id))
+        })
+    val fTeachersListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "filterTeacherListInMainJournal",
+        onItemClick = {
+            onEvent(JournalStore.Intent.FilterTeacher(it.id))
+        })
+    val fStatusListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "filterStatusListInMainJournal",
+        onItemClick = {
+            onEvent(JournalStore.Intent.FilterStatus(it.id.toBoolean()))
+        })
+
+
     val studentsInGroupCAlertDialogComponent = CAlertDialogComponent(
         componentContext,
         storeFactory,
@@ -61,11 +92,13 @@ class JournalComponent(
         studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
     }
 
-    fun getReportHeader(
+    private fun getReportHeader(
         teacherGroups: List<TeacherGroup> = state.value.teacherGroups
     ) : ReportHeader {
         val group =
             teacherGroups.first { it.cutedGroup.groupId == state.value.currentGroupId }
+        val time = if(state.value.time != "") state.value.time else getSixTime()
+        onEvent(JournalStore.Intent.ResetTime)
         return ReportHeader(
             reportId = model.value.creatingReportId,
             subjectName = group.subjectName,
@@ -75,9 +108,10 @@ class JournalComponent(
             teacherName = "${authRepository.fetchSurname()} ${authRepository.fetchName()[0]}. ${authRepository.fetchPraname()[0]}.",
             teacherLogin = authRepository.fetchLogin(),
             date = getDate(),
-            time = getSixTime(),
-            status = "0",
+            time = time,
+            status = false,
             module = state.value.currentModule,
+            theme = ""
         )
     }
 
@@ -86,7 +120,7 @@ class JournalComponent(
 
         val data = ReportData(
             header = header,
-            topic = "",
+//            topic = "",
             description = "",
             editTime = "",
             ids = 0,
@@ -113,8 +147,12 @@ class JournalComponent(
                 groupListComponent = groupListComponent,
                 studentsInGroupCAlertDialogComponent = studentsInGroupCAlertDialogComponent,
                 nInterface = nInterface,
-                nOpenReportInterface = nOpenReportInterface
+                nOpenReportInterface = nOpenReportInterface,
 //                authRepository = authRepository
+                fTeachersListComponent = fTeachersListComponent,
+                fGroupListComponent = fGroupListComponent,
+                fDateListComponent = fDateListComponent,
+                fStatusListComponent = fStatusListComponent
             ).create()
         }
 
@@ -125,6 +163,18 @@ class JournalComponent(
 
 
     init {
+        fStatusListComponent.onEvent(ListDialogStore.Intent.InitList(
+            listOf(
+                ListItem(
+                    id = "True",
+                    text = "Закончен"
+                ),
+                ListItem(
+                    id = "False",
+                    text = "В процессе"
+                )
+            )
+        ))
 //        onEvent(JournalStore.Intent.Init )
     }
 

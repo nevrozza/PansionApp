@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -31,6 +32,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.materialkolor.ktx.blend
+import com.materialkolor.ktx.harmonize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import report.UserMark
@@ -38,10 +41,21 @@ import server.fetchReason
 import view.handy
 
 @Composable
+fun Color.getMarkColor(mark: String) = this.blend(
+    when (mark) {
+        "5" -> Color.Red
+        "4" -> Color.Blue
+        "3" -> Color(0xFF138808)
+        else -> Color.Black
+    },
+    amount = 0.8f
+)
+
+@Composable
 fun MarkContent(
     mark: String,
-    background: Color = MaterialTheme.colorScheme.primary.copy(
-        alpha = .2f
+    background: Color = MaterialTheme.colorScheme.inversePrimary.copy(
+//        alpha = .2f
     ),
     addModifier: Modifier = Modifier,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
@@ -49,23 +63,25 @@ fun MarkContent(
     size: Dp = 25.dp,
     textYOffset: Dp = 0.dp
 ) {
+    val color = background.getMarkColor(mark).copy(alpha = .8f)
     Box(
         Modifier.padding(paddingValues)
             .offset(offset.x, offset.y)
             .size(size)
             .clip(RoundedCornerShape(percent = 30))
             .background(
-                background
+                color
             )
             .then(addModifier),
         contentAlignment = Alignment.Center
     ) {
         Text(
             mark,
-            fontSize = size.value.sp/1.6f,
+            fontSize = size.value.sp / 1.6f,
             modifier = Modifier.fillMaxSize().offset(y = textYOffset),
             textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Black
+            fontWeight = FontWeight.Black,
+            color = color.blend(Color.White, 1f)
         )
     }
 }
@@ -80,7 +96,10 @@ fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = tr
         state = tState,
         tooltip = {
             PlainTooltip(modifier = Modifier.clickable {}) {
-                Text(" ${if(showDate) "${mark.date}\n" else ""}${fetchReason(mark.reason)}", textAlign = TextAlign.Center)
+                Text(
+                    "${if (showDate) "${mark.date} " else ""}№${mark.reportId}\n${fetchReason(mark.reason)}",
+                    textAlign = TextAlign.Center
+                )
             }
         },
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()

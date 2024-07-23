@@ -14,10 +14,12 @@ import components.networkInterface.NetworkInterface
 class AllGroupMarksStoreFactory(
     private val storeFactory: StoreFactory,
     private val groupId: Int,
+    private val login: String,
     private val subjectId: Int,
     private val groupName: String,
     private val subjectName: String,
     private val nInterface: NetworkInterface,
+    private val nOpenReportInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
     private val stupsDialogComponent: CAlertDialogComponent
 ) {
@@ -35,11 +37,13 @@ class AllGroupMarksStoreFactory(
                 groupName = groupName,
                 subjectId = subjectId,
                 subjectName = subjectName,
+                login = login
             ),
             executorFactory = { AllGroupMarksExecutor(
                 journalRepository = journalRepository,
                 nInterface = nInterface,
-                stupsDialogComponent = stupsDialogComponent
+                stupsDialogComponent = stupsDialogComponent,
+                nOpenReportInterface = nOpenReportInterface
             ) },
             reducer = AllGroupMarksReducer
         )

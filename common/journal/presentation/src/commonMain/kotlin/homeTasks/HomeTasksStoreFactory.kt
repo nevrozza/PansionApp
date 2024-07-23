@@ -8,7 +8,12 @@ import homeTasks.HomeTasksStore.Label
 import homeTasks.HomeTasksStore.State
 import homeTasks.HomeTasksStore.Message
 
-class HomeTasksStoreFactory(private val storeFactory: StoreFactory) {
+class HomeTasksStoreFactory(
+    private val storeFactory: StoreFactory,
+    private val login: String,
+    private val avatarId: Int,
+    private val name: String
+) {
 
     fun create(): HomeTasksStore {
         return HomeTasksStoreImpl()
@@ -18,7 +23,11 @@ class HomeTasksStoreFactory(private val storeFactory: StoreFactory) {
         HomeTasksStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "HomeTasksStore",
-            initialState = HomeTasksStore.State,
+            initialState = HomeTasksStore.State(
+                login = login,
+                avatarId = avatarId,
+                name = name
+            ),
             executorFactory = { HomeTasksExecutor() },
             reducer = HomeTasksReducer
         )

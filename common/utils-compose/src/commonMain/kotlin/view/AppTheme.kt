@@ -5,11 +5,16 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
+import com.materialkolor.ktx.blend
 import resources.GeologicaFont
+
+@Composable
+fun Color.blend(to: Color, amount: Float = .8f) = this.blend(to = to, amount = amount)
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {

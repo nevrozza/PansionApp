@@ -155,6 +155,8 @@ kotlin {
             implementation(libs.mvikotlin.coroutines)
 
             implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
 
 
             implementation(project(":common:core"))

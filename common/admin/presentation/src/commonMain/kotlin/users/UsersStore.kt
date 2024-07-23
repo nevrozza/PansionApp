@@ -5,11 +5,13 @@ import com.arkivanov.mvikotlin.core.store.Store
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.Serializable
 import users.UsersStore.Intent
 import users.UsersStore.Label
 import users.UsersStore.State
 
 interface UsersStore : Store<Intent, State, Label> {
+    @Serializable
     data class State(
         val users: List<User>? = null,
         val isDateDialogShowing: Boolean = false,

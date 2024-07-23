@@ -157,6 +157,10 @@ class LessonReportComponent(
     }
 
     fun onOutput(output: Output) {
+        //ONLY ONE OUTPUT
+        if(model.value.isUpdateNeeded) {
+            onEvent(LessonReportStore.Intent.UpdateWholeReport)
+        }
         output(output)
     }
 

@@ -2,6 +2,7 @@ plugins {
     id("multiplatform-setup")
 //    id("android-setup")
     id("kotlin-parcelize")
+    id(libs.plugins.serialization.get().pluginId)
 }
 
 kotlin {
@@ -19,7 +20,7 @@ kotlin {
                 implementation(libs.mvikotlin.core)
                 implementation(libs.mvikotlin.coroutines)
                 implementation(libs.kotlinx.datetime)
-
+                implementation(libs.kotlinx.serialization.core)
             }
         }
     }

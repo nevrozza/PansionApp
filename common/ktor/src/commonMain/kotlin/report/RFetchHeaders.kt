@@ -21,7 +21,8 @@ data class ReportHeader(
     val date: String,
     val module: String,
     val time: String,
-    val status: String,
+    val status: Boolean,
+    val theme: String
 //    val ids: Int,
 //    val isMentorWas: Boolean
 )

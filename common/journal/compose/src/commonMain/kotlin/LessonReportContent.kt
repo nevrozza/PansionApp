@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -38,8 +39,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AddHomeWork
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LocalPolice
 import androidx.compose.material.icons.rounded.MoreVert
@@ -58,7 +61,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.HorizontalDivider
@@ -66,9 +72,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -102,6 +114,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
@@ -115,6 +128,7 @@ import components.CustomTextField
 import components.MarkContent
 import components.ReportTitle
 import components.SaveAnimation
+import components.ErrorAnimation
 import components.ScrollBaredBox
 import components.TeacherTime
 import components.cAlertDialog.CAlertDialogStore
@@ -125,6 +139,10 @@ import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import dnevnikRuMarks.DnevnikRuMarkStore
+import homeTasks.HomeTasksStore
+import homework.ClientReportHomeworkItem
+import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lessonReport.ColumnTypes
@@ -134,12 +152,14 @@ import lessonReport.MarkColumn
 import lessonReport.Stup
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
+import server.Roles
 import server.getDate
 import server.getSixTime
 import server.roundTo
 import server.toMinutes
 import view.LocalViewManager
 import view.LockScreenOrientation
+import view.blend
 import view.rememberImeState
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -184,29 +204,44 @@ fun LessonReportContent(
                 LessonReportTopBar(component, isFullView) //, scrollBehavior
             },
             floatingActionButton = {
-
-                Crossfade(nModel.state) {
-                    SmallFloatingActionButton(
-                        onClick = {
-                            if (it != NetworkState.Loading) {
-                                component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
-                            }
+                Row(
+                    modifier = Modifier.animateContentSize(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AnimatedContent(if (model.status) "Заполнен" else "В процессе") {
+                        Text(it)
+                    }
+                    Checkbox(
+                        checked = model.status,
+                        onCheckedChange = {
+                            component.onEvent(LessonReportStore.Intent.ChangeStatus(it))
                         }
-                    ) {
-                        when (it) {
-                            NetworkState.None -> {
-                                Icon(
-                                    Icons.Rounded.Save,
-                                    null
-                                )
-                            }
+                    )
+                    AnimatedVisibility(model.isUpdateNeeded) {
+                        Crossfade(nModel.state) {
+                            SmallFloatingActionButton(
+                                onClick = {
+                                    if (it != NetworkState.Loading && model.isUpdateNeeded) {
+                                        component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
+                                    }
+                                }
+                            ) {
+                                when (it) {
+                                    NetworkState.None -> {
+                                        Icon(
+                                            Icons.Rounded.Save,
+                                            null
+                                        )
+                                    }
 
-                            NetworkState.Loading -> {
-                                CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                            }
+                                    NetworkState.Loading -> {
+                                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                                    }
 
-                            NetworkState.Error -> {
-                                Text("Попробовать ещё раз")
+                                    NetworkState.Error -> {
+                                        Text("Попробовать ещё раз")
+                                    }
+                                }
                             }
                         }
                     }
@@ -310,6 +345,7 @@ fun LessonReportContent(
                     component = component.deleteMarkMenuComponent,
                     title =
                     markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName + " - " + markValue
+                            + "\n" + model.selectedDeploy
                 )
             }
 
@@ -363,6 +399,43 @@ fun LessonReportContent(
                                 }
 
                             }
+
+                            LessonReportStore.SettingsTab.HomeWorkTab -> {
+                                Column {
+                                    Box(
+                                        Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            "Домашние задания",
+                                            modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 25.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Row(Modifier.align(Alignment.CenterEnd)) {
+                                            IconButton(
+                                                onClick = {}
+                                            ) {
+                                                Icon(
+                                                    Icons.Rounded.Save,
+                                                    null
+                                                )
+                                            }
+                                            IconButton(
+                                                onClick = {}
+                                            ) {
+                                                Icon(
+                                                    Icons.Rounded.History,
+                                                    null
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Spacer(Modifier.height(15.dp))
+
+                                    HomeWorkTabContent(component)
+                                }
+                            }
                         }
                     }
                     Column() {
@@ -397,6 +470,23 @@ fun LessonReportContent(
                         ) {
                             Icon(
                                 Icons.Rounded.ViewWeek,
+                                null
+                            )
+                        }
+                        FilledTonalIconToggleButton(
+                            checked = model.settingsTab == LessonReportStore.SettingsTab.HomeWorkTab,
+                            onCheckedChange = {
+                                if (it) {
+                                    component.onEvent(
+                                        LessonReportStore.Intent.ChangeSettingsTab(
+                                            LessonReportStore.SettingsTab.HomeWorkTab
+                                        )
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.AddHomeWork,
                                 null
                             )
                         }
@@ -467,9 +557,241 @@ fun LessonReportContent(
         SaveAnimation(model.isSavedAnimation) {
             component.onEvent(LessonReportStore.Intent.IsSavedAnimation(false))
         }
+        ErrorAnimation(
+            textError = "Не удалось загрузить отчёт\nна сервер",
+            isShowing = model.isErrorAnimation
+        ) {
+            component.onEvent(LessonReportStore.Intent.IsErrorAnimation(false))
+        }
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeWorkTabContent(
+    component: LessonReportComponent
+) {
+    val model by component.model
+
+
+    val tabs =
+        (setOf(null) + (model.hometasks.map { it.studentLogins } + model.homeTasksNewTabs).toSet()).toList()
+    val selectedTabIndex = remember { mutableStateOf(0) }
+    Column(
+        Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)
+            .padding(start = 30.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            SecondaryScrollableTabRow(
+                selectedTabIndex = selectedTabIndex.value,
+                divider = {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(
+                            alpha = .4f
+                        )
+                    )
+                },
+                containerColor = Color.Transparent,
+                edgePadding = 0.dp
+            ) {
+                tabs.forEachIndexed { i, tab ->
+                    val tabText = if (tab != null) {
+                        (model.students.filter { it.login in tab }).toString()
+                    } else "Все"
+                    Tab(
+                        selected = selectedTabIndex.value == i,
+                        onClick = {
+                            selectedTabIndex.value = i
+                        },
+                        text = {
+                            Text(
+                                tabText,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 2
+                            )
+                        },
+                        modifier = Modifier.width(
+                            (((this@BoxWithConstraints.maxWidth / tabs.count()
+                                .toFloat()) - 1.dp) - (80.dp / tabs.count())).coerceAtLeast(100.dp)
+                        )
+                    )
+                }
+                IconButton(
+                    onClick = {}
+                ) {
+                    Icon(
+                        Icons.Rounded.Add,
+                        null
+                    )
+                }
+            }
+        }
+
+        val tasks = model.hometasks.filter { it.studentLogins == tabs[selectedTabIndex.value] }
+        tasks.forEach {
+            ReportHomeTaskItem(
+                task = it,
+                component = component
+            )
+        }
+        if (tasks.none { it.type == "" || it.text == "" }) {
+            TextButton(
+                onClick = {
+                    component.onEvent(
+                        LessonReportStore.Intent.AddEmptyHomeTask(
+                            studentLogins = tabs[selectedTabIndex.value]
+                        )
+                    )
+                }
+            ) {
+                Text("Добавить задание")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun ReportHomeTaskItem(
+    task: CreateReportHomeworkItem,
+    component: LessonReportComponent
+) {
+    val isStups = task.type != "" && task.type.subSequence(0, 3) == "!st"
+
+    var expandedType by remember { mutableStateOf(false) }
+
+    val typesList = mapOf(
+        "!dz1" to fetchReason("!dz1"),
+        "!dz2" to fetchReason("!dz2"),
+        "!dz3" to fetchReason("!dz3"),
+        "!dz4" to fetchReason("!dz4"),
+        "!st1" to fetchReason("!st1"),
+        "!st2" to fetchReason("!st2"),
+        "!st3" to fetchReason("!st3"),
+        "!st5" to fetchReason("!st5"),
+    )
+    Box(
+        modifier = Modifier.padding(top = 6.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(15.dp))
+            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+    ) {
+        Column(Modifier.padding(4.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                ExposedDropdownMenuBox(
+                    expanded = expandedType,
+                    onExpandedChange = {
+                        expandedType = !expandedType
+                    }
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(.6f)
+                            .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                        readOnly = true,
+                        value = typesList[task.type] ?: "Выберите",
+                        placeholder = { Text("Выберите") },
+                        onValueChange = {},
+                        label = { Text("Тип") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = expandedType
+                            )
+                        },
+                        shape = RoundedCornerShape(15.dp)
+                    )
+                    // menu
+                    ExposedDropdownMenu(
+                        expanded = expandedType,
+                        onDismissRequest = {
+                            expandedType = false
+                        },
+                    ) {
+                        // menu items
+                        typesList.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption.value) },
+                                onClick = {
+                                    component.onEvent(
+                                        LessonReportStore.Intent.ChangeHomeTaskType(
+                                            id = task.id,
+                                            type = selectionOption.key
+                                        )
+                                    )
+                                    expandedType = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.width(8.dp))
+                if (isStups) {
+                    CustomTextField(
+                        value = if (task.stups == 0) "" else task.stups.toString(),
+                        onValueChange = {
+                            component.onEvent(
+                                LessonReportStore.Intent.ChangeHomeTaskAward(
+                                    id = task.id,
+                                    award = if (it == "") 0 else it.toInt()
+                                )
+                            )
+                        },
+                        text = "Награда",
+                        supText = "макс: ${getMaxStupsCount(task.type)}",
+                        isEnabled = true,
+                        isMoveUpLocked = true,
+                        autoCorrect = true,
+                        keyboardType = KeyboardType.Text,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    FilesButton(
+                        Modifier.padding(top = 7.dp).height(TextFieldDefaults.MinHeight)
+                    )
+                }
+            }
+            CustomTextField(
+                value = task.text,
+                onValueChange = {
+                    component.onEvent(
+                        LessonReportStore.Intent.ChangeHomeTaskText(
+                            id = task.id,
+                            text = it
+                        )
+                    )
+                },
+                text = "Задание",
+                supText = "Текст задания",
+                isEnabled = true,
+                isMoveUpLocked = true,
+                autoCorrect = true,
+                keyboardType = KeyboardType.Text,
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (isStups) {
+                FilesButton()
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun FilesButton(modifier: Modifier = Modifier) {
+    FilledTonalButton(
+        onClick = {},
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(15.dp)
+    ) {
+        Text("Файлы")
+    }
+}
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
@@ -600,14 +922,13 @@ private fun SetupTabContent(
             }
             if (model.editTime.isNotEmpty()) {
                 Box(modifier = Modifier.height(48.dp), contentAlignment = Alignment.Center) {
-                    Text("Последнее изменение: ${model.editTime}")
-
+                    Text("Изменено: ${model.editTime}")
                 }
             }
             //MAKE BUTTON FOR RETRY
             AnimatedElevatedButton(
-                text = "Сохранить",
-                isEnabled = nModel.state == NetworkState.None,
+                text = if (nModel.state != NetworkState.Error) "Сохранить" else "Ещё раз",
+                isEnabled = nModel.state != NetworkState.Error && model.isUpdateNeeded,
 //                modifier = Modifier.height(48.dp)
             ) {
                 component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
@@ -1082,16 +1403,23 @@ fun LessonTable(
                     state = vScrollState,
                 ) {
                     itemsIndexed(items = model.students.sortedBy { it.shortFio }) { index, student ->
+                        val fioColor =
+                            MaterialTheme.colorScheme
+                                .onSurface.blend(
+                                    when (student.login) {
+                                        in model.likedList -> Color.Green
+                                        in model.dislikedList -> Color.Red
+                                        else -> MaterialTheme.colorScheme
+                                            .onSurface
+                                    }
+                                )
+
                         Column {
                             Text(
                                 text = student.shortFio,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (student.login in model.likedList) Color.Green.copy(
-                                    alpha = .3f
-                                ) else if (student.login in model.dislikedList) Color.Red.copy(
-                                    alpha = .3f
-                                ) else MaterialTheme.colorScheme.onSurface,
+                                color = fioColor,
                                 modifier = Modifier
                                     .padding(start = 10.dp)
                                     .offset(with(density) { hScrollState.value.toDp() })
@@ -1322,8 +1650,7 @@ fun LessonTable(
                                                                                 reasonId = column.type,
                                                                                 studentLogin = student.login,
                                                                                 markValue = index,
-                                                                                x = 0f,
-                                                                                y = 0f
+                                                                                selectedDeploy = "${mark.deployLogin}: ${mark.deployDate} (${mark.deployTime})"
                                                                             )
                                                                         )
                                                                     },
@@ -1339,6 +1666,7 @@ fun LessonTable(
                                                                         x = 27.dp,
                                                                         y = -18.dp
                                                                     ),
+                                                                    title = "Выставил ${mark.deployLogin}\nв ${mark.deployDate} (${mark.deployTime})",
                                                                     isFullHeight = true
                                                                 )
                                                             }
@@ -1405,15 +1733,16 @@ fun LessonTable(
                                                 Stepper(
                                                     isEditable = model.isEditable,
                                                     count = (student.stupsOfCurrentLesson.firstOrNull { it.reason == column.type }
-                                                        ?: Stup(0, "", id = model.ids, deployTime = "", deployLogin = "", deployDate = "")).value,
+                                                        ?: Stup(
+                                                            0,
+                                                            "",
+                                                            id = model.ids,
+                                                            deployTime = "",
+                                                            deployLogin = "",
+                                                            deployDate = ""
+                                                        )).value,
                                                     maxCount =
-                                                    when (reason) {
-                                                        "!ds1" -> 1
-                                                        "!ds2" -> 1
-                                                        "!ds3" -> 0
-                                                        "!st5" -> 1
-                                                        else -> 3
-                                                    },
+                                                    getMaxStupsCount(reason),
                                                     minCount =
                                                     when (reason) {
                                                         "!st1" -> -1
@@ -1526,6 +1855,14 @@ private fun Stepper(
     }
 }
 
+private fun getMaxStupsCount(reason: String) = when (reason) {
+    "!ds1" -> 1
+    "!ds2" -> 1
+    "!ds3" -> 0
+    "!st5" -> 1
+    else -> 3
+}
+
 //val isCollapsed = remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.5 } }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1548,13 +1885,14 @@ fun LessonReportTopBar(
                     time = model.time,
                     date = model.date,
                     isFullView = isFullView,
-                    isStartPadding = true
+                    isStartPadding = true,
+                    isEnded = model.status //false
                 ) {
                     component.onEvent(LessonReportStore.Intent.ChangeInfoShowing)
                 }
                 if (isFullView) {
                     Text(
-                        text = if (model.topic.isNotEmpty()) model.topic else "Тема не задана",
+                        text = model.topic.ifEmpty { "Тема не задана" },
                         modifier = Modifier.fillMaxWidth().padding(start = 3.dp),
                         textAlign = TextAlign.Center,
                         overflow = TextOverflow.Ellipsis,
@@ -1624,8 +1962,8 @@ fun Modifier.setMarksBind(
             ) && it.type == KeyEventType.KeyDown
         ) {
             var mark = it.key.toString().split(" ", "-").last()
-            if(mark.toInt() > 9) {
-                mark = (mark.last().code +4).toString().last().toString()
+            if (mark.toInt() > 9) {
+                mark = (mark.last().code + 4).toString().last().toString()
             }
             component.setMarkMenuComponent.onClick(
                 ListItem(

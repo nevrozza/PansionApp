@@ -18,6 +18,10 @@ object JournalReducer : Reducer<State, Message> {
             Message.ReportDataReseted -> copy(openingReportData = null)
             is Message.ReportDataFetched -> copy(openingReportData = msg.reportData)
             is Message.TimeChanged -> copy(time = msg.time)
+            is Message.DateFiltered -> copy(filterDate = msg.date)
+            is Message.GroupFiltered -> copy(filterGroupId = msg.groupId)
+            is Message.StatusFiltered -> copy(filterStatus = msg.bool)
+            is Message.TeacherFiltered -> copy(filterTeacherLogin = msg.teacherLogin)
         }
     }
 }

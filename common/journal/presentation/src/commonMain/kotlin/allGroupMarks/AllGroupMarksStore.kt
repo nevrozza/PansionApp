@@ -1,5 +1,6 @@
 package allGroupMarks
 
+import ReportData
 import com.arkivanov.mvikotlin.core.store.Store
 import allGroupMarks.AllGroupMarksStore.Intent
 import allGroupMarks.AllGroupMarksStore.Label
@@ -15,18 +16,24 @@ interface AllGroupMarksStore : Store<Intent, State, Label> {
         val subjectName: String,
         val groupName: String,
         val students: List<AllGroupMarksStudent> = emptyList(),
-        val detailedStupsLogin: String = ""
+        val detailedStupsLogin: String = "",
+        val reportData: ReportData? = null,
+        val login: String
     )
 
     sealed interface Intent {
         data object Init: Intent
         data class OpenDetailedStups(val studentLogin: String) : Intent
+
+        data class OpenFullReport(val reportId: Int) : Intent
+
+        data object DeleteReport: Intent
     }
 
     sealed interface Message {
         data class StudentsUpdated(val students: List<AllGroupMarksStudent>) : Message
         data class DetailedStupsOpened(val login: String) : Message
-
+        data class FullReportOpened(val reportData: ReportData?) : Message
     }
 
     sealed interface Label

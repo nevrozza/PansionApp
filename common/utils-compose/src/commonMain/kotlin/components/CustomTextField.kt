@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -76,7 +77,8 @@ fun CustomTextField(
     imeAction: ImeAction = ImeAction.None,
     autoCorrect: Boolean = true,
     isDateEntry: Boolean = false,
-    isSingleLine: Boolean = true
+    isSingleLine: Boolean = true,
+    width: Dp = TextFieldDefaults.MinWidth
 //    onEnterClicked: (() -> Unit)? = null,
 //    onBackClicked: (() -> Unit)? = null,
 ) {
@@ -88,7 +90,7 @@ fun CustomTextField(
 
     var passwordVisible by rememberSaveable() { mutableStateOf(passwordVisibleInit ?: true) }
     OutlinedTextField(
-        modifier = modifier.heightIn(min = 65.dp).width(TextFieldDefaults.MinWidth).onPreviewKeyEvent {
+        modifier = modifier.heightIn(min = 65.dp).width(width).onPreviewKeyEvent {
             if (focusManager != null) {
                 onNextButtonClicked(it) {
                     focusManager.moveFocus(FocusDirection.Next)

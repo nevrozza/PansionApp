@@ -11,7 +11,7 @@ data class RUpdateReportReceive(
     val topic: String,
     val description: String,
     val columnNames: List<String>,
-    val status: String,
+    val status: Boolean,
     val ids: Int,
     val editTime: String,
     val isMentorWas: Boolean,

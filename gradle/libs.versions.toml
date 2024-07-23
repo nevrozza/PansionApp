@@ -16,8 +16,8 @@ ktor = "3.0.0-wasm2"
 sqldelight = "2.0.1"
 settings = "1.1.1"
 di = "7.21.2"
-decompose = "3.0.0"
-mvikotlin = "4.0.0-alpha02" #"3.3.0" #4.0.0-alpha02
+decompose = "3.2.0-alpha02"
+mvikotlin = "4.1.0" #"3.3.0" #4.0.0-alpha02
 moko = "0.24.0-alpha-4"
 mokographics = "0.9.0"
 

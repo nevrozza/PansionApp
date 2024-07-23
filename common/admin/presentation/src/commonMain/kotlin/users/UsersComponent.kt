@@ -9,6 +9,7 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
 import di.Inject
+import users.UsersStore.State
 
 class UsersComponent(
     componentContext: ComponentContext,
@@ -37,14 +38,16 @@ class UsersComponent(
     )
 
     private val usersStore =
-        instanceKeeper.getStore {
+        instanceKeeper.getStore(key = "UsersStoreState") {
+            println("Store: $stateKeeper")
+            println("Instance: $instanceKeeper")
             UsersStoreFactory(
                 storeFactory = storeFactory,
                 adminRepository = adminRepository,
                 nUsersInterface = nUsersInterface,
                 eUserBottomSheet = eUserBottomSheet,
                 cUserBottomSheet = cUserBottomSheet
-            ).create()
+            ).create(stateKeeper)
         }
 
     private val backCallback = BackCallback {
@@ -53,7 +56,12 @@ class UsersComponent(
 
 
     init {
+        println("INITED: sad")
+
         backHandler.register(backCallback)
+//        if(!stKeeper.isRegistered("UsersStoreState")) {
+
+//        }
         onEvent(UsersStore.Intent.FetchUsersInit)
     }
 

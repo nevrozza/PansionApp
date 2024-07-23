@@ -16,7 +16,12 @@ class JournalStoreFactory(
     private val groupListComponent: ListComponent,
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent,
     private val nInterface: NetworkInterface,
-    private val nOpenReportInterface: NetworkInterface
+    private val nOpenReportInterface: NetworkInterface,
+
+    private val fDateListComponent: ListComponent,
+    private val fGroupListComponent: ListComponent,
+    private val fTeachersListComponent: ListComponent,
+    private val fStatusListComponent: ListComponent,
 ) {
 
     fun create(): JournalStore {
@@ -33,7 +38,11 @@ class JournalStoreFactory(
                 groupListComponent = groupListComponent,
                 studentsInGroupCAlertDialogComponent = studentsInGroupCAlertDialogComponent,
                 nInterface = nInterface,
-                nOpenReportInterface = nOpenReportInterface
+                nOpenReportInterface = nOpenReportInterface,
+                fDateListComponent = fDateListComponent,
+                fGroupListComponent = fGroupListComponent,
+                fTeachersListComponent = fTeachersListComponent,
+                fStatusListComponent = fStatusListComponent
             ) },
             reducer = JournalReducer
         )

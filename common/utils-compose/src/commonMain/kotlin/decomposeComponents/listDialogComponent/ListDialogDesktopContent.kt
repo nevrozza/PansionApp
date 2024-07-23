@@ -27,7 +27,8 @@ fun ListDialogDesktopContent(
     component: ListComponent,
     isFullHeight: Boolean = false,
     offset: DpOffset = DpOffset(x = 40.dp, y = -25.dp),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    title: String? = null
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
@@ -57,7 +58,8 @@ fun ListDialogDesktopContent(
                         .onPlaced {
                             focusRequester.requestFocus()
                         }
-                )
+                ),
+                title = title
             )
         }
 

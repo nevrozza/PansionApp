@@ -1,6 +1,7 @@
 package users
 
 import AdminRepository
+import com.arkivanov.essenty.statekeeper.StateKeeper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
@@ -14,24 +15,30 @@ class UsersStoreFactory(
     private val adminRepository: AdminRepository,
     private val nUsersInterface: NetworkInterface,
     private val eUserBottomSheet: CBottomSheetComponent,
-    private val cUserBottomSheet: CBottomSheetComponent,
+    private val cUserBottomSheet: CBottomSheetComponent
 ) {
 
-    fun create(): UsersStore {
-        return UsersStoreImpl()
-    }
-
-    private inner class UsersStoreImpl :
+    fun create(stateKeeper: StateKeeper): UsersStore =
+        object :
         UsersStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "UsersStore",
-            initialState = UsersStore.State(),
-            executorFactory = { UsersExecutor(
-                adminRepository = adminRepository,
-                nUsersInterface = nUsersInterface,
-                eUserBottomSheet = eUserBottomSheet,
-                cUserBottomSheet = cUserBottomSheet
-            ) },
+            initialState = stateKeeper.consume(
+                key = "UsersStoreState",
+                strategy = State.serializer()
+            ) ?: UsersStore.State(),
+            executorFactory = {
+                UsersExecutor(
+                    adminRepository = adminRepository,
+                    nUsersInterface = nUsersInterface,
+                    eUserBottomSheet = eUserBottomSheet,
+                    cUserBottomSheet = cUserBottomSheet
+                )
+            },
             reducer = UsersReducer
-        )
+        ) {}.also {
+            stateKeeper.register("UsersStoreState", strategy = State.serializer()) {
+                it.state
+            }
+        }
 }

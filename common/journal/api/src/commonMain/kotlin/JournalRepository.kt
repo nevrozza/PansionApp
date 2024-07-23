@@ -13,6 +13,8 @@ interface JournalRepository {
 
     suspend fun fetchDnevnikRuMarks(login: String, quartersNum: String, isQuarters: Boolean) : RFetchDnevnikRuMarksResponse
 
+    suspend fun fetchFullReportData(reportId: Int) : ReportData
+
     suspend fun fetchSubjectQuarterMarks(login: String, subjectId: Int, quartersNum: String) : RFetchSubjectQuarterMarksResponse
 
     suspend fun fetchIsQuarter(login: String) : RIsQuartersResponse

@@ -58,9 +58,8 @@ fun main() {
             componentContext = DefaultComponentContext(
                 lifecycle = lifecycle
             ),
-            //deepLink = RootComponentImpl.DeepLink.Web(path = window.location.pathname),
-            //path = window.location.pathname,
-            //webHistoryController = DefaultWebHistoryController(),
+            deepLink = RootComponentImpl.DeepLink.Web(path = window.location.pathname),
+            webHistoryController = DefaultWebHistoryController(),
             storeFactory = DefaultStoreFactory()
         )
 

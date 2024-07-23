@@ -9,6 +9,7 @@ object AllGroupMarksReducer : Reducer<State, Message> {
         return when (msg) {
             is Message.StudentsUpdated -> copy(students = msg.students)
             is Message.DetailedStupsOpened -> copy(detailedStupsLogin = msg.login)
+            is Message.FullReportOpened -> copy(reportData = msg.reportData)
         }
     }
 }

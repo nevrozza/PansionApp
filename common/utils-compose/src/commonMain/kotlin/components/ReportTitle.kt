@@ -1,5 +1,6 @@
 package components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Person
@@ -40,108 +42,115 @@ fun ReportTitle(
     time: String,
     isFullView: Boolean,
     isStartPadding: Boolean,
+    isEnded: Boolean,
     onClick: (() -> Unit)?
 ) {
     val bigTextSize = 20.sp// if (!isLarge) else 40.sp
     val smallTextSize = 14.sp//if (!isLarge)  else 28.sp
     val startPadding = if (isStartPadding) 10.dp else 0.dp//if (!isLarge)  else 5.dp
-    Box(
-        Modifier.padding(start = startPadding).clip(RoundedCornerShape(15.dp)).then(
-            if (onClick != null) {
-                Modifier.clickable(enabled = !isFullView) {
-                    onClick()
+    Box() {
+        if(isEnded) {
+            Box(Modifier.offset(x = (-8).dp, y = (-10).dp).align(Alignment.CenterStart).size(5.dp).clip(
+                CircleShape).background(MaterialTheme.colorScheme.primary))
+        }
+        Box(
+            Modifier.padding(start = startPadding).clip(RoundedCornerShape(15.dp)).then(
+                if (onClick != null) {
+                    Modifier.clickable(enabled = !isFullView) {
+                        onClick()
+                    }
+                } else {
+                    Modifier
                 }
-            } else {
-                Modifier
-            }
-        )
-    ) {
-        Column(
-            Modifier.padding(horizontal = 3.dp)
+            )
         ) {
-            Row {
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append(subjectName)
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.Black,
-                                fontSize = smallTextSize,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
-                            )
-                        ) {
-                            append(" $date")
-                        }
-                        if (isFullView) {
-
-
+            Column(
+                Modifier.padding(horizontal = 3.dp)
+            ) {
+                Row {
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(
+                                SpanStyle(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(subjectName)
+                            }
                             withStyle(
                                 SpanStyle(
                                     fontWeight = FontWeight.Black,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(
-                                        alpha = .2f
-                                    )
+                                    fontSize = smallTextSize,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
                                 )
                             ) {
-                                append(" в ${time}")
+                                append(" $date")
                             }
-                        }
-                    },
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = bigTextSize,
-                    maxLines = 1,
-                    style = androidx.compose.material3.LocalTextStyle.current.copy(
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Bottom,
-                            trim = LineHeightStyle.Trim.LastLineBottom
+                            if (isFullView) {
+
+
+                                withStyle(
+                                    SpanStyle(
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(
+                                            alpha = .2f
+                                        )
+                                    )
+                                ) {
+                                    append(" в ${time}")
+                                }
+                            }
+                        },
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = bigTextSize,
+                        maxLines = 1,
+                        style = androidx.compose.material3.LocalTextStyle.current.copy(
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Bottom,
+                                trim = LineHeightStyle.Trim.LastLineBottom
+                            )
                         )
                     )
-                )
 
 
-            }
-            Row {
-                Text(
+                }
+                Row {
+                    Text(
 
-                    text = buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.Bold
+                        text = buildAnnotatedString {
+                            withStyle(
+                                SpanStyle(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(groupName)
+                            }
+                            withStyle(
+                                SpanStyle(
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = .2f)
+                                )
+                            ) {
+                                append(" №$lessonReportId")
+                            }
+                        },
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        style = androidx.compose.material3.LocalTextStyle.current.copy(
+                            fontSize = smallTextSize,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Top,
+                                trim = LineHeightStyle.Trim.FirstLineTop
                             )
-                        ) {
-                            append(groupName)
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .2f)
-                            )
-                        ) {
-                            append(" №$lessonReportId")
-                        }
-                    },
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    style = androidx.compose.material3.LocalTextStyle.current.copy(
-                        fontSize = smallTextSize,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Top,
-                            trim = LineHeightStyle.Trim.FirstLineTop
                         )
                     )
-                )
-                if (isFullView) {
-                    Spacer(Modifier.width(4.dp))
-                    Box(Modifier.offset(y = -2.dp)) {
-                        TeacherTime(teacher, time, false)
+                    if (isFullView) {
+                        Spacer(Modifier.width(4.dp))
+                        Box(Modifier.offset(y = -2.dp)) {
+                            TeacherTime(teacher, time, false)
+                        }
                     }
                 }
             }

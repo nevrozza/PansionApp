@@ -23,6 +23,7 @@ object RequestPaths {
         const val FetchReportHeaders = "server/reports/fetchHeaders"
         const val FetchDetailedStups = "server/reports/fetchDetailedStups"
         const val FetchReportData = "server/reports/fetchData"
+        const val FetchFullReportData = "server/reports/fetchFullData"
         const val FetchAllGroupMarks = "server/reports/fetchAllGroupMarks"
         const val CreateReport = "server/reports/create"
         const val UpdateReport = "server/reports/update"

@@ -21,7 +21,7 @@ data class ReportHeadersDTO(
     val description: String,
     val customColumns: List<String>,
     val isMentorWas: Boolean,
-    val status: String,
+    val status: Boolean,
     val ids: Int,
     val editTime: String,
     val module: String

@@ -1,6 +1,8 @@
 package allGroupMarks
 
+import AuthRepository
 import JournalRepository
+import ReportData
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.backhandler.BackCallback
@@ -25,10 +27,12 @@ class AllGroupMarksComponent(
     private val subjectName: String,
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
-//    private val authRepository: AuthRepository = Inject.instance()
+    private val authRepository: AuthRepository = Inject.instance()
 
     val nInterface =
         NetworkInterface(componentContext, storeFactory, "AllGroupMarksComponent")
+    val nOpenReportInterface =
+        NetworkInterface(componentContext, storeFactory, "OpenReportAllGroupMarksComponent")
 
     val journalRepository: JournalRepository = Inject.instance()
 
@@ -49,7 +53,9 @@ class AllGroupMarksComponent(
                 subjectName = subjectName,
                 nInterface = nInterface,
                 journalRepository = journalRepository,
-                stupsDialogComponent = stupsDialogComponent
+                stupsDialogComponent = stupsDialogComponent,
+                nOpenReportInterface = nOpenReportInterface,
+                login = authRepository.fetchLogin()
             ).create()
         }
 
@@ -78,6 +84,6 @@ class AllGroupMarksComponent(
 
     sealed class Output {
         data object BackToHome : Output()
-
+        data class OpenReport(val reportData: ReportData) : Output()
     }
 }

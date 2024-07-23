@@ -20,7 +20,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -53,7 +52,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
 import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.CalendarToday
-import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ButtonDefaults
@@ -76,18 +74,14 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -96,7 +90,6 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
@@ -106,7 +99,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -119,6 +111,7 @@ import components.GetAvatar
 import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
 import components.cMark
+import components.getMarkColor
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -133,7 +126,6 @@ import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
 import report.UserMark
-import resources.Images
 import server.Roles
 import server.fetchReason
 import server.getCurrentDayTime
@@ -143,6 +135,7 @@ import server.toMinutes
 import server.weekPairs
 import view.LocalViewManager
 import view.WindowScreen
+import view.blend
 import view.handy
 import view.rememberImeState
 
@@ -473,7 +466,9 @@ fun TeacherHomeContent(
                                         teacher = item.teacherName,
                                         time = item.time,
                                         isEnabled = true,
-                                        isActive = true
+                                        isActive = true,
+                                        isEnded = item.status,
+                                        theme = item.theme
                                     ) {
                                         component.journalComponent!!.onEvent(
                                             JournalStore.Intent.FetchReportData(
@@ -846,7 +841,8 @@ fun StudentHomeContent(
                                         component.onOutput(
                                             HomeComponent.Output.NavigateToTasks(
                                                 studentLogin = model.login,
-                                                avatarId = model.avatarId
+                                                avatarId = model.avatarId,
+                                                name = model.name
                                             )
                                         )
                                     }
@@ -1077,6 +1073,20 @@ fun Lesson(
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold
             )
+            if(role == Roles.teacher) {
+                val headers = journalModel!!.headers.filter {
+                    it.date == model.currentDate.second &&
+                            it.groupId == groupId &&
+                            (it.time.toMinutes() >= start.toMinutes() && it.time.toMinutes() < end.toMinutes())
+                }
+                if (headers.isNotEmpty() && headers.first().status) {
+                    Box(
+                        Modifier.offset(x = 16.dp, y = (-14).dp).align(Alignment.CenterStart).size(5.dp).clip(
+                            CircleShape
+                        ).background(MaterialTheme.colorScheme.primary)
+                    )
+                }
+            }
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -1250,7 +1260,7 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope) {
             PlainTooltip(modifier = Modifier.clickable {}) {
                 println(mark.reason)
                 Text(
-                    "${mark.date}\n${fetchReason(mark.reason)}",
+                    "${mark.date} №${mark.reportId}\n${fetchReason(mark.reason)}",
                     textAlign = TextAlign.Center
                 )
             }
@@ -1322,26 +1332,28 @@ fun RecentMarkContent(
 ////    size: Dp = 25.dp,
 //    textYOffset: Dp = 0.dp
 ) {
+    val isNotStups = cutedReason !in listOf(
+        "!ds",
+        "!st"
+    )
+
+    val markColor = if (isNotStups)
+        MaterialTheme.colorScheme.primary.getMarkColor(mark).copy(alpha = .8f)
+    else MaterialTheme.colorScheme.surface
+
+    val textColor = if (isNotStups) markColor.blend(Color.White, amount = 1f)
+    else MaterialTheme.colorScheme.onSurface
+
     Box(
         Modifier.padding(PaddingValues(start = 5.dp, top = 5.dp))
             .border(
-                width = if (cutedReason !in listOf("!ds", "!st")) 0.dp else 1.dp,
-                color = if (cutedReason !in listOf(
-                        "!ds",
-                        "!st"
-                    )
-                ) Color.Transparent else MaterialTheme.colorScheme.outline.copy(1f),
+                width = if (isNotStups) 0.dp else 1.dp,
+                color = if (isNotStups) Color.Transparent else MaterialTheme.colorScheme.outline.copy(1f),
                 shape = RoundedCornerShape(30)
             )
             .clip(RoundedCornerShape(percent = 30))
             .background(
-                if (cutedReason !in listOf(
-                        "!ds",
-                        "!st"
-                    )
-                ) MaterialTheme.colorScheme.primary.copy(
-                    alpha = .2f
-                ) else MaterialTheme.colorScheme.surface
+                markColor
             )
             .then(addModifier),
         contentAlignment = Alignment.Center
@@ -1351,18 +1363,17 @@ fun RecentMarkContent(
             modifier = Modifier.padding(5.dp).padding(horizontal = 2.dp).offset(y = -2.dp)
         ) {
             Text(
-                (if (cutedReason in listOf(
-                        "!ds",
-                        "!st"
-                    ) && mark.toInt() > 0
+                (if (!isNotStups && mark.toInt() > 0
                 ) "+" else "") + mark,
                 fontSize = 18.sp,
                 modifier = Modifier.fillMaxWidth().offset(y = 4.dp),
                 textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Black
+                fontWeight = FontWeight.Black,
+                color = textColor
             )
             Text(
-                subjectName
+                subjectName,
+                color = textColor
             )
         }
     }

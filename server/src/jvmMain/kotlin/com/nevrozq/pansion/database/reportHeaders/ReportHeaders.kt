@@ -42,12 +42,12 @@ object ReportHeaders : Table() {
     private val teacherName = ReportHeaders.varchar("teacherName", 50)
     private val date = ReportHeaders.varchar("date", 10)
     private val time = ReportHeaders.varchar("time", 5)
-    private val editTime = ReportHeaders.varchar("editTime", 5)
+    private val editTime = ReportHeaders.varchar("editTime", 18)
     private val topic = ReportHeaders.text("topic")
     private val description = ReportHeaders.text("description")
     private val customColumns = ReportHeaders.varchar("customColumns", 255)
     private val isMentorWas = ReportHeaders.bool("isMentorWas")
-    private val status = ReportHeaders.varchar("status", 1)
+    private val status = ReportHeaders.bool("status")
     private val ids = ReportHeaders.integer("ids")
     private val module = ReportHeaders.varchar("module", 1)
 
@@ -112,7 +112,7 @@ object ReportHeaders : Table() {
                 it[description] = ""
                 it[customColumns] = ""
                 it[isMentorWas] = false
-                it[status] = "0"
+                it[status] = false
                 it[ids] = 0
                 it[subjectName] = Subjects.fetchName(cSubjectId)
                 it[groupName] = Groups.getName(r.groupId)
@@ -253,7 +253,7 @@ object ReportHeaders : Table() {
                     subjectId = it[ReportHeaders.subjectId],
                     groupId = it[ReportHeaders.groupId],
                     date = it[ReportHeaders.date],
-                    time = it[ReportHeaders.date],
+                    time = it[ReportHeaders.time],
                     topic = it[ReportHeaders.topic],
                     description = it[ReportHeaders.description],
                     customColumns = it[ReportHeaders.customColumns].toList() ?: listOf(),

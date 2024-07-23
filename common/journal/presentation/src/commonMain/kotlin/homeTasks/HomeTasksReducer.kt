@@ -7,7 +7,7 @@ import homeTasks.HomeTasksStore.Message
 object HomeTasksReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
-            else -> TODO()
+            is Message.TasksUpdated -> copy(homeTasks = msg.tasks)
         }
     }
 }
