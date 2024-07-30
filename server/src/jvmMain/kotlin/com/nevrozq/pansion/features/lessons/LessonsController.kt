@@ -314,7 +314,8 @@ class LessonsController() {
                                     isGoToAvg = it.isGoToAvg,
                                     groupId = it.groupId,
                                     date = it.date,
-                                    reportId = it.reportId
+                                    reportId = it.reportId,
+                                    module = it.part
                                 )
                             },
                             stupsSum = stups.sumOf { it.content.toInt() }

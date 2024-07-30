@@ -23,6 +23,7 @@ import home.HomeComponent
 import homeTasks.HomeTasksComponent
 import journal.JournalComponent
 import kotlinx.serialization.Serializable
+import mentoring.MentoringComponent
 import profile.ProfileComponent
 import rating.RatingComponent
 import root.store.RootStore
@@ -30,9 +31,12 @@ import schedule.ScheduleComponent
 import users.UsersComponent
 
 
-interface RootComponent : BackHandlerOwner {
+interface   RootComponent : BackHandlerOwner {
+    val secondLogin: String?
+    val secondAvatarId: Int?
+    val secondFIO: FIO?
     val childStack: Value<ChildStack<*, Child>>
-    val state: StateFlow<RootStore.State>
+//    val state: StateFlow<RootStore.State>
 
     val model: Value<RootStore.State>
 
@@ -48,6 +52,15 @@ interface RootComponent : BackHandlerOwner {
         class MainJournal(
             val homeComponent: HomeComponent,
             val journalComponent: JournalComponent
+        ) : Child()
+
+        class MainMentoring(
+            val mentoringComponent: MentoringComponent
+        ) : Child()
+
+        class SecondView(
+            val mentoringComponent: MentoringComponent?,
+            val rootComponent: RootComponent
         ) : Child()
 
         class MainRating(val homeComponent: HomeComponent, val ratingComponent: RatingComponent) :
@@ -120,6 +133,7 @@ interface RootComponent : BackHandlerOwner {
     sealed class Output {
         data object NavigateToHome : Output()
         data object NavigateToJournal : Output()
+        data object NavigateToMentoring : Output()
         data object NavigateToAdmin : Output()
 
         data object NavigateToSchedule : Output()
@@ -138,7 +152,9 @@ interface RootComponent : BackHandlerOwner {
         data object AuthActivation : Config
 
         @Serializable
-        data object MainHome : Config
+        data object MainHome : Config //val login: String, val fio: FIO, val role: String, val avatarId: Int
+        @Serializable
+        data object MainMentoring : Config
 
         @Serializable
         data object HomeSettings : Config
@@ -193,6 +209,9 @@ interface RootComponent : BackHandlerOwner {
 
         @Serializable
         data object AdminCabinets: Config
+
+        @Serializable
+        data class SecondView(val login: String, val fio: FIO, val avatarId: Int, val config: Config): Config
     }
 
     companion object {
@@ -223,6 +242,7 @@ interface RootComponent : BackHandlerOwner {
     sealed interface RootCategories {
         data object Home : RootCategories
         data object Journal : RootCategories
+        data object Mentoring : RootCategories
         data object Admin : RootCategories
 
         data object Rating : RootCategories

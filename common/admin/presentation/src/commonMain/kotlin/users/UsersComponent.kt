@@ -3,8 +3,9 @@ package users
 import AdminRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.childContext
 import com.arkivanov.essenty.backhandler.BackCallback
-import com.arkivanov.mvikotlin.core.instancekeeper.getStore
+import com.arkivanov.essenty.instancekeeper.getOrCreate
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
@@ -17,7 +18,7 @@ class UsersComponent(
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     private val nUsersInterface = NetworkInterface(
-        componentContext,
+        childContext("usersComponentNInterfaceContext"),
         storeFactory,
         "usersComponentNInterface"
     )
@@ -26,39 +27,41 @@ class UsersComponent(
     private val adminRepository: AdminRepository = Inject.instance()
 
     val cUserBottomSheet = CBottomSheetComponent(
-        componentContext,
+        childContext("creatingUserBottomSheetContext"),
         storeFactory,
         name = "creatingUserBottomSheet"
     )
 
     val eUserBottomSheet = CBottomSheetComponent(
-        componentContext,
+        childContext("editingUserBottomSheetContext"),
         storeFactory,
         name = "editingUserBottomSheet"
     )
 
     private val usersStore =
-        instanceKeeper.getStore(key = "UsersStoreState") {
-            println("Store: $stateKeeper")
-            println("Instance: $instanceKeeper")
+        instanceKeeper.getOrCreate {
+
             UsersStoreFactory(
                 storeFactory = storeFactory,
                 adminRepository = adminRepository,
                 nUsersInterface = nUsersInterface,
                 eUserBottomSheet = eUserBottomSheet,
                 cUserBottomSheet = cUserBottomSheet
-            ).create(stateKeeper)
+            ).create(stateKeeper.consume(
+                key = "USERS_STORE_STATE",
+                strategy = State.serializer()
+            ) , stateKeeper)
         }
-
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToAdmin)
-    }
-
 
     init {
         println("INITED: sad")
+        println(instanceKeeper)
+        println(cUserBottomSheet.instanceKeeper)
+        println(componentContext.stateKeeper)
+        println(componentContext.stateKeeper.isRegistered("USERS_STORE_STATE"))
+        stateKeeper.register("USERS_STORE_STATE", strategy = State.serializer(), supplier = usersStore::state)
 
-        backHandler.register(backCallback)
+
 //        if(!stKeeper.isRegistered("UsersStoreState")) {
 
 //        }
@@ -79,6 +82,6 @@ class UsersComponent(
     }
 
     sealed class Output {
-        data object BackToAdmin : Output()
+        data object Back : Output()
     }
 }

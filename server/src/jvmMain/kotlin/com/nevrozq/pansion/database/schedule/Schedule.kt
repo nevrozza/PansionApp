@@ -6,6 +6,8 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import schedule.ScheduleItem
+import server.getLocalDate
+import server.toMinutes
 
 
 object Schedule : Table() {
@@ -43,6 +45,27 @@ object Schedule : Table() {
             }
         } catch (e: Throwable) {
             println(e)
+        }
+    }
+
+    fun getOnNext(date: String, time: String): List<ScheduleDTO> {
+        val minutes = time.toMinutes()
+        val days = getLocalDate(date).toEpochDays()
+        return transaction {
+            Schedule.selectAll().filter {
+                val scheduleMinutes = it[Schedule.start].toMinutes()
+                val scheduleDays = getLocalDate(it[Schedule.date]).toEpochDays()
+                ( scheduleDays > days || (scheduleDays == days && scheduleMinutes > minutes)  )
+            }.map {
+                ScheduleDTO(
+                    date = it[Schedule.date],
+                    teacherLogin = it[teacherLogin],
+                    groupId = it[groupId],
+                    start = it[start],
+                    end = it[end],
+                    cabinet = it[cabinet]
+                )
+            }
         }
     }
 

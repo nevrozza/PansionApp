@@ -15,15 +15,12 @@ data class RFetchHomeTasksReceive(
 
 @Serializable
 data class RFetchHomeTasksResponse(
-    val groups: List<CutedGroup>,
-    val subjects: Map<Int, String>,
-    val tasks: List<ClientHomeworkItem>,
-    val dates: List<String>?
+    val tasks: List<ClientHomeworkItem>
 )
 
 @Serializable
 data class CutedDateTimeGroup(
     val id: Int,
     val name: String,
-    val localDateTime: LocalDateTime
+    val localDateTime: LocalDateTime?
 )

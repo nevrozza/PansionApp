@@ -18,7 +18,10 @@ class RatingStoreFactory(
     private val mainRepository: MainRepository,
     private val authRepository: AuthRepository,
     private val nInterface: NetworkInterface,
-    private val subjectsListComponent: ListComponent
+    private val subjectsListComponent: ListComponent,
+    private val avatarId: Int,
+    private val login: String,
+    private val fio: FIO
 ) {
 
     fun create(): RatingStore {
@@ -30,13 +33,9 @@ class RatingStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "RatingStore",
             initialState = State(
-                avatarId = authRepository.fetchAvatarId(),
-                login = authRepository.fetchLogin(),
-                fio = FIO(
-                    name = authRepository.fetchName(),
-                    surname = authRepository.fetchSurname(),
-                    praname = authRepository.fetchPraname()
-                )
+                avatarId = avatarId,
+                fio = fio,
+                login = login
             ),
             executorFactory = { RatingExecutor(
                 mainRepository = mainRepository,

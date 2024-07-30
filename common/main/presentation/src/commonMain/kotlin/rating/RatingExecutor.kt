@@ -84,6 +84,8 @@ class RatingExecutor(
                     mainRepository.fetchScheduleSubjects().subjects.toMutableList()
                 subjects.add(0, startSubject)
                 subjects.add(1, mvdSubject)
+                subjects.add(2, socialWorkSubject)
+                subjects.add(3, creativeSubject)
                 scope.launch {
                     dispatch(Message.SubjectsUpdated(subjects))
                     subjectsListComponent.onEvent(ListDialogStore.Intent.InitList(

@@ -2,7 +2,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cAlertDialog.CAlertDialogComponent
-import components.cAlertDialog.CAlertDialogStore
 import di.Inject
 
 class SettingsComponent(
@@ -54,7 +53,7 @@ class SettingsComponent(
     }
 
     sealed class Output {
-        data object BackToHome : Output()
+        data object Back : Output()
         data object GoToZero : Output()
     }
 }

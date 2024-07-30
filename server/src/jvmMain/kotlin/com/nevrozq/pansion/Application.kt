@@ -1,10 +1,14 @@
 package com.nevrozq.pansion
 
+import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
+import com.nevrozq.pansion.database.homework.HomeTasks
+import com.nevrozq.pansion.database.homework.HomeTasksDone
+import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
@@ -25,13 +29,16 @@ import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.features.achievements.configureAchievementsRouting
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import org.jetbrains.exposed.sql.Database
 import com.nevrozq.pansion.plugins.configureSerialization
 import com.nevrozq.pansion.features.auth.configureActivationRouting
+import com.nevrozq.pansion.features.homeworks.configureHomeworksRouting
 import com.nevrozq.pansion.features.lessons.configureLessonsRouting
+import com.nevrozq.pansion.features.mentoring.configureMentoringRouting
 import com.nevrozq.pansion.features.reports.configureReportsRouting
 import com.nevrozq.pansion.features.settings.configureSettingsRouting
 import com.nevrozq.pansion.features.user.manageOld.configureUserManageRouting
@@ -81,7 +88,11 @@ fun main() {
             RatingYear0Table,
             RatingYear1Table,
             RatingYear2Table,
-            Calendar
+            Calendar,
+            HomeTasks,
+            HomeTasksDone,
+            PreAttendance,
+            Achievements
         )
         updateRatings()
 //        Users.deleteAll()
@@ -202,6 +213,7 @@ fun Application.module() {
     configureLessonsRouting()
     configureSettingsRouting()
     configureReportsRouting()
-//    configureLessonRouting()
-//    configureScheduleRouting()
+    configureHomeworksRouting()
+    configureMentoringRouting()
+    configureAchievementsRouting()
 }

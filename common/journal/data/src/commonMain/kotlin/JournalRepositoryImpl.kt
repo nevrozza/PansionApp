@@ -1,3 +1,11 @@
+import homework.RCheckHomeTaskReceive
+import homework.RFetchHomeTasksReceive
+import homework.RFetchHomeTasksResponse
+import homework.RFetchReportHomeTasksReceive
+import homework.RFetchReportHomeTasksResponse
+import homework.RFetchTasksInitReceive
+import homework.RFetchTasksInitResponse
+import homework.RSaveReportHomeTasksReceive
 import ktor.KtorJournalRemoteDataSource
 import report.RFetchAllGroupMarksReceive
 import report.RFetchAllGroupMarksResponse
@@ -18,6 +26,26 @@ class JournalRepositoryImpl(
     private val remoteDataSource: KtorJournalRemoteDataSource,
 //    private val cacheDataSource: SettingsAuthDataSource
 ) : JournalRepository {
+    override suspend fun checkHomeTask(r: RCheckHomeTaskReceive) {
+        return remoteDataSource.checkHomeTask(r)
+    }
+
+    override suspend fun fetchHomeTasksInit(r: RFetchTasksInitReceive): RFetchTasksInitResponse {
+        return remoteDataSource.fetchHomeTasksInit(r)
+    }
+
+    override suspend fun fetchHomeTasks(r: RFetchHomeTasksReceive): RFetchHomeTasksResponse {
+        return remoteDataSource.fetchHomeTasks(r)
+    }
+
+    override suspend fun saveReportHomeTasks(r: RSaveReportHomeTasksReceive): RFetchReportHomeTasksResponse {
+        return remoteDataSource.saveReportHomeTasks(r)
+    }
+
+    override suspend fun fetchReportHomeTasks(r: RFetchReportHomeTasksReceive): RFetchReportHomeTasksResponse {
+        return remoteDataSource.fetchReportHomeTasks(r)
+    }
+
     override suspend fun updateWholeReport(r: RUpdateReportReceive) {
         remoteDataSource.updateWholeReport(r)
     }

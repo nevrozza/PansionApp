@@ -11,7 +11,6 @@ import components.networkInterface.NetworkInterface
 import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
-import login.LoginStore
 
 class ProfileComponent(
     componentContext: ComponentContext,
@@ -65,7 +64,7 @@ class ProfileComponent(
     }
 
     sealed class Output {
-        data object BackToHome : Output()
+        data object Back : Output()
 //        data object BackToActivation : Output()
     }
 }

@@ -1,18 +1,14 @@
 package com.nevrozq.pansion.database.studentLines
 
-import admin.groups.Group
-import admin.groups.GroupInit
-import admin.groups.forms.CutedGroup
-import com.nevrozq.pansion.database.subjects.Subjects
-import journal.init.TeacherGroup
-
 
 data class StudentLinesDTO(
     val reportId: Int,
     val groupId: Int,
     val login: String,
     val lateTime: String,
-    val isLiked: String
+    val isLiked: String,
+    val attended: String?,
+    val aReason: String?
 )
 
 //fun GroupDTO.mapToGroup() =

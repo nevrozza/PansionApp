@@ -38,7 +38,14 @@ data class ServerRatingUnit(
 data class ServerStudentLine(
     val login: String,
     val lateTime: String,
-    val isLiked: String
+    val isLiked: String,
+    val attended: Attended?
+)
+
+@Serializable
+data class Attended(
+    val attendedType: String,
+    val reason: String?
 )
 
 //@Serializable

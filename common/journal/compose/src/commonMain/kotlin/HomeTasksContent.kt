@@ -1,7 +1,3 @@
-import admin.groups.Subject
-import admin.groups.forms.CutedGroup
-import allGroupMarks.AllGroupMarksComponent
-import allGroupMarks.AllGroupMarksStore
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -10,7 +6,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -20,18 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -53,10 +44,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextDecorationLineStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -64,22 +53,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
-import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
 import components.GetAvatar
 import components.networkInterface.NetworkState
-import decomposeComponents.CAlertDialogContent
 import homeTasks.HomeTasksComponent
 import homeTasks.HomeTasksStore
 import homework.ClientHomeworkItem
 import homework.CutedDateTimeGroup
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
-import server.fetchReason
 import view.LocalViewManager
 import view.rememberImeState
 
@@ -91,7 +75,7 @@ fun HomeTasksContent(
     component: HomeTasksComponent
 ) {
     val model by component.model.subscribeAsState()
-    val nModel by component.nInterface.networkModel.subscribeAsState()
+    val nInitModel by component.nInitInterface.networkModel.subscribeAsState()
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
@@ -107,7 +91,7 @@ fun HomeTasksContent(
             AppBar(
                 navigationRow = {
                     IconButton(
-                        onClick = { component.onOutput(HomeTasksComponent.Output.BackToHome) }
+                        onClick = { component.onOutput(HomeTasksComponent.Output.Back) }
                     ) {
                         Icon(
                             Icons.Rounded.ArrowBackIosNew, null
@@ -138,7 +122,7 @@ fun HomeTasksContent(
         }
     ) { padding ->
         Column(Modifier.fillMaxSize()) {
-            Crossfade(nModel.state) { state ->
+            Crossfade(nInitModel.state) { state ->
                 when (state) {
                     NetworkState.None -> CLazyColumn(padding = padding) {
                         itemsIndexed(items = model.dates.reversed()) { i, date ->
@@ -147,7 +131,8 @@ fun HomeTasksContent(
                                 tasks = model.homeTasks.filter { it.date == date },
                                 groups = model.groups,
                                 subjects = model.subjects,
-                                component = component
+                                component = component,
+                                model = model
                             )
                             if(i == model.dates.size-1) {
                                 Spacer(Modifier.height(100.dp))
@@ -164,12 +149,13 @@ fun HomeTasksContent(
                     NetworkState.Error -> {
                         Column(
                             Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Text(nModel.error)
+                            Text(nInitModel.error)
                             Spacer(Modifier.height(7.dp))
                             CustomTextButton("Попробовать ещё раз") {
-                                nModel.onFixErrorClick()
+                                nInitModel.onFixErrorClick()
                             }
                         }
                     }
@@ -185,8 +171,12 @@ private fun DateTasksItem(
     tasks: List<ClientHomeworkItem>,
     groups: List<CutedDateTimeGroup>,
     subjects: Map<Int, String>,
+    model: HomeTasksStore.State,
     component: HomeTasksComponent
 ) {
+
+    val nModel by component.nInterface.networkModel.subscribeAsState()
+
     val isCompleted = tasks.count { it.done } == tasks.size
     val isOpened = remember { mutableStateOf(!isCompleted) }
     ElevatedCard(
@@ -199,6 +189,9 @@ private fun DateTasksItem(
                 modifier = Modifier.height(50.dp).fillMaxWidth().clip(CardDefaults.elevatedShape)
                     .clickable {
                         isOpened.value = !isOpened.value
+                        if(isOpened.value) {
+                            component.onEvent(HomeTasksStore.Intent.OpenDateItem(date = date))
+                        }
                     }.padding(horizontal = 8.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -226,23 +219,45 @@ private fun DateTasksItem(
                     Icon(it, null)
                 }
             }
-            AnimatedVisibility(isOpened.value) {
-                Column {
-                    subjects.forEach { s ->
-                        val subjectTasks = tasks.filter { it.subjectId == s.key }
-                        val subjectGroups =
-                            groups.filter { it.id in subjectTasks.map { it.groupId } }
-                        if (subjectTasks.isNotEmpty()) {
-                            SubjectTaskItem(
-                                subjectId = s.key,
-                                subjectName = s.value,
-                                subjectGroups = subjectGroups,
-                                subjectTasks = subjectTasks,
-                                component = component
-                            )
+            AnimatedVisibility(isOpened.value, modifier = Modifier.fillMaxWidth()) {
+                Crossfade(model.loadingDate == date) {
+                    if (!it) {
+                        Column {
+                            subjects.forEach { s ->
+                                val subjectTasks = tasks.filter { it.subjectId == s.key }
+                                val subjectGroups =
+                                    groups.filter { it.id in subjectTasks.map { it.groupId } }
+                                if (subjectTasks.isNotEmpty()) {
+                                    SubjectTaskItem(
+                                        subjectId = s.key,
+                                        subjectName = s.value,
+                                        subjectGroups = subjectGroups,
+                                        subjectTasks = subjectTasks,
+                                        component = component
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        if(nModel.state is NetworkState.Loading) {
+                            Box(
+                                Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(Modifier.size(20.dp))
+                            }
+                        } else if (nModel.state is NetworkState.Error) {
+                            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(nModel.error)
+                                Spacer(Modifier.height(7.dp))
+                                CustomTextButton("Попробовать ещё раз") {
+                                    nModel.onFixErrorClick()
+                                }
+                            }
                         }
                     }
                 }
+
             }
         }
     }
@@ -289,7 +304,7 @@ private fun SubjectTaskItem(
             GroupTaskItems(
                 groupName = g.name,
                 groupTasks = groupTasks,
-                groupTime = g.localDateTime.toInstant(TimeZone.of("UTC+3")).toEpochMilliseconds(),
+                groupTime =  g.localDateTime?.toInstant(TimeZone.of("UTC+3"))?.toEpochMilliseconds(),
                 component = component
             )
         }
@@ -299,13 +314,13 @@ private fun SubjectTaskItem(
 @Composable
 private fun GroupTaskItems(
     groupName: String,
-    groupTime: Long,
+    groupTime: Long?,
     groupTasks: List<ClientHomeworkItem>,
     component: HomeTasksComponent
 ) {
     val isDone = false !in groupTasks.map { it.done }
     val currentTime = remember { Clock.System.now().toEpochMilliseconds() }
-    val remainingTime = ((groupTime - currentTime) / 60000)
+    val remainingTime = (((groupTime ?: 0 )- currentTime) / 60000)
     val remainingTimeHours = (remainingTime / 60)
     val remainingTimeMinutes = remainingTime - (remainingTimeHours * 60)
     val time =
@@ -328,7 +343,7 @@ private fun GroupTaskItems(
             textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
             maxLines = 1
         )
-        groupTasks.forEachIndexed { i, t ->
+        groupTasks.sortedBy { it.id }.forEachIndexed { i, t ->
             TaskItem(task = t, component = component)
             if(i != groupTasks.size-1) {
                 Spacer(Modifier.height(5.dp))
@@ -349,7 +364,8 @@ private fun TaskItem(
                 component.onEvent(
                     HomeTasksStore.Intent.CheckTask(
                         taskId = task.id,
-                        isCheck = !task.done
+                        isCheck = !task.done,
+                        doneId = task.doneId
                     )
                 )
             },

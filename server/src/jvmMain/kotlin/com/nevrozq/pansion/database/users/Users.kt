@@ -206,6 +206,27 @@ object Users : Table() {
         }
     }
 
+    fun fetchByLoginsActivated(logins: List<String>) : List<UserDTO> {
+        return transaction {
+            Users.select { Users.login inList logins }.mapNotNull {
+                if (it[isActive]) UserDTO(
+                    login = it[login],
+                    password = it[password],
+                    name = it[name],
+                    surname = it[surname],
+                    praname = it[praname],
+                    birthday = it[birthday],
+                    role = it[role],
+                    moderation = it[moderation],
+                    isParent = it[isParent],
+                    avatarId = it[avatarId],
+                    isActive = true//it[isActive]
+                )
+                else null
+            }
+        }
+    }
+
     fun fetchAll(): List<UserDTO> {
         return try {
             transaction {
@@ -301,7 +322,7 @@ object Users : Table() {
                         listOf(
                             Moderation.mentor,
                             Moderation.both,
-                            Moderation.superBoth
+                            //Moderation.superBoth
                         )
                     )
                 }

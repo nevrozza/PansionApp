@@ -52,3 +52,13 @@ val mvdSubject =  ScheduleSubject(
     id = -2,
     name = "Дисциплина"
 )
+
+val socialWorkSubject =  ScheduleSubject(
+    id = -3,
+    name = "Общественная работа"
+)
+
+val creativeSubject =  ScheduleSubject(
+    id = -4,
+    name = "Творчество"
+)

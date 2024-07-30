@@ -5,11 +5,12 @@ import JournalRepository
 import ReportData
 import asValue
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
+import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetComponent
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
@@ -19,7 +20,6 @@ import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import server.getSixTime
-
 
 
 class LessonReportComponent(
@@ -36,6 +36,27 @@ class LessonReportComponent(
 
     private val journalRepository: JournalRepository = Inject.instance()
     private val authRepository: AuthRepository = Inject.instance()
+
+    private val homeTaskName = "NLessonReportHomeTasksInterface"
+
+    val nHomeTasksInterface = NetworkInterface(
+        componentContext = childContext(homeTaskName + "CONTEXT"),
+        storeFactory = storeFactory,
+        name = homeTaskName
+    )
+
+    private val homeTasksTabsName = "homeTasksTabDialogComponent"
+    val homeTasksTabDialogComponent = CAlertDialogComponent(
+        componentContext = childContext(homeTasksTabsName + "CONTEXT"),
+        storeFactory = storeFactory,
+        name = homeTasksTabsName,
+        onAcceptClick = ::onTasksTabAcceptClick
+    )
+
+    private fun onTasksTabAcceptClick() {
+        onEvent(LessonReportStore.Intent.OnTasksTabAcceptClick)
+        homeTasksTabDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
+    }
 
     val marksDialogComponent = CAlertDialogComponent(
         componentContext = componentContext,
@@ -96,9 +117,10 @@ class LessonReportComponent(
 
     private fun onSetMarkMenuItemClick(mark: String, id: String) {
         onEvent(LessonReportStore.Intent.SetMark(mark))
-        if(id != "no"
+        if (id != "no"
             || state.value.students.first { state.value.selectedLogin == it.login }
-                .marksOfCurrentLesson.count { it.reason == state.value.selectedMarkReason } == 4) {
+                .marksOfCurrentLesson.count { it.reason == state.value.selectedMarkReason } == 4
+        ) {
             setMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
         }
     }
@@ -127,7 +149,8 @@ class LessonReportComponent(
                 journalRepository = journalRepository,
                 data = reportData,
                 marksDialogComponent = marksDialogComponent,
-                authRepository = authRepository
+                authRepository = authRepository,
+                nHomeTasksInterface = nHomeTasksInterface
             ).create()
         }
 
@@ -158,19 +181,14 @@ class LessonReportComponent(
 
     fun onOutput(output: Output) {
         //ONLY ONE OUTPUT
-        if(model.value.isUpdateNeeded) {
+        if (model.value.isUpdateNeeded) {
             onEvent(LessonReportStore.Intent.UpdateWholeReport)
         }
         output(output)
     }
 
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToJournal)
-    }
-
 
     init {
-        backHandler.register(backCallback)
         onEvent(LessonReportStore.Intent.Init)
         setMarkMenuComponent.onEvent(
             ListDialogStore.Intent.InitList(
@@ -223,7 +241,7 @@ class LessonReportComponent(
 //        data object NavigateToUsers : Output()
 //        data object NavigateToGroups : Output()
 //        data object NavigateToStudents : Output()
-        data object BackToJournal : Output()
+        data object Back : Output()
 
     }
 }

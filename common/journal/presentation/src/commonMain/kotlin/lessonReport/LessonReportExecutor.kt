@@ -9,15 +9,15 @@ import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
-import homeTasks.HomeTasksStore
-import homework.ClientReportHomeworkItem
 import homework.CreateReportHomeworkItem
+import homework.RFetchReportHomeTasksReceive
+import homework.RSaveReportHomeTasksReceive
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
 import lessonReport.LessonReportStore.Intent
+import report.Attended
 import report.RFetchReportStudentsReceive
 import report.RUpdateReportReceive
 import report.ReportHeader
@@ -26,6 +26,7 @@ import report.ServerStudentLine
 import server.getDate
 import server.getLocalDate
 import server.getSixTime
+import server.toMinutes
 import server.toSixTime
 
 class LessonReportExecutor(
@@ -33,6 +34,7 @@ class LessonReportExecutor(
     private val deleteMarkMenuComponent: ListComponent,
     private val setLateTimeMenuComponent: ListComponent,
     private val nInterface: NetworkInterface,
+    private val nHomeTasksInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
     private val authRepository: AuthRepository,
     private val marksDialogComponent: CAlertDialogComponent,
@@ -247,6 +249,15 @@ class LessonReportExecutor(
                 )
             }
 
+            is Intent.ChangeAttendance -> {
+                val newStudentList = state().students.toMutableList()
+                val student = state().students.first { it.login == intent.studentLogin }
+                newStudentList.remove(student)
+                newStudentList.add(student.copy(attended = if (student.attended != null) student.attended.copy(attendedType = intent.attendedType) else Attended(attendedType = intent.attendedType, null)))
+
+                dispatch(LessonReportStore.Message.StudentsUpdated(newStudentList))
+            }
+
             is Intent.SetLateTime -> {
                 val result = if (intent.chosenTime == "auto") {
                     val start = state().time.split(":")
@@ -297,92 +308,8 @@ class LessonReportExecutor(
             )
 
             is Intent.Init -> {
-                scope.launch {
-
-                    nInterface.nStartLoading()
-                    try {
-                        val studentsData = journalRepository.fetchReportStudents(
-                            RFetchReportStudentsReceive(
-                                state().lessonReportId,
-                                header.module.toInt()
-                            )
-                        )
-
-                        val students = mutableListOf<StudentLine>()
-                        val likedList = mutableListOf<String>()
-                        val dislikedList = mutableListOf<String>()
-
-
-                        studentsData.students.forEach { student ->
-                            students.add(
-                                StudentLine(
-                                    shortFio = student.shortFio,
-                                    login = student.serverStudentLine.login,
-                                    attended = Attented(true),
-                                    lateTime = student.serverStudentLine.lateTime,
-                                    avgMark = AvgMark(
-                                        previousSum = student.prevSum,
-                                        countOfMarks = student.prevCount,
-//                                        value = student.prevSum / (student.prevCount.toFloat())
-                                    ),
-                                    marksOfCurrentLesson = studentsData.marks.filter { it.login == student.serverStudentLine.login }
-                                        .map {
-                                            Mark(
-                                                value = it.content.toInt(),
-                                                reason = it.reason,
-                                                isGoToAvg = it.isGoToAvg,
-                                                id = it.id,
-                                                date = "sad",
-                                                deployTime = it.deployTime,
-                                                deployDate = it.deployDate,
-                                                deployLogin = it.deployLogin
-                                            )
-                                        },
-                                    stupsOfCurrentLesson = studentsData.stups.filter { it.login == student.serverStudentLine.login }
-                                        .map {
-                                            Stup(
-                                                value = it.content.toInt(),
-                                                reason = it.reason,
-                                                id = it.id,
-                                                deployTime = it.deployTime,
-                                                deployDate = it.deployDate,
-                                                deployLogin = it.deployLogin
-                                            )
-                                        }
-                                )
-                            )
-
-                            when (student.serverStudentLine.isLiked) {
-                                "t" -> likedList.add(student.serverStudentLine.login)
-                                "f" -> dislikedList.add(student.serverStudentLine.login)
-                            }
-                        }
-
-                        dispatch(
-                            LessonReportStore.Message.Inited(
-                                students = students,
-                                likedList = likedList,
-                                dislikedList = dislikedList
-                            )
-                        )
-                        nInterface.nSuccess()
-                    } catch (_: Throwable) {
-//                        dispatch(LessonReportStore.Message.isFABShowing(true))
-                        nInterface.nError("Что-то пошло не так") {
-                            //TODO
-                            nInterface.goToNone()
-                        }
-                    }
-                }
-
-                scope.launch(CDispatcher) {
-                    while (true) {
-                        delay(1000 * 60 * 3)
-                        if (state().isUpdateNeeded) {
-                            updateWholeReport()
-                        }
-                    }
-                }
+                init()
+                fetchHomeTasks()
             }
 
             is Intent.OpenDetailedMarks -> openDetailedMarks(intent.studentLogin)
@@ -407,43 +334,262 @@ class LessonReportExecutor(
                         stups = 0,
                         fileIds = null,
                         studentLogins = intent.studentLogins,
-                        exceptLogins = null,
                         isNew = true
                     )
                 )
             )
 
             is Intent.ChangeHomeTaskType -> scope.launch {
+                updateTasksToEditIds(id = intent.id, isNew = intent.isNew)
+                val newHomeTasks = state().hometasks.toMutableList()
+                val item = state().hometasks.first { it.id == intent.id }
+                val index = state().hometasks.indexOf(item)
+                newHomeTasks[index] = item.copy(type = intent.type, stups = if (intent.type.contains("!st")) item.stups else 0)
                 dispatch(
                     LessonReportStore.Message.HomeTasksUpdated(
-                        state().hometasks.map {
-                            if (it.id == intent.id) it.copy(
-                                type = intent.type,
-                                stups = if (intent.type.contains("!st")) it.stups else 0
-                            )
-                            else it
-                        }
+                        newHomeTasks
+//                        state().hometasks.map {
+//                            if (it.id == intent.id) it.copy(
+//                                type = intent.type,
+//                                stups = if (intent.type.contains("!st")) it.stups else 0
+//                            )
+//                            else it
+//                        }
                     ))
             }
 
             is Intent.ChangeHomeTaskAward -> scope.launch {
+                updateTasksToEditIds(id = intent.id, isNew = intent.isNew)
+                val newHomeTasks = state().hometasks.toMutableList()
+                val item = state().hometasks.first { it.id == intent.id }
+                val index = state().hometasks.indexOf(item)
+                newHomeTasks[index] = item.copy(stups = intent.award)
                 dispatch(
                     LessonReportStore.Message.HomeTasksUpdated(
-                        state().hometasks.map {
-                            if (it.id == intent.id) it.copy(stups = intent.award)
-                            else it
-                        }
+                        newHomeTasks
+//                        state().hometasks.map {
+//                            if (it.id == intent.id) it.copy(stups = intent.award)
+//                            else it
+//                        }
                     ))
             }
 
             is Intent.ChangeHomeTaskText -> scope.launch {
+                updateTasksToEditIds(id = intent.id, isNew = intent.isNew)
+                println(state().homeTasksToEditIds)
+                val newHomeTasks = state().hometasks.toMutableList()
+                val item = state().hometasks.first { it.id == intent.id }
+                val index = state().hometasks.indexOf(item)
+                newHomeTasks[index] = item.copy(text = intent.text)
                 dispatch(
                     LessonReportStore.Message.HomeTasksUpdated(
-                        state().hometasks.map {
-                            if (it.id == intent.id) it.copy(text = intent.text)
+                        newHomeTasks
+                    ))
+            }
+
+            Intent.SaveHomeTasks -> saveHomeTasks()
+            is Intent.IsHomeTasksSavedAnimation -> dispatch(
+                LessonReportStore.Message.IsHomeTasksSavedAnimation(
+                    intent.isSaved
+                )
+            )
+
+            is Intent.IsHomeTasksErrorAnimation -> dispatch(
+                LessonReportStore.Message.IsHomeTasksErrorAnimation(
+                    intent.isError
+                )
+            )
+
+            is Intent.UpdateTabLoginsId -> dispatch(
+                LessonReportStore.Message.TabLoginsIdUpdated(
+                    intent.tabLogins
+                )
+            )
+
+            is Intent.AddLoginToNewTab -> scope.launch {
+                val newNewTabLogins = state().newTabLogins.toMutableList()
+                newNewTabLogins.add(intent.login)
+                dispatch(LessonReportStore.Message.NewTabsLoginsUpdated(newNewTabLogins))
+            }
+            is Intent.DeleteLoginFromNewTab -> scope.launch {
+                val newNewTabLogins = state().newTabLogins.toMutableList()
+                newNewTabLogins.remove(intent.login)
+                dispatch(LessonReportStore.Message.NewTabsLoginsUpdated(newNewTabLogins))
+            }
+
+            Intent.OnTasksTabAcceptClick -> scope.launch {
+                if(state().tabLogins == null) {
+                    val newTabs = state().homeTasksNewTabs.toMutableList()
+                    newTabs.add(state().newTabLogins)
+                    dispatch(LessonReportStore.Message.SaveTabLoginsUpdated(newTabs))
+                } else {
+                    if(state().tabLogins in state().homeTasksNewTabs) {
+                        val a = state().homeTasksNewTabs.map {
+                            if(it == state().tabLogins) state().newTabLogins
                             else it
                         }
-                    ))
+                        dispatch(LessonReportStore.Message.SaveTabLoginsUpdated(a))
+                    }
+                    val newTasks = state().hometasks.map {
+                        if (it.studentLogins == state().tabLogins) {
+                            updateTasksToEditIds(id = it.id, isNew = it.isNew)
+                            it.copy(studentLogins = state().newTabLogins)
+                        } else it
+                    }
+                    dispatch(LessonReportStore.Message.HomeTasksUpdated(newTasks))
+                }
+            }
+        }
+    }
+
+    private fun updateTasksToEditIds(id: Int, isNew: Boolean) {
+        if(!isNew) {
+            val ids = state().homeTasksToEditIds
+            dispatch(LessonReportStore.Message.HomeTasksToEditIdsUpdated(ids + id))
+        }
+    }
+    private fun saveHomeTasks() {
+        scope.launch(CDispatcher) {
+            nHomeTasksInterface.nStartLoading()
+            try {
+                val r = journalRepository.saveReportHomeTasks(
+                    RSaveReportHomeTasksReceive(
+                        subjectId = state().subjectId,
+                        groupId = state().groupId,
+                        reportId = state().lessonReportId,
+                        tasks = state().hometasks.filter { (it.isNew && it.type.isNotBlank() && it.text.isNotBlank()) || (!it.isNew && it.id in state().homeTasksToEditIds) }
+                    )
+                )
+                scope.launch {
+                    dispatch(LessonReportStore.Message.HomeTasksToEditIdsUpdated(emptySet()))
+                    dispatch(LessonReportStore.Message.HomeTasksUpdated(r.tasks))
+                    dispatch(LessonReportStore.Message.IsHomeTasksSavedAnimation(true))
+                    nHomeTasksInterface.nSuccess()
+                }
+            } catch (_: Throwable) {
+                scope.launch {
+                    dispatch(LessonReportStore.Message.IsHomeTasksErrorAnimation(true))
+//                        dispatch(LessonReportStore.Message.isFABShowing(true))
+                    nHomeTasksInterface.nError("Не удалось загрузить задания на сервер") {
+                        //TODO
+                        nHomeTasksInterface.goToNone()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun fetchHomeTasks() {
+        scope.launch(CDispatcher) {
+            nHomeTasksInterface.nStartLoading()
+            try {
+                val tasks = journalRepository.fetchReportHomeTasks(
+                    RFetchReportHomeTasksReceive(
+                        reportId = state().lessonReportId
+                    )
+                )
+                scope.launch {
+                    nHomeTasksInterface.nSuccess()
+                    dispatch(LessonReportStore.Message.HomeTasksUpdated(tasks.tasks))
+                }
+            } catch (_: Throwable) {
+                scope.launch {
+                    nHomeTasksInterface.nError("Не удалось загрузить данные с сервера") {
+                        fetchHomeTasks()
+                    }
+                }
+            }
+
+        }
+    }
+
+    private fun init() {
+        scope.launch {
+            nInterface.nStartLoading()
+            try {
+                val studentsData = journalRepository.fetchReportStudents(
+                    RFetchReportStudentsReceive(
+                        reportId = state().lessonReportId,
+                        module = header.module.toInt(),
+                        date = header.date,
+                        minutes = header.time.toMinutes()
+                    )
+                )
+
+                val students = mutableListOf<StudentLine>()
+                val likedList = mutableListOf<String>()
+                val dislikedList = mutableListOf<String>()
+
+
+                studentsData.students.forEach { student ->
+                    student.serverStudentLine
+                    students.add(
+                        StudentLine(
+                            shortFio = student.shortFio,
+                            login = student.serverStudentLine.login,
+                            attended = student.serverStudentLine.attended,
+                            lateTime = student.serverStudentLine.lateTime,
+                            avgMark = AvgMark(
+                                previousSum = student.prevSum,
+                                countOfMarks = student.prevCount,
+//                                        value = student.prevSum / (student.prevCount.toFloat())
+                            ),
+                            marksOfCurrentLesson = studentsData.marks.filter { it.login == student.serverStudentLine.login }
+                                .map {
+                                    Mark(
+                                        value = it.content.toInt(),
+                                        reason = it.reason,
+                                        isGoToAvg = it.isGoToAvg,
+                                        id = it.id,
+                                        date = "sad",
+                                        deployTime = it.deployTime,
+                                        deployDate = it.deployDate,
+                                        deployLogin = it.deployLogin
+                                    )
+                                },
+                            stupsOfCurrentLesson = studentsData.stups.filter { it.login == student.serverStudentLine.login }
+                                .map {
+                                    Stup(
+                                        value = it.content.toInt(),
+                                        reason = it.reason,
+                                        id = it.id,
+                                        deployTime = it.deployTime,
+                                        deployDate = it.deployDate,
+                                        deployLogin = it.deployLogin
+                                    )
+                                }
+                        )
+                    )
+
+                    when (student.serverStudentLine.isLiked) {
+                        "t" -> likedList.add(student.serverStudentLine.login)
+                        "f" -> dislikedList.add(student.serverStudentLine.login)
+                    }
+                }
+
+                dispatch(
+                    LessonReportStore.Message.Inited(
+                        students = students,
+                        likedList = likedList,
+                        dislikedList = dislikedList
+                    )
+                )
+                nInterface.nSuccess()
+            } catch (_: Throwable) {
+//                        dispatch(LessonReportStore.Message.isFABShowing(true))
+                nInterface.nError("Что-то пошло не так") {
+                    //TODO
+                    nInterface.goToNone()
+                }
+            }
+        }
+
+        scope.launch(CDispatcher) {
+            while (true) {
+                delay(1000 * 60 * 3)
+                if (state().isUpdateNeeded) {
+                    updateWholeReport()
+                }
             }
         }
     }
@@ -501,6 +647,7 @@ class LessonReportExecutor(
                             login = it.login,
                             lateTime = it.lateTime,
                             isLiked = if (it.login in state().likedList) "t" else if (it.login in state().dislikedList) "f" else "0",
+                            attended = it.attended
                         )
                     },
                     columnNames = state().columnNames.filter { it.type != ColumnTypes.prisut && it.type != ColumnTypes.opozdanie && it.type != ColumnTypes.srBall }

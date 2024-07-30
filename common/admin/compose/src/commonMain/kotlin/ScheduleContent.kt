@@ -4,10 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.Transition
-import androidx.compose.animation.core.TransitionState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
@@ -35,7 +32,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -45,7 +41,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Done
@@ -101,7 +96,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import cabinets.CabinetsStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CustomTextButton
@@ -109,13 +103,11 @@ import components.CustomTextField
 import components.DateButton
 import components.SaveAnimation
 import components.listDialog.ListDialogStore
-import components.mpChose.mpChoseComponent
 import components.mpChose.mpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
-import kotlinx.datetime.DayOfWeek
 import schedule.ScheduleComponent
 import schedule.ScheduleStore
 import schedule.ScheduleStore.EditState
@@ -158,7 +150,7 @@ fun ScheduleContent(
             AppBar(
                 navigationRow = {
                     IconButton(
-                        onClick = { component.onOutput(ScheduleComponent.Output.BackToAdmin) }
+                        onClick = { component.onOutput(ScheduleComponent.Output.Back) }
                     ) {
                         Icon(
                             Icons.Rounded.ArrowBackIosNew, null

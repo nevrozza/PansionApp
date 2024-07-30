@@ -5,6 +5,12 @@ object RequestPaths {
         const val logout = "server/profile/logout"
     }
 
+    object Achievements {
+        const val Create = "server/achievements/create"
+        const val FetchAll = "server/achievements/fetchAll"
+        const val FetchForStudent = "server/achievements/fetchByLogin"
+    }
+
     object UserManage {
         const val CreateUser = "server/user/create"
         const val FetchAllUsers = "server/user/fetchAll"
@@ -17,6 +23,22 @@ object RequestPaths {
 
         const val FetchScheduleSubjects = "server/main/fetchSubjects"
         const val FetchSubjectRating = "server/main/fetchSubjectRating"
+    }
+
+    object Mentoring {
+        const val FetchMentoringStudents = "server/mentoring/fetchStudents"
+
+        const val FetchPreAttendanceDay = "server/mentoring/fetchPreAttendanceDay"
+        const val SavePreAttendanceDay = "server/mentoring/savePreAttendanceDay"
+    }
+
+    object HomeTasks {
+        const val SaveReportHomeTasks = "server/reports/saveHomeTasks"
+        const val FetchReportHomeTasks = "server/reports/fetchHomeTasks"
+
+        const val FetchHomeTasksInit = "server/homeTasks/Init"
+        const val FetchHomeTasks = "server/homeTasks/Fetch"
+        const val CheckTask = "server/homeTasks/Check"
     }
 
     object Reports {

@@ -5,7 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RFetchReportStudentsReceive(
     val reportId: Int,
-    val module: Int
+    val module: Int,
+    val date: String,
+    val minutes: Int
 )
 
 @Serializable
@@ -21,5 +23,4 @@ data class AddStudentLine(
     val shortFio: String,
     val prevSum: Int,
     val prevCount: Int,
-
 )

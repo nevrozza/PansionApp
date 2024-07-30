@@ -6,9 +6,7 @@ import lessonReport.LessonReportComponent
 import ReportData
 import SettingsComponent
 import activation.ActivationComponent
-import activation.ActivationStore
 import admin.AdminComponent
-import admin.AdminStore
 import allGroupMarks.AllGroupMarksComponent
 import asValue
 import cabinets.CabinetsComponent
@@ -18,20 +16,15 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
-import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.value.Value
 
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.router.stack.items
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.router.stack.replaceAll
-import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.router.stack.webhistory.WebHistoryController
-import com.arkivanov.essenty.backhandler.BackCallback
-import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.essenty.statekeeper.StateKeeper
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
@@ -46,10 +39,11 @@ import home.HomeComponent
 import home.HomeStore
 import homeTasks.HomeTasksComponent
 import journal.JournalComponent
-import journal.JournalStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import login.LoginComponent
+import mentoring.MentoringComponent
+import mentoring.MentoringStore
 import profile.ProfileComponent
 import rating.RatingComponent
 import report.ReportHeader
@@ -81,13 +75,30 @@ import root.RootComponent.RootCategories.Rating
 import root.store.RootStore
 import root.store.RootStoreFactory
 import schedule.ScheduleComponent
+import server.Roles
 //import students.StudentsComponent
 import users.UsersComponent
+import kotlin.reflect.KClass
+
+
+//avatarId = authRepository.fetchAvatarId(),
+//            login = authRepository.fetchLogin(),
+//            fio = FIO(
+//                name = authRepository.fetchName(),
+//                surname = authRepository.fetchSurname(),
+//                praname = authRepository.fetchPraname(),
+//            ),
+//            role = authRepository.fetchRole()
 
 @ExperimentalDecomposeApi
 class RootComponentImpl(
     private val componentContext: ComponentContext,
     private val storeFactory: StoreFactory,
+    override val secondLogin: String? = null,
+    override val secondAvatarId: Int? = null,
+    override val secondFIO: FIO? = null,
+    private val firstScreen: Config = Config.AuthActivation,
+    val onBackButtonPress: (() -> Unit)? = null,
 //    override val stateKeeper: StateKeeper,
     deepLink: DeepLink = DeepLink.None,
 //    private val path: String = "",
@@ -115,12 +126,20 @@ class RootComponentImpl(
                 authRepository = authRepository,
                 checkNInterface = checkNInterface,
                 gotoHome = {
-//                    mainHomeComponent = getMainHomeComponent(componentContext, false)
-                    navigateToHome { navigation.replaceAll(it) }
+                    navigation.replaceAll(
+                        Config.MainHome
+//                            (
+//                            avatarId = authRepository.fetchAvatarId(),
+//                            login = authRepository.fetchLogin(),
+//                            fio = FIO(
+//                                name = authRepository.fetchName(),
+//                                surname = authRepository.fetchSurname(),
+//                                praname = authRepository.fetchPraname(),
+//                            ),
+//                            role = authRepository.fetchRole()
+//                        )
+                    )
                 }
-
-//                role = authRepository.fetchRole(),
-//                moderation = authRepository.fetchModeration()
             ).create()
         }
 
@@ -135,44 +154,54 @@ class RootComponentImpl(
     }
 
     private fun getFirstScreen(): Config {
-        return Config.AuthActivation //if (authRepository.isUserLoggedIn()) Config.MainHome else
+        return firstScreen
+//        (
+//            login = secondLogin,
+//            fio = secondFIO!!,
+//            avatarId = secondAvatarId!!,
+//            role = Roles.student
+//        ) //if (authRepository.isUserLoggedIn()) Config.MainHome else
     }
 
     override fun onBackClicked() {
         when (val child = childStack.active.instance) {
-            is Child.HomeSettings -> {
-                onHomeSettingsOutput(SettingsComponent.Output.BackToHome)
-            }
-
+            is Child.HomeSettings -> onHomeSettingsOutput(SettingsComponent.Output.Back)
+            is Child.AdminCabinets -> onAdminCabinetsOutput(CabinetsComponent.Output.Back)
+            is Child.AdminCalendar -> onAdminCalendarOutput(CalendarComponent.Output.Back)
+            is Child.AdminGroups -> onAdminGroupsOutput(GroupsComponent.Output.Back)
+            is Child.AdminSchedule -> onAdminScheduleOutput(ScheduleComponent.Output.Back)
+            is Child.AdminUsers -> onAdminUsersOutput(UsersComponent.Output.Back)
+            is Child.AuthActivation -> {}
+            is Child.AuthLogin -> onLoginOutput(LoginComponent.Output.BackToActivation)
+            is Child.HomeAllGroupMarks -> onAllGroupMarksOutput(AllGroupMarksComponent.Output.Back)
+            is Child.HomeDetailedStups -> onDetailedStupsOutput(DetailedStupsComponent.Output.Back)
+            is Child.HomeDnevnikRuMarks -> onDnevnikRuMarksOutput(DnevnikRuMarksComponent.Output.Back)
+            is Child.HomeProfile -> onHomeProfileOutput(ProfileComponent.Output.Back)
+            is Child.HomeTasks -> onHomeTasksOutput(HomeTasksComponent.Output.Back)
+            is Child.LessonReport -> onLessonReportOutput(LessonReportComponent.Output.Back)
             else -> {
                 navigation.pop()
-                val root = getRoot(childStack.active.instance)
-                rootStore.accept(
-                    RootStore.Intent.ChangeCurrentScreen(
-                        currentCategory = root.first,
-                        currentScreen = root.second
-                    )
-                )
             }
         }
     }
 
-    private fun getRoot(child: Child): Pair<RootComponent.RootCategories, Config> {
-        return when (child) {
-            is Child.MainAdmin -> Pair(Admin, Config.MainAdmin)
-            is Child.MainHome -> Pair(Home, Config.MainHome)
-            is Child.MainJournal -> Pair(Journal, Config.MainJournal)
-            is Child.MainRating -> Pair(Rating, Config.MainRating)
-            else -> Pair(Home, Config.MainHome)
-        }
-    }
+//    private fun getRoot(child: Child): Pair<RootComponent.RootCategories, Config> {
+//        return when (child) {
+//            is Child.MainAdmin -> Pair(Admin, Config.MainAdmin)
+//            is Child.MainHome -> Pair(Home, Config.MainHome)
+//            is Child.MainJournal -> Pair(Journal, Config.MainJournal)
+//            is Child.MainRating -> Pair(Rating, Config.MainRating)
+//            is Child.AdminCabinets -> Pair(Admin, Config.AdminCabinets)
+//            else -> TODO()
+//        }
+//    }
 
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val state: StateFlow<RootStore.State> = rootStore.stateFlow
+    //    @OptIn(ExperimentalCoroutinesApi::class)
+//    override val state: StateFlow<RootStore.State> = rootStore.stateFlow
     override val model = rootStore.asValue()
     private val navigation = StackNavigation<Config>()
-    private val stack = childStack(
+    val stack = childStack(
         source = navigation,
         initialStack = {
             getInitialStack(
@@ -183,13 +212,13 @@ class RootComponentImpl(
         serializer = Config.serializer(),
         handleBackButton = true,
         childFactory = ::child,
-
-    )
+        key = if(secondLogin == null) "MAIN" else "SECOND"
+        )
     override val childStack: Value<ChildStack<*, Child>> = stack
-
 
     private var mainHomeComponent: HomeComponent? = null
     private var mainJournalComponent: JournalComponent? = null
+    private var mainMentoringComponent: MentoringComponent? = null
     private var mainAdminComponent: AdminComponent? = null
     private var mainRatingComponent: RatingComponent? = null
 
@@ -221,6 +250,19 @@ class RootComponentImpl(
         }
     }
 
+    private fun getMainMentoringComponent(
+        componentContext: ComponentContext
+    ): MentoringComponent {
+        return if (mainMentoringComponent != null) mainMentoringComponent!! else {
+            mainMentoringComponent = MentoringComponent(
+                componentContext = componentContext,
+                storeFactory = storeFactory,
+                output = ::onMainMentoringOutput
+            )
+            mainMentoringComponent!!
+        }
+    }
+
     private fun getMainHomeComponent(
         componentContext: ComponentContext,
         getOld: Boolean = false
@@ -233,7 +275,14 @@ class RootComponentImpl(
                     componentContext,
                     //true
                 ),
-                output = ::onHomeOutput
+                output = ::onHomeOutput,
+                avatarId = secondAvatarId ?: authRepository.fetchAvatarId(),
+                login = secondLogin ?: authRepository.fetchLogin(),
+                name = secondFIO?.name ?: authRepository.fetchName(),
+                surname = secondFIO?.surname ?: authRepository.fetchSurname(),
+                praname = secondFIO?.praname ?: authRepository.fetchPraname(),
+                role = if (secondLogin == null) authRepository.fetchRole() else Roles.student,
+                onBackButtonPress = onBackButtonPress
             )
             mainHomeComponent!!
         }
@@ -247,18 +296,21 @@ class RootComponentImpl(
             mainRatingComponent = RatingComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
-                output = ::onRatingOutput
+                output = ::onRatingOutput,
+                avatarId = secondAvatarId ?: authRepository.fetchAvatarId(),
+                login = secondLogin ?: authRepository.fetchLogin(),
+                fio = secondFIO ?: FIO(name = authRepository.fetchName(), surname = authRepository.fetchSurname(), praname = authRepository.fetchPraname())
             )
             mainRatingComponent!!
         }
     }
 
-    private fun child(config: Config, componentContext: ComponentContext): Child {
-        return when (config) {
+    private fun child(config: Config, childContext: ComponentContext): Child =
+        when (config) {
             is Config.AuthLogin -> {
                 Child.AuthLogin(
                     LoginComponent(
-                        componentContext = componentContext,
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onLoginOutput
                     )
@@ -268,7 +320,7 @@ class RootComponentImpl(
             is Config.AuthActivation -> {
                 Child.AuthActivation(
                     ActivationComponent(
-                        componentContext = componentContext,
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onActivationOutput
                     )
@@ -277,22 +329,22 @@ class RootComponentImpl(
 
             is Config.MainHome -> {
                 Child.MainHome(
-                    homeComponent = getMainHomeComponent(componentContext),
+                    homeComponent = getMainHomeComponent(childContext),
                     journalComponent = mainHomeComponent!!.journalComponent!!,//getMainJournalComponent(componentContext),
-                    ratingComponent = getMainRatingComponent(componentContext)
+                    ratingComponent = getMainRatingComponent(childContext)
                 )
             }
 
             is Config.MainJournal -> {
                 Child.MainJournal(
-                    getMainHomeComponent(componentContext, true),
-                    getMainJournalComponent(componentContext, true)
+                    getMainHomeComponent(childContext, true),
+                    getMainJournalComponent(childContext, true)
                 )
             }
 
             is Config.MainAdmin -> {
                 Child.MainAdmin(
-                    getMainAdminComponent(componentContext)
+                    getMainAdminComponent(childContext)
                 )
             }
 //
@@ -308,12 +360,10 @@ class RootComponentImpl(
 //            }
 
             is Config.AdminUsers -> {
-                println(config.toString())
-                println("ADMINUSERS: ${stateKeeper}")
                 Child.AdminUsers(
-                    adminComponent = getMainAdminComponent(componentContext, true),
-                    UsersComponent(
-                        componentContext = componentContext,
+                    adminComponent = getMainAdminComponent(childContext, true),
+                    usersComponent = UsersComponent(
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onAdminUsersOutput
                     )
@@ -323,9 +373,9 @@ class RootComponentImpl(
             Config.AdminGroups -> {
                 println(config.toString())
                 Child.AdminGroups(
-                    adminComponent = getMainAdminComponent(componentContext, true),
+                    adminComponent = getMainAdminComponent(childContext, true),
                     GroupsComponent(
-                        componentContext = componentContext,
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onAdminGroupsOutput
                     )
@@ -335,19 +385,19 @@ class RootComponentImpl(
             is Config.LessonReport -> {
                 Child.LessonReport(
                     lessonReport = LessonReportComponent(
-                        componentContext = componentContext,
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onLessonReportOutput,
                         reportData = config.reportData
                     ),
-                    journalComponent = getMainJournalComponent(componentContext, true)
+                    journalComponent = getMainJournalComponent(childContext, true)
                 )
             }
 
             Config.HomeSettings -> {
                 Child.HomeSettings(
                     SettingsComponent(
-                        componentContext = componentContext,
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onHomeSettingsOutput
                     )
@@ -356,9 +406,9 @@ class RootComponentImpl(
 
             is Config.HomeDnevnikRuMarks -> {
                 Child.HomeDnevnikRuMarks(
-                    homeComponent = getMainHomeComponent(componentContext, true),
+                    homeComponent = getMainHomeComponent(childContext, true),
                     dnevnikRuMarksComponent = DnevnikRuMarksComponent(
-                        componentContext = componentContext,
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onDnevnikRuMarksOutput,
                         studentLogin = config.studentLogin
@@ -368,9 +418,9 @@ class RootComponentImpl(
 
             is Config.HomeDetailedStups -> {
                 Child.HomeDetailedStups(
-                    homeComponent = getMainHomeComponent(componentContext, true),
+                    homeComponent = getMainHomeComponent(childContext, true),
                     detailedStups = DetailedStupsComponent(
-                        componentContext = componentContext,
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onDetailedStupsOutput,
                         studentLogin = config.studentLogin,
@@ -381,9 +431,9 @@ class RootComponentImpl(
 
             is Config.HomeAllGroupMarks -> {
                 Child.HomeAllGroupMarks(
-                    journalComponent = getMainJournalComponent(componentContext, true),
+                    journalComponent = getMainJournalComponent(childContext, true),
                     allGroupMarksComponent = AllGroupMarksComponent(
-                        componentContext = componentContext,
+                        componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onAllGroupMarksOutput,
                         groupId = config.groupId,
@@ -395,9 +445,9 @@ class RootComponentImpl(
             }
 
             is Config.HomeProfile -> Child.HomeProfile(
-                homeComponent = getMainHomeComponent(componentContext, true),
+                homeComponent = getMainHomeComponent(childContext, true),
                 profileComponent = ProfileComponent(
-                    componentContext = componentContext,
+                    componentContext = childContext,
                     storeFactory = storeFactory,
                     studentLogin = config.studentLogin,
                     fio = config.fio,
@@ -411,30 +461,30 @@ class RootComponentImpl(
 
             Config.AdminSchedule -> Child.AdminSchedule(
                 scheduleComponent = ScheduleComponent(
-                    componentContext,
+                    childContext,
                     storeFactory,
                     output = ::onAdminScheduleOutput
                 )
             )
 
             Config.AdminCabinets -> Child.AdminCabinets(
-                adminComponent = getMainAdminComponent(componentContext, true),
+                adminComponent = getMainAdminComponent(childContext, true),
                 cabinetsComponent = CabinetsComponent(
-                    componentContext,
+                    childContext,
                     storeFactory,
                     output = ::onAdminCabinetsOutput
                 )
             )
 
             Config.MainRating -> Child.MainRating(
-                homeComponent = getMainHomeComponent(componentContext, true),
-                ratingComponent = getMainRatingComponent(componentContext, true)
+                homeComponent = getMainHomeComponent(childContext, true),
+                ratingComponent = getMainRatingComponent(childContext, true)
             )
 
             is Config.HomeTasks -> Child.HomeTasks(
-                homeComponent = getMainHomeComponent(componentContext, true),
+                homeComponent = getMainHomeComponent(childContext, true),
                 homeTasksComponent = HomeTasksComponent(
-                    componentContext,
+                    childContext,
                     storeFactory,
                     login = config.studentLogin,
                     avatarId = config.avatarId,
@@ -444,169 +494,147 @@ class RootComponentImpl(
             )
 
             Config.AdminCalendar -> Child.AdminCalendar(
-                adminComponent = getMainAdminComponent(componentContext, true),
+                adminComponent = getMainAdminComponent(childContext, true),
                 calendarComponent = CalendarComponent(
-                    componentContext = componentContext,
+                    componentContext = childContext,
                     storeFactory = storeFactory,
                     output = ::onAdminCalendarOutput
                 )
             )
+
+            Config.MainMentoring -> Child.MainMentoring(
+                mentoringComponent = getMainMentoringComponent(childContext)
+            )
+
+            is Config.SecondView -> Child.SecondView(
+                mentoringComponent = getMainMentoringComponent(childContext),
+                rootComponent = RootComponentImpl(
+                    componentContext = childContext,
+                    storeFactory = storeFactory,
+                    secondLogin = config.login,
+                    secondAvatarId = config.avatarId,
+                    secondFIO = config.fio,
+                    firstScreen = config.config,
+                    onBackButtonPress = { getMainMentoringComponent(childContext).onEvent(MentoringStore.Intent.SelectStudent(null)); popOnce(Child.SecondView::class) }
+                )
+            )
         }
-    }
+
+    private fun onMainMentoringOutput(output: MentoringComponent.Output): Unit =
+        when (output) {
+            is MentoringComponent.Output.CreateSecondView -> navigation.bringToFront(
+                Config.SecondView(
+                    login = output.login,
+                    fio = output.fio,
+                    avatarId = output.avatarId,
+                    config = output.config
+                )
+            )
+        }
 
     private fun onHomeTasksOutput(output: HomeTasksComponent.Output): Unit =
         when (output) {
-            HomeTasksComponent.Output.BackToHome -> navigateToHome {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
-            }
+            HomeTasksComponent.Output.Back -> popOnce(Child.HomeTasks::class)
         }
 
     private fun onAdminCabinetsOutput(output: CabinetsComponent.Output): Unit =
         when (output) {
-            CabinetsComponent.Output.BackToAdmin -> navigateToAdmin {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
-            }
+            CabinetsComponent.Output.Back -> popOnce(Child.AdminCabinets::class)
         }
 
     private fun onAdminCalendarOutput(output: CalendarComponent.Output): Unit =
         when (output) {
-            CalendarComponent.Output.BackToAdmin -> navigateToAdmin {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
-            }
+            CalendarComponent.Output.Back -> popOnce(Child.AdminCalendar::class)
         }
 
 
     private fun onAdminScheduleOutput(output: ScheduleComponent.Output): Unit =
         when (output) {
-            ScheduleComponent.Output.BackToAdmin -> navigateToAdmin {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
-            }
+            ScheduleComponent.Output.Back -> popOnce(Child.AdminSchedule::class)
         }
 
     private fun onLessonReportOutput(output: LessonReportComponent.Output): Unit =
         when (output) {
-            LessonReportComponent.Output.BackToJournal ->
-                if (model.value.currentCategory == Journal) {
-                    navigateToJournal {
-                        navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainJournal }
-                    }
-                } else {
-                    navigateToHome {
-                        navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
-                    }
-                }
+            LessonReportComponent.Output.Back -> popOnce(Child.LessonReport::class)
 
         }
 
     private fun onAllGroupMarksOutput(output: AllGroupMarksComponent.Output): Unit =
         when (output) {
-            AllGroupMarksComponent.Output.BackToHome -> navigateToHome {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
-            }
+            AllGroupMarksComponent.Output.Back -> popOnce(Child.HomeAllGroupMarks::class)
 
-            is AllGroupMarksComponent.Output.OpenReport -> navigateToLessonReport(output.reportData) {
-                navigation.bringToFront(it)
-            }
+            is AllGroupMarksComponent.Output.OpenReport -> navigation.bringToFront(
+                Config.LessonReport(
+                    output.reportData
+                )
+            )
+
         }
 
     private fun onDetailedStupsOutput(output: DetailedStupsComponent.Output): Unit =
         when (output) {
-            DetailedStupsComponent.Output.BackToHome -> navigateToHome {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
-            }
+            DetailedStupsComponent.Output.Back -> popOnce(Child.HomeDetailedStups::class)
         }
 
     private fun onDnevnikRuMarksOutput(output: DnevnikRuMarksComponent.Output): Unit =
         when (output) {
-            DnevnikRuMarksComponent.Output.BackToHome -> navigateToHome {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
-            }
+            DnevnikRuMarksComponent.Output.Back -> popOnce(Child.HomeDnevnikRuMarks::class)
         }
-
-//    private fun onAdminStudentsOutput(output: StudentsComponent.Output): Unit =
-//        when (output) {
-//            StudentsComponent.Output.BackToAdmin -> navigateToAdmin {
-//                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin}
-//            }
-//        }
 
     private fun onHomeSettingsOutput(output: SettingsComponent.Output): Unit =
         when (output) {
-            SettingsComponent.Output.BackToHome -> navigateToHome {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
-            }
+            SettingsComponent.Output.Back -> popOnce(Child.HomeSettings::class)
+            SettingsComponent.Output.GoToZero -> navigation.replaceAll(Config.AuthActivation)
 
-            SettingsComponent.Output.GoToZero -> navigateToActivation {
-                navigation.replaceAll(it)
-            }
         }
 
     private fun onHomeProfileOutput(output: ProfileComponent.Output): Unit =
         when (output) {
-
-            ProfileComponent.Output.BackToHome -> {
-                navigateToHome {
-                    navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainHome }
-                }
-            }
+            ProfileComponent.Output.Back -> popOnce(Child.HomeProfile::class)
         }
 
     private fun onAdminGroupsOutput(output: GroupsComponent.Output): Unit =
         when (output) {
-            GroupsComponent.Output.BackToAdmin -> navigateToAdmin {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
-            }
+            GroupsComponent.Output.Back -> popOnce(Child.AdminGroups::class)
         }
 
     private fun onAdminUsersOutput(output: UsersComponent.Output): Unit =
         when (output) {
-            UsersComponent.Output.BackToAdmin -> navigateToAdmin {
-                navigation.popWhile { topOfStack: Config -> topOfStack !is Config.MainAdmin }
-            }
+            UsersComponent.Output.Back -> popOnce(Child.AdminUsers::class)
         }
 
     private fun onRatingOutput(output: RatingComponent.Output): Unit =
         when (output) {
-            RatingComponent.Output.NavigateToSettings -> navigateToHomeSettings {
-                navigation.bringToFront(it)
-            }
+            RatingComponent.Output.NavigateToSettings -> navigation.bringToFront(Config.HomeSettings)
+
         }
 
     private fun onJournalOutput(output: JournalComponent.Output): Unit =
         when (output) {
-            is JournalComponent.Output.NavigateToLessonReport -> navigateToLessonReport(output.reportData) {
-                navigation.bringToFront(it)
-            }
+            is JournalComponent.Output.NavigateToLessonReport -> navigation.bringToFront(
+                Config.LessonReport(
+                    output.reportData
+                )
+            )
 
-            JournalComponent.Output.NavigateToSettings -> navigateToHomeSettings {
-                navigation.bringToFront(it)
-            }
+
+            JournalComponent.Output.NavigateToSettings -> navigation.bringToFront(Config.HomeSettings)
         }
 
     private fun onAdminOutput(output: AdminComponent.Output): Unit =
         when (output) {
-//            AdminComponent.Output.NavigateToMentors -> navigateToAdminMentors {
-//                navigation.bringToFront(it)
-//            }
+            AdminComponent.Output.NavigateToUsers ->
+                navigation.pushToFront(Config.AdminUsers)
 
-            AdminComponent.Output.NavigateToUsers -> navigateToAdminUsers {
-                navigation.bringToFront(it)
-            }
+            AdminComponent.Output.NavigateToGroups ->
+                navigation.bringToFront(Config.AdminGroups)
 
-            AdminComponent.Output.NavigateToGroups -> navigateToAdminGroups {
-                navigation.bringToFront(it)
-            }
+            AdminComponent.Output.NavigateToCabinets ->
+                navigation.bringToFront(Config.AdminCabinets)
 
-//            AdminComponent.Output.NavigateToStudents -> navigateToAdminStudents {
-//                navigation.bringToFront(it)
-//            }
-            AdminComponent.Output.NavigateToCabinets -> navigateToAdminCabinets {
-                navigation.bringToFront(it)
-            }
+            AdminComponent.Output.NavigateToCalendar ->
+                navigation.bringToFront(Config.AdminCalendar)
 
-            AdminComponent.Output.NavigateToCalendar -> navigateToAdminCalendar {
-                navigation.bringToFront(it)
-            }
         }
 
 //    private fun onAdminMentorsOutput(output: MentorsComponent.Output): Unit =
@@ -628,45 +656,46 @@ class RootComponentImpl(
 
     private fun onHomeOutput(output: HomeComponent.Output): Unit =
         when (output) {
-            HomeComponent.Output.NavigateToSettings -> navigateToHomeSettings {
-                navigation.bringToFront(it)
-            }
+            HomeComponent.Output.NavigateToSettings -> navigation.bringToFront(Config.HomeSettings)
 
-            is HomeComponent.Output.NavigateToDnevnikRuMarks -> navigateToHomeDnevnikRuMarks(output.studentLogin) {
-                navigation.bringToFront(it)
-            }
+            is HomeComponent.Output.NavigateToDnevnikRuMarks -> navigation.bringToFront(
+                Config.HomeDnevnikRuMarks(
+                    output.studentLogin
+                )
+            )
 
-            is HomeComponent.Output.NavigateToDetailedStups -> navigateToDetailedStups(
-                output.studentLogin,
-                output.reason.toString()
-            ) {
-                navigation.bringToFront(it)
-            }
+            is HomeComponent.Output.NavigateToDetailedStups -> navigation.bringToFront(
+                Config.HomeDetailedStups(
+                    output.studentLogin,
+                    output.reason.toString()
+                )
+            )
 
-            is HomeComponent.Output.NavigateToAllGroupMarks -> navigateToAllGroupMarks(
-                groupId = output.groupId,
-                groupName = output.groupName,
-                subjectName = output.subjectName,
-                subjectId = output.subjectId
-            ) {
-                navigation.bringToFront(it)
-            }
+            is HomeComponent.Output.NavigateToAllGroupMarks -> navigation.bringToFront(
+                Config.HomeAllGroupMarks(
+                    groupId = output.groupId,
+                    groupName = output.groupName,
+                    subjectName = output.subjectName,
+                    subjectId = output.subjectId
+                )
+            )
 
-            is HomeComponent.Output.NavigateToProfile -> navigateToProfile(
-                studentLogin = output.studentLogin,
-                fio = output.fio,
-                avatarId = output.avatarId
-            ) {
-                navigation.bringToFront(it)
-            }
+            is HomeComponent.Output.NavigateToProfile -> navigation.bringToFront(
+                Config.HomeProfile(
+                    studentLogin = output.studentLogin,
+                    fio = output.fio,
+                    avatarId = output.avatarId
+                )
+            )
 
-            is HomeComponent.Output.NavigateToTasks -> navigateToHomeTasks(
-                studentLogin = output.studentLogin,
-                avatarId = output.avatarId,
-                name = output.name
-            ) {
-                navigation.bringToFront(it)
-            }
+            is HomeComponent.Output.NavigateToTasks ->
+                navigation.bringToFront(
+                    Config.HomeTasks(
+                        studentLogin = output.studentLogin,
+                        avatarId = output.avatarId,
+                        name = output.name
+                    )
+                )
         }
 
     override fun onEvent(event: RootStore.Intent) {
@@ -677,209 +706,58 @@ class RootComponentImpl(
         when (output) {
 
             RootComponent.Output.NavigateToHome -> {
-                navigateToHome {
-                    navigation.bringToFront(it)
-                }
+                navigation.bringToFront(
+                    Config.MainHome
+//                    if (secondLogin == null) {
+//                        Config.MainHome
+//                        (
+//                            avatarId = authRepository.fetchAvatarId(),
+//                            login = authRepository.fetchLogin(),
+//                            fio = FIO(
+//                                name = authRepository.fetchName(),
+//                                surname = authRepository.fetchSurname(),
+//                                praname = authRepository.fetchPraname(),
+//                            ),
+//                            role = authRepository.fetchRole()
+//                        )
+//                    } else {
+//                        Config.MainHome(
+//                            avatarId = secondAvatarId!!,
+//                            login = secondLogin,
+//                            fio = secondFIO!!,
+//                            role = Roles.student
+//                        )
+//                    }
+                )
+
             }
 
-            RootComponent.Output.NavigateToJournal -> {
-                navigateToJournal {
-                    navigation.bringToFront(it)
-                }
-            }
+            RootComponent.Output.NavigateToJournal -> navigation.bringToFront(Config.MainJournal)
 
-            RootComponent.Output.NavigateToAdmin -> {
-                navigateToAdmin {
-                    navigation.bringToFront(it)
-                }
-            }
+            RootComponent.Output.NavigateToAdmin -> navigation.bringToFront(Config.MainAdmin)
 
-            RootComponent.Output.NavigateToSchedule -> navigateToSchedule {
-                navigation.bringToFront(it)
-            }
+            RootComponent.Output.NavigateToSchedule -> navigation.bringToFront(Config.AdminSchedule)
 
-            RootComponent.Output.NavigateToRating -> navigateToRating {
-                navigation.bringToFront(it)
-            }
+            RootComponent.Output.NavigateToRating -> navigation.bringToFront(Config.MainRating)
 
-            RootComponent.Output.NavigateToAuth -> navigateToActivation {
-                navigation.replaceAll(it)
-            }
+            RootComponent.Output.NavigateToAuth ->
+                navigation.replaceAll(Config.AuthActivation)
+
+            RootComponent.Output.NavigateToMentoring -> navigation.bringToFront(Config.MainMentoring)
         }
 
 
     private fun navigateAfterAuth() {
-        val d = Config.MainHome
-        rootStore.accept(RootStore.Intent.BottomBarShowing(true))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-
         val authRepository: AuthRepository = Inject.instance()
-//        println("auth ${authRepository.fetchLogin()}")
-//        mainJournalComponent!!.onEvent(JournalStore.Intent.Init) //mainHome?
-        navigation.bringToFront(d)
+        navigation.bringToFront(
+            Config.MainHome
+        )
         rootStore.accept(
             RootStore.Intent.UpdatePermissions(
                 role = authRepository.fetchRole(),
                 moderation = authRepository.fetchModeration()
             )
         )
-    }
-
-    private fun navigateToActivation(post: (Config) -> Unit) {
-        val d = Config.AuthActivation
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-        post(d)
-    }
-
-    private fun navigateToHome(post: (Config) -> Unit) {
-        val d = Config.MainHome
-        rootStore.accept(RootStore.Intent.BottomBarShowing(true))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-        post(d)
-    }
-
-    private fun navigateToHomeSettings(post: (Config) -> Unit) {
-        val d = Config.HomeSettings
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-        post(d)
-    }
-
-    private fun navigateToHomeTasks(
-        studentLogin: String,
-        name: String,
-        avatarId: Int,
-        post: (Config) -> Unit
-    ) {
-        val d = Config.HomeTasks(studentLogin = studentLogin, avatarId = avatarId, name = name)
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-        post(d)
-    }
-
-    private fun navigateToHomeDnevnikRuMarks(login: String, post: (Config) -> Unit) {
-        val d = Config.HomeDnevnikRuMarks(login)
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-        post(d)
-    }
-
-    private fun navigateToDetailedStups(login: String, reason: String, post: (Config) -> Unit) {
-        val d = Config.HomeDetailedStups(login, reason)
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-        post(d)
-    }
-
-    private fun navigateToAllGroupMarks(
-        groupId: Int,
-        groupName: String,
-        subjectId: Int,
-        subjectName: String, post: (Config) -> Unit
-    ) {
-        val d = Config.HomeAllGroupMarks(
-            groupId = groupId,
-            groupName = groupName,
-            subjectId = subjectId,
-            subjectName = subjectName
-        )
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-        post(d)
-    }
-
-    private fun navigateToProfile(
-        studentLogin: String,
-        fio: FIO,
-        avatarId: Int,
-        post: (Config) -> Unit
-    ) {
-        val d = Config.HomeProfile(
-            studentLogin = studentLogin,
-            fio = fio,
-            avatarId = avatarId
-        )
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Home, d))
-        post(d)
-    }
-
-//    private fun navigateToAdminStudents(post: (Config) -> Unit) {
-//        val d = Config.AdminStudents
-//        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-//        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-//        post(d)
-//    }
-
-    private fun navigateToLessonReport(reportData: ReportData, post: (Config) -> Unit) {
-        val d = Config.LessonReport(reportData)
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        val currentCategory = if (model.value.currentCategory == Journal) Journal else Home
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(currentCategory, d))
-        post(d)
-    }
-
-//    private fun navigateToAdminMentors(post: (Config) -> Unit) {
-//        val d = Config.AdminMentors
-//        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-//        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-//        post(d)
-//    }
-
-    private fun navigateToAdminUsers(post: (Config) -> Unit) {
-        val d = Config.AdminUsers
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-        post(d)
-    }
-
-    private fun navigateToAdminCabinets(post: (Config) -> Unit) {
-        val d = Config.AdminCabinets
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-        post(d)
-    }
-    private fun navigateToAdminCalendar(post: (Config) -> Unit) {
-        val d = Config.AdminCalendar
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-        post(d)
-    }
-
-    private fun navigateToAdminGroups(post: (Config) -> Unit) {
-        val d = Config.AdminGroups
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-        post(d)
-    }
-
-    private fun navigateToJournal(post: (Config) -> Unit) {
-        val d = Config.MainJournal
-        rootStore.accept(RootStore.Intent.BottomBarShowing(true))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Journal, d))
-        post(d)
-    }
-
-    private fun navigateToAdmin(post: (Config) -> Unit) {
-        val d = Config.MainAdmin
-        rootStore.accept(RootStore.Intent.BottomBarShowing(true))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-        post(d)
-    }
-
-    private fun navigateToRating(post: (Config) -> Unit) {
-        val d = Config.MainRating
-        rootStore.accept(RootStore.Intent.BottomBarShowing(true))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Rating, d))
-        post(d)
-    }
-
-    private fun navigateToSchedule(post: (Config) -> Unit) {
-        val d = Config.AdminSchedule
-        rootStore.accept(RootStore.Intent.BottomBarShowing(false))
-        rootStore.accept(RootStore.Intent.ChangeCurrentScreen(Admin, d))
-        post(d)
     }
 
     sealed interface DeepLink {
@@ -899,9 +777,20 @@ class RootComponentImpl(
         )
 //        backHandler.register(backCallback)
 //        updateBackCallback(false)
-        if (authRepository.isUserLoggedIn()) {
-            rootStore.accept(RootStore.Intent.CheckConnection)
-            rootStore.accept(RootStore.Intent.HideGreetings())
+        if (secondLogin == null) {
+            if (authRepository.isUserLoggedIn()) {
+                rootStore.accept(RootStore.Intent.CheckConnection)
+                rootStore.accept(RootStore.Intent.HideGreetings())
+            }
+        } else {
+
+        }
+    }
+
+    private fun popOnce(child: KClass<out Child>) {
+        if (child.isInstance(stack.active.instance)) {
+            if(stack.value.items.size == 1 && onBackButtonPress != null) onBackButtonPress.invoke()
+            else navigation.pop()
         }
     }
 
@@ -913,95 +802,110 @@ class RootComponentImpl(
 
     private fun getInitialStack(deepLink: DeepLink): List<Config> = //listOf(getFirstScreen())
         when (deepLink) {
-            is DeepLink.None -> listOf(getFirstScreen())
+            is DeepLink.None -> {
+//                val fs = getFirstScreen()
+//                val list = mutableListOf<Config>()
+//                if (fs !in listOf(Config.AuthActivation, Config.MainHome)) {
+//                    list.add(Config.MainHome)
+//                }
+//                list.add(fs)
+//                list
+                listOf(getFirstScreen())
+            }
             is DeepLink.Web -> listOf(getConfigForPath(deepLink.path))
         }
 
     private fun getPathForConfig(config: Config): String =
         when (config) {
-            Config.AuthLogin -> "/$WEB_PATH_AUTH_LOGIN"
-            Config.AuthActivation -> {
-                println("gogo"); "/$WEB_PATH_AUTH_ACTIVATION"
+//            Config.AuthLogin -> "/$WEB_PATH_AUTH_LOGIN"
+//            Config.AuthActivation -> {
+//                println("gogo"); "/$WEB_PATH_AUTH_ACTIVATION"
+//            }
+//
+//            Config.MainHome -> "/$WEB_PATH_MAIN_HOME"
+//            Config.MainJournal -> "/$WEB_PATH_MAIN_JOURNAL"
+//            Config.MainAdmin -> "/$WEB_PATH_MAIN_ADMIN"
+//
+////            Config.AdminMentors -> "/$WEB_PATH_ADMIN_MENTORS"
+//            Config.AdminUsers -> "/$WEB_PATH_ADMIN_USERS"
+//            Config.AdminGroups -> "/$WEB_PATH_ADMIN_GROUPS"
+////            Config.AdminStudents -> "/$WEB_PATH_ADMIN_STUDENTS"
+//            is Config.LessonReport -> "/$WEB_PATH_JOURNAL_LESSON_REPORT/${config.reportData.header.reportId}"
+//            Config.HomeSettings -> "/$WEB_PATH_HOME_SETTINGS"
+//            is Config.HomeDnevnikRuMarks -> "/$WEB_PATH_HOME_SETTINGS/${config.studentLogin}"
+//            is Config.HomeDetailedStups -> "/$WEB_PATH_HOME_DETAILED_STUPS/${config.studentLogin}/${config.reason}"
+//            is Config.HomeAllGroupMarks -> "/$WEB_PATH_HOME_DETAILED_STUPS/${config.subjectId}/${config.groupId}"
+//            //else -> "/"
+//            Config.AdminCabinets -> "/$WEB_PATH_ADMIN_CABINETS"
+//            Config.AdminCalendar -> "/$WEB_PATH_ADMIN_CALENDAR"
+//            Config.AdminSchedule -> "/$WEB_PATH_ADMIN_SCHEDULE"
+//            is Config.HomeProfile -> "/$WEB_PATH_HOME_PROFILE/${config.studentLogin}"
+//            is Config.HomeTasks -> "/$WEB_PATH_HOME_TASKS"
+//            Config.MainRating -> "/$WEB_PATH_MAIN_RATING"
+//            Config.MainMentoring -> "/TODO"
+//            is Config.SecondView -> "/TODO"
+            else -> {
+                "/"
             }
-
-            Config.MainHome -> "/$WEB_PATH_MAIN_HOME"
-            Config.MainJournal -> "/$WEB_PATH_MAIN_JOURNAL"
-            Config.MainAdmin -> "/$WEB_PATH_MAIN_ADMIN"
-
-//            Config.AdminMentors -> "/$WEB_PATH_ADMIN_MENTORS"
-            Config.AdminUsers -> "/$WEB_PATH_ADMIN_USERS"
-            Config.AdminGroups -> "/$WEB_PATH_ADMIN_GROUPS"
-//            Config.AdminStudents -> "/$WEB_PATH_ADMIN_STUDENTS"
-            is Config.LessonReport -> "/$WEB_PATH_JOURNAL_LESSON_REPORT/${config.reportData.header.reportId}"
-            Config.HomeSettings -> "/$WEB_PATH_HOME_SETTINGS"
-            is Config.HomeDnevnikRuMarks -> "/$WEB_PATH_HOME_SETTINGS/${config.studentLogin}"
-            is Config.HomeDetailedStups -> "/$WEB_PATH_HOME_DETAILED_STUPS/${config.studentLogin}/${config.reason}"
-            is Config.HomeAllGroupMarks -> "/$WEB_PATH_HOME_DETAILED_STUPS/${config.subjectId}/${config.groupId}"
-            //else -> "/"
-            Config.AdminCabinets -> "/$WEB_PATH_ADMIN_CABINETS"
-            Config.AdminCalendar -> "/$WEB_PATH_ADMIN_CALENDAR"
-            Config.AdminSchedule -> "/$WEB_PATH_ADMIN_SCHEDULE"
-            is Config.HomeProfile -> "/$WEB_PATH_HOME_PROFILE/${config.studentLogin}"
-            is Config.HomeTasks -> "/$WEB_PATH_HOME_TASKS"
-            Config.MainRating -> "/$WEB_PATH_MAIN_RATING"
         }
 
+    //
     private fun getConfigForPath(path: String): Config {
         return when (path.removePrefix("/")) {
-            WEB_PATH_AUTH_LOGIN -> Config.AuthLogin
-            WEB_PATH_AUTH_ACTIVATION -> Config.AuthActivation
-
-
-            WEB_PATH_MAIN_HOME -> Config.MainHome
-            WEB_PATH_MAIN_JOURNAL -> Config.MainJournal
-            WEB_PATH_MAIN_ADMIN -> Config.MainAdmin
-
-//            WEB_PATH_ADMIN_MENTORS -> Config.AdminMentors
-            WEB_PATH_ADMIN_USERS -> Config.AdminUsers
-            WEB_PATH_ADMIN_GROUPS -> Config.AdminGroups
-            WEB_PATH_HOME_DNEVNIK_RU_MARKS.split("/")[0] -> Config.HomeDnevnikRuMarks(
-                studentLogin = path.split("/").last()
-            )
-
-            WEB_PATH_HOME_DETAILED_STUPS.split("/")[0] -> Config.HomeDetailedStups(
-                studentLogin = path.split("/").last(),
-                reason = path.split("/").last()
-            )
-
-            WEB_PATH_HOME_ALL_GROUP_MARKS.split("/")[0] -> Config.HomeAllGroupMarks(
-                groupName = "",
-                subjectId = 0,
-                subjectName = "",
-                groupId = 0
-            )
-
-//            WEB_PATH_ADMIN_STUDENTS -> Config.AdminStudents
-            WEB_PATH_JOURNAL_LESSON_REPORT.split("/")[0] -> Config.LessonReport(
-                ReportData(
-                    ReportHeader(
-                        reportId = path.removePrefix("/").split("/")[1].toInt(),
-                        subjectName = "",
-                        subjectId = 0,
-                        groupName = "",
-                        groupId = 0,
-                        teacherName = "",
-                        teacherLogin = "",
-                        date = "",
-                        time = "",
-                        status = false,
-                        theme = "",
-                        module = "1"
-                    ),
-                    description = "",
-                    ids = 0,
-                    isMentorWas = false,
-                    editTime = "",
-                    isEditable = false,
-                    customColumns = emptyList()
-                )
-            )
-
-            WEB_PATH_HOME_SETTINGS -> Config.HomeSettings
+//            WEB_PATH_AUTH_LOGIN -> Config.AuthLogin
+//            WEB_PATH_AUTH_ACTIVATION -> Config.AuthActivation
+//
+//
+//            WEB_PATH_MAIN_HOME -> Config.MainHome
+//            WEB_PATH_MAIN_JOURNAL -> Config.MainJournal
+//            WEB_PATH_MAIN_ADMIN -> Config.MainAdmin
+//
+////            WEB_PATH_ADMIN_MENTORS -> Config.AdminMentors
+//            WEB_PATH_ADMIN_USERS -> Config.AdminUsers
+//            WEB_PATH_ADMIN_GROUPS -> Config.AdminGroups
+//            WEB_PATH_HOME_DNEVNIK_RU_MARKS.split("/")[0] -> Config.HomeDnevnikRuMarks(
+//                studentLogin = path.split("/").last()
+//            )
+//
+//            WEB_PATH_HOME_DETAILED_STUPS.split("/")[0] -> Config.HomeDetailedStups(
+//                studentLogin = path.split("/").last(),
+//                reason = path.split("/").last()
+//            )
+//
+//            WEB_PATH_HOME_ALL_GROUP_MARKS.split("/")[0] -> Config.HomeAllGroupMarks(
+//                groupName = "",
+//                subjectId = 0,
+//                subjectName = "",
+//                groupId = 0
+//            )
+//
+////            WEB_PATH_ADMIN_STUDENTS -> Config.AdminStudents
+//            WEB_PATH_JOURNAL_LESSON_REPORT.split("/")[0] -> Config.LessonReport(
+//                ReportData(
+//                    ReportHeader(
+//                        reportId = path.removePrefix("/").split("/")[1].toInt(),
+//                        subjectName = "",
+//                        subjectId = 0,
+//                        groupName = "",
+//                        groupId = 0,
+//                        teacherName = "",
+//                        teacherLogin = "",
+//                        date = "",
+//                        time = "",
+//                        status = false,
+//                        theme = "",
+//                        module = "1"
+//                    ),
+//                    description = "",
+//                    ids = 0,
+//                    isMentorWas = false,
+//                    editTime = "",
+//                    isEditable = false,
+//                    customColumns = emptyList()
+//                )
+//            )
+//
+//            WEB_PATH_HOME_SETTINGS -> Config.HomeSettings
             else -> Config.AuthActivation
         }
     }

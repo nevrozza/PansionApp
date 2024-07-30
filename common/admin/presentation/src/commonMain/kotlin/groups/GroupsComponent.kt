@@ -99,15 +99,7 @@ class GroupsComponent(
 
 
 
-
-
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToAdmin)
-    }
-
-
     init {
-        backHandler.register(backCallback)
         onEvent(GroupsStore.Intent.InitList)
     }
 
@@ -123,6 +115,6 @@ class GroupsComponent(
     }
 
     sealed class Output {
-        data object BackToAdmin : Output()
+        data object Back : Output()
     }
 }

@@ -9,7 +9,6 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.networkInterface.NetworkInterface
 import di.Inject
-import dnevnikRuMarks.DnevnikRuMarkStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
@@ -53,20 +52,15 @@ class DetailedStupsComponent(
         output(output)
     }
 
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToHome)
-    }
-
 
     init {
-        backHandler.register(backCallback)
         onEvent(DetailedStupsStore.Intent.Init)
         println(reason)
 
     }
 
     sealed class Output {
-        data object BackToHome : Output()
+        data object Back : Output()
 
     }
 }

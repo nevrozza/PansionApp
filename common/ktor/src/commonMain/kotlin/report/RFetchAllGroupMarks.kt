@@ -10,7 +10,8 @@ data class RFetchAllGroupMarksReceive(
 
 @Serializable
 data class RFetchAllGroupMarksResponse(
-    val students: List<AllGroupMarksStudent>
+    val students: List<AllGroupMarksStudent>,
+    val firstHalfNums: List<Int>
 )
 
 @Serializable

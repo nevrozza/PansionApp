@@ -19,7 +19,7 @@ import java.lang.IllegalArgumentException
 import java.util.*
 
 fun List<String>?.toStr(): String? = this?.joinToString("/-")
-fun String?.toList(): List<String>? = this?.split("/-")
+fun String?.toList(): List<String>? = if((this?.length ?: 0) > 2) this?.split("/-") else null
 
 
 fun getModuleByDate(date: String): CalendarDTO? {
@@ -79,6 +79,9 @@ val ApplicationCall.isModer: Boolean get() {
 }
 val ApplicationCall.isTeacher: Boolean get() {
     return Users.getRole(this.login) == Roles.teacher
+}
+val ApplicationCall.isMentor: Boolean get() {
+    return Users.getModeration(this.login) in listOf(Moderation.both, Moderation.mentor)
 }
 
 val ApplicationCall.token: String?

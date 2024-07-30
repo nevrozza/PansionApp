@@ -6,6 +6,10 @@ import journal.init.RFetchTeacherGroupsResponse
 import ktor.KtorMainRemoteDataSource
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
+import mentoring.RFetchMentoringStudentsResponse
+import mentoring.preAttendance.RFetchPreAttendanceDayReceive
+import mentoring.preAttendance.RFetchPreAttendanceDayResponse
+import mentoring.preAttendance.RSavePreAttendanceDayReceive
 import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
@@ -24,6 +28,17 @@ import schedule.RScheduleList
 class MainRepositoryImpl(
     private val remoteDataSource: KtorMainRemoteDataSource
 ) : MainRepository {
+    override suspend fun fetchMentorStudents(): RFetchMentoringStudentsResponse {
+        return remoteDataSource.fetchMentorStudents()
+    }
+
+    override suspend fun fetchPreAttendanceDay(r: RFetchPreAttendanceDayReceive): RFetchPreAttendanceDayResponse {
+        return remoteDataSource.fetchPreAttendanceDay(r)
+    }
+
+    override suspend fun savePreAttendanceDay(r: RSavePreAttendanceDayReceive) {
+        remoteDataSource.savePreAttendanceDay(r)
+    }
 
 
     override suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse {

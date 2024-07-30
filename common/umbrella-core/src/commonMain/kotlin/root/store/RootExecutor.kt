@@ -25,23 +25,6 @@ class RootExecutor(
     override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.HideGreetings -> hideGreetings(intent.time)
-            is Intent.BottomBarShowing -> scope.launch {
-                dispatch(
-                    Message.BottomBarShowingChanged(
-                        intent.isShowing
-                    )
-                )
-            }
-
-            is Intent.ChangeCurrentScreen -> scope.launch {
-                dispatch(
-                    Message.CurrentScreenChanged(
-                        intent.currentCategory,
-                        intent.currentScreen
-                    )
-                )
-            }
-
             is Intent.UpdatePermissions -> updatePermissions(
                 intent.role,
                 intent.moderation
@@ -74,6 +57,7 @@ class RootExecutor(
                     if (r.isTokenValid) {
                         updatePermissions(r.role, r.moderation)
                         authRepository.updateAfterFetch(r)
+
                         gotoHome()
                     } else {
                         dispatch(Message.TokenValidationStatusChanged(false))

@@ -41,6 +41,13 @@ object Calendar : Table() {
         return modules.map { it.num }.joinToString(separator = "").replace("[", "").replace("]", "")
     }
 
+    fun getAllModulesOfHalf(half: Int): List<Int> {
+        return getAllModules().mapNotNull {
+            if(half == it.halfNum) it.num
+            else null
+        }
+    }
+
     fun getAllModules(): List<CalendarDTO> {
         return transaction {
             Calendar.selectAll().map {

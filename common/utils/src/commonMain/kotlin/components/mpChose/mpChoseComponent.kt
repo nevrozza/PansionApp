@@ -43,7 +43,7 @@ class mpChoseComponent(
 
 
     init {
-        backHandler.register(backCallback)
+        //backHandler.register(backCallback)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -3,7 +3,6 @@ package groups
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -33,7 +32,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -62,7 +60,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -101,7 +98,6 @@ import groups.forms.FormsStore
 import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
 import kotlinx.coroutines.launch
-import schedule.ScheduleStore
 import view.LocalViewManager
 import view.WindowScreen
 import view.rememberImeState
@@ -161,7 +157,7 @@ fun GroupsContent(
                     containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
                     navigationRow = {
                         IconButton(
-                            onClick = { component.onOutput(GroupsComponent.Output.BackToAdmin) }
+                            onClick = { component.onOutput(GroupsComponent.Output.Back) }
                         ) {
                             Icon(
                                 Icons.Rounded.ArrowBackIosNew, null

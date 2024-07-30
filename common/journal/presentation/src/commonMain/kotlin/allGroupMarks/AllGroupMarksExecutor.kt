@@ -39,7 +39,7 @@ class AllGroupMarksExecutor(
             nOpenReportInterface.nStartLoading()
             try {
                 val reportData = journalRepository.fetchFullReportData(reportId)
-                nInterface.nSuccess()
+                nOpenReportInterface.nSuccess()
                 dispatch(Message.FullReportOpened(reportData))
             } catch (_: Throwable) {
                 nOpenReportInterface.nError("Что-то пошло не так =/") {
@@ -53,11 +53,11 @@ class AllGroupMarksExecutor(
         scope.launch {
             nInterface.nStartLoading()
             try {
-                val students = journalRepository.fetchAllGroupMarks(
+                val r = journalRepository.fetchAllGroupMarks(
                     state().groupId,
                     subjectId = state().subjectId
-                ).students
-                dispatch(Message.StudentsUpdated(students))
+                )
+                dispatch(Message.StudentsUpdated(r.students, r.firstHalfNums))
                 nInterface.nSuccess()
             } catch (_: Throwable) {
                 nInterface.nError("Что-то пошло не так =/") {

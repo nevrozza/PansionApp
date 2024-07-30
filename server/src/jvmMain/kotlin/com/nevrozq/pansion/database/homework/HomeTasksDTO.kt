@@ -23,10 +23,10 @@ data class HomeTasksDTO(
     val subjectId: Int,
     val groupId: Int,
     val reportId: Int,
-    val studentLogin: String?,
+    val studentLogins: List<String>?,
     val teacherLogin: String,
     val stups: Int,
     val text: String,
-    val filesId: String?//List<Int>
+    val filesId: List<Int>?//List<Int>
 )
 

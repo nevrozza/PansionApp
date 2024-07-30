@@ -3,14 +3,12 @@ package homeTasks
 import JournalRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.childContext
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
-import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
-import detailedStups.DetailedStupsStore
-import detailedStups.DetailedStupsStoreFactory
 import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
@@ -26,8 +24,14 @@ class HomeTasksComponent(
     //    private val settingsRepository: SettingsRepository = Inject.instance()
 //    private val authRepository: AuthRepository = Inject.instance()
 
+    val nInterfaceName = "HomeTasksInterfaceName"
+
     val nInterface =
-        NetworkInterface(componentContext, storeFactory, "HomeTasksComponent")
+        NetworkInterface(childContext(nInterfaceName + "CONTEXT"), storeFactory, nInterfaceName)
+    val nInitInterface =
+        NetworkInterface(childContext("INIT" + nInterfaceName + "CONTEXT"), storeFactory,
+            "INIT$nInterfaceName"
+        )
 
     val journalRepository: JournalRepository = Inject.instance()
 
@@ -37,7 +41,10 @@ class HomeTasksComponent(
                 storeFactory = storeFactory,
                 login = login,
                 avatarId = avatarId,
-                name = name
+                name = name,
+                journalRepository = journalRepository,
+                nInitInterface = nInitInterface,
+                nInterface = nInterface
             ).create()
         }
 
@@ -54,17 +61,12 @@ class HomeTasksComponent(
         output(output)
     }
 
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToHome)
-    }
-
 
     init {
-        backHandler.register(backCallback)
-//        onEvent(HomeTasksStore.Intent.Init)
+        onEvent(HomeTasksStore.Intent.Init)
     }
 
     sealed class Output {
-        data object BackToHome : Output()
+        data object Back : Output()
     }
 }

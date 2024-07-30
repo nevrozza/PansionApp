@@ -1,6 +1,7 @@
 package rating
 
 import AuthRepository
+import FIO
 import MainRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
@@ -15,10 +16,15 @@ import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
+
+
 class RatingComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    private val output: (Output) -> Unit
+    private val output: (Output) -> Unit,
+    private val avatarId: Int,
+    private val login: String,
+    private val fio: FIO
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
     val nInterface = NetworkInterface(
@@ -69,7 +75,10 @@ class RatingComponent(
                 authRepository = authRepository,
                 mainRepository = mainRepository,
                 nInterface = nInterface,
-                subjectsListComponent = subjectsListComponent
+                subjectsListComponent = subjectsListComponent,
+                avatarId = avatarId,
+                login = login,
+                fio = fio
             ).create()
         }
 

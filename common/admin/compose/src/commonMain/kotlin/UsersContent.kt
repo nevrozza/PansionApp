@@ -139,7 +139,7 @@ fun UsersContent(
             AppBar(
                 navigationRow = {
                     IconButton(
-                        onClick = { component.onOutput(UsersComponent.Output.BackToAdmin) }
+                        onClick = { component.onOutput(UsersComponent.Output.Back) }
                     ) {
                         Icon(
                             Icons.Rounded.ArrowBackIosNew, null
@@ -313,6 +313,7 @@ fun UsersContent(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
 @Composable
 private fun editUserSheet(

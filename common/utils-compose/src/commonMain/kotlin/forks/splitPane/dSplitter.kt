@@ -48,7 +48,7 @@ fun SplitPaneScope.dSplitter(
                 }
             }
             AnimatedVisibility(
-                isFullScreen != null && !isFullScreen.value,
+                isFullScreen == null || (!isFullScreen.value),
                 modifier = Modifier.width(4.5.dp).height(25.dp).align(Alignment.Center)
             ) {
                 Box(
@@ -71,7 +71,7 @@ fun SplitPaneScope.dSplitter(
         Box(
             modifier = Modifier.width(9.dp)
                 .fillMaxHeight().then(
-                    if (isFullScreen != null && !isFullScreen.value) {
+                    if (isFullScreen == null || (!isFullScreen.value)) {
 
                         Modifier.markAsHandle()
                             .cursorForHorizontalResize()

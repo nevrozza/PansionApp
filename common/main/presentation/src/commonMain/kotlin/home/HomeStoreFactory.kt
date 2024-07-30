@@ -20,7 +20,13 @@ class HomeStoreFactory(
     private val teacherNInterface: NetworkInterface,
     private val gradesNInterface: NetworkInterface,
     private val scheduleNInterface: NetworkInterface,
-    private val journalComponent: JournalComponent?
+    private val journalComponent: JournalComponent?,
+    private val avatarId: Int,
+    private val login: String,
+    private val name: String,
+    private val surname: String,
+    private val praname: String,
+    private val role: String
 ) {
 
     fun create(): HomeStore {
@@ -32,12 +38,12 @@ class HomeStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "HomeStore",
             initialState = State(
-                avatarId = authRepository.fetchAvatarId(),
-                login = authRepository.fetchLogin(),
-                name = authRepository.fetchName(),
-                surname = authRepository.fetchSurname(),
-                praname = authRepository.fetchPraname(),
-                role = authRepository.fetchRole()
+                avatarId = avatarId,
+                login = login,
+                name = name,
+                surname = surname,
+                praname = praname,
+                role = role
             ),
             executorFactory = { HomeExecutor(
                 authRepository = authRepository,

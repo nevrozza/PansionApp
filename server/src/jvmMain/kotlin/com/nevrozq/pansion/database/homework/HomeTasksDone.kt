@@ -1,12 +1,22 @@
 package com.nevrozq.pansion.database.homework
 
+
+import com.nevrozq.pansion.database.homework.HomeTasks.type
 import com.nevrozq.pansion.database.subjects.Subjects
+import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.utils.toList
 import org.jetbrains.exposed.sql.Query
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
+import server.DataLength
+import server.cut
+import javax.management.Query.and
 
 object HomeTasksDone : Table() {
     val id = HomeTasksDone.integer("id").autoIncrement().uniqueIndex()
@@ -29,6 +39,45 @@ object HomeTasksDone : Table() {
             }
         } catch (e: Throwable) {
             println(e)
+        }
+    }
+
+
+    fun checkTask(login: String, homeWorkId: Int, id: Int?, isDone: Boolean) {
+        transaction {
+            if(id != null || HomeTasksDone.select { (HomeTasksDone.studentLogin eq login) and (HomeTasksDone.homeWorkId eq homeWorkId) }
+                    .map { it[HomeTasksDone.id] }.isNotEmpty()) {
+                HomeTasksDone.update({ (HomeTasksDone.studentLogin eq login) and (HomeTasksDone.homeWorkId eq homeWorkId) }) {
+                    it[HomeTasksDone.isDone] = isDone
+                }
+            } else {
+                insert(
+                    HomeTasksDoneDTO(
+                        id = 0,
+                        studentLogin = login,
+                        isDone = isDone,
+                        homeWorkId = homeWorkId,
+                        seconds = 0,
+                        zabil = false
+                    )
+                )
+            }
+        }
+    }
+
+
+    fun getByLogin(login: String): List<HomeTasksDoneDTO> {
+        return transaction {
+            HomeTasksDone.select {HomeTasksDone.studentLogin eq login}.map {
+                HomeTasksDoneDTO(
+                    id = it[HomeTasksDone.id],
+                    studentLogin = it[HomeTasksDone.studentLogin],
+                    isDone = it[isDone],
+                    homeWorkId = it[homeWorkId],
+                    seconds = it[seconds],
+                    zabil = it[zabil]
+                )
+            }
         }
     }
 

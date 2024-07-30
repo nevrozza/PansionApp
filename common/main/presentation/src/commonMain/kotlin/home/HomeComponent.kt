@@ -16,10 +16,20 @@ import journal.JournalComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
+
+
+
 class HomeComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     val journalComponent: JournalComponent? = null,
+    private val avatarId: Int,
+    private val login: String,
+    private val name: String,
+    private val surname: String,
+    private val praname: String,
+    private val role: String,
+    val onBackButtonPress: (() -> Unit)? = null,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
@@ -66,7 +76,13 @@ class HomeComponent(
                 teacherNInterface = teacherNInterface,
                 gradesNInterface = gradesNInterface,
                 scheduleNInterface = scheduleNInterface,
-                journalComponent = journalComponent
+                journalComponent = journalComponent,
+                avatarId = avatarId,
+                login = login,
+                name = name,
+                surname = surname,
+                praname = praname,
+                role = role
             ).create()
         }
 

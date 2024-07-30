@@ -12,13 +12,6 @@ import dnevnikRuMarks.DnevnikRuMarkStore.Label
 import dnevnikRuMarks.DnevnikRuMarkStore.State
 import dnevnikRuMarks.DnevnikRuMarkStore.Message
 import kotlinx.coroutines.launch
-import lessonReport.Attented
-import lessonReport.AvgMark
-import lessonReport.LessonReportStore
-import lessonReport.Mark
-import lessonReport.StudentLine
-import lessonReport.Stup
-import report.RFetchReportStudentsReceive
 
 class DnevnikRuMarkExecutor(
     private val journalRepository: JournalRepository,

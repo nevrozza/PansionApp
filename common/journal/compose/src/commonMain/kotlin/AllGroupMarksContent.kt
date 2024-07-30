@@ -16,7 +16,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -60,11 +58,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -83,9 +78,6 @@ import components.StupsButtons
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import lessonReport.LessonReportStore
-import report.UserMark
 import report.UserMarkPlus
 import server.fetchReason
 import server.getLocalDate
@@ -111,12 +103,11 @@ fun AllGroupMarksContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
 
-    if(model.reportData != null) {
+    if (model.reportData != null) {
         val reportData = model.reportData
         component.onEvent(AllGroupMarksStore.Intent.DeleteReport)
         component.onOutput(AllGroupMarksComponent.Output.OpenReport(reportData!!))
     }
-
 
 
     //PullToRefresh
@@ -132,7 +123,7 @@ fun AllGroupMarksContent(
                 AppBar(
                     navigationRow = {
                         IconButton(
-                            onClick = { component.onOutput(AllGroupMarksComponent.Output.BackToHome) }
+                            onClick = { component.onOutput(AllGroupMarksComponent.Output.Back) }
                         ) {
                             Icon(
                                 Icons.Rounded.ArrowBackIosNew, null
@@ -219,6 +210,7 @@ fun AllGroupMarksContent(
                                         modifier = Modifier.padding(top = if (model.students.first() == s) 0.dp else 10.dp),
                                         coroutineScope = coroutineScope,
                                         component = component,
+                                        firstHalfNums = model.firstHalfNums,
                                         login = model.login
                                     ) {
                                         component.onEvent(
@@ -330,6 +322,7 @@ private fun AllGroupMarksStudentItem(
     marks: List<UserMarkPlus>,
     stups: List<UserMarkPlus>,
     isQuarters: Boolean,
+    firstHalfNums: List<Int>,
 //    stupsCount: Int,
     coroutineScope: CoroutineScope,
     modifier: Modifier = Modifier,
@@ -340,8 +333,9 @@ private fun AllGroupMarksStudentItem(
     val isFullView = remember { mutableStateOf(false) }
 
 
-    val modules = marks.map { it.module }.toSet().sorted().reversed()
+    val modules = marks.map { it.mark.module }.toSet().sorted().reversed()
 
+    val usedHalfNum = if (modules.first().toInt() in firstHalfNums) 1 else 2
 
     ElevatedCard(
         modifier.fillMaxWidth()//.padding(horizontal = 10.dp)
@@ -371,10 +365,17 @@ private fun AllGroupMarksStudentItem(
             }
 
             if (modules.isNotEmpty()) {
+
+                HalfYearRow(
+                    num = usedHalfNum,
+                    allMarks = marks,
+                    firstHalfModules = firstHalfNums
+                )
+
                 ModuleView(
                     moduleNum = modules.first().toInt(),
                     isQuarters = isQuarters,
-                    marks.filter { it.module == modules.first() },
+                    marks.filter { it.mark.module == modules.first() },
                     groupId = groupId,
                     coroutineScope = coroutineScope,
                     component = component,
@@ -394,16 +395,26 @@ private fun AllGroupMarksStudentItem(
                     }
                 }
                 AnimatedVisibility(isFullView.value) {
-                    (modules - modules.first()).forEach { x ->
-                        ModuleView(
-                            moduleNum = x.toInt(),
-                            isQuarters = isQuarters,
-                            marks = marks.filter { it.module == x },
-                            groupId = groupId,
-                            coroutineScope = coroutineScope,
-                            component = component,
-                            login = login
-                        )
+                    val firstFirstNum = modules.firstOrNull { it.toInt() in firstHalfNums }
+                    Column {
+                        (modules - modules.first()).forEach { x ->
+                            if (usedHalfNum != 1 && firstFirstNum == x) {
+                                HalfYearRow(
+                                    num = 1,
+                                    allMarks = marks,
+                                    firstHalfModules = firstHalfNums
+                                )
+                            }
+                            ModuleView(
+                                moduleNum = x.toInt(),
+                                isQuarters = isQuarters,
+                                marks = marks.filter { it.mark.module == x },
+                                groupId = groupId,
+                                coroutineScope = coroutineScope,
+                                component = component,
+                                login = login
+                            )
+                        }
                     }
                 }
             } else {
@@ -418,6 +429,36 @@ private fun AllGroupMarksStudentItem(
 //                }
 //            }
 
+        }
+    }
+}
+
+@Composable
+private fun HalfYearRow(
+    num: Int,
+    allMarks: List<UserMarkPlus>,
+    firstHalfModules: List<Int>
+) {
+    val marks = allMarks.filter { (num == 1 && it.mark.module.toInt() in firstHalfModules) }
+    val value = (marks.sumOf { it.mark.content.toInt() }) / (marks.size).toFloat()
+    Row {
+        Row(
+            Modifier.fillMaxWidth().padding(end = 2.dp, start = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                "$num полугодие",
+                fontWeight = FontWeight.Bold,
+                fontSize = 21.sp
+            ) //is Quarters None ${if(isQuarters) "модуль" else "полугодие"} TODO
+            Text(
+                text = if (value.isNaN()) {
+                    "NaN"
+                } else {
+                    value.roundTo(2).toString()
+                }, fontWeight = FontWeight.SemiBold, fontSize = 20.sp
+            )
         }
     }
 }

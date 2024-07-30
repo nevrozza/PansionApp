@@ -1,15 +1,11 @@
 package com.nevrozq.pansion.database.reportHeaders
 
 import com.nevrozq.pansion.database.groups.Groups
-import com.nevrozq.pansion.database.groups.Groups.autoIncrement
-import com.nevrozq.pansion.database.groups.Groups.uniqueIndex
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.RatingEntityDTO
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentLines.StudentLinesDTO
-import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
-import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.getModuleByDate
@@ -25,12 +21,10 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import report.RCreateReportReceive
-import report.RFetchReportDataReceive
 import report.RUpdateReportReceive
 import report.ServerRatingUnit
-import server.getDate
+import javax.management.monitor.StringMonitor
 import kotlin.math.abs
-import kotlin.math.absoluteValue
 
 object ReportHeaders : Table() {
     val id = ReportHeaders.integer("id").autoIncrement().uniqueIndex()
@@ -61,6 +55,17 @@ object ReportHeaders : Table() {
             }
         } catch (e: Throwable) {
             println(e)
+        }
+    }
+
+    fun fetchPreviousReportId(currentReportId: Int, groupId: Int): Int? {
+        return transaction {
+            try {
+                ReportHeaders.select { (ReportHeaders.id.less(currentReportId)) and (ReportHeaders.groupId eq groupId) }.lastOrNull()
+                    ?.get(ReportHeaders.id)
+            } catch (_: Throwable) {
+                null
+            }
         }
     }
 
@@ -128,7 +133,9 @@ object ReportHeaders : Table() {
                         groupId = r.groupId,
                         login = it,
                         lateTime = "0",
-                        isLiked = ""
+                        isLiked = "",
+                        attended = null,
+                        aReason = null
                     ),
                     isDelete = false
                 )
@@ -144,7 +151,7 @@ object ReportHeaders : Table() {
         transaction {
             val pHeader = ReportHeaders.fetchHeader(r.lessonReportId)
 
-            val pStudents = StudentLines.fetchStudentLinesOfReport(r.lessonReportId)
+//            val pStudents = StudentLines.fetchStudentLinesOfReport(r.lessonReportId)
 
 //            deleteReportHeader(r.lessonReportId)
 //            println(r.columnNames.toStr())
@@ -169,6 +176,8 @@ object ReportHeaders : Table() {
                 StudentLines.update({ (StudentLines.reportId eq r.lessonReportId) and (StudentLines.login eq student.login) }) {
                     it[StudentLines.isLiked] = student.isLiked
                     it[StudentLines.lateTime] = student.lateTime
+                    it[StudentLines.attended] = student.attended?.attendedType
+                    it[StudentLines.aReason] = student.attended?.reason
 //                        }
 //                        StudentLines.insert(
 //                            StudentLinesDTO(
@@ -270,4 +279,19 @@ object ReportHeaders : Table() {
             }.first()
         }
     }
+    fun fetchDate(reportId: Int): ReportTimeDate {
+        return transaction {
+            ReportHeaders.select { ReportHeaders.id eq reportId }.map {
+                ReportTimeDate(
+                    date = it[date],
+                    start = it[time]
+                )
+            }.first()
+        }
+    }
 }
+
+data class ReportTimeDate(
+    val date: String,
+    val start: String
+)

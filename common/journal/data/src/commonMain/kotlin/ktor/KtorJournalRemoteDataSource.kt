@@ -3,6 +3,14 @@ package ktor
 import ReportData
 import RequestPaths
 import checkOnNoOk
+import homework.RCheckHomeTaskReceive
+import homework.RFetchHomeTasksReceive
+import homework.RFetchHomeTasksResponse
+import homework.RFetchReportHomeTasksReceive
+import homework.RFetchReportHomeTasksResponse
+import homework.RFetchTasksInitReceive
+import homework.RFetchTasksInitResponse
+import homework.RSaveReportHomeTasksReceive
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post
@@ -26,6 +34,58 @@ import report.RUpdateReportReceive
 class KtorJournalRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun checkHomeTask(r: RCheckHomeTaskReceive) {
+        httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.HomeTasks.CheckTask)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+
+    suspend fun fetchHomeTasks(r: RFetchHomeTasksReceive) : RFetchHomeTasksResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.HomeTasks.FetchHomeTasks)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun fetchHomeTasksInit(r: RFetchTasksInitReceive) : RFetchTasksInitResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.HomeTasks.FetchHomeTasksInit)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun saveReportHomeTasks(r: RSaveReportHomeTasksReceive) : RFetchReportHomeTasksResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.HomeTasks.SaveReportHomeTasks)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun fetchReportHomeTasks(r: RFetchReportHomeTasksReceive) : RFetchReportHomeTasksResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.HomeTasks.FetchReportHomeTasks)
+                setBody(r)
+            }
+        }.body()
+    }
+
     suspend fun fetchFullReportData(r: RFetchFullReportData): ReportData {
         return httpClient.post {
             url {

@@ -48,6 +48,15 @@ object Subjects : Table() {
         }
     }
 
+    fun fetchAllSubjectsAsMap(): Map<Int, String> {
+        return transaction {
+            Subjects.selectAll().associate {
+                it[Subjects.id] to it[name]
+            }
+        }
+    }
+
+
     fun fetchAllSubjects(): List<SubjectDTO> {
         return transaction {
             Subjects.selectAll().map {

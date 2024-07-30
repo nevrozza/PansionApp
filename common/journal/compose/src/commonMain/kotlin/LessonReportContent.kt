@@ -4,6 +4,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,7 +28,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -34,6 +36,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -42,9 +46,12 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AddHomeWork
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LocalPolice
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Save
@@ -72,16 +79,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -139,9 +150,6 @@ import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import dnevnikRuMarks.DnevnikRuMarkStore
-import homeTasks.HomeTasksStore
-import homework.ClientReportHomeworkItem
 import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -152,7 +160,6 @@ import lessonReport.MarkColumn
 import lessonReport.Stup
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
-import server.Roles
 import server.getDate
 import server.getSixTime
 import server.roundTo
@@ -172,6 +179,8 @@ fun LessonReportContent(
     LockScreenOrientation(-1)
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+
+    val nHomeTasksModel by component.nHomeTasksInterface.networkModel.subscribeAsState()
     val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
 //    val scrollState = rememberScrollState()
@@ -405,21 +414,48 @@ fun LessonReportContent(
                                     Box(
                                         Modifier.fillMaxWidth()
                                     ) {
+
                                         Text(
                                             "Домашние задания",
-                                            modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                                            modifier = Modifier.fillMaxWidth()
+                                                .align(Alignment.Center),
                                             textAlign = TextAlign.Center,
                                             fontSize = 25.sp,
                                             fontWeight = FontWeight.Bold
                                         )
-                                        Row(Modifier.align(Alignment.CenterEnd)) {
-                                            IconButton(
-                                                onClick = {}
-                                            ) {
-                                                Icon(
-                                                    Icons.Rounded.Save,
-                                                    null
+
+                                        Row(
+                                            Modifier.align(Alignment.CenterEnd),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            if (nHomeTasksModel.state is NetworkState.Loading) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(
+                                                        20.dp
+                                                    )
                                                 )
+                                            }
+                                            if (nHomeTasksModel.state is NetworkState.Error) {
+                                                CustomTextButton("Кнопка") {
+                                                    nHomeTasksModel.onFixErrorClick()
+                                                }
+                                            }
+                                            if (model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }) {
+                                                val isReady =
+                                                    false !in model.hometasks.map { it.type.isNotBlank() }
+                                                IconButton(
+                                                    onClick = {
+                                                        if (isReady) {
+                                                            component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
+                                                        }
+                                                    },
+                                                    enabled = isReady
+                                                ) {
+                                                    Icon(
+                                                        Icons.Rounded.Save,
+                                                        null
+                                                    )
+                                                }
                                             }
                                             IconButton(
                                                 onClick = {}
@@ -515,7 +551,6 @@ fun LessonReportContent(
             component.setReportColumnsComponent.onEvent(CBottomSheetStore.Intent.ShowSheet)
         }
 
-
         CAlertDialogContent(
             component.confirmDeletingColumnDialogComponent,
             isCustomButtons = false,
@@ -578,78 +613,170 @@ private fun HomeWorkTabContent(
     val tabs =
         (setOf(null) + (model.hometasks.map { it.studentLogins } + model.homeTasksNewTabs).toSet()).toList()
     val selectedTabIndex = remember { mutableStateOf(0) }
-    Column(
-        Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)
-            .padding(start = 30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+    Box() {
+        Column(
+            Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)
+                .padding(start = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SecondaryScrollableTabRow(
-                selectedTabIndex = selectedTabIndex.value,
-                divider = {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outline.copy(
-                            alpha = .4f
-                        )
-                    )
-                },
-                containerColor = Color.Transparent,
-                edgePadding = 0.dp
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                tabs.forEachIndexed { i, tab ->
-                    val tabText = if (tab != null) {
-                        (model.students.filter { it.login in tab }).toString()
-                    } else "Все"
-                    Tab(
-                        selected = selectedTabIndex.value == i,
-                        onClick = {
-                            selectedTabIndex.value = i
-                        },
-                        text = {
-                            Text(
-                                tabText,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 2
+                SecondaryScrollableTabRow(
+                    selectedTabIndex = selectedTabIndex.value,
+                    divider = {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(
+                                alpha = .4f
                             )
-                        },
-                        modifier = Modifier.width(
-                            (((this@BoxWithConstraints.maxWidth / tabs.count()
-                                .toFloat()) - 1.dp) - (80.dp / tabs.count())).coerceAtLeast(100.dp)
                         )
-                    )
-                }
-                IconButton(
-                    onClick = {}
+                    },
+                    containerColor = Color.Transparent,
+                    edgePadding = 0.dp
                 ) {
-                    Icon(
-                        Icons.Rounded.Add,
-                        null
-                    )
+                    tabs.forEachIndexed { i, tab ->
+                        val tabText = if (tab != null) {
+                            (model.students.filter { it.login in tab }).map { it.shortFio.removeSuffix(".") }.toString().removePrefix("[").removeSuffix("]")
+                        } else "Все"
+                        val tState =
+                            rememberTooltipState(
+                                isPersistent = true
+                            )
+                        TooltipBox(
+                            state = tState,
+                            tooltip = {
+                                if(tab != null) {
+                                    PlainTooltip() {
+                                        Text(
+                                            tabText.replace(",", "\n"),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                            },
+                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+                        ) {
+                            Tab(
+                                selected = selectedTabIndex.value == i,
+                                onClick = {
+                                    selectedTabIndex.value = i
+                                },
+                                text = {
+
+                                    Box(Modifier.fillMaxWidth()) {
+                                        Text(
+                                            tabText,
+                                            overflow = TextOverflow.Ellipsis,
+                                            maxLines = 2,
+                                            fontSize = 15.sp,
+                                            modifier = Modifier.align(Alignment.Center)
+                                        )
+                                        if (tab != null) {
+                                            IconButton(
+                                                onClick = {
+                                                    component.homeTasksTabDialogComponent.onEvent(
+                                                        CAlertDialogStore.Intent.ShowDialog
+                                                    )
+                                                    component.onEvent(
+                                                        LessonReportStore.Intent.UpdateTabLoginsId(
+                                                            tab
+                                                        )
+                                                    )
+                                                },
+                                                modifier = Modifier.size(20.dp)
+                                                    .align(Alignment.CenterEnd)
+                                            ) {
+                                                Icon(
+                                                    Icons.Rounded.Edit, null
+                                                )
+                                            }
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.width(
+                                    (((this@BoxWithConstraints.maxWidth / tabs.count()
+                                        .toFloat()) - 1.dp) - (80.dp / tabs.count())).coerceAtLeast(
+                                        200.dp
+                                    )
+                                )
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = {
+                            component.homeTasksTabDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                            component.onEvent(LessonReportStore.Intent.UpdateTabLoginsId(null))
+                        }
+                    ) {
+                        Icon(
+                            Icons.Rounded.Add,
+                            null
+                        )
+                    }
+                }
+            }
+
+            val tasks = model.hometasks.filter { it.studentLogins == tabs[selectedTabIndex.value] }
+            tasks.forEach {
+                ReportHomeTaskItem(
+                    task = it,
+                    component = component
+                )
+            }
+            if (tasks.none { it.type == "" || it.text == "" }) {
+                TextButton(
+                    onClick = {
+                        component.onEvent(
+                            LessonReportStore.Intent.AddEmptyHomeTask(
+                                studentLogins = tabs[selectedTabIndex.value]
+                            )
+                        )
+                    }
+                ) {
+                    Text("Добавить задание")
                 }
             }
         }
-
-        val tasks = model.hometasks.filter { it.studentLogins == tabs[selectedTabIndex.value] }
-        tasks.forEach {
-            ReportHomeTaskItem(
-                task = it,
-                component = component
-            )
+        SaveAnimation(model.isHomeTasksSavedAnimation) {
+            component.onEvent(LessonReportStore.Intent.IsHomeTasksSavedAnimation(false))
         }
-        if (tasks.none { it.type == "" || it.text == "" }) {
-            TextButton(
-                onClick = {
-                    component.onEvent(
-                        LessonReportStore.Intent.AddEmptyHomeTask(
-                            studentLogins = tabs[selectedTabIndex.value]
+        ErrorAnimation(
+            textError = "Не удалось загрузить задания\nна сервер",
+            isShowing = model.isHomeTasksErrorAnimation
+        ) {
+            component.onEvent(LessonReportStore.Intent.IsHomeTasksErrorAnimation(false))
+        }
+
+
+        CAlertDialogContent(
+            component.homeTasksTabDialogComponent,
+            acceptText = if(model.tabLogins == null) "Создать" else "Редактировать",
+            isCustomButtons = false,
+            title = if(model.tabLogins == null) "Новая группа" else "Обновлённая группу",
+            isSaveButtonEnabled = model.newTabLogins.sorted() !in (model.homeTasksNewTabs.map { it.sorted() } + model.hometasks.map { it.studentLogins }.map { it?.sorted() }) && model.newTabLogins.isNotEmpty(),
+        ) {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                model.students.forEach { s ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = s.login in model.newTabLogins,
+                            onCheckedChange = {
+                                if (it && s.login !in model.newTabLogins) {
+                                    component.onEvent(LessonReportStore.Intent.AddLoginToNewTab(s.login))
+                                } else if (!it && s.login in model.newTabLogins) {
+                                    component.onEvent(
+                                        LessonReportStore.Intent.DeleteLoginFromNewTab(
+                                            s.login
+                                        )
+                                    )
+                                }
+                            }
                         )
-                    )
+                        Spacer(Modifier.width(5.dp))
+                        Text(s.shortFio)
+                    }
                 }
-            ) {
-                Text("Добавить задание")
             }
         }
     }
@@ -662,6 +789,8 @@ private fun ReportHomeTaskItem(
     component: LessonReportComponent
 ) {
     val isStups = task.type != "" && task.type.subSequence(0, 3) == "!st"
+
+    val isFullView = remember { mutableStateOf(task.isNew) }
 
     var expandedType by remember { mutableStateOf(false) }
 
@@ -679,104 +808,141 @@ private fun ReportHomeTaskItem(
         modifier = Modifier.padding(top = 6.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(15.dp))
-            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp))
+            .animateContentSize()
     ) {
-        Column(Modifier.padding(4.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                ExposedDropdownMenuBox(
-                    expanded = expandedType,
-                    onExpandedChange = {
-                        expandedType = !expandedType
-                    }
-                ) {
-                    OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth(.6f)
-                            .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
-                        readOnly = true,
-                        value = typesList[task.type] ?: "Выберите",
-                        placeholder = { Text("Выберите") },
-                        onValueChange = {},
-                        label = { Text("Тип") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = expandedType
-                            )
-                        },
-                        shape = RoundedCornerShape(15.dp)
-                    )
-                    // menu
-                    ExposedDropdownMenu(
+        if (isFullView.value) {
+            Column(Modifier.padding(4.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    ExposedDropdownMenuBox(
                         expanded = expandedType,
-                        onDismissRequest = {
-                            expandedType = false
-                        },
-                    ) {
-                        // menu items
-                        typesList.forEach { selectionOption ->
-                            DropdownMenuItem(
-                                text = { Text(selectionOption.value) },
-                                onClick = {
-                                    component.onEvent(
-                                        LessonReportStore.Intent.ChangeHomeTaskType(
-                                            id = task.id,
-                                            type = selectionOption.key
-                                        )
-                                    )
-                                    expandedType = false
-                                },
-                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                            )
+                        onExpandedChange = {
+                            expandedType = !expandedType
                         }
+                    ) {
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(.6f)
+                                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                            readOnly = true,
+                            value = typesList[task.type] ?: "Выберите",
+                            placeholder = { Text("Выберите") },
+                            onValueChange = {},
+                            label = { Text("Тип") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                    expanded = expandedType
+                                )
+                            },
+                            shape = RoundedCornerShape(15.dp)
+                        )
+                        // menu
+                        ExposedDropdownMenu(
+                            expanded = expandedType,
+                            onDismissRequest = {
+                                expandedType = false
+                            },
+                        ) {
+                            // menu items
+                            typesList.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption.value) },
+                                    onClick = {
+                                        component.onEvent(
+                                            LessonReportStore.Intent.ChangeHomeTaskType(
+                                                id = task.id,
+                                                type = selectionOption.key,
+                                                isNew = task.isNew
+                                            )
+                                        )
+                                        expandedType = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.width(8.dp))
+                    if (isStups) {
+                        CustomTextField(
+                            value = if (task.stups == 0) "" else task.stups.toString(),
+                            onValueChange = {
+                                component.onEvent(
+                                    LessonReportStore.Intent.ChangeHomeTaskAward(
+                                        id = task.id,
+                                        award = if (it == "") 0 else it.toInt(),
+                                        isNew = task.isNew
+                                    )
+                                )
+                            },
+                            text = "Награда",
+                            supText = "макс: ${getMaxStupsCount(task.type)}",
+                            isEnabled = true,
+                            isMoveUpLocked = true,
+                            autoCorrect = true,
+                            keyboardType = KeyboardType.Text,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        FilesButton(
+                            Modifier.padding(top = 7.dp).height(TextFieldDefaults.MinHeight)
+                        )
                     }
                 }
 
-                Spacer(Modifier.width(8.dp))
-                if (isStups) {
-                    CustomTextField(
-                        value = if (task.stups == 0) "" else task.stups.toString(),
-                        onValueChange = {
-                            component.onEvent(
-                                LessonReportStore.Intent.ChangeHomeTaskAward(
-                                    id = task.id,
-                                    award = if (it == "") 0 else it.toInt()
-                                )
+                CustomTextField(
+                    value = task.text,
+                    onValueChange = {
+                        component.onEvent(
+                            LessonReportStore.Intent.ChangeHomeTaskText(
+                                id = task.id,
+                                text = it,
+                                isNew = task.isNew
                             )
-                        },
-                        text = "Награда",
-                        supText = "макс: ${getMaxStupsCount(task.type)}",
-                        isEnabled = true,
-                        isMoveUpLocked = true,
-                        autoCorrect = true,
-                        keyboardType = KeyboardType.Text,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else {
-                    FilesButton(
-                        Modifier.padding(top = 7.dp).height(TextFieldDefaults.MinHeight)
-                    )
+                        )
+                    },
+                    isEnabled = true,
+                    text = "Задание",
+                    supText = "Текст задания",
+                    isSingleLine = false,
+                    //focusManager = focusManager,
+                    isMoveUpLocked = true,
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (isStups) {
+                    FilesButton()
                 }
             }
-            CustomTextField(
-                value = task.text,
-                onValueChange = {
-                    component.onEvent(
-                        LessonReportStore.Intent.ChangeHomeTaskText(
-                            id = task.id,
-                            text = it
-                        )
+        } else {
+            Column(Modifier.padding(4.dp).padding(start = 4.dp)) {
+                Row {
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                                append("Тип: ")
+                            }
+                            append("${typesList[task.type] ?: "Не выбрано"}")
+                        }
                     )
-                },
-                text = "Задание",
-                supText = "Текст задания",
-                isEnabled = true,
-                isMoveUpLocked = true,
-                autoCorrect = true,
-                keyboardType = KeyboardType.Text,
-                modifier = Modifier.fillMaxWidth()
-            )
-            if (isStups) {
-                FilesButton()
+                    Spacer(Modifier.width(5.dp))
+                    if (isStups) {
+                        Text("(+${task.stups})")
+                    }
+                }
+                Text(task.text)
             }
+        }
+        IconButton(
+            onClick = {
+                isFullView.value = !isFullView.value
+            },
+            modifier = Modifier.size(20.dp).align(Alignment.TopEnd)
+        ) {
+            Icon(
+                Icons.Rounded.Menu, null
+            )
         }
     }
 }
@@ -1471,11 +1637,30 @@ fun LessonTable(
                                             ) {
                                                 when (column.type) {
                                                     ColumnTypes.prisut -> {
-                                                        Checkbox(
-                                                            checked = student.attended.isAttended,
-                                                            onCheckedChange = null,
-                                                            enabled = model.isEditable
-                                                        )
+                                                        val isDot = student.attended?.reason != null
+                                                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = if (isDot) 6.dp else 0.dp)) {
+                                                            if(isDot) {
+                                                                Box(
+                                                                    Modifier
+                                                                        .size(5.dp).clip(
+                                                                            CircleShape
+                                                                        ).background(MaterialTheme.colorScheme.primary)
+                                                                )
+                                                            }
+                                                            Spacer(Modifier.width(3.dp))
+                                                            PrisutCheckBox(
+                                                                modifier = Modifier.size(25.dp),
+                                                                attendedType = student.attended?.attendedType
+                                                                    ?: "0",
+                                                                reason = student.attended?.reason,
+                                                                enabled = model.isEditable
+                                                            ) {
+                                                                component.onEvent(LessonReportStore.Intent.ChangeAttendance(
+                                                                    studentLogin = student.login,
+                                                                    attendedType = it
+                                                                ))
+                                                            }
+                                                        }
                                                     }
 
                                                     ColumnTypes.opozdanie -> {
@@ -1811,6 +1996,81 @@ fun LessonTable(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PrisutCheckBox(
+    modifier: Modifier,
+    attendedType: String,
+    reason: String?,
+    enabled: Boolean,
+    onCheckedChange: (String) -> Unit
+) {
+    val tState = rememberTooltipState(isPersistent = true)
+    TooltipBox(
+        state = tState,
+        tooltip = {
+            if(reason != null) {
+                PlainTooltip() {
+                    Text(
+                        reason.toString()
+                    )
+                }
+            }
+        },
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        enableUserInput = true
+    ) {
+
+            Box(modifier = modifier, contentAlignment = Alignment.Center) {
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxSize(),//.alpha(if (checked) 1f else .5f),
+                    shape = AbsoluteRoundedCornerShape(40),
+                    border = BorderStroke(
+                        color = if (attendedType == "0") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, //if (checked) MaterialTheme.colorScheme.surface else
+                        width = 1.dp
+                    ),
+                    onClick = {
+                        //0-bil. 1-n. 2-Uv
+                        if (enabled) {
+                            val newValue = when (attendedType) {
+                                "0" -> "1"
+                                "1" -> "2"
+                                else -> "0"
+                            }
+                            onCheckedChange(newValue)
+                        }
+                    }) {
+                    AnimatedVisibility(attendedType == "0") {
+                        Icon(
+                            imageVector = Icons.Rounded.Done,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.fillMaxSize()
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                    }
+                    AnimatedVisibility(attendedType == "1") {
+                        Text(
+                            text = "Н",
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.fillMaxSize(),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    AnimatedVisibility(attendedType == "2") {
+                        Text(
+                            text = "УВ",
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.fillMaxSize(),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+    }
+}
 
 @Composable
 private fun Stepper(
@@ -1930,7 +2190,7 @@ private fun backAB(
     component: LessonReportComponent
 ) {
     IconButton(
-        onClick = { component.onOutput(LessonReportComponent.Output.BackToJournal) }
+        onClick = { component.onOutput(LessonReportComponent.Output.Back) }
     ) {
         Icon(
             Icons.Rounded.ArrowBackIosNew, null

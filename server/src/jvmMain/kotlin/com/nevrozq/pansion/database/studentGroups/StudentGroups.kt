@@ -73,10 +73,24 @@ object StudentGroups : Table() {
         }
     }
 
-    fun fetchGroupsOfStudent(studentLogin: String): List<GroupDTO> {
+    fun fetchGroupOfStudentIDS(studentLogin: String): List<Int> {
         return transaction {
             try {
 
+                val groupsIds = StudentGroups.select { StudentGroups.studentLogin eq studentLogin }
+                groupsIds.mapNotNull {
+                    Groups.getGroupById(it[groupId])?.id
+                }
+            } catch (e: Throwable) {
+                println(e)
+                listOf()
+            }
+        }
+    }
+
+    fun fetchGroupsOfStudent(studentLogin: String): List<GroupDTO> {
+        return transaction {
+            try {
                 val groupsIds = StudentGroups.select { StudentGroups.studentLogin eq studentLogin }
                 groupsIds.mapNotNull {
                     Groups.getGroupById(it[groupId])

@@ -1,12 +1,6 @@
 package com.nevrozq.pansion.database.studentLines
 
-import com.nevrozq.pansion.database.groups.GroupDTO
-import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
-import com.nevrozq.pansion.database.reportHeaders.ReportHeaders.autoIncrement
-import com.nevrozq.pansion.database.reportHeaders.ReportHeaders.uniqueIndex
-import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
-import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
@@ -16,8 +10,10 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object StudentLines : Table() {
-     val reportId = reference("reportId", ReportHeaders.id)
+    val reportId = reference("reportId", ReportHeaders.id)
     //attended
+    val attended = this.varchar("attended", 1).nullable() //0-bil. 1-n. 2-Uv
+    val aReason = this.text("aReason").nullable() //0-bil. 1-n. 2-Uv
     val groupId = StudentLines.integer("groupId")
     val login = StudentLines.varchar("login", 30)
     val lateTime = StudentLines.varchar("lateTime", 10)
@@ -50,6 +46,8 @@ object StudentLines : Table() {
                     it[login] = studentLinesDTO.login
                     it[lateTime] = studentLinesDTO.lateTime
                     it[isLiked] = studentLinesDTO.isLiked
+                    it[attended] = studentLinesDTO.attended
+                    it[aReason] = studentLinesDTO.aReason
                 }
             }
         } catch (e: Throwable) {
@@ -82,7 +80,9 @@ object StudentLines : Table() {
                         groupId = it[groupId],
                         login = it[login],
                         lateTime = it[lateTime],
-                        isLiked = it[isLiked]
+                        isLiked = it[isLiked],
+                        attended = it[attended],
+                        aReason = it[aReason]
                     )
                 }
             } catch (e: Throwable) {

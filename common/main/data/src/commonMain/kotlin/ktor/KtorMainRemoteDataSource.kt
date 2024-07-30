@@ -14,6 +14,10 @@ import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
+import mentoring.RFetchMentoringStudentsResponse
+import mentoring.preAttendance.RFetchPreAttendanceDayReceive
+import mentoring.preAttendance.RFetchPreAttendanceDayResponse
+import mentoring.preAttendance.RSavePreAttendanceDayReceive
 import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
@@ -32,6 +36,35 @@ import schedule.RScheduleList
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun savePreAttendanceDay(r: RSavePreAttendanceDayReceive) {
+        httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Mentoring.SavePreAttendanceDay)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+    suspend fun fetchPreAttendanceDay(r: RFetchPreAttendanceDayReceive) : RFetchPreAttendanceDayResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Mentoring.FetchPreAttendanceDay)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun fetchMentorStudents(): RFetchMentoringStudentsResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Mentoring.FetchMentoringStudents)
+            }
+        }.body()
+    }
 
 
     suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse {

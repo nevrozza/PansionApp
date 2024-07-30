@@ -1,7 +1,6 @@
 package dnevnikRuMarks
 
 import JournalRepository
-import ReportData
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.backhandler.BackCallback
@@ -9,16 +8,10 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
-import components.cBottomSheet.CBottomSheetComponent
-import components.listDialog.ListComponent
-import components.listDialog.ListDialogStore
-import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
-import server.getSixTime
-
 
 
 class DnevnikRuMarksComponent(
@@ -66,19 +59,14 @@ class DnevnikRuMarksComponent(
         output(output)
     }
 
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToHome)
-    }
-
 
     init {
-        backHandler.register(backCallback)
         onEvent(DnevnikRuMarkStore.Intent.Init)
 
     }
 
     sealed class Output {
-        data object BackToHome : Output()
+        data object Back : Output()
 
     }
 }

@@ -34,13 +34,9 @@ class CalendarComponent(
             ).create()
         }
 
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToAdmin)
-    }
 
 
     init {
-        backHandler.register(backCallback)
         onEvent(CalendarStore.Intent.Init)
     }
 
@@ -58,6 +54,6 @@ class CalendarComponent(
     }
 
     sealed class Output {
-        data object BackToAdmin : Output()
+        data object Back : Output()
     }
 }

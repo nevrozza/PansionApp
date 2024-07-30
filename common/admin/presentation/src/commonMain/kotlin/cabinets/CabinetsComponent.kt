@@ -3,7 +3,6 @@ package cabinets
 import AdminRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
@@ -32,13 +31,8 @@ class CabinetsComponent(
             ).create()
         }
 
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToAdmin)
-    }
-
 
     init {
-        backHandler.register(backCallback)
         onEvent(CabinetsStore.Intent.Init)
     }
 
@@ -56,6 +50,6 @@ class CabinetsComponent(
     }
 
     sealed class Output {
-        data object BackToAdmin : Output()
+        data object Back : Output()
     }
 }

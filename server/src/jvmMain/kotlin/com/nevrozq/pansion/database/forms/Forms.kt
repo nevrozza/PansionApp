@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.database.forms
 
+import mentoring.MentorForms
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -27,6 +28,19 @@ object Forms : Table() {
             }
         } catch (e: Throwable) {
             println(e)
+        }
+    }
+
+    fun fetchMentorForms(mentorLogin: String) : List<MentorForms> {
+        return transaction {
+            Forms.select { Forms.mentorLogin eq mentorLogin }.mapNotNull {
+                if(it[isActive]) MentorForms(
+                    id = it[Forms.id],
+                    num = it[Forms.classNum],
+                    title = it[Forms.title]
+                )
+                else null
+            }
         }
     }
 

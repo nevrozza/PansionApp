@@ -20,8 +20,8 @@ object Moderation {
     const val mentor = "1"
     const val moderator = "2"
     const val both = "3"
-    const val superModerator = "4"
-    const val superBoth = "5"
+//    const val superModerator = "4"
+//    const val superBoth = "5"
 }
 
 object IsParentStatus {

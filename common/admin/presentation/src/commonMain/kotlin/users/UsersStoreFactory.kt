@@ -18,15 +18,12 @@ class UsersStoreFactory(
     private val cUserBottomSheet: CBottomSheetComponent
 ) {
 
-    fun create(stateKeeper: StateKeeper): UsersStore =
+    fun create(state: UsersStore.State?, stateKeeper: StateKeeper): UsersStore =
         object :
         UsersStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "UsersStore",
-            initialState = stateKeeper.consume(
-                key = "UsersStoreState",
-                strategy = State.serializer()
-            ) ?: UsersStore.State(),
+            initialState = state ?: UsersStore.State(),
             executorFactory = {
                 UsersExecutor(
                     adminRepository = adminRepository,
@@ -36,9 +33,5 @@ class UsersStoreFactory(
                 )
             },
             reducer = UsersReducer
-        ) {}.also {
-            stateKeeper.register("UsersStoreState", strategy = State.serializer()) {
-                it.state
-            }
-        }
+        ) {}
 }

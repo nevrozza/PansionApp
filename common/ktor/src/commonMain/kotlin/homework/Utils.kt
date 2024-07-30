@@ -14,6 +14,7 @@ data class ClientHomeworkItem(
     val text: String,
     val stups: Int,
     val fileIds: List<Int>?,
+    val doneId: Int?,
     val seconds: Int,
     val done: Boolean
 )
@@ -29,8 +30,7 @@ data class ClientReportHomeworkItem(
     val text: String,
     val stups: Int,
     val fileIds: List<Int>?,
-    val studentLogins: List<String>?,
-    val exceptLogins: List<String>?
+    val studentLogins: List<String>?
 )
 
 @Serializable
@@ -41,6 +41,5 @@ data class CreateReportHomeworkItem(
     val text: String,
     val stups: Int,
     val fileIds: List<Int>?,
-    val studentLogins: List<String>?,
-    val exceptLogins: List<String>?
+    val studentLogins: List<String>?
 )

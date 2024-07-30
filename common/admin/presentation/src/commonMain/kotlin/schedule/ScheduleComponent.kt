@@ -8,7 +8,6 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
-import components.listDialog.ListItem
 import components.mpChose.mpChoseComponent
 import components.networkInterface.NetworkInterface
 import di.Inject
@@ -71,13 +70,8 @@ class ScheduleComponent(
             ).create()
         }
 
-    private val backCallback = BackCallback {
-        onOutput(Output.BackToAdmin)
-    }
-
 
     init {
-        backHandler.register(backCallback)
         onEvent(ScheduleStore.Intent.Init)
     }
 
@@ -95,6 +89,6 @@ class ScheduleComponent(
     }
 
     sealed class Output {
-        data object BackToAdmin : Output()
+        data object Back : Output()
     }
 }

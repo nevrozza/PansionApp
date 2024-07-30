@@ -68,7 +68,7 @@ fun CabinetsContent(
             AppBar(
                 navigationRow = {
                     IconButton(
-                        onClick = { component.onOutput(CabinetsComponent.Output.BackToAdmin) }
+                        onClick = { component.onOutput(CabinetsComponent.Output.Back) }
                     ) {
                         Icon(
                             Icons.Rounded.ArrowBackIosNew, null

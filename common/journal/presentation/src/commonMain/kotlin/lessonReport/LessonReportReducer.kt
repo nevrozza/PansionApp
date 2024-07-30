@@ -85,6 +85,12 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
             is LessonReportStore.Message.IsSavedAnimation -> copy(isSavedAnimation = msg.isSaved)
             is LessonReportStore.Message.IsErrorAnimation -> copy(isErrorAnimation = msg.isError)
             is LessonReportStore.Message.HomeTasksUpdated -> copy(hometasks = msg.homeTasks)
+            is LessonReportStore.Message.IsHomeTasksErrorAnimation -> copy(isHomeTasksErrorAnimation = msg.isError)
+            is LessonReportStore.Message.IsHomeTasksSavedAnimation -> copy(isHomeTasksSavedAnimation = msg.isSaved)
+            is LessonReportStore.Message.HomeTasksToEditIdsUpdated -> copy(homeTasksToEditIds = msg.homeTasksToEditIds)
+            is LessonReportStore.Message.TabLoginsIdUpdated -> copy(tabLogins = msg.tabLogins, newTabLogins = msg.tabLogins ?: listOf())
+            is LessonReportStore.Message.NewTabsLoginsUpdated -> copy(newTabLogins = msg.logins)
+            is LessonReportStore.Message.SaveTabLoginsUpdated -> copy(homeTasksNewTabs = msg.tabs)
         }
     }
 }

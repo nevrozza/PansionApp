@@ -50,6 +50,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Schedule
@@ -107,6 +108,7 @@ import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
 import components.DateButton
+import components.DatesLine
 import components.GetAvatar
 import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
@@ -120,6 +122,8 @@ import home.HomeComponent
 import home.HomeStore
 import journal.JournalStore
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
@@ -286,8 +290,11 @@ fun TeacherHomeContent(
                     )
                     AnimatedVisibility(model.isDatesShown && !isMainView) {
                         DatesLine(
-                            component = component,
-                            model = model
+                            dates = model.dates,
+                            currentDate = model.currentDate,
+                            onClick = {
+                                component.onEvent(HomeStore.Intent.ChangeDate(it))
+                            }
                         )
                     }
                 }
@@ -606,6 +613,21 @@ fun StudentHomeContent(
             ) {
                 AppBar(
                     containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    navigationRow = {
+                        if (component.onBackButtonPress != null) {
+                            IconButton(
+                                onClick = {
+                                    GlobalScope.launch(Dispatchers.Main) {
+                                        component.onBackButtonPress?.invoke()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.ArrowBackIosNew, null
+                                )
+                            }
+                        }
+                    },
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             println(lazyListState.firstVisibleItemIndex)
@@ -677,8 +699,11 @@ fun StudentHomeContent(
                 )
                 AnimatedVisibility(model.isDatesShown && !isMainView) {
                     DatesLine(
-                        component = component,
-                        model = model
+                        dates = model.dates,
+                        currentDate = model.currentDate,
+                        onClick = {
+                            component.onEvent(HomeStore.Intent.ChangeDate(it))
+                        }
                     )
                 }
             }
@@ -969,8 +994,11 @@ private fun RaspisanieTitleBox(
             if (!isMainView) {
                 AnimatedVisibility(model.isDatesShown) {
                     DatesLine(
-                        component = component,
-                        model = model
+                        dates = model.dates,
+                        currentDate = model.currentDate,
+                        onClick = {
+                            component.onEvent(HomeStore.Intent.ChangeDate(it))
+                        }
                     )
                 }
             }
@@ -1026,8 +1054,11 @@ private fun RaspisanieTitleBox(
 
                 AnimatedVisibility(model.isDatesShown) {
                     DatesLine(
-                        component = component,
-                        model = model
+                        dates = model.dates,
+                        currentDate = model.currentDate,
+                        onClick = {
+                            component.onEvent(HomeStore.Intent.ChangeDate(it))
+                        }
                     )
                 }
             }
@@ -1073,7 +1104,7 @@ fun Lesson(
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold
             )
-            if(role == Roles.teacher) {
+            if (role == Roles.teacher) {
                 val headers = journalModel!!.headers.filter {
                     it.date == model.currentDate.second &&
                             it.groupId == groupId &&
@@ -1081,7 +1112,8 @@ fun Lesson(
                 }
                 if (headers.isNotEmpty() && headers.first().status) {
                     Box(
-                        Modifier.offset(x = 16.dp, y = (-14).dp).align(Alignment.CenterStart).size(5.dp).clip(
+                        Modifier.offset(x = 16.dp, y = (-14).dp).align(Alignment.CenterStart)
+                            .size(5.dp).clip(
                             CircleShape
                         ).background(MaterialTheme.colorScheme.primary)
                     )
@@ -1296,30 +1328,7 @@ fun CalendarButton(component: HomeComponent) {
     }
 }
 
-@Composable
-fun DatesLine(component: HomeComponent, model: HomeStore.State) {
-    Column {
-        Row(
-            Modifier.height(50.dp).fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            model.dates.toList().forEach { item ->
-                DateButton(
-                    currentDate = model.currentDate.second,
-                    dayOfWeek = item.first,
-                    date = item.second
-                ) {
-                    component.onEvent(HomeStore.Intent.ChangeDate(item))
-                    //component.onEvent(ScheduleStore.Intent.ChangeCurrentDate(item))
-                }
 
-            }
-        }
-        Spacer(Modifier.height(5.dp))
-    }
-}
 
 @Composable
 fun RecentMarkContent(
@@ -1348,7 +1357,9 @@ fun RecentMarkContent(
         Modifier.padding(PaddingValues(start = 5.dp, top = 5.dp))
             .border(
                 width = if (isNotStups) 0.dp else 1.dp,
-                color = if (isNotStups) Color.Transparent else MaterialTheme.colorScheme.outline.copy(1f),
+                color = if (isNotStups) Color.Transparent else MaterialTheme.colorScheme.outline.copy(
+                    1f
+                ),
                 shape = RoundedCornerShape(30)
             )
             .clip(RoundedCornerShape(percent = 30))

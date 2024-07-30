@@ -16,11 +16,14 @@ class LessonReportStoreFactory(
     private val deleteMarkMenuComponent: ListComponent,
     private val setLateTimeMenuComponent: ListComponent,
     private val nInterface: NetworkInterface,
+    private val nHomeTasksInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
     private val authRepository: AuthRepository,
     private val data: ReportData,
     private val marksDialogComponent: CAlertDialogComponent,
 ) {
+
+
 
     fun create(): LessonReportStore {
         return LessonReportStoreImpl()
@@ -57,7 +60,8 @@ class LessonReportStoreFactory(
                     journalRepository = journalRepository,
                     marksDialogComponent = marksDialogComponent,
                     authRepository = authRepository,
-                    header = data.header
+                    header = data.header,
+                    nHomeTasksInterface = nHomeTasksInterface
                 )
             },
             reducer = LessonReportReducer

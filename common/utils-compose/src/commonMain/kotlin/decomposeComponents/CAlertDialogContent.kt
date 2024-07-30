@@ -43,6 +43,7 @@ import components.networkInterface.NetworkState
 fun CAlertDialogContent(
     component: CAlertDialogComponent,
     customIf: Boolean? = null,
+    isSaveButtonEnabled: Boolean = true,
     isCustomButtons: Boolean = true,
     standardCustomButton: @Composable (() -> Unit)? = null,
     acceptColor: Color = MaterialTheme.colorScheme.primary,
@@ -98,12 +99,14 @@ fun CAlertDialogContent(
                                                     .padding(end = 20.dp),
                                                 horizontalArrangement = Arrangement.End
                                             ) {
+                                                println("x1: $isSaveButtonEnabled")
                                                 CustomTextButton(
                                                     acceptText,
                                                     modifier = Modifier.padding(
                                                         end = 20.dp
                                                     ),
-                                                    color = acceptColor
+                                                    color = acceptColor,
+                                                    isButtonEnabled = isSaveButtonEnabled
                                                 ) {
                                                     model.onAcceptClick?.invoke()
                                                 }

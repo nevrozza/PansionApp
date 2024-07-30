@@ -1,16 +1,18 @@
 package users
 
 import admin.users.User
+import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.mvikotlin.core.store.Store
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import users.UsersStore.Intent
 import users.UsersStore.Label
 import users.UsersStore.State
 
-interface UsersStore : Store<Intent, State, Label> {
+interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
     @Serializable
     data class State(
         val users: List<User>? = null,

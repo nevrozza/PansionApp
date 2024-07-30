@@ -33,13 +33,13 @@ data class UserMark(
     val isGoToAvg: Boolean,
     val groupId: Int,
     val date: String,
-    val reportId: Int
+    val reportId: Int,
+    val module: String
 )
 
 @Serializable
 data class UserMarkPlus(
     val mark: UserMark,
-    val module: String,
     val deployDate: String,
     val deployTime: String,
     val deployLogin: String

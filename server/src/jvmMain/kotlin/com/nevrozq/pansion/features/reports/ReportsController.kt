@@ -5,6 +5,9 @@ import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
+import com.nevrozq.pansion.database.homework.HomeTasks
+import com.nevrozq.pansion.database.homework.HomeTasksDTO
+import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.ForAvg
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
@@ -20,6 +23,11 @@ import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.isTeacher
 import com.nevrozq.pansion.utils.login
+import com.nevrozq.pansion.utils.toStr
+import homework.CreateReportHomeworkItem
+import homework.RFetchReportHomeTasksReceive
+import homework.RFetchReportHomeTasksResponse
+import homework.RSaveReportHomeTasksReceive
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -27,8 +35,13 @@ import io.ktor.server.response.respond
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import report.AddStudentLine
 import report.AllGroupMarksStudent
+import report.Attended
 import report.DetailedStupsSubject
 import report.DnevnikRuMarksSubject
 import report.Grade
@@ -59,6 +72,7 @@ import report.UserMark
 import report.UserMarkPlus
 import server.getCurrentDate
 import server.getDate
+import server.getSixTime
 import server.toMinutes
 
 class ReportsController() {
@@ -132,6 +146,8 @@ class ReportsController() {
         if (call.isTeacher || call.isMember) {
             try {
                 val reportHeader = ReportHeaders.fetchHeader(r.reportId)
+                val columns = reportHeader.customColumns.ifEmpty { HomeTasks.fetchPreviousHomeTasks(reportId = reportHeader.id, groupId = reportHeader.groupId) }
+
                 val response = RFetchReportDataResponse(
                     topic = reportHeader.topic,
                     description = reportHeader.description,
@@ -139,7 +155,7 @@ class ReportsController() {
                     ids = reportHeader.ids,
                     isMentorWas = reportHeader.isMentorWas,
                     isEditable = call.login == Groups.getTeacherLogin(reportHeader.groupId),
-                    customColumns = reportHeader.customColumns
+                    customColumns = columns
                 )
                 call.respond(response)
             } catch (e: ExposedSQLException) {
@@ -287,6 +303,9 @@ class ReportsController() {
         val r = call.receive<RFetchAllGroupMarksReceive>()
         if (call.isMember) {
             try {
+                val firstHalfNums = Calendar.getAllModulesOfHalf(1)
+
+
                 val result = mutableListOf<AllGroupMarksStudent>()
                 val students = StudentGroups.fetchStudentsOfGroup(r.groupId)
                 students.forEach { s ->
@@ -303,9 +322,9 @@ class ReportsController() {
                                 isGoToAvg = it.isGoToAvg,
                                 groupId = it.groupId,
                                 date = it.date,
-                                reportId = it.reportId
+                                reportId = it.reportId,
+                                module = it.part
                             ),
-                            module = it.part,
                             deployDate = it.deployDate,
                             deployTime = it.deployTime,
                             deployLogin = it.deployLogin
@@ -323,9 +342,9 @@ class ReportsController() {
                                 isGoToAvg = it.isGoToAvg,
                                 groupId = it.groupId,
                                 date = it.date,
-                                reportId = it.reportId
+                                reportId = it.reportId,
+                                module = it.part
                             ),
-                            module = it.part,
                             deployDate = it.deployDate,
                             deployTime = it.deployTime,
                             deployLogin = it.deployLogin
@@ -345,7 +364,7 @@ class ReportsController() {
                         )
                     )
                 }
-                call.respond(RFetchAllGroupMarksResponse(result))
+                call.respond(RFetchAllGroupMarksResponse(students = result, firstHalfNums))
 
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
@@ -378,7 +397,8 @@ class ReportsController() {
                         isGoToAvg = it.isGoToAvg,
                         groupId = it.groupId,
                         date = it.date,
-                        reportId = it.reportId
+                        reportId = it.reportId,
+                        module = it.part
                     )
                 }
 
@@ -464,7 +484,8 @@ class ReportsController() {
                                     isGoToAvg = it.isGoToAvg,
                                     groupId = it.groupId,
                                     date = it.date,
-                                    reportId = it.reportId
+                                    reportId = it.reportId,
+                                    module = it.part
                                 )
                             }
                         )
@@ -533,7 +554,8 @@ class ReportsController() {
                                     isGoToAvg = it.isGoToAvg,
                                     groupId = it.groupId,
                                     date = it.date,
-                                    reportId = it.reportId
+                                    reportId = it.reportId,
+                                    module = it.part
                                 )
                             },
                             stupCount = iStups.sumOf { it.content.toInt() },
@@ -545,7 +567,8 @@ class ReportsController() {
                                     isGoToAvg = it.isGoToAvg,
                                     groupId = it.groupId,
                                     date = it.date,
-                                    reportId = it.reportId
+                                    reportId = it.reportId,
+                                    module = it.part
                                 )
                             }
                         )
@@ -589,11 +612,16 @@ class ReportsController() {
                                     Groups.fetchSubjectIdOfGroup(it.groupId),
                                     module = r.module.toString()
                                 )
+                            var preAttendance = PreAttendance.fetchPreAttendanceByDateAndLogin(date = r.date, login = it.login)
+                            preAttendance = if(preAttendance != null && preAttendance.start.toMinutes() <= r.minutes && preAttendance.end.toMinutes() > r.minutes) preAttendance else null
+//                            println("PAS: ${preAttendance}")
+//                            println("PAS2: ${if(it.attended != null) Attended(attendedType = it.attended, null) else if(preAttendance != null) Attended(attendedType = if(preAttendance.isGood) "2" else "1", reason = preAttendance.reason ) else null}")
                             AddStudentLine(
                                 serverStudentLine = ServerStudentLine(
                                     login = it.login,
                                     lateTime = it.lateTime,
-                                    isLiked = it.isLiked
+                                    isLiked = it.isLiked,
+                                    attended = if(it.attended != null) Attended(attendedType = it.attended, reason = it.aReason) else if(preAttendance != null) Attended(attendedType = if(preAttendance.isGood) "2" else "1", reason = preAttendance.reason ) else null
                                 ),
                                 shortFio = shortFio,
                                 prevSum = forAvg.sum - marks.sumOf { it.content.toInt() },
@@ -610,6 +638,110 @@ class ReportsController() {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Can't fetch report students: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun fetchReportHomeTasks(call: ApplicationCall) {
+        if(call.isMember) {
+            val r = call.receive<RFetchReportHomeTasksReceive>()
+            try {
+                val tasks = HomeTasks.getAllHomeTasksByReportId(r.reportId)
+
+                call.respond(
+                    RFetchReportHomeTasksResponse(
+                        tasks = tasks.map {
+                            CreateReportHomeworkItem(
+                                id = it.id,
+                                isNew = false,
+                                type = it.type,
+                                text = it.text,
+                                stups = it.stups,
+                                fileIds = it.filesId,
+                                studentLogins = it.studentLogins
+                            )
+                        }
+                    )
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch report home tasks: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun saveReportHomeTasks(call: ApplicationCall) {
+        val r = call.receive<RSaveReportHomeTasksReceive>()
+        val login = call.login
+        if (call.isTeacher && login == ReportHeaders.fetchHeader(r.reportId).teacherLogin) {
+            try {
+                r.tasks.filter { it.isNew }.forEach { t ->
+                    HomeTasks.insert(
+                        HomeTasksDTO(
+                            id = 0,
+                            date = getCurrentDate().second,
+                            time = getSixTime(),
+                            type = t.type,
+                            subjectId = r.subjectId,
+                            groupId = r.groupId,
+                            reportId = r.reportId,
+                            studentLogins = t.studentLogins,
+                            teacherLogin = login,
+                            stups = t.stups,
+                            text = t.text,
+                            filesId = t.fileIds
+                        )
+                    )
+                }
+                r.tasks.filter { !it.isNew }.forEach { t ->
+                    if(t.text.isNotBlank()) {
+                        transaction {
+                            HomeTasks.update({ HomeTasks.id eq t.id }) {
+                                it[text] = t.text
+                                it[type] = t.type
+                                it[stups] = t.stups
+                                it[studentLogins] = t.studentLogins.toStr()
+                                it[filesId] = t.fileIds?.map { it.toString() }.toStr()
+                            }
+                        }
+                    } else {
+                        transaction {
+                            HomeTasks.deleteWhere { HomeTasks.id eq t.id }
+                        }
+                    }
+                }
+                val newTasks = HomeTasks.getAllHomeTasksByReportId(r.reportId)
+
+                call.respond(
+                    RFetchReportHomeTasksResponse(
+                        tasks = newTasks.map {
+                            CreateReportHomeworkItem(
+                                id = it.id,
+                                isNew = false,
+                                type = it.type,
+                                text = it.text,
+                                stups = it.stups,
+                                fileIds = it.filesId,
+                                studentLogins = it.studentLogins
+                            )
+                        }
+                    )
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't save report home tasks: ${e.localizedMessage}"
                 )
             }
         } else {

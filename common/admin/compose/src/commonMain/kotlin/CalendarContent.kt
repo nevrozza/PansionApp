@@ -109,7 +109,7 @@ fun CalendarContent(
             AppBar(
                 navigationRow = {
                     IconButton(
-                        onClick = { component.onOutput(CalendarComponent.Output.BackToAdmin) }
+                        onClick = { component.onOutput(CalendarComponent.Output.Back) }
                     ) {
                         Icon(
                             Icons.Rounded.ArrowBackIosNew, null

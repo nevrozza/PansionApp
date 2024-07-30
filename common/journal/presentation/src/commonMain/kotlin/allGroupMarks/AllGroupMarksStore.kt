@@ -16,6 +16,7 @@ interface AllGroupMarksStore : Store<Intent, State, Label> {
         val subjectName: String,
         val groupName: String,
         val students: List<AllGroupMarksStudent> = emptyList(),
+        val firstHalfNums: List<Int> = emptyList(),
         val detailedStupsLogin: String = "",
         val reportData: ReportData? = null,
         val login: String
@@ -31,7 +32,7 @@ interface AllGroupMarksStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
-        data class StudentsUpdated(val students: List<AllGroupMarksStudent>) : Message
+        data class StudentsUpdated(val students: List<AllGroupMarksStudent>, val firstHalfNums: List<Int>) : Message
         data class DetailedStupsOpened(val login: String) : Message
         data class FullReportOpened(val reportData: ReportData?) : Message
     }

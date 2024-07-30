@@ -28,6 +28,17 @@ object StudentsInForm : Table() {
         }
     }
 
+    fun fetchStudentsLoginsByFormIds(ids: List<Int>): List<StudentInFormDTO> {
+        return transaction {
+            StudentsInForm.select { StudentsInForm.formId inList ids }.map {
+                StudentInFormDTO(
+                    login = it[login],
+                    formId = it[formId]
+                )
+            }
+        }
+    }
+
     fun fetchAll(): List<StudentInFormDTO> {
         return try {
             transaction {

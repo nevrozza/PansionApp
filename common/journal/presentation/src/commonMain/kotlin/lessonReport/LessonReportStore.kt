@@ -1,9 +1,8 @@
 package lessonReport
 
 import com.arkivanov.mvikotlin.core.store.Store
-import homework.ClientHomeworkItem
-import homework.ClientReportHomeworkItem
 import homework.CreateReportHomeworkItem
+import report.Attended
 import report.UserMark
 
 interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.State, LessonReportStore.Label> {
@@ -39,12 +38,17 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         val detailedMarks: List<UserMark> = emptyList(),
         val isSavedAnimation: Boolean = false,
         val isErrorAnimation: Boolean = false,
+        val isHomeTasksSavedAnimation: Boolean = false,
+        val isHomeTasksErrorAnimation: Boolean = false,
 
         val isUpdateNeeded: Boolean = false,
 
         val hometasks: List<CreateReportHomeworkItem> = emptyList(),
         val homeTasksNewTabs: List<List<String>> = emptyList(),
-        val homeTasksToEditIds: List<Int> = emptyList()
+        val homeTasksToEditIds: Set<Int> = emptySet<Int>(),
+
+        val tabLogins: List<String>? = null,
+        val newTabLogins: List<String> = listOf(),
 //        val deletingColumnReasondId: String = ""
 
     )
@@ -58,15 +62,27 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
     }
 
     sealed interface Intent {
+
+        data object OnTasksTabAcceptClick : Intent
+
+        data class UpdateTabLoginsId(val tabLogins: List<String>?) : Intent
+
+
+        data object SaveHomeTasks : Intent
+
+
         data class AddEmptyHomeTask(val studentLogins: List<String>?) : Intent
-        data class ChangeHomeTaskType(val id: Int, val type: String) : Intent
-        data class ChangeHomeTaskText(val id: Int, val text: String) : Intent
-        data class ChangeHomeTaskAward(val id: Int, val award: Int) : Intent
+        data class ChangeHomeTaskType(val id: Int, val type: String, val isNew: Boolean) : Intent
+        data class ChangeHomeTaskText(val id: Int, val text: String, val isNew: Boolean) : Intent
+        data class ChangeHomeTaskAward(val id: Int, val award: Int, val isNew: Boolean) : Intent
 
         data object Init: Intent
 
         data class IsSavedAnimation(val isSaved: Boolean): Intent
         data class IsErrorAnimation(val isError: Boolean): Intent
+
+        data class IsHomeTasksSavedAnimation(val isSaved: Boolean): Intent
+        data class IsHomeTasksErrorAnimation(val isError: Boolean): Intent
 
         data class CreateColumn(val columnName: String, val reasonId: String) : Intent
 
@@ -96,6 +112,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         data class LikeStudent(val studentLogin: String) : Intent
         data class DislikeStudent(val studentLogin: String) : Intent
         data class SetLateTime(val studentLogin: String, val chosenTime: String) : Intent
+        data class ChangeAttendance(val studentLogin: String, val attendedType: String) : Intent
 
         data object ChangeInfoShowing : Intent
         data object ChangeIsMentorWas: Intent
@@ -104,13 +121,23 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         data object UpdateWholeReport : Intent
 
         data class OpenDetailedMarks(val studentLogin: String) : Intent
+
+        data class AddLoginToNewTab(val login: String) : Intent
+        data class DeleteLoginFromNewTab(val login: String) : Intent
     }
 
     sealed interface Message {
-        data class HomeTasksUpdated(val homeTasks: List<CreateReportHomeworkItem>) : Message
+        data class TabLoginsIdUpdated(val tabLogins: List<String>?) : Message
+        data class NewTabsLoginsUpdated(val logins: List<String>) : Message
+        data class SaveTabLoginsUpdated(val tabs: List<List<String>>) : Message
 
+        data class HomeTasksUpdated(val homeTasks: List<CreateReportHomeworkItem>) : Message
+        data class HomeTasksToEditIdsUpdated(val homeTasksToEditIds: Set<Int>) : Message
         data class IsSavedAnimation(val isSaved: Boolean): Message
         data class IsErrorAnimation(val isError: Boolean): Message
+
+        data class IsHomeTasksSavedAnimation(val isSaved: Boolean): Message
+        data class IsHomeTasksErrorAnimation(val isError: Boolean): Message
         data class Inited(val students: List<StudentLine>, val likedList: List<String>, val dislikedList: List<String>):
             Message
 
@@ -184,7 +211,7 @@ data class StudentLine(
     val shortFio: String,
     val login: String,
 
-    val attended: Attented,
+    val attended: Attended?,
 
     val lateTime: String,
 
@@ -205,10 +232,6 @@ data class Stup(
     val deployDate: String
 )
 
-data class Attented(
-    val isAttended: Boolean,
-    val isNotAttendedReason: String? = null,
-)
 
 data class AvgMark(
     val previousSum: Int,

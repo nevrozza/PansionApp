@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.useResource
@@ -56,6 +57,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.extensions.compose.lifecycle.LifecycleController
 import com.arkivanov.essenty.instancekeeper.InstanceKeeperDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
@@ -126,31 +128,27 @@ fun main() {
             deviceId = getDeviceId()
         )
     )
-    val stateKeeper = StateKeeperDispatcher(File(SAVED_STATE_FILE_NAME).readSerializableContainer())
-    val root = invokeOnAwtSync {
+    val lifecycle = LifecycleRegistry()
+    val stateKeeper = StateKeeperDispatcher() //File(SAVED_STATE_FILE_NAME).readSerializableContainer()
+    val root = runOnUiThread {
 
         setMainThreadId(Thread.currentThread().id)
-        val lifecycle = LifecycleRegistry()
-        val rootComponent = RootComponentImpl(
+
+        RootComponentImpl(
             componentContext = DefaultComponentContext(
                 lifecycle = lifecycle,
-                stateKeeper = stateKeeper,
-                instanceKeeper = InstanceKeeperDispatcher()
+                stateKeeper = stateKeeper
             ),
             storeFactory = DefaultStoreFactory(),
-            deepLink = RootComponentImpl.DeepLink.None,
-            webHistoryController = null
+//            deepLink = RootComponentImpl.DeepLink.None,
+//            webHistoryController = null
         )
-        lifecycle.resume()
 
-        rootComponent
     }
 //    stateKeeper.unregister("UsersStoreState")
 
 
     application {
-
-
         val windowState = rememberWindowState()
         windowState.size = DpSize(950.dp, 480.dp) //950 480 //480 800
 
@@ -210,6 +208,13 @@ fun main() {
                             icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 
                         ) {
+
+                            LifecycleController(
+                                lifecycleRegistry = lifecycle,
+                                windowState = windowState,
+                                windowInfo = LocalWindowInfo.current,
+                            )
+
                             val l = LocalTitleBarStyle.current
                             viewManager.topPadding =
                                 (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
@@ -233,7 +238,7 @@ fun main() {
                                             CustomTextButton(
                                                 text = "Закрыть"
                                             ) {
-                                                stateKeeper.save().writeToFile(File(SAVED_STATE_FILE_NAME))
+                                                //stateKeeper.save().writeToFile(File(SAVED_STATE_FILE_NAME))
                                                 exitApplication()
                                             }
                                         },

@@ -15,11 +15,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 
@@ -30,8 +32,10 @@ fun CustomTextButton(
     fontWeight: FontWeight = FontWeight.SemiBold,
     color: Color = MaterialTheme.colorScheme.primary,
     fontSize: TextUnit = TextUnit.Unspecified,
+    isButtonEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
+    println("x2: $isButtonEnabled")
     CustomTextButton(text = buildAnnotatedString {
         withStyle(SpanStyle(fontWeight = fontWeight
         )) {
@@ -39,7 +43,7 @@ fun CustomTextButton(
                 text
             )
         }
-    }, color = color, onClick = onClick, modifier = modifier, fontSize = fontSize)
+    }, color = color, onClick = onClick, modifier = modifier, fontSize = fontSize, isButtonEnabled = isButtonEnabled)
 }
 
 @Composable
@@ -48,6 +52,7 @@ fun CustomTextButton(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
     fontSize: TextUnit = TextUnit.Unspecified,
+    isButtonEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -57,10 +62,11 @@ fun CustomTextButton(
         animationSpec = spring(stiffness = Spring.StiffnessHigh),
         targetValue = if (isDark) color.hv() else color
     )
+    println("x3: $isButtonEnabled")
     Color(1.0f, 1.0f, 1.0f)
-    Text(text, color = color, fontSize = fontSize,
+    Text(text, textAlign = TextAlign.Center, color = color.copy(alpha = if(isButtonEnabled) 1f else .5f), fontSize = fontSize,
         modifier = modifier.then(Modifier.hoverable(interactionSource)
-            .clickable(interactionSource = interactionSource, indication = null) {
+            .clickable(interactionSource = interactionSource, indication = null, enabled = isButtonEnabled) {
                 onClick()
             }))
 }

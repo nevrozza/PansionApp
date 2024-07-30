@@ -121,14 +121,11 @@ class UsersExecutor(
                 role = user.user.role,
                 isMentor = user.user.moderation in listOf(
                     Moderation.mentor,
-                    Moderation.both,
-                    Moderation.superBoth
+                    Moderation.both
                 ),
                 isModerator = user.user.moderation in listOf(
                     Moderation.moderator,
-                    Moderation.both,
-                    Moderation.superModerator,
-                    Moderation.superBoth
+                    Moderation.both
                 ),
                 isParent = user.user.isParent
             )
