@@ -8,10 +8,9 @@ data class AchievementsDTO(
     val studentLogin: String,
     val creatorLogin: String,
     val date: String,
-    val time: String,
+//    val time: String,
 
     val text: String,
-    val showInProfile: Boolean,
     val showDate: String?,
 
     val subjectId: Int,

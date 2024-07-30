@@ -351,7 +351,7 @@ fun ProfileContent(
                                                     .clip(CardDefaults.elevatedShape)
                                                     .weight(1f)
                                                     .clickable() {
-
+                                                        component.onOutput(ProfileComponent.Output.OpenAchievements(model.studentLogin))
                                                     }
                                             ) {
                                                 Column(

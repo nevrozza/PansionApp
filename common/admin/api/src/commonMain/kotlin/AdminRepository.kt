@@ -1,3 +1,8 @@
+import achievements.RCreateAchievementReceive
+import achievements.REditAchievementReceive
+import achievements.RFetchAchievementsForStudentReceive
+import achievements.RFetchAchievementsResponse
+import achievements.RUpdateGroupOfAchievementsReceive
 import admin.cabinets.CabinetItem
 import admin.cabinets.RFetchCabinetsResponse
 import admin.calendar.CalendarModuleItem
@@ -18,6 +23,11 @@ import admin.users.UserInit
 import schedule.RScheduleList
 
 interface AdminRepository {
+
+    suspend fun createAchievement(r: RCreateAchievementReceive): RFetchAchievementsResponse
+    suspend fun editAchievement(r: REditAchievementReceive): RFetchAchievementsResponse
+    suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive): RFetchAchievementsResponse
+    suspend fun fetchAllAchievements(): RFetchAchievementsResponse
 
     suspend fun fetchInitSchedule() : RFetchInitScheduleResponse
 

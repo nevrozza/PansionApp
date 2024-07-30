@@ -1,6 +1,11 @@
 package ktor
 
 import RequestPaths
+import achievements.RCreateAchievementReceive
+import achievements.REditAchievementReceive
+import achievements.RFetchAchievementsForStudentReceive
+import achievements.RFetchAchievementsResponse
+import achievements.RUpdateGroupOfAchievementsReceive
 import admin.cabinets.RFetchCabinetsResponse
 import admin.cabinets.RUpdateCabinetsReceive
 import admin.calendar.RFetchCalendarResponse
@@ -44,6 +49,43 @@ import schedule.RScheduleList
 class KtorAdminRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun createAchievement(r: RCreateAchievementReceive) : RFetchAchievementsResponse{
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Achievements.Create)
+                setBody(r)
+            }
+        }.body()
+    }
+    suspend fun editAchievement(r: REditAchievementReceive) : RFetchAchievementsResponse{
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Achievements.Edit)
+                setBody(r)
+            }
+        }.body()
+    }
+    suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive) : RFetchAchievementsResponse{
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Achievements.UpdateGroup)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun fetchAllAchievements(): RFetchAchievementsResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Achievements.FetchAll)
+            }
+        }.body()
+    }
 
     suspend fun fetchSchedule(r: RFetchScheduleDateReceive) : RScheduleList {
         return httpClient.post {

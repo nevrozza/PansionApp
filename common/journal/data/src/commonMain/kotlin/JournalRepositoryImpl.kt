@@ -1,3 +1,5 @@
+import achievements.RFetchAchievementsForStudentReceive
+import achievements.RFetchAchievementsResponse
 import homework.RCheckHomeTaskReceive
 import homework.RFetchHomeTasksReceive
 import homework.RFetchHomeTasksResponse
@@ -26,6 +28,11 @@ class JournalRepositoryImpl(
     private val remoteDataSource: KtorJournalRemoteDataSource,
 //    private val cacheDataSource: SettingsAuthDataSource
 ) : JournalRepository {
+
+    override suspend fun fetchAchievementsForStudent(r: RFetchAchievementsForStudentReceive): RFetchAchievementsResponse {
+        return remoteDataSource.fetchAchievementsForStudent(r)
+    }
+
     override suspend fun checkHomeTask(r: RCheckHomeTaskReceive) {
         return remoteDataSource.checkHomeTask(r)
     }

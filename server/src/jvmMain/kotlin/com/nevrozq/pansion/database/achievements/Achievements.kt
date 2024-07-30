@@ -1,11 +1,14 @@
 package com.nevrozq.pansion.database.achievements
 
 import achievements.AchievementsDTO
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 object Achievements: Table() {
     //val id: Int,
@@ -25,10 +28,8 @@ object Achievements: Table() {
     private val studentLogin = this.varchar("studentLogin", 30)
     private val creatorLogin = this.varchar("creatorLogin", 30)
     private val date = this.varchar("date", 10)
-    private val time = this.varchar("time", 5)
 
     private val text = this.text("text")
-    private val showInProfile = this.bool("showInProfile")
     private val showDate = this.varchar("showDate", 10).nullable()
 
     private val subjectId = this.integer("subjectId") //mvd-2 social-3 creative-3
@@ -40,9 +41,7 @@ object Achievements: Table() {
                 it[studentLogin] = dto.studentLogin
                 it[creatorLogin] = dto.creatorLogin
                 it[date] = dto.date
-                it[time] = dto.time
                 it[text] = dto.text
-                it[showInProfile] = dto.showInProfile
                 it[showDate] = dto.showDate
                 it[subjectId] = dto.subjectId
                 it[stups] = dto.stups
@@ -58,9 +57,7 @@ object Achievements: Table() {
                     studentLogin = it[studentLogin],
                     creatorLogin = it[creatorLogin],
                     date = it[date],
-                    time = it[time],
                     text = it[text],
-                    showInProfile = it[showInProfile],
                     showDate = it[showDate],
                     subjectId = it[subjectId],
                     stups = it[stups]
@@ -76,13 +73,38 @@ object Achievements: Table() {
                     studentLogin = it[studentLogin],
                     creatorLogin = it[creatorLogin],
                     date = it[date],
-                    time = it[time],
                     text = it[text],
-                    showInProfile = it[showInProfile],
                     showDate = it[showDate],
                     subjectId = it[subjectId],
                     stups = it[stups]
                 )
+            }
+        }
+    }
+    fun editGroup(oldText: String,
+                  oldShowDate: String,
+                  oldDate: String,
+                  newText: String,
+                  newShowDate: String,
+                  newDate: String) {
+        transaction {
+            Achievements.update({ (text eq oldText) and (showDate eq oldShowDate) and (date eq oldDate) }) {
+                it[date] = newDate
+                it[showDate] = newShowDate
+                it[text] = newText
+            }
+        }
+    }
+
+    fun edit(id: Int,
+             studentLogin: String,
+             subjectId: Int,
+             stups: Int) {
+        transaction {
+            Achievements.update({Achievements.id eq id}){
+                it[Achievements.studentLogin] = studentLogin
+                it[Achievements.subjectId] = subjectId
+                it[Achievements.stups] = stups
             }
         }
     }

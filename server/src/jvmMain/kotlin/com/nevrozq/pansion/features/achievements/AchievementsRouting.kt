@@ -12,6 +12,15 @@ fun Application.configureAchievementsRouting() {
             achievementsController.createAchievement(call)
         }
 
+
+        post(RequestPaths.Achievements.Edit) {
+            achievementsController.updateAchievement(call)
+        }
+
+        post(RequestPaths.Achievements.UpdateGroup) {
+            achievementsController.updateGroup(call)
+        }
+
         post(RequestPaths.Achievements.FetchAll) {
             achievementsController.fetchAllAchievements(call)
         }

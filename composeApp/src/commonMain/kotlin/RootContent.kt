@@ -256,6 +256,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 is Child.HomeTasks -> if (isExpanded) fade() else iosSlide()
                                 is Child.AdminCalendar -> if (isExpanded) fade() else iosSlide()
                                 is Child.SecondView -> if (isExpanded) fade() else iosSlide()
+                                is Child.AdminAchievements -> if (isExpanded) fade() else iosSlide()
+                                is Child.HomeAchievements -> if (isExpanded) fade() else iosSlide()
                             }
                         },
                         selector = { initialBackEvent, _, _ ->
@@ -503,6 +505,21 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             mentoringComponent = child.mentoringComponent,
                             rootComponent = child.rootComponent
                         )
+
+                        is Child.AdminAchievements -> MultiPaneAdmin(
+                            isExpanded,
+                            adminComponent = child.adminComponent,
+                            currentRouting = AdminComponent.Output.NavigateToAchievements,
+                            secondScreen = { AdminAchievementsContent(child.adminAchievementsComponent) }
+                        )
+
+                        is Child.HomeAchievements ->
+                            MultiPaneSplit(
+                                isExpanded = isExpanded,
+                                currentScreen = { HomeAchievementsContent(child.achievementsComponent) },
+                                firstScreen = { HomeContent(child.homeComponent) },
+                                secondScreen = { HomeAchievementsContent(child.achievementsComponent) }
+                            )
                     }
                 }
                 if (component.secondLogin == null) {
@@ -615,7 +632,10 @@ fun MultiPaneMentoring(
                     Spacer(Modifier.height(10.dp))
                     RootContent(rootComponent)
                 }
-                Box(Modifier.fillMaxWidth().padding(top = viewManager.topPadding), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier.fillMaxWidth().padding(top = viewManager.topPadding),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text("${fio?.surname} ${fio?.name}")
                 }
             }
@@ -841,6 +861,7 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         is Config.HomeProfile -> Home
         Config.HomeSettings -> Home
         is Config.HomeTasks -> Home
+        is Config.HomeAchievements -> Home
 
         Config.MainAdmin -> Admin
         Config.MainHome -> Home
@@ -850,5 +871,6 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         is Config.LessonReport -> Journal
         Config.MainMentoring -> Mentoring
         is Config.SecondView -> Mentoring
+        Config.AdminAchievements -> Admin
     }
 }

@@ -9,6 +9,8 @@ object RequestPaths {
         const val Create = "server/achievements/create"
         const val FetchAll = "server/achievements/fetchAll"
         const val FetchForStudent = "server/achievements/fetchByLogin"
+        const val Edit = "server/achievements/edit"
+        const val UpdateGroup = "server/achievements/updateGroup"
     }
 
     object UserManage {

@@ -1,3 +1,8 @@
+import achievements.RCreateAchievementReceive
+import achievements.REditAchievementReceive
+import achievements.RFetchAchievementsForStudentReceive
+import achievements.RFetchAchievementsResponse
+import achievements.RUpdateGroupOfAchievementsReceive
 import admin.cabinets.CabinetItem
 import admin.cabinets.RFetchCabinetsResponse
 import admin.cabinets.RUpdateCabinetsReceive
@@ -39,6 +44,22 @@ import schedule.RScheduleList
 class AdminRepositoryImpl(
     private val remoteDataSource: KtorAdminRemoteDataSource
 ) : AdminRepository {
+    override suspend fun createAchievement(r: RCreateAchievementReceive): RFetchAchievementsResponse {
+        return remoteDataSource.createAchievement(r)
+    }
+
+    override suspend fun editAchievement(r: REditAchievementReceive): RFetchAchievementsResponse {
+        return remoteDataSource.editAchievement(r)
+    }
+
+    override suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive): RFetchAchievementsResponse {
+        return remoteDataSource.updateGroupAchievement(r)
+    }
+
+    override suspend fun fetchAllAchievements(): RFetchAchievementsResponse {
+        return remoteDataSource.fetchAllAchievements()
+    }
+
     override suspend fun fetchInitSchedule(): RFetchInitScheduleResponse {
         return remoteDataSource.fetchInitSchedule()
     }

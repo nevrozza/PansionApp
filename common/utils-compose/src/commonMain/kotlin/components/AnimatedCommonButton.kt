@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -41,6 +42,7 @@ fun AnimatedCommonButton(
     text: String,
     modifier: Modifier = Modifier,
     isEnabled: Boolean,
+    shape: Shape = ButtonDefaults.shape,
 
     onClick: () -> Unit
 ) {
@@ -65,7 +67,8 @@ fun AnimatedCommonButton(
             containerColor = animatedButtonContainerColor.value,
             disabledContainerColor = animatedButtonContainerColor.value
         ),
-        enabled = isEnabled
+        enabled = isEnabled,
+        shape = shape
     ) {
 
         Text(text)

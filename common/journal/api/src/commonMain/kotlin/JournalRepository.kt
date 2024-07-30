@@ -1,3 +1,5 @@
+import achievements.RFetchAchievementsForStudentReceive
+import achievements.RFetchAchievementsResponse
 import homework.RCheckHomeTaskReceive
 import homework.RFetchHomeTasksReceive
 import homework.RFetchHomeTasksResponse
@@ -16,6 +18,9 @@ import report.RIsQuartersResponse
 import report.RUpdateReportReceive
 
 interface JournalRepository {
+
+    suspend fun fetchAchievementsForStudent(r: RFetchAchievementsForStudentReceive) : RFetchAchievementsResponse
+
 
     suspend fun checkHomeTask(r: RCheckHomeTaskReceive)
 

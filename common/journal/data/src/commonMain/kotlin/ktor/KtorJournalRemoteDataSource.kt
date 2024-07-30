@@ -2,6 +2,8 @@ package ktor
 
 import ReportData
 import RequestPaths
+import achievements.RFetchAchievementsForStudentReceive
+import achievements.RFetchAchievementsResponse
 import checkOnNoOk
 import homework.RCheckHomeTaskReceive
 import homework.RFetchHomeTasksReceive
@@ -34,6 +36,18 @@ import report.RUpdateReportReceive
 class KtorJournalRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+
+
+    suspend fun fetchAchievementsForStudent(r: RFetchAchievementsForStudentReceive): RFetchAchievementsResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Achievements.FetchForStudent)
+                setBody(r)
+            }
+        }.body()
+    }
 
     suspend fun checkHomeTask(r: RCheckHomeTaskReceive) {
         httpClient.post {

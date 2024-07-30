@@ -5,6 +5,8 @@ import FIO
 import lessonReport.LessonReportComponent
 import ReportData
 import SettingsComponent
+import achievements.AdminAchievementsComponent
+import achievements.HomeAchievementsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
 import allGroupMarks.AllGroupMarksComponent
@@ -179,6 +181,9 @@ class RootComponentImpl(
             is Child.HomeProfile -> onHomeProfileOutput(ProfileComponent.Output.Back)
             is Child.HomeTasks -> onHomeTasksOutput(HomeTasksComponent.Output.Back)
             is Child.LessonReport -> onLessonReportOutput(LessonReportComponent.Output.Back)
+
+            is Child.AdminAchievements -> onAdminAchievementsOutput(AdminAchievementsComponent.Output.Back)
+            is Child.HomeAchievements -> onHomeAchievementsOutput(HomeAchievementsComponent.Output.Back)
             else -> {
                 navigation.pop()
             }
@@ -518,6 +523,35 @@ class RootComponentImpl(
                     onBackButtonPress = { getMainMentoringComponent(childContext).onEvent(MentoringStore.Intent.SelectStudent(null)); popOnce(Child.SecondView::class) }
                 )
             )
+
+            Config.AdminAchievements -> Child.AdminAchievements(
+                adminComponent = getMainAdminComponent(childContext, getOld = true),
+                adminAchievementsComponent = AdminAchievementsComponent(
+                    componentContext = childContext,
+                    storeFactory = storeFactory,
+                    output = ::onAdminAchievementsOutput
+                )
+            )
+
+            is Config.HomeAchievements -> Child.HomeAchievements(
+                homeComponent = getMainHomeComponent(childContext, true),
+                achievementsComponent = HomeAchievementsComponent(
+                    componentContext = childContext,
+                    storeFactory = storeFactory,
+                    output = ::onHomeAchievementsOutput,
+                    login = config.studentLogin
+                )
+            )
+        }
+
+    private fun onHomeAchievementsOutput(output: HomeAchievementsComponent.Output): Unit =
+        when (output) {
+            HomeAchievementsComponent.Output.Back -> popOnce(Child.HomeAchievements::class)
+        }
+
+    private fun onAdminAchievementsOutput(output: AdminAchievementsComponent.Output): Unit =
+        when (output) {
+            AdminAchievementsComponent.Output.Back -> popOnce(Child.AdminAchievements::class)
         }
 
     private fun onMainMentoringOutput(output: MentoringComponent.Output): Unit =
@@ -591,6 +625,7 @@ class RootComponentImpl(
     private fun onHomeProfileOutput(output: ProfileComponent.Output): Unit =
         when (output) {
             ProfileComponent.Output.Back -> popOnce(Child.HomeProfile::class)
+            is ProfileComponent.Output.OpenAchievements -> navigation.bringToFront(Config.HomeAchievements(output.login))
         }
 
     private fun onAdminGroupsOutput(output: GroupsComponent.Output): Unit =
@@ -635,6 +670,7 @@ class RootComponentImpl(
             AdminComponent.Output.NavigateToCalendar ->
                 navigation.bringToFront(Config.AdminCalendar)
 
+            AdminComponent.Output.NavigateToAchievements -> navigation.bringToFront(Config.AdminAchievements)
         }
 
 //    private fun onAdminMentorsOutput(output: MentorsComponent.Output): Unit =

@@ -5,6 +5,8 @@ import FIO
 import lessonReport.LessonReportComponent
 import ReportData
 import SettingsComponent
+import achievements.AdminAchievementsComponent
+import achievements.HomeAchievementsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
 import allGroupMarks.AllGroupMarksComponent
@@ -122,6 +124,15 @@ interface   RootComponent : BackHandlerOwner {
             val calendarComponent: CalendarComponent
         ) : Child()
 
+        class AdminAchievements(
+            val adminComponent: AdminComponent,
+            val adminAchievementsComponent: AdminAchievementsComponent
+        ) : Child()
+
+        class HomeAchievements(
+            val homeComponent: HomeComponent,
+            val achievementsComponent: HomeAchievementsComponent
+        ) : Child()
 
     }
 
@@ -181,6 +192,8 @@ interface   RootComponent : BackHandlerOwner {
 
         @Serializable
         data object AdminCalendar : Config
+        @Serializable
+        data object AdminAchievements : Config
 
         //        @Serializable
 //        data object AdminStudents : Config
@@ -192,6 +205,7 @@ interface   RootComponent : BackHandlerOwner {
 
         @Serializable
         data class HomeProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Config
+        data class HomeAchievements(val studentLogin: String) : Config
         @Serializable
         data class HomeTasks(val studentLogin: String, val avatarId: Int, val name: String) : Config
 
