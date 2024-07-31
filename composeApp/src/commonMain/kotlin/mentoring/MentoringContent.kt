@@ -35,6 +35,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Receipt
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -116,17 +117,16 @@ fun MentoringContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-//                actionRow = {
-//                    if(isActive) {
-//                        IconButton(
-//                            onClick = {
-//
-//                            }
-//                        ) {
-//                            Icon(Icons.Outlined.Info, null)
-//                        }
-//                    }
-//                }
+                actionRow = {
+                    IconButton(
+                        onClick = {
+                            component.onEvent(MentoringStore.Intent.FetchStudents)
+                        }
+                    ) {
+                        Icon(Icons.Rounded.Refresh, null)
+                    }
+
+                }
             )
         }
     ) { padding ->
@@ -411,7 +411,11 @@ private fun FormsItem(
                                                         Checkbox(
                                                             checked = model.cIsGood ?: false,
                                                             onCheckedChange = {
-                                                                component.onEvent(MentoringStore.Intent.ChangeCIsGood(it))
+                                                                component.onEvent(
+                                                                    MentoringStore.Intent.ChangeCIsGood(
+                                                                        it
+                                                                    )
+                                                                )
                                                             }
                                                         )
                                                         Spacer(Modifier.width(5.dp))
@@ -455,10 +459,13 @@ private fun FormsItem(
                                                         )
                                                     }
                                                 } else {
-                                                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                                                    Column(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalAlignment = Alignment.CenterHorizontally
+                                                    ) {
                                                         Text("${preAttendance.start}-${preAttendance.end}")
                                                         Text(preAttendance.reason)
-                                                        Text(if(preAttendance.isGood) "Уважительная" else "Неуважительная")
+                                                        Text(if (preAttendance.isGood) "Уважительная" else "Неуважительная")
                                                         AnimatedElevatedButton(
                                                             text = "Редактировать",
                                                             isEnabled = true,

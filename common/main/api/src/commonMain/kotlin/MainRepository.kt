@@ -1,7 +1,12 @@
 import admin.schedule.ScheduleSubject
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
+import main.RDeleteMainNotificationsReceive
 import main.RFetchMainAVGResponse
+import main.RFetchMainHomeTasksCountReceive
+import main.RFetchMainHomeTasksCountResponse
+import main.RFetchMainNotificationsReceive
+import main.RFetchMainNotificationsResponse
 import mentoring.RFetchMentoringStudentsResponse
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
 import mentoring.preAttendance.RFetchPreAttendanceDayResponse
@@ -18,6 +23,10 @@ import schedule.RScheduleList
 
 interface MainRepository {
 
+    suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive) : RFetchMainNotificationsResponse
+    suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive)
+
+
     suspend fun fetchMentorStudents(): RFetchMentoringStudentsResponse
     suspend fun fetchPreAttendanceDay(r: RFetchPreAttendanceDayReceive) : RFetchPreAttendanceDayResponse
     suspend fun savePreAttendanceDay(r: RSavePreAttendanceDayReceive)
@@ -25,6 +34,7 @@ interface MainRepository {
     suspend fun fetchStudentsInGroup(groupId: Int): RFetchStudentsInGroupResponse
 
     suspend fun fetchMainAvg(login: String, reason: String): RFetchMainAVGResponse
+    suspend fun fetchMainHomeTasksCount(r: RFetchMainHomeTasksCountReceive) : RFetchMainHomeTasksCountResponse
 
     suspend fun fetchReportHeaders(): RFetchHeadersResponse
     suspend fun createReport(reportReceive: RCreateReportReceive): RCreateReportResponse

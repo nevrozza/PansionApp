@@ -70,15 +70,33 @@ object StudentLines : Table() {
             try {
                 val studentLines =
                     StudentLines.select(StudentLines.reportId eq reportId)
-
-                studentLines.forEach {
-                    println("sadik0 ${it[StudentLines.login]}")
-                }
                 studentLines.map {
                     StudentLinesDTO(
                         reportId = it[StudentLines.reportId],
                         groupId = it[groupId],
                         login = it[login],
+                        lateTime = it[lateTime],
+                        isLiked = it[isLiked],
+                        attended = it[attended],
+                        aReason = it[aReason]
+                    )
+                }
+            } catch (e: Throwable) {
+                println(e)
+                listOf()
+            }
+        }
+    }
+    fun fetchStudentLinesByLogin(login: String): List<StudentLinesDTO> {
+        return transaction {
+            try {
+                val studentLines =
+                    StudentLines.select(StudentLines.login eq login)
+                studentLines.map {
+                    StudentLinesDTO(
+                        reportId = it[StudentLines.reportId],
+                        groupId = it[groupId],
+                        login = it[StudentLines.login],
                         lateTime = it[lateTime],
                         isLiked = it[isLiked],
                         attended = it[attended],

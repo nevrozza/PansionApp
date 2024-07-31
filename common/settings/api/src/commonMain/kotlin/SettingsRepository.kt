@@ -11,6 +11,11 @@ interface SettingsRepository {
     fun saveIsDynamic(isDynamic: Boolean)
     fun fetchIsDynamic(): Boolean
 
+    fun saveColorMode(colorMode: String)
+    fun fetchColorMode() : String
+
+    fun saveIsHaze(isHaze: Boolean)
+    fun fetchIsHaze() : Boolean
 //    fun fetchSettingsScreenData(): SettingsScreenData
 }
 

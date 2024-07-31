@@ -11,6 +11,10 @@ fun Application.configureHomeworksRouting() {
         val homeWorksController = HomeWorksController()
 
 
+        post(RequestPaths.Main.FetchHomeTasksCount) {
+            homeWorksController.fetchHomeTasksCount(call)
+        }
+
         post(RequestPaths.HomeTasks.CheckTask) {
             homeWorksController.checkHomeTask(call)
         }

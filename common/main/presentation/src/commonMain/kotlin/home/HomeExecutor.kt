@@ -16,6 +16,9 @@ import journal.JournalComponent
 import journal.JournalStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import main.RDeleteMainNotificationsReceive
+import main.RFetchMainHomeTasksCountReceive
+import main.RFetchMainNotificationsReceive
 import schedule.PersonScheduleItem
 
 class HomeExecutor(
@@ -46,6 +49,34 @@ class HomeExecutor(
                     HomeStore.Period.YEAR -> HomeStore.Period.WEEK
                 }
             )
+
+            is Intent.UpdateHomeWorkEmoji -> dispatch(
+                Message.UpdateHomeWorkEmoji(
+                    emoji = getEmoji(
+                        count = intent.count
+                    )
+                )
+            )
+
+            is Intent.CheckNotification -> scope.launch(CDispatcher) {
+                try {
+                    mainRepository.deleteMainNotification(
+                        RDeleteMainNotificationsReceive(
+                            studentLogin = state().login,
+                            key = intent.key
+                        )
+                    )
+                    val newNotifications = state().notifications.toMutableList()
+                    newNotifications.removeAll { it.key == intent.key }
+                    scope.launch {
+                        dispatch(
+                            Message.NotificationsUpdated(newNotifications)
+                        )
+                    }
+                } catch (_: Throwable) {
+
+                }
+            }
         }
     }
 
@@ -63,8 +94,52 @@ class HomeExecutor(
                 dayOfWeek = state().currentDate.first.toString(),
                 date = state().currentDate.second
             )
+            fetchHomeTasksCount()
+            fetchNotifications()
         }
         journalComponent?.onEvent(JournalStore.Intent.Init)
+    }
+
+    private fun fetchHomeTasksCount() {
+        scope.launch(CDispatcher) {
+            try {
+                val count = mainRepository.fetchMainHomeTasksCount(
+                    RFetchMainHomeTasksCountReceive(
+                        studentLogin = state().login
+                    )
+                ).count
+                println("COUNT: ${count}")
+                scope.launch {
+                    dispatch(
+                        Message.UpdateHomeWorkEmoji(
+                            getEmoji(count)
+                        )
+                    )
+                }
+            } catch (e: Throwable) {
+
+            }
+        }
+    }
+
+    private fun fetchNotifications() {
+        scope.launch(CDispatcher) {
+            try {
+                val notifications = mainRepository.fetchMainNotifications(
+                    RFetchMainNotificationsReceive(studentLogin = state().login)
+                ).notifications
+                scope.launch {
+                    dispatch(
+                        Message.NotificationsUpdated(
+                            notifications = notifications
+                        )
+                    )
+                    println("NOTS: ${notifications}")
+                }
+            } catch (e: Throwable) {
+
+            }
+        }
     }
 
     private fun fetchSchedule(dayOfWeek: String, date: String) {

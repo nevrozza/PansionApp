@@ -12,8 +12,13 @@ import io.ktor.http.path
 import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
+import main.RDeleteMainNotificationsReceive
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
+import main.RFetchMainHomeTasksCountReceive
+import main.RFetchMainHomeTasksCountResponse
+import main.RFetchMainNotificationsReceive
+import main.RFetchMainNotificationsResponse
 import mentoring.RFetchMentoringStudentsResponse
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
 import mentoring.preAttendance.RFetchPreAttendanceDayResponse
@@ -36,6 +41,26 @@ import schedule.RScheduleList
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive) : RFetchMainNotificationsResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchNotifications)
+                setBody(r)
+            }
+        }.body()
+    }
+    suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive) {
+        httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.CheckNotification)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
 
     suspend fun savePreAttendanceDay(r: RSavePreAttendanceDayReceive) {
         httpClient.post {
@@ -127,6 +152,14 @@ class KtorMainRemoteDataSource(
             }
         }
         return response.body()
+    }
+    suspend fun fetchMainHomeTasksCount(r: RFetchMainHomeTasksCountReceive): RFetchMainHomeTasksCountResponse {
+        return httpClient.post {
+            url {bearer()
+                path(RequestPaths.Main.FetchHomeTasksCount)
+                setBody(r)
+            }
+        }.body()
     }
 
     suspend fun fetchStudentInGroup(request: RFetchStudentsInGroupReceive): RFetchStudentsInGroupResponse {

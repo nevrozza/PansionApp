@@ -35,4 +35,20 @@ class SettingsRepositoryImpl(
     override fun fetchIsDynamic(): Boolean {
         return cacheDataSource.fetchIsDynamic()
     }
+
+    override fun saveColorMode(colorMode: String) {
+        cacheDataSource.saveColorMode(colorMode)
+    }
+
+    override fun fetchColorMode(): String {
+        return cacheDataSource.fetchColorMode()
+    }
+
+    override fun saveIsHaze(isHaze: Boolean) {
+       cacheDataSource.saveIsHaze(isHaze)
+    }
+
+    override fun fetchIsHaze(): Boolean {
+        return cacheDataSource.fetchIsHaze()
+    }
 }

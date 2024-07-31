@@ -17,6 +17,13 @@ fun changeColorSeed(viewManager: ViewManager, colorSeed: String) {
     repository.saveSeedColor(colorSeed)
 }
 
+
+fun changeColorMode(viewManager: ViewManager, colorMode: String) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.colorMode.value = colorMode
+    repository.saveColorMode(colorMode)
+}
+
 fun changeTint(viewManager: ViewManager) {
     val theme = when (viewManager.tint.value) {
         ThemeTint.Auto ->

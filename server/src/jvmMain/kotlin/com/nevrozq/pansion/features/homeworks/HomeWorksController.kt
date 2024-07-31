@@ -19,6 +19,8 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import main.RFetchMainHomeTasksCountReceive
+import main.RFetchMainHomeTasksCountResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import server.getDate
 import server.getLocalDate
@@ -60,6 +62,30 @@ class HomeWorksController {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Can't fetch homeTasks: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun fetchHomeTasksCount(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+
+                val r = call.receive<RFetchMainHomeTasksCountReceive>()
+                val groupIDS = StudentGroups.fetchGroupOfStudentIDS(r.studentLogin) //
+                val count = HomeTasks.getCountNOTDoneHomeTasks(groupIds = groupIDS, login = r.studentLogin)
+
+                call.respond(
+                    RFetchMainHomeTasksCountResponse(
+                        count = count
+                    )
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch count: ${e.localizedMessage}"
                 )
             }
         } else {

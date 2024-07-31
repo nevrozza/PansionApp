@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -38,18 +39,29 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import report.UserMark
 import server.fetchReason
+import view.LocalViewManager
+import view.ViewManager
 import view.handy
 
 @Composable
-fun Color.getMarkColor(mark: String) = this.blend(
-    when (mark) {
-        "5" -> Color.Red
-        "4" -> Color.Blue
-        "3" -> Color(0xFF138808)
-        else -> Color.Black
-    },
-    amount = 0.8f
-)
+fun Color.getMarkColor(mark: String, viewManager: ViewManager, alpha: Float = 1f) =
+    if (viewManager.colorMode.value in listOf("3", "4")) {
+        val colors = markColorsColored
+        this.blend(
+            when (mark) {
+                "5" -> colors["5"]!!
+                "4" -> colors["4"]!!
+                "3" -> colors["3"]!!
+                else -> colors["2"]!!
+            },
+            amount = 0.8f
+        ).copy(.8f)
+    } else this.copy(alpha = alpha)
+
+val markColorsColored =
+    mapOf("5" to Color.Red, "4" to Color.Blue, "3" to Color(0xFF138808), "2" to Color.Black)
+val markColorsMono =
+    mapOf("5" to Color.Green, "4" to Color.Yellow, "3" to Color(0xFFFF8000), "2" to Color.Red)
 
 @Composable
 fun MarkContent(
@@ -63,7 +75,8 @@ fun MarkContent(
     size: Dp = 25.dp,
     textYOffset: Dp = 0.dp
 ) {
-    val color = background.getMarkColor(mark).copy(alpha = .8f)
+    val viewManager = LocalViewManager.current
+    val color = background.getMarkColor(mark, viewManager, .2f)
     Box(
         Modifier.padding(paddingValues)
             .offset(offset.x, offset.y)
@@ -81,8 +94,19 @@ fun MarkContent(
             modifier = Modifier.fillMaxSize().offset(y = textYOffset),
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Black,
-            color = color.blend(Color.White, 1f)
+            color = if (viewManager.colorMode.value == "3") color.blend(
+                Color.White,
+                1f
+            ) else MaterialTheme.colorScheme.onBackground
         )
+        if (viewManager.colorMode.value in listOf("0", "1")) {
+            val colors = if(viewManager.colorMode.value == "1") markColorsColored else markColorsMono
+            Box(
+                Modifier.padding(top = 5.dp, end = 5.dp).align(Alignment.TopEnd).size(5.dp).clip(
+                    CircleShape
+                ).background(colors[mark] ?: Color.Transparent) //MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 

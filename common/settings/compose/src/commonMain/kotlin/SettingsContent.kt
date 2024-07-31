@@ -1,8 +1,10 @@
+import androidx.compose.foundation.layout.Arrangement
 import forks.splitPane.dSplitter
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +13,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
@@ -34,9 +38,13 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BottomThemePanel
+import components.CustomTextButton
 import components.ThemePreview
 import components.cAlertDialog.CAlertDialogStore
+import components.listDialog.ListDialogStore
 import decomposeComponents.CAlertDialogContent
+import decomposeComponents.listDialogComponent.ListDialogDesktopContent
+import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import forks.colorPicker.toHex
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
@@ -74,6 +82,7 @@ fun SettingsContent(
         SettingsView(settingsComponent)
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
     component: SettingsComponent
@@ -82,6 +91,11 @@ fun SettingsView(
     val viewManager = LocalViewManager.current
 
     val model by component.model.subscribeAsState()
+
+    if(model.newColorMode != null) {
+        changeColorMode(viewManager, model.newColorMode ?: viewManager.colorMode.value)
+        component.onEvent(SettingsStore.Intent.ChangeColorMode(null))
+    }
 
     val colorRed = if (viewManager.isDark.value) Color(255, 99, 71) else Color.Red
     Scaffold(
@@ -112,7 +126,7 @@ fun SettingsView(
     ) { padding ->
         Box(Modifier.padding(horizontal = 15.dp)) {
             Column(
-                Modifier.fillMaxSize().padding(padding).imePadding()
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding).imePadding()
             ) {
                 Text(
                     model.login,
@@ -121,6 +135,28 @@ fun SettingsView(
                     modifier = Modifier.fillMaxWidth().padding(top = (8*5).dp, bottom = (8*6).dp),
                     textAlign = TextAlign.Center
                 )
+
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(
+                        text = "Цветовой режим",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Black
+                    )
+
+                    Box() {
+                        CustomTextButton(
+                            text = colorModes[viewManager.colorMode.value].toString()
+                        ) {
+                            component.colorModeListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                        }
+                        ListDialogDesktopContent(
+                            component = component.colorModeListComponent
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(50.dp))
+
                 Box(
                     Modifier.fillMaxWidth().padding(end = (7.5).dp)/*.padding(start = 10.dp)*/,
                     contentAlignment = Alignment.Center
@@ -178,6 +214,11 @@ fun SettingsView(
                 textAlign = TextAlign.Center
             )
         }
+
+        ListDialogMobileContent(
+            component = component.colorModeListComponent,
+            title = "Цветовой режим"
+        )
     }
 }
 

@@ -32,10 +32,13 @@ import admin.schedule.ScheduleFormValue
 import admin.schedule.ScheduleGroup
 import admin.schedule.SchedulePerson
 import admin.schedule.ScheduleSubject
+import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.cabinets.CabinetsDTO
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
+import com.nevrozq.pansion.database.checkedNotifications.CheckedNotifications
+import com.nevrozq.pansion.database.checkedNotifications.CheckedNotificationsDTO
 import com.nevrozq.pansion.database.formGroups.FormGroupDTO
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.formGroups.mapToFormGroup
@@ -47,6 +50,7 @@ import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
+import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
@@ -58,10 +62,12 @@ import com.nevrozq.pansion.database.ratingTable.RatingWeek2Table
 import com.nevrozq.pansion.database.ratingTable.RatingYear0Table
 import com.nevrozq.pansion.database.ratingTable.RatingYear1Table
 import com.nevrozq.pansion.database.ratingTable.RatingYear2Table
+import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.schedule.ScheduleDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
+import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.SubjectDTO
@@ -79,6 +85,10 @@ import io.ktor.server.response.respond
 import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
+import main.ClientMainNotification
+import main.RDeleteMainNotificationsReceive
+import main.RFetchMainNotificationsReceive
+import main.RFetchMainNotificationsResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.deleteWhere
@@ -93,11 +103,101 @@ import schedule.RFetchPersonScheduleReceive
 import schedule.RFetchScheduleDateReceive
 import schedule.RPersonScheduleList
 import schedule.RScheduleList
+import server.getLocalDate
 import server.toMinutes
 import java.util.HashMap
 
 class LessonsController() {
 
+    suspend fun checkMainNotification(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+                val r = call.receive<RDeleteMainNotificationsReceive>()
+                CheckedNotifications.insert(
+                    CheckedNotificationsDTO(
+                        studentLogin = r.studentLogin,
+                        key = r.key
+                    )
+                )
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't check notification: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun fetchMainNotifications(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+                val r = call.receive<RFetchMainNotificationsReceive>()
+
+                val checkedNotifications = CheckedNotifications.fetchByLogin(r.studentLogin)
+
+                val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(-2 to "Дисциплина", -3 to "Общественная работа", -4 to "Творчество")
+                val groups = Groups.getAllGroups()
+                val reports = ReportHeaders.fetchReportHeaders()
+                val achievements = Achievements.fetchAllByLogin(r.studentLogin).map {
+                    val xDate =
+                        if ((it.showDate?.length ?: 0) > 5) it.showDate ?: it.date else it.date
+                    ClientMainNotification(
+                        key = "A.${it.studentLogin}.${it.id}",
+                        subjectName = subjects[it.subjectId].toString(),
+                        reason = "A.${it.text}.${it.stups}",
+                        date = xDate,
+                        reportTime = null,
+                        groupName = null
+                    )
+                }
+                val nKiOpozd =
+                    StudentLines.fetchStudentLinesByLogin(login = r.studentLogin).mapNotNull { x ->
+                        val isNka = x.attended == "1" || x.attended == "2"
+                        val group = groups.firstOrNull { it.id == x.groupId }
+                        val header =
+                            if (group != null) reports.firstOrNull { it.id == x.reportId } else null
+                        if (header != null) {
+                            val pa = PreAttendance.fetchPreAttendanceByDateAndLogin(
+                                date = header.date,
+                                login = r.studentLogin
+                            )
+                            val time =  header.time.toMinutes()
+                            val is2NKA = if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
+                            if ((x.lateTime.isNotEmpty() && x.lateTime != "0") || isNka || is2NKA) {
+                                val subject =
+                                    if (group != null) subjects[group.subjectId].toString() else "null"
+                                    ClientMainNotification(
+                                        key = if (is2NKA || isNka) "N.${x.login}.${x.reportId}" else "Op.${x.login}.${x.reportId}",
+                                        subjectName = subject,
+                                        reason = if (is2NKA) "N.${if (pa!!.isGood) "2" else "1"}" else if (isNka) "N.${x.attended}" else "Op.${x.lateTime}",
+                                        date = header.date.toString(),
+                                        reportTime = header.time.toString(),
+                                        groupName = group?.name.toString()
+                                    )
+                            } else null
+                        } else null
+                    }
+                val filtered = (achievements + nKiOpozd).filter { it.key !in checkedNotifications }
+                    .sortedByDescending { getLocalDate(it.date).toEpochDays() }
+
+                call.respond(
+                    RFetchMainNotificationsResponse(
+                        filtered
+                    )
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch notifications: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
 
     suspend fun fetchCalendar(call: ApplicationCall) {
         if (call.isMember) {
@@ -287,8 +387,10 @@ class LessonsController() {
                     val teacher =
                         teachers.firstOrNull { teacher -> teacher.login == it.teacherLogin }
 
-                    val marks = Marks.fetchUserByDate(login = r.login, date = r.day).filter { x -> x.groupId == it.groupId }
-                    val stups = Stups.fetchUserByDate(login = r.login, date = r.day).filter { x -> x.groupId == it.groupId }
+                    val marks = Marks.fetchUserByDate(login = r.login, date = r.day)
+                        .filter { x -> x.groupId == it.groupId }
+                    val stups = Stups.fetchUserByDate(login = r.login, date = r.day)
+                        .filter { x -> x.groupId == it.groupId }
 
 
                     val fio = FIO(
@@ -306,7 +408,8 @@ class LessonsController() {
                             subjectName = subjects.first { it.id == group.subjectId }.name,
                             groupName = group.name,
                             teacherFio = fio,
-                            marks = if ((alreadyGroups.find { x -> x == it.groupId } ?: 0) > 1) listOf() else marks.map {
+                            marks = if ((alreadyGroups.find { x -> x == it.groupId }
+                                    ?: 0) > 1) listOf() else marks.map {
                                 UserMark(
                                     id = it.id,
                                     content = it.content,

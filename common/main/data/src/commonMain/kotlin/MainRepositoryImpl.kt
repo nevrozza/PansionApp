@@ -4,8 +4,13 @@ import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import ktor.KtorMainRemoteDataSource
+import main.RDeleteMainNotificationsReceive
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
+import main.RFetchMainHomeTasksCountReceive
+import main.RFetchMainHomeTasksCountResponse
+import main.RFetchMainNotificationsReceive
+import main.RFetchMainNotificationsResponse
 import mentoring.RFetchMentoringStudentsResponse
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
 import mentoring.preAttendance.RFetchPreAttendanceDayResponse
@@ -28,6 +33,14 @@ import schedule.RScheduleList
 class MainRepositoryImpl(
     private val remoteDataSource: KtorMainRemoteDataSource
 ) : MainRepository {
+    override suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive): RFetchMainNotificationsResponse {
+        return remoteDataSource.fetchMainNotifications(r)
+    }
+
+    override suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive) {
+        remoteDataSource.deleteMainNotification(r)
+    }
+
     override suspend fun fetchMentorStudents(): RFetchMentoringStudentsResponse {
         return remoteDataSource.fetchMentorStudents()
     }
@@ -60,6 +73,10 @@ class MainRepositoryImpl(
                 reason
             )
         )
+    }
+
+    override suspend fun fetchMainHomeTasksCount(r: RFetchMainHomeTasksCountReceive): RFetchMainHomeTasksCountResponse {
+        return remoteDataSource.fetchMainHomeTasksCount(r)
     }
 
     override suspend fun fetchReportHeaders(): RFetchHeadersResponse {

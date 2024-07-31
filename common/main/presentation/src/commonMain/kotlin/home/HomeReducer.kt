@@ -16,6 +16,8 @@ object HomeReducer : Reducer<State, Message> {
             is Message.SomeHeadersUpdated -> copy(someHeaders = msg.someHeaders)
             is Message.AvatarIdUpdated -> copy(avatarId = msg.avatarId)
             is Message.PeriodChanged -> copy(period = msg.period)
+            is Message.UpdateHomeWorkEmoji -> copy(homeWorkEmoji = msg.emoji)
+            is Message.NotificationsUpdated -> copy(notifications = msg.notifications)
         }
     }
 }

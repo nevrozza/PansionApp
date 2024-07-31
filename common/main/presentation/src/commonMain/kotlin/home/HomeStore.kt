@@ -7,6 +7,7 @@ import home.HomeStore.Intent
 import home.HomeStore.Label
 import home.HomeStore.State
 import journal.init.TeacherGroup
+import main.ClientMainNotification
 import report.Grade
 import report.ReportHeader
 import schedule.PersonScheduleItem
@@ -46,7 +47,9 @@ interface HomeStore : Store<Intent, State, Label> {
         val isDatesShown: Boolean = false,
 
         val role: String,
-        val someHeaders: List<ReportHeader> = emptyList()
+        val someHeaders: List<ReportHeader> = emptyList(),
+
+        val notifications: List<ClientMainNotification> = emptyList()
     )
 
     sealed interface Intent {
@@ -57,9 +60,11 @@ interface HomeStore : Store<Intent, State, Label> {
 
         data class UpdateSomeHeaders(val someHeaders: List<ReportHeader>) : Intent
         data class UpdateAvatarId(val avatarId: Int) : Intent
+        data class UpdateHomeWorkEmoji(val count: Int) : Intent
 
 
         data object ChangePeriod: Intent
+        data class CheckNotification(val key: String): Intent
 //        data class ChangeDate()
         //val avatarId: Int,
         //                        val login: String,
@@ -74,11 +79,8 @@ interface HomeStore : Store<Intent, State, Label> {
         data class SomeHeadersUpdated(val someHeaders: List<ReportHeader>) : Message
         data class TeacherGroupUpdated(val teacherGroups: List<TeacherGroup>): Message
         data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Pair<Int, Int>?>) : Message
-//        data class Inited(val avatarId: Int,
-//                          val login: String,
-//                          val name: String,
-//                          val surname: String,
-//                          val praname: String) : Message
+
+        data class UpdateHomeWorkEmoji(val emoji: String?) : Message
 
         data class GradesUpdated(val grades: List<Grade>) : Message
 
@@ -88,6 +90,8 @@ interface HomeStore : Store<Intent, State, Label> {
 
         data object IsDatesShownChanged : Message
         data class PeriodChanged(val period: Period) : Message
+
+        data class NotificationsUpdated(val notifications: List<ClientMainNotification>) : Message
     }
 
     sealed interface Label
@@ -97,14 +101,28 @@ interface HomeStore : Store<Intent, State, Label> {
         WEEK, MODULE, HALF_YEAR, YEAR
     }
 
-    object Emojis {
-        const val check: String = "✅"
-        const val smileTeeth: String = "\uD83D\uDE01"
-        const val smile: String = "\uD83D\uDE42"
-        const val normal: String = "\uD83D\uDE10"
-        const val scared: String = "\uD83D\uDE28"
-        const val horror: String = "\uD83D\uDE31"
-        const val death: String = "☠\uFE0F"
+
+}
+
+fun getEmoji(count: Int): String {
+    return when(count) {
+        0 -> Emojis.check
+        1 -> Emojis.smileTeeth
+        2 -> Emojis.smile
+        3 -> Emojis.normal
+        4 -> Emojis.scared
+        5 -> Emojis.horror
+        else -> Emojis.death
     }
+}
+
+object Emojis {
+    const val check: String = "✅"
+    const val smileTeeth: String = "\uD83D\uDE01"
+    const val smile: String = "\uD83D\uDE42"
+    const val normal: String = "\uD83D\uDE10"
+    const val scared: String = "\uD83D\uDE28"
+    const val horror: String = "\uD83D\uDE31"
+    const val death: String = "☠\uFE0F"
 }
 

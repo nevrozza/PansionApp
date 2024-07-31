@@ -9,6 +9,8 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import server.getDate
+import server.getLocalDate
 
 object Achievements: Table() {
     //val id: Int,
@@ -67,17 +69,20 @@ object Achievements: Table() {
     }
     fun fetchAllByLogin(login: String): List<AchievementsDTO> {
         return transaction {
-            Achievements.select { (Achievements.studentLogin eq login) }.map {
-                AchievementsDTO(
-                    id = it[Achievements.id],
-                    studentLogin = it[studentLogin],
-                    creatorLogin = it[creatorLogin],
-                    date = it[date],
-                    text = it[text],
-                    showDate = it[showDate],
-                    subjectId = it[subjectId],
-                    stups = it[stups]
-                )
+            Achievements.select { (Achievements.studentLogin eq login) }.mapNotNull {
+                val xDate = if((it[showDate]?.length ?: 0 ) > 5) it[showDate] ?: it[date] else it[date]
+                if (getLocalDate(xDate) <= getLocalDate(getDate())) {
+                    AchievementsDTO(
+                        id = it[Achievements.id],
+                        studentLogin = it[studentLogin],
+                        creatorLogin = it[creatorLogin],
+                        date = it[date],
+                        text = it[text],
+                        showDate = it[showDate],
+                        subjectId = it[subjectId],
+                        stups = it[stups]
+                    )
+                } else null
             }
         }
     }

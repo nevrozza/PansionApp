@@ -5,11 +5,13 @@ import SettingsStore.Intent
 import SettingsStore.Label
 import SettingsStore.State
 import SettingsStore.Message
+import components.listDialog.ListComponent
 
 class SettingsStoreFactory(
     private val storeFactory: StoreFactory,
     private val settingsRepository: SettingsRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val colorModeListComponent: ListComponent
 ) {
 
     fun create(): SettingsStore {
@@ -25,7 +27,8 @@ class SettingsStoreFactory(
             ),
             executorFactory = { SettingsExecutor(
                 settingsRepository = settingsRepository,
-                authRepository = authRepository
+                authRepository = authRepository,
+                colorModeListComponent = colorModeListComponent
             ) },
             reducer = SettingsReducer
         )

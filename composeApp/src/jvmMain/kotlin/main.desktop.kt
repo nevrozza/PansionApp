@@ -187,7 +187,8 @@ fun main() {
                             blue = rgb[2]
                         )
                     ),
-                    tint = mutableStateOf(settingsRepository.fetchTint().toTint())
+                    tint = mutableStateOf(settingsRepository.fetchTint().toTint()),
+                    colorMode = mutableStateOf(settingsRepository.fetchColorMode())
                 )
             }
             CompositionLocalProvider(

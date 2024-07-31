@@ -136,6 +136,23 @@ object HomeTasks : Table() {
     }
 
 
+    fun getCountNOTDoneHomeTasks(groupIds: List<Int>, login: String): Int {
+        return transaction {
+            val homeTasksDone = HomeTasksDone.getByLogin(login = login)
+            HomeTasks.select {(HomeTasks.groupId inList groupIds)}.count { x ->
+                if (x[HomeTasks.studentLogins] == null || login in x[HomeTasks.studentLogins].toList()!!) {
+                    val htd = homeTasksDone.firstOrNull { it.homeWorkId == x[HomeTasks.id] }
+                    if(htd == null || !htd.isDone) {
+                        println("COUNTED ${x[HomeTasks.id]}")
+                    }
+                    htd == null || !htd.isDone
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
     fun getClientHomeTasks(groupIds: List<Int>, login: String, date: String?): List<ClientHomeworkItem> {
         return transaction {
             val homeTasksDone = HomeTasksDone.getByLogin(login = login)

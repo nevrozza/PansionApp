@@ -31,7 +31,8 @@ class ViewManager(
     var hazeState: HazeState = HazeState(),
     var hazeStyle: MutableState<HazeStyle>? = null,
     var size: BoxWithConstraintsScope? = null,
-    var orientation: MutableState<WindowScreen> = mutableStateOf(WindowScreen.Vertical)
+    var orientation: MutableState<WindowScreen> = mutableStateOf(WindowScreen.Vertical),
+    var colorMode: MutableState<String>
 )
 val LocalViewManager: ProvidableCompositionLocal<ViewManager> = compositionLocalOf {
     error("No ViewManager provided")

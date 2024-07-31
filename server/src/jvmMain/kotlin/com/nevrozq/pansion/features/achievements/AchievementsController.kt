@@ -82,7 +82,7 @@ class AchievementsController {
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Can't create achievement: ${e.localizedMessage}"
+                    "Can't create achievement: ${e.message}"
                 )
             }
         } else {

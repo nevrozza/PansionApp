@@ -43,11 +43,30 @@ class SettingsDataSource(
         return settings[isDynamicKey, isCanInDynamic()]
     }
 
+    fun saveColorMode(colorMode: String) {
+        settings[colorModeKey] = colorMode
+    }
+
+    fun fetchColorMode(): String {
+        return settings[colorModeKey, "0"]
+    }
+
+    fun saveIsHaze(isHaze: Boolean) {
+        settings[isHazeKey] = isHaze
+    }
+
+    fun fetchIsHaze(): Boolean {
+        return settings[isHazeKey, true]
+    }
+
+
     companion object {
         const val languageKey = "languageKey"
         const val tintKey = "tintKey"
         const val seedColorKey = "seedColorKey"
         const val isDynamicKey = "isDynamicKey"
+        const val colorModeKey = "colorModeKey"
+        const val isHazeKey = "isHazeKey"
     }
 
 }

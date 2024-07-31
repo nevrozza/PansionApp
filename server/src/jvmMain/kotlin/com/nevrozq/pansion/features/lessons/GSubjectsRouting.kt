@@ -8,6 +8,13 @@ fun Application.configureLessonsRouting() {
     routing {
         val lessonsController = LessonsController()
 
+        post(RequestPaths.Main.CheckNotification) {
+            lessonsController.checkMainNotification(call)
+        }
+
+        post(RequestPaths.Main.FetchNotifications) {
+            lessonsController.fetchMainNotifications(call)
+        }
 
         post(RequestPaths.Lessons.FetchCalendar) {
             lessonsController.fetchCalendar(call)

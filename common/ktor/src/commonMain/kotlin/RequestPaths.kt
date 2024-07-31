@@ -22,7 +22,10 @@ object RequestPaths {
 
     object Main {
         const val FetchMainAVG = "server/main/fetchAVG"
+        const val FetchHomeTasksCount = "server/main/fetchHomeTasksCount"
 
+        const val FetchNotifications = "server/main/fetchNotifications"
+        const val CheckNotification = "server/main/checkNotification"
         const val FetchScheduleSubjects = "server/main/fetchSubjects"
         const val FetchSubjectRating = "server/main/fetchSubjectRating"
     }
