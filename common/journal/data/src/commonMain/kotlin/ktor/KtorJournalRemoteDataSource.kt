@@ -6,6 +6,8 @@ import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
 import checkOnNoOk
 import homework.RCheckHomeTaskReceive
+import homework.RFetchGroupHomeTasksReceive
+import homework.RFetchGroupHomeTasksResponse
 import homework.RFetchHomeTasksReceive
 import homework.RFetchHomeTasksResponse
 import homework.RFetchReportHomeTasksReceive
@@ -95,6 +97,15 @@ class KtorJournalRemoteDataSource(
             url {
                 bearer()
                 path(RequestPaths.HomeTasks.FetchReportHomeTasks)
+                setBody(r)
+            }
+        }.body()
+    }
+    suspend fun fetchGroupHomeTasks(r: RFetchGroupHomeTasksReceive) : RFetchGroupHomeTasksResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.HomeTasks.FetchGroupHomeTasks)
                 setBody(r)
             }
         }.body()

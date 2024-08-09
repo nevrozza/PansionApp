@@ -17,6 +17,7 @@ class HomeTasksExecutor(
     private val journalRepository: JournalRepository,
     private val nInitInterface: NetworkInterface,
     private val nInterface: NetworkInterface,
+    val updateHTCount: (Int) -> Unit
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -113,7 +114,12 @@ class HomeTasksExecutor(
                         id = doneId
                     )
                 )
-            } catch (_: Throwable) {}
+                scope.launch {
+                    updateHTCount(newTasks.count { !it.done })
+                }
+            } catch (e: Throwable) {
+                println(e)
+            }
         }
     }
 }

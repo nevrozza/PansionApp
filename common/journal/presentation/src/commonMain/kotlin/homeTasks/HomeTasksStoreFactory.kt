@@ -17,7 +17,8 @@ class HomeTasksStoreFactory(
     private val name: String,
     private val journalRepository: JournalRepository,
     private val nInitInterface: NetworkInterface,
-    private val nInterface: NetworkInterface
+    private val nInterface: NetworkInterface,
+    val updateHTCount: (Int) -> Unit
 ) {
 
     fun create(): HomeTasksStore {
@@ -36,7 +37,8 @@ class HomeTasksStoreFactory(
             executorFactory = { HomeTasksExecutor(
                 journalRepository = journalRepository,
                 nInitInterface = nInitInterface,
-                nInterface = nInterface
+                nInterface = nInterface,
+                updateHTCount = { updateHTCount(it) }
             ) },
             reducer = HomeTasksReducer
         )

@@ -51,6 +51,7 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Save
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -1004,7 +1005,7 @@ private fun LazyItemScope.ScheduleColumn(
                                 .fillMaxWidth()
                                 .height(height),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                containerColor =if(e.teacherLogin == e.teacherLoginBefore) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer
                             ),
                             onClick = {
                                 component.onEvent(
@@ -1105,6 +1106,8 @@ private fun LazyItemScope.ScheduleColumn(
                                         model.eiGroupId ?: e.groupId
                                     val cabinetik =
                                         model.eiCabinet ?: e.cabinet
+                                    val newLogin =
+                                        model.eiNewLogin
                                     val t =
                                         model.eiTiming ?: Pair(
                                             e.t.start,
@@ -1211,6 +1214,10 @@ private fun LazyItemScope.ScheduleColumn(
                                                             )
                                                         )
                                                     }
+                                                    Spacer(Modifier.height(5.dp))
+                                                    if (newLogin != null && e.teacherLoginBefore != newLogin) {
+                                                        Text("${e.teacherLoginBefore} -> ${newLogin}")
+                                                    }
                                                     Spacer(
                                                         Modifier.height(
                                                             5.dp
@@ -1266,7 +1273,6 @@ private fun LazyItemScope.ScheduleColumn(
                                                             60.dp
                                                         )
                                                     )
-
                                                     Row(
                                                         Modifier.fillMaxWidth(),
                                                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -1286,6 +1292,20 @@ private fun LazyItemScope.ScheduleColumn(
                                                                 null
                                                             )
                                                         }
+                                                        IconButton(
+                                                            onClick = {
+                                                                component.onEvent(
+                                                                    ScheduleStore.Intent.eiChangeState(
+                                                                        EditState.Swap
+                                                                    )
+                                                                )
+                                                            }
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Rounded.SwapHoriz,
+                                                                null
+                                                            )
+                                                        }
                                                         AnimatedVisibility(
                                                             (model.eiCabinet !in listOf(
                                                                 null,
@@ -1301,7 +1321,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                                     e.t.start,
                                                                     e.t.end
                                                                 )
-                                                            ))
+                                                            ) || (newLogin != null && e.teacherLoginBefore != newLogin))
                                                         ) {
                                                             if (model.eiCabinetErrorGroupId == 0 && model.eiStudentErrors.isEmpty()) {
                                                                 IconButton(
@@ -1310,7 +1330,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                                             ScheduleStore.Intent.eiSave(
                                                                                 index = index,
                                                                                 cabinet = cabinetik,
-                                                                                login = login,
+                                                                                login = newLogin
+                                                                                    ?: login,
                                                                                 id = groupId,
                                                                                 s = t
                                                                             )
@@ -1511,6 +1532,29 @@ private fun LazyItemScope.ScheduleColumn(
                                                                 )
                                                             },
                                                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                                        )
+                                                    }
+                                                }
+
+                                                EditState.Swap -> (model.teachers).forEach { t ->
+                                                    if (t.login in (model.activeTeachers[model.currentDate.second]
+                                                            ?: listOf())
+                                                    ) {
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    "${t.fio.surname} ${t.fio.name}"
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                component.onEvent(
+                                                                    ScheduleStore.Intent.eiChangeLogin(
+                                                                        t.login
+                                                                    )
+                                                                )
+                                                                println("MANIKEN")
+                                                            },
+                                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                                                         )
                                                     }
                                                 }

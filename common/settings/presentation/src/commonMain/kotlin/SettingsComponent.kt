@@ -6,6 +6,7 @@ import components.cAlertDialog.CAlertDialogComponent
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
+import components.networkInterface.NetworkInterface
 import di.Inject
 
 class SettingsComponent(
@@ -28,35 +29,19 @@ class SettingsComponent(
         }
     )
 
+    private val nDevicesInterfaceName = "nDevicesInterfaceName"
+
+    val nDevicesInterface = NetworkInterface(
+        childContext(nDevicesInterfaceName + "CONTEXT"),
+        storeFactory = storeFactory,
+        name = nDevicesInterfaceName
+    )
+
 
     private fun onChangeColorModeClick(id: String) {
         onEvent(SettingsStore.Intent.ChangeColorMode(id))
         colorModeListComponent.onEvent(ListDialogStore.Intent.HideDialog)
     }
-
-    init {
-        colorModeListComponent.onEvent(ListDialogStore.Intent.InitList(
-            listOf(
-                ListItem(
-                    id = "0",
-                    text = colorModes["0"].toString()
-                ),
-                ListItem(
-                    id = "1",
-                    text = colorModes["1"].toString()
-                ),
-                ListItem(
-                    id = "2",
-                    text = colorModes["2"].toString()
-                ),
-                ListItem(
-                    id = "3",
-                    text = colorModes["3"].toString()
-                ),
-            )
-        ))
-    }
-
 
     val quitDialogComponent = CAlertDialogComponent(
         componentContext,
@@ -79,7 +64,8 @@ class SettingsComponent(
                 storeFactory = storeFactory,
                 settingsRepository = settingsRepository,
                 authRepository = authRepository,
-                colorModeListComponent = colorModeListComponent
+                colorModeListComponent = colorModeListComponent,
+                nDevicesInterface = nDevicesInterface
             ).create()
         }
 
@@ -99,6 +85,32 @@ class SettingsComponent(
     sealed class Output {
         data object Back : Output()
         data object GoToZero : Output()
+    }
+
+
+    init {
+        colorModeListComponent.onEvent(ListDialogStore.Intent.InitList(
+            listOf(
+                ListItem(
+                    id = "0",
+                    text = colorModes["0"].toString()
+                ),
+                ListItem(
+                    id = "1",
+                    text = colorModes["1"].toString()
+                ),
+                ListItem(
+                    id = "2",
+                    text = colorModes["2"].toString()
+                ),
+                ListItem(
+                    id = "3",
+                    text = colorModes["3"].toString()
+                ),
+            )
+        ))
+
+        onEvent(SettingsStore.Intent.FetchDevices)
     }
 }
 

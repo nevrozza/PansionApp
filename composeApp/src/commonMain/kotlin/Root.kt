@@ -42,10 +42,7 @@ fun Root(
 ) {
     val viewManager = LocalViewManager.current
 
-  AppTheme {
-        val hazeStyle = HazeMaterials.thin()
-        viewManager.hazeStyle = mutableStateOf(hazeStyle)
-    }
+    setHaze(viewManager)
 
     BoxWithConstraints() {
         viewManager.size = this

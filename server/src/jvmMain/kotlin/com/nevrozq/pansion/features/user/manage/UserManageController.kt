@@ -8,6 +8,8 @@ import server.Moderation
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
 import admin.users.RFetchAllUsersResponse
+import com.nevrozq.pansion.database.parents.Parents
+import com.nevrozq.pansion.database.parents.ParentsDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -20,12 +22,14 @@ import com.nevrozq.pansion.database.users.mapToUser
 import com.nevrozq.pansion.utils.createLogin
 import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.isModer
+import server.Roles
 
 class UserManageController() {
     suspend fun createUser(call: ApplicationCall) {
         val r = call.receive<RRegisterUserReceive>()
         if (call.isModer) {
             val login = createLogin(r.userInit.fio.name, r.userInit.fio.surname)
+            var pLogins: MutableList<String>? = null
             try {
                 Users.insert(
                     UserDTO(
@@ -42,7 +46,41 @@ class UserManageController() {
                         isActive = true
                     )
                 )
-                call.respond(RCreateUserResponse(login))
+
+                if(r.parentFIOs != null) {
+                    pLogins = mutableListOf()
+                    r.parentFIOs!!.forEach { p ->
+                        val fio = p.split(" ")
+                        val pLogin = createLogin(fio[1], fio[0])
+                        Users.insert(
+                            UserDTO(
+                                login = pLogin,
+                                password = null,
+                                name = fio[1],
+                                surname = fio[0],
+                                praname = fio.getOrNull(2),
+                                birthday = "01012000",
+                                role = Roles.nothing,
+                                moderation = Moderation.nothing,
+                                isParent = true,
+                                avatarId = 0,
+                                isActive = true
+                            )
+                        )
+
+                        Parents.insert(
+                            ParentsDTO(
+                                id = 0,
+                                studentLogin = login,
+                                parentLogin = pLogin
+                            )
+                        )
+                        pLogins.add(pLogin)
+                    }
+                }
+
+
+                call.respond(RCreateUserResponse(login, pLogins))
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "This User already exists")
             } catch (e: Throwable) {

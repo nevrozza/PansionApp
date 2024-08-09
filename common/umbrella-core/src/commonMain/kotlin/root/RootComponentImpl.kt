@@ -32,6 +32,7 @@ import com.arkivanov.essenty.statekeeper.StateKeeper
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
 import di.Inject
@@ -41,11 +42,15 @@ import home.HomeComponent
 import home.HomeStore
 import homeTasks.HomeTasksComponent
 import journal.JournalComponent
+import journal.JournalStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
+import lessonReport.LessonReportComponent.Output
 import login.LoginComponent
 import mentoring.MentoringComponent
 import mentoring.MentoringStore
+import parents.AdminParentsComponent
+import parents.AdminParentsStore
 import profile.ProfileComponent
 import rating.RatingComponent
 import report.ReportHeader
@@ -217,8 +222,8 @@ class RootComponentImpl(
         serializer = Config.serializer(),
         handleBackButton = true,
         childFactory = ::child,
-        key = if(secondLogin == null) "MAIN" else "SECOND"
-        )
+        key = if (secondLogin == null) "MAIN" else "SECOND"
+    )
     override val childStack: Value<ChildStack<*, Child>> = stack
 
     private var mainHomeComponent: HomeComponent? = null
@@ -304,7 +309,11 @@ class RootComponentImpl(
                 output = ::onRatingOutput,
                 avatarId = secondAvatarId ?: authRepository.fetchAvatarId(),
                 login = secondLogin ?: authRepository.fetchLogin(),
-                fio = secondFIO ?: FIO(name = authRepository.fetchName(), surname = authRepository.fetchSurname(), praname = authRepository.fetchPraname())
+                fio = secondFIO ?: FIO(
+                    name = authRepository.fetchName(),
+                    surname = authRepository.fetchSurname(),
+                    praname = authRepository.fetchPraname()
+                )
             )
             mainRatingComponent!!
         }
@@ -486,17 +495,23 @@ class RootComponentImpl(
                 ratingComponent = getMainRatingComponent(childContext, true)
             )
 
-            is Config.HomeTasks -> Child.HomeTasks(
-                homeComponent = getMainHomeComponent(childContext, true),
-                homeTasksComponent = HomeTasksComponent(
-                    childContext,
-                    storeFactory,
-                    login = config.studentLogin,
-                    avatarId = config.avatarId,
-                    name = config.name,
-                    output = ::onHomeTasksOutput
+            is Config.HomeTasks -> {
+                Child.HomeTasks(
+                    homeComponent = getMainHomeComponent(childContext, true),
+                    homeTasksComponent = HomeTasksComponent(
+                        childContext,
+                        storeFactory,
+                        login = config.studentLogin,
+                        avatarId = config.avatarId,
+                        name = config.name,
+                        output = ::onHomeTasksOutput,
+                        updateHTCount = {
+                            mainHomeComponent?.onEvent(HomeStore.Intent.UpdateHomeWorkEmoji(it))
+                        }
+                    )
                 )
-            )
+            }
+
 
             Config.AdminCalendar -> Child.AdminCalendar(
                 adminComponent = getMainAdminComponent(childContext, true),
@@ -520,7 +535,11 @@ class RootComponentImpl(
                     secondAvatarId = config.avatarId,
                     secondFIO = config.fio,
                     firstScreen = config.config,
-                    onBackButtonPress = { getMainMentoringComponent(childContext).onEvent(MentoringStore.Intent.SelectStudent(null)); popOnce(Child.SecondView::class) }
+                    onBackButtonPress = {
+                        getMainMentoringComponent(childContext).onEvent(
+                            MentoringStore.Intent.SelectStudent(null)
+                        ); popOnce(Child.SecondView::class)
+                    }
                 )
             )
 
@@ -542,11 +561,25 @@ class RootComponentImpl(
                     login = config.studentLogin
                 )
             )
+
+            Config.AdminParents -> Child.AdminParents(
+                adminComponent = getMainAdminComponent(childContext, true),
+                parentsComponent = AdminParentsComponent(
+                    componentContext = childContext,
+                    storeFactory = storeFactory,
+                    output = ::onAdminParentsOutput
+                )
+            )
         }
 
     private fun onHomeAchievementsOutput(output: HomeAchievementsComponent.Output): Unit =
         when (output) {
             HomeAchievementsComponent.Output.Back -> popOnce(Child.HomeAchievements::class)
+        }
+
+    private fun onAdminParentsOutput(output: AdminParentsComponent.Output): Unit =
+        when (output) {
+            AdminParentsComponent.Output.Back -> popOnce(Child.AdminParents::class)
         }
 
     private fun onAdminAchievementsOutput(output: AdminAchievementsComponent.Output): Unit =
@@ -589,8 +622,10 @@ class RootComponentImpl(
 
     private fun onLessonReportOutput(output: LessonReportComponent.Output): Unit =
         when (output) {
-            LessonReportComponent.Output.Back -> popOnce(Child.LessonReport::class)
-
+            LessonReportComponent.Output.Back -> {
+                mainJournalComponent?.onEvent(JournalStore.Intent.Refresh)
+                popOnce(Child.LessonReport::class)
+            }
         }
 
     private fun onAllGroupMarksOutput(output: AllGroupMarksComponent.Output): Unit =
@@ -625,7 +660,11 @@ class RootComponentImpl(
     private fun onHomeProfileOutput(output: ProfileComponent.Output): Unit =
         when (output) {
             ProfileComponent.Output.Back -> popOnce(Child.HomeProfile::class)
-            is ProfileComponent.Output.OpenAchievements -> navigation.bringToFront(Config.HomeAchievements(output.login))
+            is ProfileComponent.Output.OpenAchievements -> navigation.bringToFront(
+                Config.HomeAchievements(
+                    output.login
+                )
+            )
         }
 
     private fun onAdminGroupsOutput(output: GroupsComponent.Output): Unit =
@@ -671,6 +710,7 @@ class RootComponentImpl(
                 navigation.bringToFront(Config.AdminCalendar)
 
             AdminComponent.Output.NavigateToAchievements -> navigation.bringToFront(Config.AdminAchievements)
+            AdminComponent.Output.NavigateToParents -> navigation.bringToFront(Config.AdminParents)
         }
 
 //    private fun onAdminMentorsOutput(output: MentorsComponent.Output): Unit =
@@ -825,7 +865,7 @@ class RootComponentImpl(
 
     private fun popOnce(child: KClass<out Child>) {
         if (child.isInstance(stack.active.instance)) {
-            if(stack.value.items.size == 1 && onBackButtonPress != null) onBackButtonPress.invoke()
+            if (stack.value.items.size == 1 && onBackButtonPress != null) onBackButtonPress.invoke()
             else navigation.pop()
         }
     }
@@ -848,6 +888,7 @@ class RootComponentImpl(
 //                list
                 listOf(getFirstScreen())
             }
+
             is DeepLink.Web -> listOf(getConfigForPath(deepLink.path))
         }
 

@@ -12,6 +12,13 @@ fun Application.configureActivationRouting() {
             authController.activateUser(call)
         }
 
+        post(RequestPaths.Auth.FetchAllDevices) {
+            authController.fetchAllDevices(call)
+        }
+        post(RequestPaths.Auth.TerminateDevice) {
+            authController.terminateDevice(call)
+        }
+
         post(RequestPaths.Auth.FetchAboutMe) {
             authController.fetchAboutMe(call)
         }

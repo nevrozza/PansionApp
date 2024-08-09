@@ -9,7 +9,8 @@ data class ScheduleItem(
     val teacherLogin: String,
     val groupId: Int,
     val t: ScheduleTiming,
-    val cabinet: Int
+    val cabinet: Int,
+    val teacherLoginBefore: String
 )
 
 @Serializable
@@ -22,7 +23,8 @@ data class PersonScheduleItem(
     val subjectName: String,
     val groupName: String,
     val marks: List<UserMark>,
-    val stupsSum: Int
+    val stupsSum: Int,
+    val isSwapped: Boolean
 )
 
 @Serializable

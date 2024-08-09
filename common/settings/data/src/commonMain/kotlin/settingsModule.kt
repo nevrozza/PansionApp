@@ -1,3 +1,4 @@
+import ktor.KtorSettingsRemoteDataSource
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.instance
@@ -7,10 +8,13 @@ import settings.SettingsDataSource
 
 val settingsModule = DI.Module("settingsModule") {
     bind<SettingsRepository>() with singleton {
-        SettingsRepositoryImpl(instance())
+        SettingsRepositoryImpl(instance(), instance())
     }
 
     bind<SettingsDataSource>() with provider {
         SettingsDataSource(instance())
+    }
+    bind<KtorSettingsRemoteDataSource>() with provider {
+        KtorSettingsRemoteDataSource(instance())
     }
 }

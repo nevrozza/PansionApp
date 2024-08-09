@@ -34,6 +34,9 @@ class HomeWorksController {
             try {
                 val r = call.receive<RCheckHomeTaskReceive>()
                 HomeTasksDone.checkTask(login = r.login, homeWorkId = r.homeWorkId, isDone = r.isCheck, id = r.id)
+                call.respond(
+                    HttpStatusCode.OK
+                )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,

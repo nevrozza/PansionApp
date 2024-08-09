@@ -1,5 +1,8 @@
 package com.nevrozq.pansion.database.ratingTable
 
+import achievements.AchievementsDTO
+import com.nevrozq.pansion.database.achievements.Achievements
+import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.ratingEntities.ForAvg
@@ -16,6 +19,8 @@ import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import server.cut
 import server.getCurrentDate
+import server.getLocalDate
+import server.getWeekDays
 
 
 private data class AddItem(
@@ -40,13 +45,14 @@ private fun MutableList<AddItem>.pAdd(
     subjectId: Int,
     table: RatingTable,
     stups: List<RatingEntityDTO>,
-    avg: ForAvg
+    avg: ForAvg,
+    achievementCount: Int? = null
 ) {
-    if (stups.sumOf { it.content.toInt() } > 0 && avg.count > 0) {
+    if (stups.sumOf { it.content.toInt() } + (achievementCount ?: 0) > 0 && avg.count > 0) {
         this.add(
             AddItem(
                 subjectId = subjectId,
-                stups = stups.sumOf { it.content.toInt() },
+                stups = stups.sumOf { it.content.toInt() } + (achievementCount ?: 0),
                 avg = (avg.sum / avg.count.toFloat()).toString().cut(4),
                 table = table
             )
@@ -54,9 +60,33 @@ private fun MutableList<AddItem>.pAdd(
     }
 }
 
+private fun getModuleDays(moduleDay: String): Pair<String, String?> {
+    val module = Calendar.getModuleStartEnd(moduleDay.toIntOrNull() ?: 0)
+    return module
+}
+
 private fun initItems(login: String, r: RTables): MutableList<AddItem> {
     val module = getModuleByDate(date = getCurrentDate().second)?.num.toString()
     val items: MutableList<AddItem> = mutableListOf()
+
+    val yearAchievements = Achievements.fetchAllByLoginInit(login)
+    val weekAchievements: MutableList<AchievementsDTO> = mutableListOf()
+    val moduleAchievements: MutableList<AchievementsDTO> = mutableListOf()
+    yearAchievements.forEach {
+        val date = (if (((it.showDate)?.length ?: 0) > 5) it.showDate ?: it.date else it.date)
+        val epoch = getLocalDate(date).toEpochDays()
+        val pair = getModuleDays(module)
+        val start = getLocalDate(pair.first)
+        val end = if (pair.second != null) getLocalDate(pair.second!!) else null
+
+        if (date in getWeekDays()) {
+            weekAchievements.add(it)
+        }
+        if (epoch >= start.toEpochDays() && end == null || epoch < (end?.toEpochDays() ?: 0)) {
+            moduleAchievements.add(it)
+        }
+    }
+
 
     val stupsWeekCount = Stups.fetchForAWeek(login)
     val stupsYearCount = Stups.fetchForUser(login)
@@ -64,6 +94,8 @@ private fun initItems(login: String, r: RTables): MutableList<AddItem> {
         it.part == module
     }
 
+
+    // -1 ALL STUPS
     val allStupsWeekCount = stupsWeekCount.filter {
         it.reason.subSequence(0, 3) != "!ds"
 
@@ -74,31 +106,145 @@ private fun initItems(login: String, r: RTables): MutableList<AddItem> {
     val allStupsModuleCount = stupsModuleCount.filter {
         it.reason.subSequence(0, 3) != "!ds"
     }
-
+    // -2 MVD STUPS
     val dsStupsWeekCount = stupsWeekCount.filter {
         it.reason.subSequence(0, 3) == "!ds"
     }
+    val dsWeekAchievementsCount = weekAchievements.filter {
+        it.subjectId == -2
+    }.sumOf { it.stups }
     val dsStupsYearCount = stupsYearCount.filter {
         it.reason.subSequence(0, 3) == "!ds"
     }
+    val dsYearAchievementsCount = yearAchievements.filter {
+        it.subjectId == -2
+    }.sumOf { it.stups }
     val dsStupsModuleCount = stupsModuleCount.filter {
         it.reason.subSequence(0, 3) == "!ds"
     }
-
+    val dsModuleAchievementsCount = moduleAchievements.filter {
+        it.subjectId == -2
+    }.sumOf { it.stups }
 
 
     val allWeekAvg = Marks.fetchWeekAVG(login)
     val allYearAvg = Marks.fetchYearAVG(login)
     val allModuleAvg = Marks.fetchModuleAVG(login, module = module)
 
+    val subjectsYearAchievements = Achievements.fetchAllByLoginNoInit(login)
+    val subjectsWeekAchievements: MutableList<AchievementsDTO> = mutableListOf()
+    val subjectsModuleAchievements: MutableList<AchievementsDTO> = mutableListOf()
+    subjectsYearAchievements.forEach {
+        val date = (if (((it.showDate)?.length ?: 0) > 5) it.showDate ?: it.date else it.date)
+        val epoch = getLocalDate(date).toEpochDays()
+        val pair = getModuleDays(module)
+        val start = getLocalDate(pair.first)
+        val end = if (pair.second != null) getLocalDate(pair.second!!) else null
 
-    items.pAdd(subjectId = -1, stups = allStupsWeekCount, avg = allWeekAvg, table = r.weekT)
-    items.pAdd(subjectId = -1, stups = allStupsYearCount, avg = allYearAvg, table = r.yearT)
-    items.pAdd(subjectId = -1, stups = allStupsModuleCount, avg = allModuleAvg, table = r.moduleT)
+        if (date in getWeekDays()) {
+            subjectsWeekAchievements.add(it)
+        }
+        if (epoch >= start.toEpochDays() && end == null || epoch < (end?.toEpochDays() ?: 0)) {
+            subjectsModuleAchievements.add(it)
+        }
+    }
 
-    items.pAdd(subjectId = -2, stups = dsStupsWeekCount, avg = allWeekAvg, table = r.weekT)
-    items.pAdd(subjectId = -2, stups = dsStupsYearCount, avg = allYearAvg, table = r.yearT)
-    items.pAdd(subjectId = -2, stups = dsStupsModuleCount, avg = allModuleAvg, table = r.moduleT)
+    items.pAdd(subjectId = -1, stups = allStupsWeekCount, avg = allWeekAvg, table = r.weekT,
+            achievementCount = subjectsWeekAchievements.sumOf { it.stups }
+        )
+    items.pAdd(subjectId = -1, stups = allStupsYearCount, avg = allYearAvg, table = r.yearT,
+        achievementCount = subjectsYearAchievements.sumOf { it.stups }
+    )
+    items.pAdd(subjectId = -1, stups = allStupsModuleCount, avg = allModuleAvg, table = r.moduleT,
+        achievementCount = subjectsModuleAchievements.sumOf { it.stups }
+    )
+
+    items.pAdd(
+        subjectId = -2,
+        stups = dsStupsWeekCount,
+        avg = allWeekAvg,
+        table = r.weekT,
+        achievementCount = dsWeekAchievementsCount
+    )
+    items.pAdd(
+        subjectId = -2,
+        stups = dsStupsYearCount,
+        avg = allYearAvg,
+        table = r.yearT,
+        achievementCount = dsYearAchievementsCount
+    )
+    items.pAdd(
+        subjectId = -2,
+        stups = dsStupsModuleCount,
+        avg = allModuleAvg,
+        table = r.moduleT,
+        achievementCount = dsModuleAchievementsCount
+    )
+
+
+    val socialWeekAchievementsCount = weekAchievements.filter {
+        it.subjectId == -3
+    }.sumOf { it.stups }
+    val socialYearAchievementsCount = yearAchievements.filter {
+        it.subjectId == -3
+    }.sumOf { it.stups }
+    val socialModuleAchievementsCount = moduleAchievements.filter {
+        it.subjectId == -3
+    }.sumOf { it.stups }
+
+    items.pAdd(
+        subjectId = -3,
+        stups = listOf(),
+        avg = allWeekAvg,
+        table = r.weekT,
+        achievementCount = socialWeekAchievementsCount
+    )
+    items.pAdd(
+        subjectId = -3,
+        stups = listOf(),
+        avg = allYearAvg,
+        table = r.yearT,
+        achievementCount = socialYearAchievementsCount
+    )
+    items.pAdd(
+        subjectId = -3,
+        stups = listOf(),
+        avg = allModuleAvg,
+        table = r.moduleT,
+        achievementCount = socialModuleAchievementsCount
+    )
+
+    val creatorWeekAchievementsCount = weekAchievements.filter {
+        it.subjectId == -4
+    }.sumOf { it.stups }
+    val creatorYearAchievementsCount = yearAchievements.filter {
+        it.subjectId == -4
+    }.sumOf { it.stups }
+    val creatorModuleAchievementsCount = moduleAchievements.filter {
+        it.subjectId == -4
+    }.sumOf { it.stups }
+
+    items.pAdd(
+        subjectId = -4,
+        stups = listOf(),
+        avg = allWeekAvg,
+        table = r.weekT,
+        achievementCount = creatorWeekAchievementsCount
+    )
+    items.pAdd(
+        subjectId = -4,
+        stups = listOf(),
+        avg = allYearAvg,
+        table = r.yearT,
+        achievementCount = creatorYearAchievementsCount
+    )
+    items.pAdd(
+        subjectId = -4,
+        stups = listOf(),
+        avg = allModuleAvg,
+        table = r.moduleT,
+        achievementCount = creatorModuleAchievementsCount
+    )
     return items
 }
 
@@ -120,6 +266,7 @@ fun updateRatings() {
             i.deleteAll()
         }
     }
+    println("SADIK: 1")
 
 
     val forms = Forms.getAllForms().filter { it.isActive }
@@ -170,6 +317,9 @@ fun updateRatings() {
     )
     iterationsMode.forEach { x ->
         for (s in x.students) {
+            val achievements = Achievements.fetchAllByLoginNoInit(s.login)
+
+
             val groupList = studentsInGroup.filter { it.studentLogin == s.login }
             val subjectList = subjects.filter {
                 it.id in groupList.map { l -> l.subjectId }
@@ -185,6 +335,12 @@ fun updateRatings() {
                 it.reason.subSequence(0, 3) != "!ds"
             }
             for (i in subjectList) {
+                val yearSubjectAchievements = achievements.filter {
+                    it.subjectId == i.id
+                }
+                println("SADSS${yearSubjectAchievements}")
+
+
                 val stupsWeekCount = weekStups
                     .filter { it.subjectId == i.id }
                 val stupsYearCount =
@@ -199,23 +355,50 @@ fun updateRatings() {
                 val moduleAvg =
                     Marks.fetchModuleSubjectAVG(login = s.login, subjectId = i.id, module = module)
 
+                val weekAchievements: MutableList<AchievementsDTO> = mutableListOf()
+                val moduleAchievements: MutableList<AchievementsDTO> = mutableListOf()
+                yearSubjectAchievements.forEach {
+                    val date =
+                        (if (((it.showDate)?.length ?: 0) > 5) it.showDate ?: it.date else it.date)
+                    val epoch = getLocalDate(date).toEpochDays()
+                    val pair = getModuleDays(module)
+                    val start = getLocalDate(pair.first)
+                    val end = if (pair.second != null) getLocalDate(pair.second!!) else null
+
+                    if (date in getWeekDays()) {
+                        weekAchievements.add(it)
+                    }
+                    if (epoch >= start.toEpochDays() && end == null || epoch < (end?.toEpochDays()
+                            ?: 0)
+                    ) {
+                        moduleAchievements.add(it)
+                    }
+                }
+
+                val weekCount = weekAchievements.sumOf { it.stups }
+                val moduleCount = moduleAchievements.sumOf { it.stups }
+                val yearCount = yearSubjectAchievements.sumOf { it.stups }
+
                 items.pAdd(
                     subjectId = i.id,
                     stups = stupsWeekCount,
                     avg = weekAvg,
-                    table = x.r.weekT
+                    table = x.r.weekT,
+                    achievementCount = weekCount
                 )
                 items.pAdd(
                     subjectId = i.id,
                     stups = stupsModuleCount,
                     avg = moduleAvg,
-                    table = x.r.moduleT
+                    table = x.r.moduleT,
+                    achievementCount = moduleCount
                 )
                 items.pAdd(
                     subjectId = i.id,
                     stups = stupsYearCount,
                     avg = yearAvg,
-                    table = x.r.yearT
+                    table = x.r.yearT,
+                    achievementCount = yearCount
                 )
             }
 
@@ -230,7 +413,7 @@ fun updateRatings() {
                         stups = y.stups,
                         avg = y.avg,
                         top = 0,
-                        groupName = if (y.subjectId > 0) groups.first { it.id == groupList.first { it.subjectId == y.subjectId }.groupId }.name else if(y.subjectId == -1) "Общий рейтинг" else "Дисциплина",
+                        groupName = if (y.subjectId > 0) groups.first { it.id == groupList.first { it.subjectId == y.subjectId }.groupId }.name else if (y.subjectId == -1) "Общий рейтинг" else "Дисциплина",
                         formNum = form.classNum,
                         subjectId = y.subjectId,
                         formShortTitle = form.shortTitle
@@ -240,6 +423,7 @@ fun updateRatings() {
 
         }
     }
+
     sortRatings()
 }
 
@@ -271,6 +455,7 @@ private fun sortRatings() {
         transaction {
             i.deleteAll()
             i.saveRatings(items)
+
         }
     }
 }

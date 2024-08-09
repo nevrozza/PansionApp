@@ -8,6 +8,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":common:utils"))
+                implementation(project(":common:ktor"))
 //                implementation(Deps.Decompose.decompose)
             }
         }

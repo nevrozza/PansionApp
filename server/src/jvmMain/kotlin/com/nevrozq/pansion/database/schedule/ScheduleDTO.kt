@@ -9,6 +9,7 @@ import schedule.ScheduleTiming
 data class ScheduleDTO(
     val date: String,
     val teacherLogin: String,
+    val teacherLoginBefore: String,
     val groupId: Int,
     val start: String,
     val end: String,
@@ -24,6 +25,7 @@ fun ScheduleDTO.mapToItem() =
                 start = this.start,
                 end = this.end
             ),
-            cabinet = this.cabinet.toInt()
+            cabinet = this.cabinet.toInt(),
+            teacherLoginBefore = this.teacherLoginBefore
         )
 

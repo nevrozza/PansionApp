@@ -1,6 +1,8 @@
 import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
 import homework.RCheckHomeTaskReceive
+import homework.RFetchGroupHomeTasksReceive
+import homework.RFetchGroupHomeTasksResponse
 import homework.RFetchHomeTasksReceive
 import homework.RFetchHomeTasksResponse
 import homework.RFetchReportHomeTasksReceive
@@ -51,6 +53,9 @@ class JournalRepositoryImpl(
 
     override suspend fun fetchReportHomeTasks(r: RFetchReportHomeTasksReceive): RFetchReportHomeTasksResponse {
         return remoteDataSource.fetchReportHomeTasks(r)
+    }
+    override suspend fun fetchGroupHomeTasks(r: RFetchGroupHomeTasksReceive): RFetchGroupHomeTasksResponse {
+        return remoteDataSource.fetchGroupHomeTasks(r)
     }
 
     override suspend fun updateWholeReport(r: RUpdateReportReceive) {

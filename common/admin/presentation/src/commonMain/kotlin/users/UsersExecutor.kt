@@ -54,6 +54,8 @@ class UsersExecutor(
             is Intent.OpenEditingSheet -> openEditingSheet(intent.user)
             is Intent.ClearPassword -> clearPassword(state())
             Intent.EditUser -> editUser(state())
+            is Intent.ChangeCParentFirstFIO -> dispatch(Message.CParentFirstFIOChanged(intent.fio))
+            is Intent.ChangeCParentSecondFIO -> dispatch(Message.CParentSecondFIOChanged(intent.fio))
         }
     }
 
@@ -151,8 +153,9 @@ class UsersExecutor(
                     else Moderation.nothing,
                     isParent = state.cIsParent
                 )
-                val login = adminRepository.registerUser(user).login
-                dispatch(Message.UserCreated(login))
+                val parents = listOf(state().cParentFirstFIO, state.cParentSecondFIO).filter { it.isNotBlank() }
+                val r = adminRepository.registerUser(user, parents = parents.ifEmpty { null })
+                dispatch(Message.UserCreated(r.login, r.parents))
             } catch (_: Throwable) {
                 with(cUserBottomSheet.nInterface) {
                     nError("Что-то пошло не так =/", onFixErrorClick = {

@@ -4,9 +4,9 @@ import auth.CheckActivationResponse
 import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
 import auth.RFetchAboutMeResponse
+import auth.RFetchAllDevicesResponse
 
 interface AuthRepository {
-
 
     suspend fun fetchAboutMe(studentLogin: String): RFetchAboutMeResponse
 
@@ -34,6 +34,7 @@ interface AuthRepository {
     fun fetchPraname(): String
     fun fetchRole(): String
     fun fetchModeration(): String
+    fun fetchIsParent(): Boolean
     fun fetchLogin(): String
 
     suspend fun logout()

@@ -110,143 +110,151 @@ import javax.swing.SwingUtilities
 private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
 
 // c53379fe-19a7-3f07-911c-0c9d195b1925
+//@ExperimentalFoundationApi
+//@OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class)
+//fun main() {
+//    println("Text")
+//}
+
 @ExperimentalFoundationApi
 @OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class)
 fun main() {
 //
-//    val isAppRunning = AtomicBoolean(false)
-//    if (isAppRunning.compareAndSet(false, true)) {
-    GlobalScope.launch(Dispatchers.IO) {
-        com.nevrozq.pansion.main()
-    }
+    val isAppRunning = AtomicBoolean(false)
+    if (isAppRunning.compareAndSet(false, true)) {
+        GlobalScope.launch(Dispatchers.IO) {
+            com.nevrozq.pansion.main()
+        }
 
-    PlatformSDK.init(
-        configuration = PlatformConfiguration(),
-        cConfiguration = CommonPlatformConfiguration(
-            deviceName = getDeviceName() ?: "unknown",
-            deviceType = DeviceTypex.desktop,
-            deviceId = getDeviceId()
+        PlatformSDK.init(
+            configuration = PlatformConfiguration(),
+            cConfiguration = CommonPlatformConfiguration(
+                deviceName = getDeviceName() ?: "unknown",
+                deviceType = DeviceTypex.desktop,
+                deviceId = getDeviceId()
+            )
         )
-    )
-    val lifecycle = LifecycleRegistry()
-    val stateKeeper = StateKeeperDispatcher() //File(SAVED_STATE_FILE_NAME).readSerializableContainer()
-    val root = runOnUiThread {
+        val lifecycle = LifecycleRegistry()
+        val stateKeeper =
+            StateKeeperDispatcher() //File(SAVED_STATE_FILE_NAME).readSerializableContainer()
+        val root = runOnUiThread {
 
-        setMainThreadId(Thread.currentThread().id)
+            setMainThreadId(Thread.currentThread().id)
 
-        RootComponentImpl(
-            componentContext = DefaultComponentContext(
-                lifecycle = lifecycle,
-                stateKeeper = stateKeeper
-            ),
-            storeFactory = DefaultStoreFactory(),
+            RootComponentImpl(
+                componentContext = DefaultComponentContext(
+                    lifecycle = lifecycle,
+                    stateKeeper = stateKeeper
+                ),
+                storeFactory = DefaultStoreFactory(),
 //            deepLink = RootComponentImpl.DeepLink.None,
 //            webHistoryController = null
-        )
+            )
 
-    }
+        }
 //    stateKeeper.unregister("UsersStoreState")
 
 
-    application {
-        val windowState = rememberWindowState()
-        windowState.size = DpSize(950.dp, 480.dp) //950 480 //480 800
+        application {
+            val windowState = rememberWindowState()
+            windowState.size = DpSize(950.dp, 480.dp) //950 480 //480 800
 
-        var isVisible by remember { mutableStateOf(true) }
+            var isVisible by remember { mutableStateOf(true) }
 
-        Tray(
-            icon = painterResource("favicon.ico"),//TrayIcon,
-            menu = {
-                Item(
-                    "Показать",
-                    onClick = { isVisible = true }
-                )
-                Item(
-                    "Закрыть",
-                    onClick = ::exitApplication
-                )
-            },
-            tooltip = "Pansion App",
-            onAction = {
-                isVisible = true
-            }
-        )
-
-        if (isVisible) {
-            var isCloseDialogVisible by remember { mutableStateOf(false) }
-
-            val settingsRepository: SettingsRepository = Inject.instance()
-            val rgb = settingsRepository.fetchSeedColor().toRGB()
-            val themeDefinition = JewelTheme.darkThemeDefinition()
-            val viewManager = remember {
-                ViewManager(
-                    seedColor = mutableStateOf(
-                        Color(
-                            red = rgb[0],
-                            green = rgb[1],
-                            blue = rgb[2]
-                        )
-                    ),
-                    tint = mutableStateOf(settingsRepository.fetchTint().toTint()),
-                    colorMode = mutableStateOf(settingsRepository.fetchColorMode())
-                )
-            }
-            CompositionLocalProvider(
-                LocalViewManager provides viewManager
-            ) {
-                IntUiTheme(
-                    themeDefinition,
-                    styling = ComponentStyling.decoratedWindow(
-                        titleBarStyle = TitleBarStyle.light()
+            Tray(
+                icon = painterResource("favicon.ico"),//TrayIcon,
+                menu = {
+                    Item(
+                        "Показать",
+                        onClick = { isVisible = true }
                     )
-                ) {
-                    AppTheme {
-                        DecoratedWindow(
-                            onCloseRequest = { isCloseDialogVisible = true },
-                            state = windowState,
-                            title = "Pansion App", //Pansion App
-                            visible = isVisible,
-                            icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
+                    Item(
+                        "Закрыть",
+                        onClick = ::exitApplication
+                    )
+                },
+                tooltip = "Pansion App",
+                onAction = {
+                    isVisible = true
+                }
+            )
 
-                        ) {
+            if (isVisible) {
+                var isCloseDialogVisible by remember { mutableStateOf(false) }
 
-                            LifecycleController(
-                                lifecycleRegistry = lifecycle,
-                                windowState = windowState,
-                                windowInfo = LocalWindowInfo.current,
+                val settingsRepository: SettingsRepository = Inject.instance()
+                val rgb = settingsRepository.fetchSeedColor().toRGB()
+                val themeDefinition = JewelTheme.darkThemeDefinition()
+                val viewManager = remember {
+                    ViewManager(
+                        seedColor = mutableStateOf(
+                            Color(
+                                red = rgb[0],
+                                green = rgb[1],
+                                blue = rgb[2]
                             )
+                        ),
+                        tint = mutableStateOf(settingsRepository.fetchTint().toTint()),
+                        colorMode = mutableStateOf(settingsRepository.fetchColorMode())
+                    )
+                }
+                CompositionLocalProvider(
+                    LocalViewManager provides viewManager
+                ) {
+                    IntUiTheme(
+                        themeDefinition,
+                        styling = ComponentStyling.decoratedWindow(
+                            titleBarStyle = TitleBarStyle.light()
+                        )
+                    ) {
+                        AppTheme {
+                            DecoratedWindow(
+                                onCloseRequest = { isCloseDialogVisible = true },
+                                state = windowState,
+                                title = "Pansion App", //Pansion App
+                                visible = isVisible,
+                                icon = BitmapPainter(useResource("favicon.ico", ::loadImageBitmap))
 
-                            val l = LocalTitleBarStyle.current
-                            viewManager.topPadding =
-                                (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
-                            this.window.setMinSize(400, 600)
-                            Box(contentAlignment = Alignment.TopCenter) {
-                                Root(root, WindowType.PC)
+                            ) {
 
-                                MainTitleBar(viewManager, l)
-                                if (isCloseDialogVisible) {
-                                    AlertDialog(
-                                        onDismissRequest = { isCloseDialogVisible = false },
-                                        confirmButton = {
-                                            CustomTextButton(
-                                                text = "Свернуть в трею"
-                                            ) {
-                                                isVisible = false
-                                                isCloseDialogVisible = false
-                                            }
-                                        },
-                                        dismissButton = {
-                                            CustomTextButton(
-                                                text = "Закрыть"
-                                            ) {
-                                                //stateKeeper.save().writeToFile(File(SAVED_STATE_FILE_NAME))
-                                                exitApplication()
-                                            }
-                                        },
+                                LifecycleController(
+                                    lifecycleRegistry = lifecycle,
+                                    windowState = windowState,
+                                    windowInfo = LocalWindowInfo.current,
+                                )
+
+                                val l = LocalTitleBarStyle.current
+                                viewManager.topPadding =
+                                    (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
+                                this.window.setMinSize(400, 600)
+                                Box(contentAlignment = Alignment.TopCenter) {
+                                    Root(root, WindowType.PC)
+
+                                    MainTitleBar(viewManager, l)
+                                    if (isCloseDialogVisible) {
+                                        AlertDialog(
+                                            onDismissRequest = { isCloseDialogVisible = false },
+                                            confirmButton = {
+                                                CustomTextButton(
+                                                    text = "Свернуть в трею"
+                                                ) {
+                                                    isVisible = false
+                                                    isCloseDialogVisible = false
+                                                }
+                                            },
+                                            dismissButton = {
+                                                CustomTextButton(
+                                                    text = "Закрыть"
+                                                ) {
+                                                    //stateKeeper.save().writeToFile(File(SAVED_STATE_FILE_NAME))
+                                                    exitApplication()
+                                                }
+                                            },
 //                                            title = { Text("Закрыть приложение?") },
-                                        text = { Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)") }
+                                            text = { Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)") }
 
-                                    )
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -254,7 +262,6 @@ fun main() {
                 }
             }
         }
-    }
 //    } else {
 //        application {
 //            DialogWindow(
@@ -270,6 +277,7 @@ fun main() {
 //            }
 //        }
 //    }
+    }
 }
 
 @Composable

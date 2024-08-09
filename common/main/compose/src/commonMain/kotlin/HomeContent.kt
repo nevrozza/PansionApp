@@ -547,7 +547,8 @@ private fun RaspisanieTable(
                                     model = model,
                                     journalModel = journalModel,
                                     marks = it.marks,
-                                    stupsSum = it.stupsSum
+                                    stupsSum = it.stupsSum,
+                                    isSwapped = it.isSwapped
                                 )
                                 Spacer(Modifier.padding(10.dp))
                             }
@@ -1113,7 +1114,8 @@ fun Lesson(
     stupsSum: Int,
     component: HomeComponent,
     model: HomeStore.State,
-    journalModel: JournalStore.State?
+    journalModel: JournalStore.State?,
+    isSwapped: Boolean
 ) {
     val firstElement =
         model.items[date]?.sortedBy { it.start.toMinutes() }?.first { it.groupId == groupId }
@@ -1194,7 +1196,7 @@ fun Lesson(
                         )
                     ) {
                         append(
-                            " ${fio.surname}"
+                            " ${fio.surname}${if(isSwapped) "*" else ""}"
                         )
                     }
                     withStyle(

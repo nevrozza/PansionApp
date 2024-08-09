@@ -17,6 +17,7 @@ import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import di.Inject
+import homeTasksDialog.HomeTasksDialogComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import server.getSixTime
@@ -30,6 +31,13 @@ class LessonReportComponent(
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
 //    private val authRepository: AuthRepository = Inject.instance()
+
+    private val homeTaskDialogContentName = "homeTaskDialogContentName"
+    val homeTasksDialogComponent = HomeTasksDialogComponent(
+        componentContext = childContext(homeTaskDialogContentName+"CONTEXT"),
+        storeFactory = storeFactory,
+        groupId = reportData.header.groupId
+    )
 
     val nInterface =
         NetworkInterface(componentContext, storeFactory, "LessonReportComponent")
@@ -52,10 +60,27 @@ class LessonReportComponent(
         name = homeTasksTabsName,
         onAcceptClick = ::onTasksTabAcceptClick
     )
+    private val saveQuitName = "saveQuitDialogComponent"
+    val saveQuitNameDialogComponent = CAlertDialogComponent(
+        componentContext = childContext(saveQuitName + "CONTEXT"),
+        storeFactory = storeFactory,
+        name = saveQuitName,
+        onAcceptClick = ::onSaveQuitAcceptClick,
+        onDeclineClick = ::onSaveQuitDeclineClick
+    )
 
     private fun onTasksTabAcceptClick() {
         onEvent(LessonReportStore.Intent.OnTasksTabAcceptClick)
         homeTasksTabDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
+    }
+    private fun onSaveQuitAcceptClick() {
+        onEvent(LessonReportStore.Intent.UpdateWholeReport)
+        saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
+        onOutput(Output.Back)
+    }
+    private fun onSaveQuitDeclineClick() {
+        saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
+        onOutput(Output.Back)
     }
 
     val marksDialogComponent = CAlertDialogComponent(
@@ -180,10 +205,10 @@ class LessonReportComponent(
     }
 
     fun onOutput(output: Output) {
-        //ONLY ONE OUTPUT
-        if (model.value.isUpdateNeeded) {
-            onEvent(LessonReportStore.Intent.UpdateWholeReport)
-        }
+        //ONLY ONE OUTPUT DEPRECATED
+//        if (model.value.isUpdateNeeded) {
+//            onEvent(LessonReportStore.Intent.UpdateWholeReport)
+//        }
         output(output)
     }
 

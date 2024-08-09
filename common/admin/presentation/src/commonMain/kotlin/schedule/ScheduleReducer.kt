@@ -133,6 +133,7 @@ object ScheduleReducer : Reducer<State, Message> {
             is Message.TeacherListUpdated -> copy(activeTeachers = msg.activeTeachers)
             is Message.IsSavedAnimation -> copy(isSavedAnimation = msg.isSavedAnimation)
             Message.ChangeIsTeacherView -> copy(isTeachersView = !isTeachersView)
+            is Message.eiLoginChanged -> copy(eiState = ScheduleStore.EditState.Preview, eiNewLogin = msg.login)
         }
     }
 }

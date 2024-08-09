@@ -44,6 +44,7 @@ class AdminComponent(
         data object NavigateToCabinets : Output()
         data object NavigateToCalendar : Output()
         data object NavigateToAchievements : Output()
+        data object NavigateToParents : Output()
 //        data object NavigateToStudents : Output()
 
     }

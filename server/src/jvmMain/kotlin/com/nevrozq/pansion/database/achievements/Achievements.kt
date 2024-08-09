@@ -5,6 +5,8 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.not
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -67,9 +69,49 @@ object Achievements: Table() {
             }
         }
     }
+
     fun fetchAllByLogin(login: String): List<AchievementsDTO> {
         return transaction {
             Achievements.select { (Achievements.studentLogin eq login) }.mapNotNull {
+                val xDate = if((it[showDate]?.length ?: 0 ) > 5) it[showDate] ?: it[date] else it[date]
+                if (getLocalDate(xDate) <= getLocalDate(getDate())) {
+                    AchievementsDTO(
+                        id = it[Achievements.id],
+                        studentLogin = it[studentLogin],
+                        creatorLogin = it[creatorLogin],
+                        date = it[date],
+                        text = it[text],
+                        showDate = it[showDate],
+                        subjectId = it[subjectId],
+                        stups = it[stups]
+                    )
+                } else null
+            }
+        }
+    }
+
+    fun fetchAllByLoginInit(login: String): List<AchievementsDTO> {
+        return transaction {
+            Achievements.select { (Achievements.studentLogin eq login) and ((Achievements.subjectId eq -4) or (Achievements.subjectId eq -2) or (Achievements.subjectId eq -3))}.mapNotNull {
+                val xDate = if((it[showDate]?.length ?: 0 ) > 5) it[showDate] ?: it[date] else it[date]
+                if (getLocalDate(xDate) <= getLocalDate(getDate())) {
+                    AchievementsDTO(
+                        id = it[Achievements.id],
+                        studentLogin = it[studentLogin],
+                        creatorLogin = it[creatorLogin],
+                        date = it[date],
+                        text = it[text],
+                        showDate = it[showDate],
+                        subjectId = it[subjectId],
+                        stups = it[stups]
+                    )
+                } else null
+            }
+        }
+    }
+    fun fetchAllByLoginNoInit(login: String): List<AchievementsDTO> {
+        return transaction {
+            Achievements.select { (Achievements.studentLogin eq login) and not ((Achievements.subjectId eq -4) or (Achievements.subjectId eq -2) or (Achievements.subjectId eq -3))}.mapNotNull {
                 val xDate = if((it[showDate]?.length ?: 0 ) > 5) it[showDate] ?: it[date] else it[date]
                 if (getLocalDate(xDate) <= getLocalDate(getDate())) {
                     AchievementsDTO(

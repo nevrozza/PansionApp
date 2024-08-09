@@ -6,20 +6,11 @@ import admin.schedule.ScheduleGroup
 import admin.schedule.SchedulePerson
 import admin.schedule.ScheduleSubject
 import com.arkivanov.mvikotlin.core.store.Store
-import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
-import kotlinx.datetime.plus
-import kotlinx.datetime.todayAt
-import kotlinx.datetime.todayIn
 import schedule.ScheduleStore.Intent
 import schedule.ScheduleStore.Label
 import schedule.ScheduleStore.State
 import server.getCurrentDate
 import server.getDates
-import server.twoNums
 
 interface ScheduleStore : Store<Intent, State, Label> {
     data class State(
@@ -47,6 +38,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val eiCabinet: Int? = null,
         val eiGroupId: Int? = null,
         val eiTiming: Pair<String, String>? = null,
+        val eiNewLogin: String? = null,
 
         val eiCabinetErrorGroupId: Int = 0,
         val eiStudentErrors: List<StudentError> = emptyList(),
@@ -79,6 +71,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
 
         data class eiChangeTiming(val timing: Pair<String, String>) : Intent
         data class eiChangeCabinet(val cabinet: Int) : Intent
+        data class eiChangeLogin(val login: String) : Intent
 
 
         data class eiCheck(
@@ -150,6 +143,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data class eiTimingChanged(val timing: Pair<String, String>) : Message
         data class eiStateChanged(val state: EditState) : Message
         data class eiCabinetChanged(val cabinet: Int) : Message
+        data class eiLoginChanged(val login: String) : Message
         data class eiErrorsUpdated(
             val cabinetErrorGroupId: Int,
             val studentErrors: List<StudentError>
@@ -187,6 +181,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data object Preview : EditState
         data object Groups : EditState
         data object Timings : EditState
+        data object Swap : EditState
     }
 }
 

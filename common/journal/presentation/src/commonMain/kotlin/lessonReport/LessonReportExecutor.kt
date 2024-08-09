@@ -546,7 +546,7 @@ class LessonReportExecutor(
                                         deployDate = it.deployDate,
                                         deployLogin = it.deployLogin
                                     )
-                                },
+                                }.sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()})),
                             stupsOfCurrentLesson = studentsData.stups.filter { it.login == student.serverStudentLine.login }
                                 .map {
                                     Stup(

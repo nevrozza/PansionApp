@@ -46,7 +46,8 @@ class AuthRepositoryImpl(
             role = r.activation.user.role,
             moderation = r.activation.user.moderation,
             login = r.activation.login,
-            avatarId = r.avatarId
+            avatarId = r.avatarId,
+            isParent = r.activation.user.isParent
         )
         return r
     }
@@ -71,7 +72,8 @@ class AuthRepositoryImpl(
             role = r.user.role,
             moderation = r.user.moderation,
             login = r.login,
-            avatarId = 0
+            avatarId = 0,
+            isParent = r.user.isParent
         )
         return r
     }
@@ -179,6 +181,10 @@ class AuthRepositoryImpl(
 
     override fun fetchModeration(): String {
         return cacheDataSource.fetchModeration()
+    }
+
+    override fun fetchIsParent(): Boolean {
+        return cacheDataSource.fetchIsParent()
     }
 
     override fun fetchLogin(): String {

@@ -10,6 +10,7 @@ kotlin {
                 implementation(project(":common:settings:api"))
                 implementation(project(":common:core"))
                 implementation(project(":common:utils"))
+                implementation(project(":common:ktor"))
 
                 implementation(libs.kodein.di)
                 implementation(libs.settings.core)

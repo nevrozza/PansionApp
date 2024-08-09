@@ -167,8 +167,7 @@ class LessonsController() {
                             val time =  header.time.toMinutes()
                             val is2NKA = if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
                             if ((x.lateTime.isNotEmpty() && x.lateTime != "0") || isNka || is2NKA) {
-                                val subject =
-                                    if (group != null) subjects[group.subjectId].toString() else "null"
+                                val subject = if (group != null) subjects[group.subjectId].toString() else "null"
                                     ClientMainNotification(
                                         key = if (is2NKA || isNka) "N.${x.login}.${x.reportId}" else "Op.${x.login}.${x.reportId}",
                                         subjectName = subject,
@@ -181,7 +180,7 @@ class LessonsController() {
                         } else null
                     }
                 val filtered = (achievements + nKiOpozd).filter { it.key !in checkedNotifications }
-                    .sortedByDescending { getLocalDate(it.date).toEpochDays() }
+                    .sortedWith(compareBy({getLocalDate(it.date).toEpochDays()}, {it.reportTime?.toMinutes()})).reversed()
 
                 call.respond(
                     RFetchMainNotificationsResponse(
@@ -421,7 +420,8 @@ class LessonsController() {
                                     module = it.part
                                 )
                             },
-                            stupsSum = stups.sumOf { it.content.toInt() }
+                            stupsSum = stups.sumOf { it.content.toInt() },
+                            isSwapped = it.teacherLoginBefore != it.teacherLogin
                         )
                     } else {
                         null
@@ -456,7 +456,8 @@ class LessonsController() {
                             groupId = it.groupId,
                             start = it.t.start,
                             end = it.t.end,
-                            cabinet = it.cabinet.toString()
+                            cabinet = it.cabinet.toString(),
+                            teacherLoginBefore = it.teacherLoginBefore
                         )
                     }
                 }

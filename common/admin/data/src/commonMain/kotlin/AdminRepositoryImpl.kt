@@ -84,7 +84,7 @@ class AdminRepositoryImpl(
         )
     }
 
-    override suspend fun registerUser(user: UserInit): RCreateUserResponse {
+    override suspend fun registerUser(user: UserInit, parents: List<String>?): RCreateUserResponse {
         return remoteDataSource.performRegistrationUser(
             RRegisterUserReceive(
                 userInit = UserInit(
@@ -97,7 +97,8 @@ class AdminRepositoryImpl(
                     role = user.role,
                     moderation = user.moderation,
                     isParent = user.isParent
-                )
+                ),
+                parentFIOs = parents
             )
         )
     }

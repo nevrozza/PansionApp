@@ -1,6 +1,8 @@
 import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
 import homework.RCheckHomeTaskReceive
+import homework.RFetchGroupHomeTasksReceive
+import homework.RFetchGroupHomeTasksResponse
 import homework.RFetchHomeTasksReceive
 import homework.RFetchHomeTasksResponse
 import homework.RFetchReportHomeTasksReceive
@@ -29,6 +31,7 @@ interface JournalRepository {
 
     suspend fun saveReportHomeTasks(r: RSaveReportHomeTasksReceive) : RFetchReportHomeTasksResponse
     suspend fun fetchReportHomeTasks(r: RFetchReportHomeTasksReceive) : RFetchReportHomeTasksResponse
+    suspend fun fetchGroupHomeTasks(r: RFetchGroupHomeTasksReceive) : RFetchGroupHomeTasksResponse
 
     suspend fun updateWholeReport(r: RUpdateReportReceive)
     suspend fun fetchReportStudents(r: RFetchReportStudentsReceive) : RFetchReportStudentsResponse

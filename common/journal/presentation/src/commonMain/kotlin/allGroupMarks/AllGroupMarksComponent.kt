@@ -5,6 +5,7 @@ import JournalRepository
 import ReportData
 import asValue
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.childContext
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -12,6 +13,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
 import di.Inject
+import homeTasksDialog.HomeTasksDialogComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
@@ -25,6 +27,15 @@ class AllGroupMarksComponent(
     private val subjectName: String,
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
+
+    private val homeTaskDialogContentName = "homeTaskDialogContentNameAllGroups"
+    val homeTasksDialogComponent = HomeTasksDialogComponent(
+        componentContext = childContext(homeTaskDialogContentName+"CONTEXT"),
+        storeFactory = storeFactory,
+        groupId = groupId,
+        openReport = { onEvent(AllGroupMarksStore.Intent.OpenFullReport(it)) }
+    )
+
     private val authRepository: AuthRepository = Inject.instance()
 
     val nInterface =

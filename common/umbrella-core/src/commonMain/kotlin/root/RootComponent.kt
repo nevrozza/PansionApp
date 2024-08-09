@@ -26,6 +26,7 @@ import homeTasks.HomeTasksComponent
 import journal.JournalComponent
 import kotlinx.serialization.Serializable
 import mentoring.MentoringComponent
+import parents.AdminParentsComponent
 import profile.ProfileComponent
 import rating.RatingComponent
 import root.store.RootStore
@@ -134,6 +135,11 @@ interface   RootComponent : BackHandlerOwner {
             val achievementsComponent: HomeAchievementsComponent
         ) : Child()
 
+        class AdminParents(
+            val adminComponent: AdminComponent,
+            val parentsComponent: AdminParentsComponent
+        ) : Child()
+
     }
 
     fun onOutput(output: Output)
@@ -223,6 +229,8 @@ interface   RootComponent : BackHandlerOwner {
 
         @Serializable
         data object AdminCabinets: Config
+        @Serializable
+        data object AdminParents: Config
 
         @Serializable
         data class SecondView(val login: String, val fio: FIO, val avatarId: Int, val config: Config): Config

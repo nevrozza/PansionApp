@@ -16,6 +16,9 @@ fun Application.configureReportsRouting() {
         post(RequestPaths.HomeTasks.FetchReportHomeTasks) {
             reportsController.fetchReportHomeTasks(call)
         }
+        post(RequestPaths.HomeTasks.FetchGroupHomeTasks) {
+            reportsController.fetchGroupHomeTasks(call)
+        }
 
 //        post(RequestPaths.Lessons.FetchAllSubjects) {
 //            reportsController.fetchAllSubjects(call)

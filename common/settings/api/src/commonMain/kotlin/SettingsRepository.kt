@@ -1,4 +1,11 @@
+import auth.RFetchAllDevicesResponse
+import auth.RTerminateDeviceReceive
+
 interface SettingsRepository {
+    suspend fun fetchDevices(): RFetchAllDevicesResponse
+    suspend fun terminateDevice(r: RTerminateDeviceReceive)
+
+
     fun saveTint(tint: String)
     fun fetchTint(): String
 

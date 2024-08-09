@@ -23,6 +23,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val currentMillis: Long = Clock.System.now().toEpochMilliseconds(),
 
         val cLogin: String = "",
+        val cParentLogins: List<String>? = null,
         val cName: String = "",
         val cSurname: String = "",
         val cPraname: String? = "",
@@ -31,6 +32,8 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val cIsModerator: Boolean = false,
         val cIsMentor: Boolean = false,
         val cIsParent: Boolean = false,
+        val cParentFirstFIO: String = "",
+        val cParentSecondFIO: String = "",
 
         val eLogin: String = "",
         val eIsPassword: Boolean = false,
@@ -58,6 +61,8 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class ChangeCIsModerator(val isModerator: Boolean) : Intent
         data class ChangeCIsMentor(val isMentor: Boolean) : Intent
         data class ChangeCIsParent(val isParent: Boolean) : Intent
+        data class ChangeCParentFirstFIO(val fio: String) : Intent
+        data class ChangeCParentSecondFIO(val fio: String) : Intent
 
         data object CreateUser : Intent
         data object ClearUser : Intent
@@ -89,8 +94,10 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class CIsModeratorChanged(val isModerator: Boolean) : Message
         data class CIsMentorChanged(val isMentor: Boolean) : Message
         data class CIsParentChanged(val isParent: Boolean) : Message
+        data class CParentFirstFIOChanged(val fio: String) : Message
+        data class CParentSecondFIOChanged(val fio: String) : Message
 
-        data class UserCreated(val login: String) : Message
+        data class UserCreated(val login: String, val parents: List<String>?) : Message
         data object ClearUser : Message
 
         data class ENameChanged(val name: String) : Message

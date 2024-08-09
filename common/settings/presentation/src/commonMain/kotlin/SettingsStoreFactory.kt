@@ -6,12 +6,14 @@ import SettingsStore.Label
 import SettingsStore.State
 import SettingsStore.Message
 import components.listDialog.ListComponent
+import components.networkInterface.NetworkInterface
 
 class SettingsStoreFactory(
     private val storeFactory: StoreFactory,
     private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository,
-    private val colorModeListComponent: ListComponent
+    private val colorModeListComponent: ListComponent,
+    private val nDevicesInterface: NetworkInterface
 ) {
 
     fun create(): SettingsStore {
@@ -28,7 +30,8 @@ class SettingsStoreFactory(
             executorFactory = { SettingsExecutor(
                 settingsRepository = settingsRepository,
                 authRepository = authRepository,
-                colorModeListComponent = colorModeListComponent
+                colorModeListComponent = colorModeListComponent,
+                nDevicesInterface = nDevicesInterface
             ) },
             reducer = SettingsReducer
         )

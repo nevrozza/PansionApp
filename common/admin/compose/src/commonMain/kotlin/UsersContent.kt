@@ -1041,80 +1041,118 @@ private fun createUserSheet(
                             }
                         }
                         Spacer(Modifier.height(7.dp))
-                        Row(
-                            Modifier.width(TextFieldDefaults.MinWidth)
-                                .padding(horizontal = 7.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Модератор",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp,
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
-                            Switch(
-                                checked = model.cIsModerator,
-                                onCheckedChange = {
-                                    component.onEvent(
-                                        UsersStore.Intent.ChangeCIsModerator(
-                                            it
+                        if(model.cRole != Roles.student) {
+                            Row(
+                                Modifier.width(TextFieldDefaults.MinWidth)
+                                    .padding(horizontal = 7.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Модератор",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Switch(
+                                    checked = model.cIsModerator,
+                                    onCheckedChange = {
+                                        component.onEvent(
+                                            UsersStore.Intent.ChangeCIsModerator(
+                                                it
+                                            )
                                         )
-                                    )
-                                },
-                                enabled = !isCreatingInProcess
-                            )
-                        }
-                        Spacer(Modifier.height(7.dp))
-                        Row(
-                            Modifier.width(TextFieldDefaults.MinWidth)
-                                .padding(horizontal = 7.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Наставник",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp,
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
-                            Switch(
-                                checked = model.cIsMentor,
-                                onCheckedChange = {
-                                    component.onEvent(
-                                        UsersStore.Intent.ChangeCIsMentor(
-                                            it
+                                    },
+                                    enabled = !isCreatingInProcess
+                                )
+                            }
+                            Spacer(Modifier.height(7.dp))
+                            Row(
+                                Modifier.width(TextFieldDefaults.MinWidth)
+                                    .padding(horizontal = 7.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Наставник",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Switch(
+                                    checked = model.cIsMentor,
+                                    onCheckedChange = {
+                                        component.onEvent(
+                                            UsersStore.Intent.ChangeCIsMentor(
+                                                it
+                                            )
                                         )
-                                    )
-                                },
-                                enabled = !isCreatingInProcess
-                            )
-                        }
-                        Spacer(Modifier.height(7.dp))
-                        Row(
-                            Modifier.width(TextFieldDefaults.MinWidth)
-                                .padding(horizontal = 7.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Родитель",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp,
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
-                            Switch(
-                                checked = model.cIsParent,
-                                onCheckedChange = {
-                                    component.onEvent(
-                                        UsersStore.Intent.ChangeCIsParent(
-                                            it
+                                    },
+                                    enabled = !isCreatingInProcess
+                                )
+                            }
+                            Spacer(Modifier.height(7.dp))
+                            Row(
+                                Modifier.width(TextFieldDefaults.MinWidth)
+                                    .padding(horizontal = 7.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Родитель",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Switch(
+                                    checked = model.cIsParent,
+                                    onCheckedChange = {
+                                        component.onEvent(
+                                            UsersStore.Intent.ChangeCIsParent(
+                                                it
+                                            )
                                         )
-                                    )
+                                    },
+                                    enabled = !isCreatingInProcess
+                                )
+                            }
+                        } else {
+                            CustomTextField(
+                                value = model.cParentFirstFIO,
+                                onValueChange = {
+                                    component.onEvent(UsersStore.Intent.ChangeCParentFirstFIO(it))
                                 },
-                                enabled = !isCreatingInProcess
+                                text = "ФИО матери",
+                                isEnabled = !isCreatingInProcess,//model.isCreatingInProcess,
+                                onEnterClicked = {
+                                    focusManager.moveFocus(FocusDirection.Next)
+                                },
+                                focusManager = focusManager,
+                                isMoveUpLocked = false,
+                                autoCorrect = false,
+                                keyboardType = KeyboardType.Password,
+                                supText = "Фамилия Имя Отчество"
                             )
+                            Spacer(Modifier.height(7.dp))
+                            CustomTextField(
+                                value = model.cParentSecondFIO,
+                                onValueChange = {
+                                    component.onEvent(UsersStore.Intent.ChangeCParentSecondFIO(it))
+                                },
+                                text = "ФИО отца",
+                                isEnabled = !isCreatingInProcess,//model.isCreatingInProcess,
+                                onEnterClicked = {
+                                    focusManager.moveFocus(FocusDirection.Next)
+                                },
+                                focusManager = focusManager,
+                                isMoveUpLocked = false,
+                                autoCorrect = false,
+                                keyboardType = KeyboardType.Password,
+                                supText = "Фамилия Имя Отчество"
+                            )
+                            Spacer(Modifier.height(7.dp))
                         }
+
                         Spacer(Modifier.height(7.dp))
                         AnimatedCommonButton(
                             text = "Создать",
@@ -1130,7 +1168,7 @@ private fun createUserSheet(
             }
         } else {
             Column(
-                Modifier.padding(10.dp).fillMaxWidth().height(200.dp),
+                Modifier.padding(10.dp).fillMaxWidth().height(if(model.cParentLogins != null) 260.dp else 200.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -1149,13 +1187,34 @@ private fun createUserSheet(
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center
                 )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        model.cLogin,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 28.sp,
+                        textAlign = TextAlign.Center
+                    )
 
-                Text(
-                    model.cLogin,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 28.sp,
-                    textAlign = TextAlign.Center
-                )
+                    Spacer(Modifier.height(7.dp))
+                    if (model.cParentLogins != null) {
+                        listOf(model.cParentFirstFIO, model.cParentSecondFIO).forEachIndexed { i, s ->
+                            if (s.isNotEmpty()) {
+                                Text(
+                                    s,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    model.cParentLogins?.getOrNull(i).toString(),
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 20.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
 
                 Button(
                     onClick = {

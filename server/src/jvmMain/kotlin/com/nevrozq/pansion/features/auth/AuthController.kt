@@ -10,12 +10,15 @@ import auth.ActivationReceive
 import auth.ActivationResponse
 import auth.CheckActivationReceive
 import auth.CheckActivationResponse
+import auth.Device
 import auth.LoginReceive
 import auth.LoginResponse
 import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
 import auth.RFetchAboutMeReceive
 import auth.RFetchAboutMeResponse
+import auth.RFetchAllDevicesResponse
+import auth.RTerminateDeviceReceive
 import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.cabinets.CabinetsDTO
 import com.nevrozq.pansion.database.formGroups.FormGroups
@@ -101,6 +104,55 @@ class AuthController {
         }
     }
 
+    suspend fun terminateDevice(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+                val r = call.receive<RTerminateDeviceReceive>()
+                Tokens.deleteTokenByIdAndLogin(id = r.id.toId(), login = call.login)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Idk ERROR Terminate")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't Terminate: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(
+                HttpStatusCode.Forbidden
+            )
+        }
+    }
+
+    suspend fun fetchAllDevices(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+                val devices = Tokens.getTokensOfThisLogin(thisLogin = call.login).map {
+                    Device(
+                        deviceId = it.deviceId.toString(),
+                        deviceName = it.deviceName,
+                        deviceType = it.deviceType,
+                        time = it.time,
+                        isThisSession = it.token.toString() == call.token
+                    )
+                }
+                call.respond(RFetchAllDevicesResponse(devices))
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Idk ERROR FETCH DEVICES")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch devices: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(
+                HttpStatusCode.Forbidden
+            )
+        }
+    }
+
     suspend fun updateAvatarId(call: ApplicationCall) {
         if (call.isMember) {
             val r = call.receive<RChangeAvatarIdReceive>()
@@ -140,6 +192,7 @@ class AuthController {
         var role: String = ""
         var moderation: String = ""
         var avatarId: Int = 0
+        var isParent: Boolean = false
 
         if (isTokenValid) {
             val user = Users.fetchUser(call.login)!!
@@ -149,6 +202,7 @@ class AuthController {
             role = user.role
             moderation = user.moderation
             avatarId = user.avatarId
+            isParent = user.isParent
         }
         call.respond(
             RCheckConnectionResponse(
@@ -158,7 +212,8 @@ class AuthController {
                 praname = praname,
                 role = role,
                 moderation = moderation,
-                avatarId = avatarId
+                avatarId = avatarId,
+                isParent = isParent
             )
         )
 

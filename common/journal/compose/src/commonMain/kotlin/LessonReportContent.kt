@@ -150,6 +150,7 @@ import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import homeTasksDialog.HomeTasksDialogStore
 import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -458,7 +459,11 @@ fun LessonReportContent(
                                                 }
                                             }
                                             IconButton(
-                                                onClick = {}
+                                                onClick = {
+                                                    component.homeTasksDialogComponent.onEvent(
+                                                        HomeTasksDialogStore.Intent.Init)
+                                                    component.homeTasksDialogComponent.dialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                                }
                                             ) {
                                                 Icon(
                                                     Icons.Rounded.History,
@@ -551,6 +556,10 @@ fun LessonReportContent(
             component.setReportColumnsComponent.onEvent(CBottomSheetStore.Intent.ShowSheet)
         }
 
+        HomeTasksDialogContent(
+            component.homeTasksDialogComponent
+        )
+
         CAlertDialogContent(
             component.confirmDeletingColumnDialogComponent,
             isCustomButtons = false,
@@ -597,6 +606,18 @@ fun LessonReportContent(
             isShowing = model.isErrorAnimation
         ) {
             component.onEvent(LessonReportStore.Intent.IsErrorAnimation(false))
+        }
+
+
+
+
+        CAlertDialogContent(
+            component = component.saveQuitNameDialogComponent,
+            isCustomButtons = false,
+            title = "Сохранить отчёт?",
+            acceptText = "Сохранить",
+            declineText = "Не сохранять"
+        ) {
         }
     }
 }
@@ -779,6 +800,7 @@ private fun HomeWorkTabContent(
                 }
             }
         }
+
     }
 }
 
@@ -793,17 +815,6 @@ private fun ReportHomeTaskItem(
     val isFullView = remember { mutableStateOf(task.isNew) }
 
     var expandedType by remember { mutableStateOf(false) }
-
-    val typesList = mapOf(
-        "!dz1" to fetchReason("!dz1"),
-        "!dz2" to fetchReason("!dz2"),
-        "!dz3" to fetchReason("!dz3"),
-        "!dz4" to fetchReason("!dz4"),
-        "!st1" to fetchReason("!st1"),
-        "!st2" to fetchReason("!st2"),
-        "!st3" to fetchReason("!st3"),
-        "!st5" to fetchReason("!st5"),
-    )
     Box(
         modifier = Modifier.padding(top = 6.dp)
             .fillMaxWidth()
@@ -811,6 +822,7 @@ private fun ReportHomeTaskItem(
             .background(MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp))
             .animateContentSize()
     ) {
+
         if (isFullView.value) {
             Column(Modifier.padding(4.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -917,20 +929,18 @@ private fun ReportHomeTaskItem(
             }
         } else {
             Column(Modifier.padding(4.dp).padding(start = 4.dp)) {
-                Row {
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
-                                append("Тип: ")
-                            }
-                            append("${typesList[task.type] ?: "Не выбрано"}")
+                Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                            append("Тип: ")
                         }
-                    )
-                    Spacer(Modifier.width(5.dp))
-                    if (isStups) {
-                        Text("(+${task.stups})")
+                        append("${typesList[task.type] ?: "Не выбрано"}")
+                        if (task.stups > 0) {
+                            append(" (+${task.stups})")
+                        }
                     }
-                }
+                )
+
                 Text(task.text)
             }
         }
@@ -2190,7 +2200,13 @@ private fun backAB(
     component: LessonReportComponent
 ) {
     IconButton(
-        onClick = { component.onOutput(LessonReportComponent.Output.Back) }
+        onClick = {
+            if(component.state.value.isUpdateNeeded) {
+                component.saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+            } else {
+                component.onOutput(LessonReportComponent.Output.Back)
+            }
+        }
     ) {
         Icon(
             Icons.Rounded.ArrowBackIosNew, null

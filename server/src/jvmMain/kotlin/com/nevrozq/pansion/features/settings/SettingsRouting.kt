@@ -9,7 +9,7 @@ import io.ktor.server.routing.routing
 fun Application.configureSettingsRouting() {
     routing {
         val settingsController = SettingsController()
-        post(RequestPaths.Tokens.logout) {
+        post(RequestPaths.Auth.Logout) {
 //            val registerController = RegisterController(call)
             settingsController.logout(call)
         }

@@ -108,27 +108,34 @@ fun LazyItemScope.ScheduleColumnForForms(
         }
         AnimatedVisibility(
             visibleState = headerState,
-            enter = fadeIn() + scaleIn()
+            enter = fadeIn() + scaleIn(),
+            modifier = Modifier.zIndex(1000f)
         ) {
             Box(
-                Modifier.zIndex(1f).height(headerP)
-                    .offset(y = with(density) { scrollState.value.toDp() })
+                Modifier.zIndex(1000f).height(headerP)
+                    .offset(y = with(density) { scrollState.value.toDp() }).zIndex(1000f)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                        .align(Alignment.Center),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+//                Column(
+//                    modifier = Modifier.fillMaxSize()
+//                        .align(Alignment.Center),
+//                    verticalArrangement = Arrangement.Center,
+//                    horizontalAlignment = Alignment.CenterHorizontally
+//                ) {
+                Box(Modifier.fillMaxSize()) {
                     Text(
                         "${form.num}${if (form.shortTitle.length < 2) "-" else " "}${form.shortTitle}",
-                        modifier = Modifier,
+                        modifier = Modifier.align(Alignment.Center),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp,
                         lineHeight = 15.sp
                     )
+                    Text(
+                        text = "${form.logins.size}",
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 5.dp, bottom = 2.dp)
+                    )
                 }
+//                }
             }
         }
         Box(Modifier.padding(top = headerP)) {

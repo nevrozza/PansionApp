@@ -1,8 +1,19 @@
+import auth.RFetchAllDevicesResponse
+import auth.RTerminateDeviceReceive
+import ktor.KtorSettingsRemoteDataSource
 import settings.SettingsDataSource
 
 class SettingsRepositoryImpl(
-    private val cacheDataSource: SettingsDataSource
+    private val cacheDataSource: SettingsDataSource,
+    private val remoteDataSource: KtorSettingsRemoteDataSource,
 ): SettingsRepository {
+    override suspend fun fetchDevices(): RFetchAllDevicesResponse {
+        return remoteDataSource.fetchDevices()
+    }
+
+    override suspend fun terminateDevice(r: RTerminateDeviceReceive) {
+        remoteDataSource.terminateDevice(r)
+    }
 
     override fun saveTint(tint: String) {
         cacheDataSource.saveTint(tint)

@@ -123,7 +123,8 @@ class ScheduleExecutor(
                             start = intent.s.first,
                             end = intent.s.second
                         ),
-                        cabinet = intent.cabinet
+                        cabinet = intent.cabinet,
+                        teacherLoginBefore = newItems[intent.index].teacherLoginBefore
                     )
                     scope.launch {
                         dispatch(
@@ -176,6 +177,7 @@ class ScheduleExecutor(
             Intent.SaveSchedule -> saveItems()
             is Intent.IsSavedAnimation -> dispatch(Message.IsSavedAnimation(intent.isSavedAnimation))
             Intent.ChangeIsTeacherView -> dispatch(Message.ChangeIsTeacherView)
+            is Intent.eiChangeLogin -> dispatch(Message.eiLoginChanged(intent.login))
         }
     }
 
@@ -295,7 +297,8 @@ class ScheduleExecutor(
             teacherLogin = state().ciLogin!!,
             groupId = state().ciId!!,
             t = state().ciTiming!!,
-            cabinet = state().ciCabinet
+            cabinet = state().ciCabinet,
+            teacherLoginBefore = state().ciLogin!!
         )
         scope.launch(CDispatcher) {
             val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second

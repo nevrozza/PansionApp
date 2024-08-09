@@ -20,6 +20,7 @@ class SettingsAuthDataSource(
         settings[roleKey] = r.role
         settings[moderationKey] = r.moderation
         settings[avatarKey] = r.avatarId
+        settings[isParentKey] = r.isParent
     }
 
     fun logout() {
@@ -62,7 +63,7 @@ class SettingsAuthDataSource(
         return settings[surnameKey, ""]
     }
 
-    fun saveUser(token: String, login: String, name: String, surname: String, praname: String?, role: String, moderation: String, avatarId: Int) {
+    fun saveUser(token: String, login: String, name: String, surname: String, praname: String?, role: String, moderation: String, avatarId: Int, isParent: Boolean) {
         settings[loginKey] = login
         settings[tokenKey] = token
         settings[nameKey] = name
@@ -71,6 +72,7 @@ class SettingsAuthDataSource(
         settings[roleKey] = role
         settings[moderationKey] = moderation
         settings[avatarKey] = avatarId
+        settings[isParentKey] = isParent
     }
 
     fun fetchPraname(): String {
@@ -84,6 +86,9 @@ class SettingsAuthDataSource(
     fun fetchModeration(): String {
         return settings[moderationKey, "0"]
     }
+    fun fetchIsParent(): Boolean {
+        return settings[isParentKey, false]
+    }
 
 
     companion object {
@@ -95,5 +100,6 @@ class SettingsAuthDataSource(
         const val roleKey = "roleKey"
         const val moderationKey = "moderationKey"
         const val avatarKey = "avatarKey"
+        const val isParentKey = "isParentKey"
     }
 }

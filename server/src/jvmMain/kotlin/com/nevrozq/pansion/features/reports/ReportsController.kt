@@ -24,7 +24,10 @@ import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.isTeacher
 import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.toStr
+import homework.ClientReportHomeworkItem
 import homework.CreateReportHomeworkItem
+import homework.RFetchGroupHomeTasksReceive
+import homework.RFetchGroupHomeTasksResponse
 import homework.RFetchReportHomeTasksReceive
 import homework.RFetchReportHomeTasksResponse
 import homework.RSaveReportHomeTasksReceive
@@ -72,6 +75,7 @@ import report.UserMark
 import report.UserMarkPlus
 import server.getCurrentDate
 import server.getDate
+import server.getLocalDate
 import server.getSixTime
 import server.toMinutes
 
@@ -333,7 +337,7 @@ class ReportsController() {
                     val stups = Stups.fetchForUserSubject(
                         login = s.login,
                         subjectId = r.subjectId
-                    ).sortedBy { it.deployTime.toMinutes() }.map {
+                    ).sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()})).map {
                         UserMarkPlus(
                             mark = UserMark(
                                 id = it.id,
@@ -389,7 +393,7 @@ class ReportsController() {
                     login = r.login,
                     subjectId = r.subjectId,
                     quartersNum = if (isQuarter) "4" else "34"
-                ).sortedBy { it.deployTime.toMinutes() }.map {
+                ).sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()})).map {
                     UserMark(
                         id = it.id,
                         content = it.content,
@@ -427,7 +431,7 @@ class ReportsController() {
                     login = r.login,
                     limit = 7
                 ) + Stups.fetchRecentForUser(r.login, 7))
-                val grades = preGrades.sortedBy { it.deployTime.toMinutes() }.map { p ->
+                val grades = preGrades.sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()})).map { p ->
                     Grade(
                         content = p.content,
                         reason = p.reason,
@@ -520,7 +524,7 @@ class ReportsController() {
                     login = r.login,
                     quartersNum = r.quartersNum,
                     isQuarters = r.isQuarters
-                ).sortedBy { it.deployTime.toMinutes() }
+                ).sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()}))
                 val stups = Stups.fetchForUserQuarters(
                     login = r.login,
                     quartersNum = r.quartersNum,
@@ -598,7 +602,7 @@ class ReportsController() {
         if (call.isTeacher || call.isModer) {
             try {
                 val students = StudentLines.fetchStudentLinesOfReport(r.reportId)
-                val marks = Marks.fetchForReport(r.reportId).sortedBy { it.deployTime.toMinutes() }
+                val marks = Marks.fetchForReport(r.reportId).sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()}))
                 val stups = Stups.fetchForReport(r.reportId).sortedBy { it.deployTime.toMinutes() }
                 call.respond(
                     RFetchReportStudentsResponse(
@@ -672,6 +676,42 @@ class ReportsController() {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Can't fetch report home tasks: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+    suspend fun fetchGroupHomeTasks(call: ApplicationCall) {
+        if(call.isMember) {
+            val r = call.receive<RFetchGroupHomeTasksReceive>()
+            try {
+                val tasks = HomeTasks.getAllHomeTasksByGroupId(groupId = r.groupId)
+
+                call.respond(
+                    RFetchGroupHomeTasksResponse(
+                        tasks = tasks.map {
+                            ClientReportHomeworkItem(
+                                id = it.id,
+                                type = it.type,
+                                text = it.text,
+                                stups = it.stups,
+                                fileIds = it.filesId,
+                                studentLogins = it.studentLogins,
+                                subjectId = it.subjectId,
+                                groupId = it.groupId,
+                                date = it.date,
+                                time = it.time
+                            )
+                        }
+                    )
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch group home tasks: ${e.localizedMessage}"
                 )
             }
         } else {

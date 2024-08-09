@@ -19,6 +19,7 @@ class HomeTasksComponent(
     login: String,
     avatarId: Int,
     name: String,
+    val updateHTCount: (Int) -> Unit,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
@@ -44,7 +45,8 @@ class HomeTasksComponent(
                 name = name,
                 journalRepository = journalRepository,
                 nInitInterface = nInitInterface,
-                nInterface = nInterface
+                nInterface = nInterface,
+                updateHTCount = { updateHTCount(it) }
             ).create()
         }
 

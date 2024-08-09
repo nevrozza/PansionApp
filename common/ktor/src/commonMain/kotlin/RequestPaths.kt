@@ -1,10 +1,6 @@
 object RequestPaths {
     const val ip = "192.168.0.107:8081"
 
-    object Tokens {
-        const val logout = "server/profile/logout"
-    }
-
     object Achievements {
         const val Create = "server/achievements/create"
         const val FetchAll = "server/achievements/fetchAll"
@@ -40,6 +36,7 @@ object RequestPaths {
     object HomeTasks {
         const val SaveReportHomeTasks = "server/reports/saveHomeTasks"
         const val FetchReportHomeTasks = "server/reports/fetchHomeTasks"
+        const val FetchGroupHomeTasks = "server/groups/fetchHomeTasks"
 
         const val FetchHomeTasksInit = "server/homeTasks/Init"
         const val FetchHomeTasks = "server/homeTasks/Fetch"
@@ -71,6 +68,10 @@ object RequestPaths {
         const val ChangeAvatarId = "server/changeAvatarId"
 
         const val FetchAboutMe = "server/fetchAboutMe"
+
+        const val Logout = "server/profile/logout"
+        const val FetchAllDevices = "server/devices/fetchAll"
+        const val TerminateDevice = "server/devices/terminate"
     }
 
     object Lessons {

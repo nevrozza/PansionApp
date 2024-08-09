@@ -19,3 +19,14 @@ data class RFetchReportHomeTasksReceive(
 data class RFetchReportHomeTasksResponse(
     val tasks: List<CreateReportHomeworkItem>
 )
+
+
+@Serializable
+data class RFetchGroupHomeTasksReceive(
+    val groupId: Int
+)
+
+@Serializable
+data class RFetchGroupHomeTasksResponse(
+    val tasks: List<ClientReportHomeworkItem>
+)

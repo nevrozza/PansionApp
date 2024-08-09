@@ -7,6 +7,7 @@ import homework.ClientHomeworkItem
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.not
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -216,6 +217,26 @@ object HomeTasks : Table() {
                     type = it[type],
                     subjectId = it[subjectId],
                     groupId = it[groupId],
+                    reportId = it[HomeTasks.reportId],
+                    studentLogins = it[HomeTasks.studentLogins].toList(),
+                    teacherLogin = it[teacherLogin],
+                    stups = it[stups],
+                    text = it[text],
+                    filesId = it[HomeTasks.filesId].toList()?.map { it.toInt() }
+                )
+            }.sortedBy { it.id }
+        }
+    }
+    fun getAllHomeTasksByGroupId(groupId: Int): List<HomeTasksDTO> {
+        return transaction {
+            HomeTasks.select { (HomeTasks.groupId eq groupId) }.map {
+                HomeTasksDTO(
+                    id = it[HomeTasks.id],
+                    date = it[date],
+                    time = it[time],
+                    type = it[type],
+                    subjectId = it[subjectId],
+                    groupId = it[HomeTasks.groupId],
                     reportId = it[HomeTasks.reportId],
                     studentLogins = it[HomeTasks.studentLogins].toList(),
                     teacherLogin = it[teacherLogin],

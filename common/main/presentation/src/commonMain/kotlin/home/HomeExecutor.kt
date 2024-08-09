@@ -50,13 +50,15 @@ class HomeExecutor(
                 }
             )
 
-            is Intent.UpdateHomeWorkEmoji -> dispatch(
-                Message.UpdateHomeWorkEmoji(
-                    emoji = getEmoji(
-                        count = intent.count
+            is Intent.UpdateHomeWorkEmoji -> {
+                dispatch(
+                    Message.UpdateHomeWorkEmoji(
+                        emoji = getEmoji(
+                            count = intent.count
+                        )
                     )
                 )
-            )
+            }
 
             is Intent.CheckNotification -> scope.launch(CDispatcher) {
                 try {

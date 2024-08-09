@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -75,8 +76,10 @@ import components.CLazyColumn
 import components.CustomTextButton
 import components.MarkContent
 import components.StupsButtons
+import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
+import homeTasksDialog.HomeTasksDialogStore
 import kotlinx.coroutines.CoroutineScope
 import report.UserMarkPlus
 import server.fetchReason
@@ -113,9 +116,7 @@ fun AllGroupMarksContent(
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     BoxWithConstraints {
-
         val isFullView by mutableStateOf(this.maxWidth > 600.dp)
-        println(isFullView)
         Scaffold(
             Modifier.fillMaxSize(),
 //                .nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -188,7 +189,21 @@ fun AllGroupMarksContent(
 
                         }
                     },
-                    isHaze = true
+                    isHaze = true,
+                    actionRow = {
+                        IconButton(
+                            onClick = {
+                                component.homeTasksDialogComponent.onEvent(
+                                    HomeTasksDialogStore.Intent.Init)
+                                component.homeTasksDialogComponent.dialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.History,
+                                null
+                            )
+                        }
+                    }
                 )
                 //LessonReportTopBar(component, isFullView) //, scrollBehavior
             }
@@ -309,6 +324,11 @@ fun AllGroupMarksContent(
                 }
             }
         }
+
+
+        HomeTasksDialogContent(
+            component.homeTasksDialogComponent
+        )
     }
 
 
@@ -439,7 +459,7 @@ private fun HalfYearRow(
     allMarks: List<UserMarkPlus>,
     firstHalfModules: List<Int>
 ) {
-    val marks = allMarks.filter { (num == 1 && it.mark.module.toInt() in firstHalfModules) }
+    val marks = allMarks.filter { (num == 2 && it.mark.module.toInt() !in firstHalfModules) || (num == 1 && it.mark.module.toInt() in firstHalfModules) }
     val value = (marks.sumOf { it.mark.content.toInt() }) / (marks.size).toFloat()
     Row {
         Row(

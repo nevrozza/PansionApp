@@ -35,6 +35,13 @@ object Calendar : Table() {
             Calendar.select { num eq module }.firstOrNull()?.get(halfNum) ?: 1
         }
     }
+    fun getModuleStartEnd(module: Int): Pair<String, String?> {
+        return transaction {
+            val first = Calendar.select { num eq module }.first()[start]
+            val second = Calendar.select { num eq module+1 }.firstOrNull()?.get(start)
+            Pair(first, second)
+        }
+    }
 
     fun getAllModulesOfHalfAsString(half: Int): String {
         val modules = getAllModules().filter { it.halfNum == half }

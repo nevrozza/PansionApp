@@ -258,6 +258,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 is Child.SecondView -> if (isExpanded) fade() else iosSlide()
                                 is Child.AdminAchievements -> if (isExpanded) fade() else iosSlide()
                                 is Child.HomeAchievements -> if (isExpanded) fade() else iosSlide()
+                                is Child.AdminParents -> if (isExpanded) fade() else iosSlide()
+
                             }
                         },
                         selector = { initialBackEvent, _, _ ->
@@ -519,6 +521,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = { HomeAchievementsContent(child.achievementsComponent) },
                                 firstScreen = { HomeContent(child.homeComponent) },
                                 secondScreen = { HomeAchievementsContent(child.achievementsComponent) }
+                            )
+
+                        is Child.AdminParents ->
+                            MultiPaneAdmin(
+                                isExpanded,
+                                adminComponent = child.adminComponent,
+                                currentRouting = AdminComponent.Output.NavigateToParents,
+                                secondScreen = { AdminParentsContent(child.parentsComponent) }
                             )
                     }
                 }
@@ -851,6 +861,8 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         Config.AdminGroups -> Admin
         Config.AdminSchedule -> Admin
         Config.AdminUsers -> Admin
+        Config.AdminAchievements -> Admin
+        Config.AdminParents -> Admin
 
         Config.AuthActivation -> Home
         Config.AuthLogin -> Home
@@ -871,6 +883,5 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         is Config.LessonReport -> Journal
         Config.MainMentoring -> Mentoring
         is Config.SecondView -> Mentoring
-        Config.AdminAchievements -> Admin
     }
 }

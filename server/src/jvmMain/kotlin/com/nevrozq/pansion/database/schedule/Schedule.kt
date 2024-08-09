@@ -14,6 +14,7 @@ object Schedule : Table() {
     private val id = Schedule.integer("id").autoIncrement().uniqueIndex()
     val date = Schedule.varchar("date", 10) //12.45.78
     private val teacherLogin = Schedule.varchar("teacherLogin", 30)
+    private val teacherLoginBefore = Schedule.varchar("teacherLoginBefore", 30)
     private val groupId = Schedule.integer("groupId")
     private val start = Schedule.varchar("start", 5)
     private val end = Schedule.varchar("end", 5)
@@ -29,6 +30,7 @@ object Schedule : Table() {
                     it[end] = dto.end
                     it[cabinet] = dto.cabinet
                     it[date] = dto.date
+                    it[teacherLoginBefore] = dto.teacherLoginBefore
                 }
             }
         } catch (e: Throwable) {
@@ -63,7 +65,8 @@ object Schedule : Table() {
                     groupId = it[groupId],
                     start = it[start],
                     end = it[end],
-                    cabinet = it[cabinet]
+                    cabinet = it[cabinet],
+                    teacherLoginBefore = it[teacherLoginBefore]
                 )
             }
         }
@@ -78,7 +81,8 @@ object Schedule : Table() {
                     groupId = it[groupId],
                     start = it[start],
                     end = it[end],
-                    cabinet = it[cabinet]
+                    cabinet = it[cabinet],
+                    teacherLoginBefore = it[teacherLoginBefore]
                 ).mapToItem()
             }
         }

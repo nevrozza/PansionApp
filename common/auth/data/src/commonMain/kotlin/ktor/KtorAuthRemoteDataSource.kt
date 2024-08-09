@@ -41,7 +41,7 @@ class KtorAuthRemoteDataSource(
             url {
 
                 header("Bearer-Authorization", token)
-                path(RequestPaths.Tokens.logout)
+                path(RequestPaths.Auth.Logout)
             }
         }.status.value.checkOnNoOk()
     }

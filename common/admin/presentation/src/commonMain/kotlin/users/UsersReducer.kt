@@ -20,9 +20,22 @@ object UsersReducer : Reducer<State, Message> {
             is Message.CIsModeratorChanged -> copy(cIsModerator = msg.isModerator)
             is Message.CIsMentorChanged -> copy(cIsMentor = msg.isMentor)
             is Message.CIsParentChanged -> copy(cIsParent = msg.isParent)
-            is Message.ClearUser -> copy(cLogin = "", cIsParent = false, cBirthday = "", cIsMentor = false, cIsModerator = false, cName = "", cPraname = "", cRole = "", cSurname = "")
+            is Message.ClearUser -> copy(
+                cLogin = "",
+                cParentLogins = null,
+                cIsParent = false,
+                cBirthday = "",
+                cIsMentor = false,
+                cIsModerator = false,
+                cName = "",
+                cPraname = "",
+                cRole = "",
+                cSurname = "",
+                cParentFirstFIO = "",
+                cParentSecondFIO = ""
+            )
 
-            is Message.UserCreated -> copy(cLogin = msg.login)
+            is Message.UserCreated -> copy(cLogin = msg.login, cParentLogins = msg.parents)
 
             is Message.ENameChanged -> copy(eName = msg.name)
             is Message.ESurnameChanged -> copy(eSurname = msg.surname)
@@ -44,6 +57,9 @@ object UsersReducer : Reducer<State, Message> {
                 eIsMentor = msg.isMentor,
                 eIsParent = msg.isParent
             )
+
+            is Message.CParentFirstFIOChanged -> copy(cParentFirstFIO = msg.fio)
+            is Message.CParentSecondFIOChanged -> copy(cParentSecondFIO = msg.fio)
         }
     }
 }

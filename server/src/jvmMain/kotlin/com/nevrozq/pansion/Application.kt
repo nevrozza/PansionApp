@@ -9,6 +9,7 @@ import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.homework.HomeTasks
 import com.nevrozq.pansion.database.homework.HomeTasksDone
+import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
@@ -94,7 +95,8 @@ fun main() {
             HomeTasksDone,
             PreAttendance,
             Achievements,
-            CheckedNotifications
+            CheckedNotifications,
+            Parents
         )
         updateRatings()
 //        Users.deleteAll()
