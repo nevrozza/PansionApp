@@ -20,25 +20,28 @@ kotlin {
     androidTarget()
     ios()
 
+
+    js(IR) {
+        browser()
+//        useCommonJs()
+        binaries.executable()
+    }
+    wasmJs {
+        browser()
+//        useCommonJs()
+        binaries.executable()
+    }
+
 //        js(IR) {
 //        browser()
 //        binaries.executable()
 //    }
 //RIP
-//    wasmJs {
-//        browser()
-////        useCommonJs()
-//        binaries.executable()
-//    }
+
     sourceSets {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
         }
-    }
-    js(IR) {
-        browser()
-//        useCommonJs()
-        binaries.executable()
     }
 
     //JVM

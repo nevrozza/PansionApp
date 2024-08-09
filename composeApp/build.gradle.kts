@@ -93,16 +93,16 @@ kotlin {
         binaries.executable()
     }
 //RIP
-//    wasmJs {
-//        moduleName = "composeApp"
-//        browser {
-//            commonWebpackConfig {
-//                outputFileName = "composeApp.js"
-//            }
-//        }
-//        useCommonJs()
-//        binaries.executable()
-//    }
+    wasmJs {
+        moduleName = "composeApp"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+        useCommonJs()
+        binaries.executable()
+    }
 
 //    wasmJs {
 //        moduleName = "composeApp"
