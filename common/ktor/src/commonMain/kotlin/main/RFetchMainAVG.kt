@@ -5,11 +5,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RFetchMainAVGReceive(
     val login: String,
-    val period: String
+    val period: String,
+    val isFirst: Boolean
 )
 
 @Serializable
 data class RFetchMainAVGResponse(
     val avg: Float,
-    val stups: Pair<Int, Int>
+    val stups: Pair<Int, Int>,
+    val achievementsStups: Map<Period, Pair<Int, Int>>?
 )
+
+@Serializable
+enum class Period {
+    WEEK, MODULE, HALF_YEAR, YEAR
+}

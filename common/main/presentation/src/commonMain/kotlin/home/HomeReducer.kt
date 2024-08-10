@@ -7,7 +7,8 @@ import home.HomeStore.Message
 object HomeReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
-            is Message.QuickTabUpdated -> copy(averageGradePoint = msg.avg, ladderOfSuccess = msg.stups)
+            is Message.QuickTabUpdated -> copy(averageGradePoint = msg.avg, ladderOfSuccess = msg.stups, achievements = msg.achievements
+                ?: achievements)
             is Message.TeacherGroupUpdated -> copy(teacherGroups = msg.teacherGroups)
             is Message.GradesUpdated -> copy(grades = msg.grades)
             is Message.ItemsUpdated -> copy(items = msg.items)

@@ -25,7 +25,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +40,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -111,7 +109,6 @@ import components.AppBar
 import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
-import components.DateButton
 import components.DatesLine
 import components.GetAvatar
 import components.LoadingAnimation
@@ -132,6 +129,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import main.Period
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
@@ -482,7 +480,8 @@ fun TeacherHomeContent(
                                         isEnabled = true,
                                         isActive = true,
                                         isEnded = item.status,
-                                        theme = item.theme
+                                        theme = item.theme,
+                                        module = item.module
                                     ) {
                                         component.journalComponent!!.onEvent(
                                             JournalStore.Intent.FetchReportData(
@@ -527,7 +526,7 @@ private fun RaspisanieTable(
             when (st) {
                 NetworkState.None -> {
                     if (items.isNullOrEmpty()) {
-                        Text("Здесь пока ничего нет")
+                        Text("Здесь пока ничего нет", modifier = Modifier.fillMaxWidth().padding(top = 10.dp), textAlign = TextAlign.Center)
                     } else {
                         items.sortedBy { it.start }
                             .forEachIndexed { id, it ->
@@ -701,7 +700,9 @@ fun StudentHomeContent(
                             }
                         }
 
-                    }
+                    },
+                    isTransparentHaze = isHaze,
+                    isHaze = isHaze
                 )
                 AnimatedVisibility(model.isDatesShown && !isMainView) {
                     DatesLine(
@@ -762,10 +763,10 @@ fun StudentHomeContent(
                                     )
                                     AnimatedContent(
                                         when (model.period) {
-                                            HomeStore.Period.WEEK -> "неделя"
-                                            HomeStore.Period.MODULE -> "модуль"
-                                            HomeStore.Period.HALF_YEAR -> "полугодие"
-                                            HomeStore.Period.YEAR -> "год"
+                                            Period.WEEK -> "неделя"
+                                            Period.MODULE -> "модуль"
+                                            Period.HALF_YEAR -> "полугодие"
+                                            Period.YEAR -> "год"
                                         },
                                         transitionSpec = {
                                             fadeIn().togetherWith(fadeOut())
@@ -797,19 +798,21 @@ fun StudentHomeContent(
                                                 ) {
 
                                                 }
+                                                val achievementsPairAdd =
+                                                    if (model.achievements[model.period] != null) Pair(
+                                                        model.achievements[model.period]!!.first,
+                                                        model.achievements[model.period]!!.second
+                                                    ) else Pair(0, 0)
+                                                val ladderPair =
+                                                    if (model.ladderOfSuccess[model.period] != null) Pair(
+                                                        (model.ladderOfSuccess[model.period]!!.first + achievementsPairAdd.first).toFloat(),
+                                                        model.ladderOfSuccess[model.period]!!.second + achievementsPairAdd.second
+                                                    ) else Pair(null, 0)
+
                                                 QuickTabItem(
                                                     "Ступени",
-                                                    value =
-                                                    if (model.ladderOfSuccess[model.period] != null) {
-                                                        model.ladderOfSuccess[model.period]!!.first.toFloat()
-                                                    } else {
-                                                        null
-                                                    },
-                                                    dsValue = if (model.ladderOfSuccess[model.period] != null) {
-                                                        model.ladderOfSuccess[model.period]!!.second
-                                                    } else {
-                                                        0
-                                                    },
+                                                    value = ladderPair.first,
+                                                    dsValue = ladderPair.second
                                                 ) {
                                                     component.onOutput(
                                                         HomeComponent.Output.NavigateToDetailedStups(
@@ -956,11 +959,11 @@ fun StudentHomeContent(
                             }
                         }
                     }
-                    if(model.notifications.isNotEmpty()) {
+                    if (model.notifications.isNotEmpty()) {
                         Spacer(Modifier.height(10.dp))
                     }
                 }
-                items(model.notifications, key = {it.key}) { not ->
+                items(model.notifications, key = { it.key }) { not ->
                     val notificationState = remember {
                         MutableTransitionState(false).apply {
                             // Start the animation immediately.
@@ -1196,7 +1199,7 @@ fun Lesson(
                         )
                     ) {
                         append(
-                            " ${fio.surname}${if(isSwapped) "*" else ""}"
+                            " ${fio.surname}${if (isSwapped) "*" else ""}"
                         )
                     }
                     withStyle(
@@ -1380,10 +1383,18 @@ fun RecentMarkContent(
     )
 
     val markColor = if (isNotStups)
-        (if(viewManager.colorMode.value == "3") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.inversePrimary).getMarkColor(mark, viewManager, .2f)
+        (if (viewManager.colorMode.value == "3") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.inversePrimary).getMarkColor(
+            mark,
+            viewManager,
+            .2f
+        )
     else MaterialTheme.colorScheme.surface
 
-    val textColor = if (isNotStups && viewManager.colorMode.value in listOf("3", "4")) markColor.blend(Color.White, amount = 1f)
+    val textColor = if (isNotStups && viewManager.colorMode.value in listOf(
+            "3",
+            "4"
+        )
+    ) markColor.blend(Color.White, amount = 1f)
     else MaterialTheme.colorScheme.onSurface
 
     Box(
@@ -1421,7 +1432,8 @@ fun RecentMarkContent(
             )
         }
         if (viewManager.colorMode.value in listOf("0", "1")) {
-            val colors = if(viewManager.colorMode.value == "1") markColorsColored else markColorsMono
+            val colors =
+                if (viewManager.colorMode.value == "1") markColorsColored else markColorsMono
             Box(
                 Modifier.padding(top = 10.dp, end = 10.dp).align(Alignment.TopEnd).size(5.dp).clip(
                     CircleShape

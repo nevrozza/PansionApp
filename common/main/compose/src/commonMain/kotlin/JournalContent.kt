@@ -338,7 +338,8 @@ private fun TrueJournalContent(
                                         isEnabled = true,
                                         isActive = true,
                                         isEnded = item.status,
-                                        theme = item.theme
+                                        theme = item.theme,
+                                        module = item.module
                                     ) {
                                         component.onEvent(JournalStore.Intent.FetchReportData(item))
                                     }
@@ -455,6 +456,7 @@ fun JournalItemCompose(
     isActive: Boolean,
     isEnded: Boolean,
     theme: String,
+    module: String,
     onClick: () -> Unit
 ) {
     val tState = rememberTooltipState(isPersistent = false)
@@ -500,7 +502,8 @@ fun JournalItemCompose(
                     isFullView = true,
                     isStartPadding = false,
                     onClick = null,
-                    isEnded = isEnded
+                    isEnded = isEnded,
+                    module = module.toIntOrNull() ?: 1
                 )
                 Icon(Icons.Rounded.ArrowForwardIos, null)
             }

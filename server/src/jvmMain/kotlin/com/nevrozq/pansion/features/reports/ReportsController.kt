@@ -1,6 +1,7 @@
 package com.nevrozq.pansion.features.reports
 
 import ReportData
+import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.forms.Forms
@@ -12,6 +13,7 @@ import com.nevrozq.pansion.database.ratingEntities.ForAvg
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingEntities.mapToServerRatingUnit
+import com.nevrozq.pansion.database.ratingTable.getModuleDays
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
@@ -35,6 +37,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import main.Period
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -77,6 +80,7 @@ import server.getCurrentDate
 import server.getDate
 import server.getLocalDate
 import server.getSixTime
+import server.getWeekDays
 import server.toMinutes
 
 class ReportsController() {
@@ -109,29 +113,31 @@ class ReportsController() {
                 println("DATE: ${l.date}")
                 println("TIME: ${l.time}")
 
-                call.respond(ReportData(
-                    header = ReportHeader(
-                        reportId = l.id,
-                        subjectName = l.subjectName,
-                        subjectId = l.subjectId,
-                        groupName = l.groupName,
-                        groupId = l.groupId,
-                        teacherName = l.teacherName,
-                        teacherLogin = l.teacherLogin,
-                        date = l.date,
-                        module = l.module,
-                        time = l.time,
-                        status = l.status,
-                        theme = l.topic
-                    ),
+                call.respond(
+                    ReportData(
+                        header = ReportHeader(
+                            reportId = l.id,
+                            subjectName = l.subjectName,
+                            subjectId = l.subjectId,
+                            groupName = l.groupName,
+                            groupId = l.groupId,
+                            teacherName = l.teacherName,
+                            teacherLogin = l.teacherLogin,
+                            date = l.date,
+                            module = l.module,
+                            time = l.time,
+                            status = l.status,
+                            theme = l.topic
+                        ),
 //                    topic = l.topic,
-                    description = l.description,
-                    editTime = l.editTime,
-                    ids = l.ids,
-                    isMentorWas = l.isMentorWas,
-                    isEditable = call.login == l.teacherLogin || call.isModer,
-                    customColumns = l.customColumns
-                ))
+                        description = l.description,
+                        editTime = l.editTime,
+                        ids = l.ids,
+                        isMentorWas = l.isMentorWas,
+                        isEditable = call.login == l.teacherLogin || call.isModer,
+                        customColumns = l.customColumns
+                    )
+                )
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
             } catch (e: Throwable) {
@@ -150,7 +156,12 @@ class ReportsController() {
         if (call.isTeacher || call.isMember) {
             try {
                 val reportHeader = ReportHeaders.fetchHeader(r.reportId)
-                val columns = reportHeader.customColumns.ifEmpty { HomeTasks.fetchPreviousHomeTasks(reportId = reportHeader.id, groupId = reportHeader.groupId) }
+                val columns = reportHeader.customColumns.ifEmpty {
+                    HomeTasks.fetchPreviousHomeTasks(
+                        reportId = reportHeader.id,
+                        groupId = reportHeader.groupId
+                    )
+                }
 
                 val response = RFetchReportDataResponse(
                     topic = reportHeader.topic,
@@ -200,14 +211,89 @@ class ReportsController() {
         val r = call.receive<RFetchMainAVGReceive>()
         if (call.isMember) {
             try {
-                val module =  (getModuleByDate(getDate())?.num ?: 1).toString()
+                val module = (getModuleByDate(getDate())?.num ?: 1).toString()
                 val avg: ForAvg
                 val notDsStups: Int
                 val allStups: Int
+                var achievementsStups: MutableMap<Period, Pair<Int, Int>>? = null
+
+
+                if(r.isFirst) {
+                    achievementsStups = mutableMapOf(
+                        Period.WEEK to Pair(0, 0),
+                        Period.MODULE to Pair(0, 0),
+                        Period.HALF_YEAR to Pair(0, 0),
+                        Period.YEAR to Pair(0, 0)
+                    )
+                    val achievements = Achievements.fetchAllByLogin(login = r.login)
+                    val weekDays = getWeekDays()
+                    achievements.forEach { a ->
+                        val date = (if (((a.showDate)?.length ?: 0) > 5) a.showDate
+                            ?: a.date else a.date)
+                        val epoch = getLocalDate(date).toEpochDays()
+                        val pair = getModuleDays(module)
+                        val start = getLocalDate(pair.first)
+                        val end = if (pair.second != null) getLocalDate(pair.second!!) else null
+
+                        val isMain = a.subjectId !in listOf(-4, -3, -2)
+
+
+                        val i = achievementsStups[Period.YEAR]!!
+                        achievementsStups[Period.YEAR] = i.copy(
+                            first = if (isMain) i.first + a.stups else i.first,
+                            second = if (isMain) i.second else i.second + a.stups
+                        )
+
+                        if (date in weekDays) { //WEEK
+                            val i = achievementsStups[Period.WEEK]!!
+                            achievementsStups[Period.WEEK] = i.copy(
+                                first = if (isMain) i.first + a.stups else i.first,
+                                second = if (isMain) i.second else i.second + a.stups
+                            )
+
+                        }
+                        if (epoch >= start.toEpochDays() && (end == null || epoch < (end?.toEpochDays()
+                                ?: 0))
+                        ) {
+                            val i = achievementsStups[Period.MODULE]!!
+                            achievementsStups[Period.MODULE] = i.copy(
+                                first = if (isMain) i.first + a.stups else i.first,
+                                second = if (isMain) i.second else i.second + a.stups
+                            )
+                        }
+
+                        val half = Calendar.getHalfOfModule(module.toInt())
+
+                        val modules = Calendar.getAllModulesOfHalf(half).sorted()
+                        if(modules.isNotEmpty()) {
+                            val firstModuleStartDate =
+                                Calendar.getModuleStart(modules.first()) ?: "01.01.2000"
+                            val lastModuleStartDate = Calendar.getModuleStart(modules.last() + 1)
+
+                            if (epoch >= getLocalDate(firstModuleStartDate).toEpochDays() && (lastModuleStartDate == null || epoch < (getLocalDate(
+                                    lastModuleStartDate
+                                ).toEpochDays()
+                                    ?: 0))
+                            ) {
+                                val i = achievementsStups[Period.HALF_YEAR]!!
+                                achievementsStups[Period.HALF_YEAR] = i.copy(
+                                    first = if (isMain) i.first + a.stups else i.first,
+                                    second = if (isMain) i.second else i.second + a.stups
+                                )
+                            }
+                        } else {
+                            achievementsStups[Period.HALF_YEAR] = achievementsStups[Period.YEAR] ?: Pair(0, 0)
+                        }
+
+
+                    }
+                }
+
                 when (r.period) {
                     "0" -> { //week
                         avg = Marks.fetchWeekAVG(r.login)
                         val stups = Stups.fetchForAWeek(r.login)
+
                         notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
                             .map { it.content.toInt() }.sum()
                         allStups = stups.map { it.content.toInt() }.sum()
@@ -225,6 +311,7 @@ class ReportsController() {
                             .map { it.content.toInt() }.sum()
                         allStups = stups.map { it.content.toInt() }.sum()
                     }
+
                     "2" -> { //halfyear
                         avg = Marks.fetchHalfYearAVG(r.login, module)
                         val c = Calendar.getHalfOfModule(module.toInt())
@@ -237,6 +324,7 @@ class ReportsController() {
                             .map { it.content.toInt() }.sum()
                         allStups = stups.map { it.content.toInt() }.sum()
                     }
+
                     "3" -> {
                         avg = Marks.fetchYearAVG(r.login)
                         val stups = Stups.fetchForUser(
@@ -254,7 +342,8 @@ class ReportsController() {
                 call.respond(
                     RFetchMainAVGResponse(
                         avg = avg.sum / avg.count.toFloat(),
-                        stups = Pair(notDsStups, (allStups - notDsStups))
+                        stups = Pair(notDsStups, (allStups - notDsStups)),
+                        achievementsStups = achievementsStups
                     )
                 )
 
@@ -337,7 +426,10 @@ class ReportsController() {
                     val stups = Stups.fetchForUserSubject(
                         login = s.login,
                         subjectId = r.subjectId
-                    ).sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()})).map {
+                    ).sortedWith(
+                        compareBy({ getLocalDate(it.deployDate).toEpochDays() },
+                            { it.deployTime.toMinutes() })
+                    ).map {
                         UserMarkPlus(
                             mark = UserMark(
                                 id = it.id,
@@ -393,7 +485,10 @@ class ReportsController() {
                     login = r.login,
                     subjectId = r.subjectId,
                     quartersNum = if (isQuarter) "4" else "34"
-                ).sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()})).map {
+                ).sortedWith(
+                    compareBy({ getLocalDate(it.deployDate).toEpochDays() },
+                        { it.deployTime.toMinutes() })
+                ).map {
                     UserMark(
                         id = it.id,
                         content = it.content,
@@ -431,7 +526,10 @@ class ReportsController() {
                     login = r.login,
                     limit = 7
                 ) + Stups.fetchRecentForUser(r.login, 7))
-                val grades = preGrades.sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()})).map { p ->
+                val grades = preGrades.sortedWith(
+                    compareBy({ getLocalDate(it.deployDate).toEpochDays() },
+                        { it.deployTime.toMinutes() })
+                ).map { p ->
                     Grade(
                         content = p.content,
                         reason = p.reason,
@@ -524,7 +622,10 @@ class ReportsController() {
                     login = r.login,
                     quartersNum = r.quartersNum,
                     isQuarters = r.isQuarters
-                ).sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()}))
+                ).sortedWith(
+                    compareBy({ getLocalDate(it.deployDate).toEpochDays() },
+                        { it.deployTime.toMinutes() })
+                )
                 val stups = Stups.fetchForUserQuarters(
                     login = r.login,
                     quartersNum = r.quartersNum,
@@ -602,7 +703,10 @@ class ReportsController() {
         if (call.isTeacher || call.isModer) {
             try {
                 val students = StudentLines.fetchStudentLinesOfReport(r.reportId)
-                val marks = Marks.fetchForReport(r.reportId).sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()}))
+                val marks = Marks.fetchForReport(r.reportId).sortedWith(
+                    compareBy({ getLocalDate(it.deployDate).toEpochDays() },
+                        { it.deployTime.toMinutes() })
+                )
                 val stups = Stups.fetchForReport(r.reportId).sortedBy { it.deployTime.toMinutes() }
                 call.respond(
                     RFetchReportStudentsResponse(
@@ -616,8 +720,12 @@ class ReportsController() {
                                     Groups.fetchSubjectIdOfGroup(it.groupId),
                                     module = r.module.toString()
                                 )
-                            var preAttendance = PreAttendance.fetchPreAttendanceByDateAndLogin(date = r.date, login = it.login)
-                            preAttendance = if(preAttendance != null && preAttendance.start.toMinutes() <= r.minutes && preAttendance.end.toMinutes() > r.minutes) preAttendance else null
+                            var preAttendance = PreAttendance.fetchPreAttendanceByDateAndLogin(
+                                date = r.date,
+                                login = it.login
+                            )
+                            preAttendance =
+                                if (preAttendance != null && preAttendance.start.toMinutes() <= r.minutes && preAttendance.end.toMinutes() > r.minutes) preAttendance else null
 //                            println("PAS: ${preAttendance}")
 //                            println("PAS2: ${if(it.attended != null) Attended(attendedType = it.attended, null) else if(preAttendance != null) Attended(attendedType = if(preAttendance.isGood) "2" else "1", reason = preAttendance.reason ) else null}")
                             AddStudentLine(
@@ -625,7 +733,13 @@ class ReportsController() {
                                     login = it.login,
                                     lateTime = it.lateTime,
                                     isLiked = it.isLiked,
-                                    attended = if(it.attended != null) Attended(attendedType = it.attended, reason = it.aReason) else if(preAttendance != null) Attended(attendedType = if(preAttendance.isGood) "2" else "1", reason = preAttendance.reason ) else null
+                                    attended = if (it.attended != null) Attended(
+                                        attendedType = it.attended,
+                                        reason = it.aReason
+                                    ) else if (preAttendance != null) Attended(
+                                        attendedType = if (preAttendance.isGood) "2" else "1",
+                                        reason = preAttendance.reason
+                                    ) else null
                                 ),
                                 shortFio = shortFio,
                                 prevSum = forAvg.sum - marks.sumOf { it.content.toInt() },
@@ -650,7 +764,7 @@ class ReportsController() {
     }
 
     suspend fun fetchReportHomeTasks(call: ApplicationCall) {
-        if(call.isMember) {
+        if (call.isMember) {
             val r = call.receive<RFetchReportHomeTasksReceive>()
             try {
                 val tasks = HomeTasks.getAllHomeTasksByReportId(r.reportId)
@@ -682,8 +796,9 @@ class ReportsController() {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
+
     suspend fun fetchGroupHomeTasks(call: ApplicationCall) {
-        if(call.isMember) {
+        if (call.isMember) {
             val r = call.receive<RFetchGroupHomeTasksReceive>()
             try {
                 val tasks = HomeTasks.getAllHomeTasksByGroupId(groupId = r.groupId)
@@ -743,7 +858,7 @@ class ReportsController() {
                     )
                 }
                 r.tasks.filter { !it.isNew }.forEach { t ->
-                    if(t.text.isNotBlank()) {
+                    if (t.text.isNotBlank()) {
                         transaction {
                             HomeTasks.update({ HomeTasks.id eq t.id }) {
                                 it[text] = t.text

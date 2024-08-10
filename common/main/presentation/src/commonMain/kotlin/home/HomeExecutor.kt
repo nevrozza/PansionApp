@@ -16,6 +16,7 @@ import journal.JournalComponent
 import journal.JournalStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import main.Period
 import main.RDeleteMainNotificationsReceive
 import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainNotificationsReceive
@@ -43,10 +44,10 @@ class HomeExecutor(
             is Intent.UpdateAvatarId -> dispatch(Message.AvatarIdUpdated(intent.avatarId))
             Intent.ChangePeriod -> changePeriod(
                 period = when (state().period) {
-                    HomeStore.Period.WEEK -> HomeStore.Period.MODULE
-                    HomeStore.Period.MODULE -> HomeStore.Period.HALF_YEAR
-                    HomeStore.Period.HALF_YEAR -> HomeStore.Period.YEAR
-                    HomeStore.Period.YEAR -> HomeStore.Period.WEEK
+                    Period.WEEK -> Period.MODULE
+                    Period.MODULE -> Period.HALF_YEAR
+                    Period.HALF_YEAR -> Period.YEAR
+                    Period.YEAR -> Period.WEEK
                 }
             )
 
@@ -82,14 +83,14 @@ class HomeExecutor(
         }
     }
 
-    private fun changePeriod(period: HomeStore.Period) {
+    private fun changePeriod(period: Period) {
         dispatch(Message.PeriodChanged(period))
-        fetchQuickTab(period)
+        fetchQuickTab(period, false)
     }
 
     private fun init() {
         scope.launch(CDispatcher) {
-            fetchQuickTab(period = state().period)
+            fetchQuickTab(period = state().period, isFirst = true)
             fetchGrades()
             fetchTeacherGroups()
             fetchSchedule(
@@ -213,12 +214,12 @@ class HomeExecutor(
         }
     }
 
-    private fun fetchQuickTab(period: HomeStore.Period) {
+    private fun fetchQuickTab(period: Period, isFirst: Boolean) {
         scope.launch(CDispatcher) {
             quickTabNInterface.nStartLoading()
             try {
                 val avg =
-                    mainRepository.fetchMainAvg(state().login, reason = period.ordinal.toString())
+                    mainRepository.fetchMainAvg(state().login, reason = period.ordinal.toString(), isFirst = isFirst)
                 val avgMap = state().averageGradePoint.toMutableMap()
                 val stupsMap = state().ladderOfSuccess.toMutableMap()
                 avgMap[period] = avg.avg
@@ -227,7 +228,8 @@ class HomeExecutor(
                     dispatch(
                         Message.QuickTabUpdated(
                             avg = avgMap.toMap(HashMap()),
-                            stups = stupsMap.toMap(HashMap())
+                            stups = stupsMap.toMap(HashMap()),
+                            achievements = avg.achievementsStups
                         )
                     )
 
@@ -235,7 +237,7 @@ class HomeExecutor(
                 }
             } catch (_: Throwable) {
                 quickTabNInterface.nError("Ошибка") {
-                    fetchQuickTab(period)
+                    fetchQuickTab(period, isFirst)
                 }
             }
         }

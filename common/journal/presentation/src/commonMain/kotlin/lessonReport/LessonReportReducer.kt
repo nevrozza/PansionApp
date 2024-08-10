@@ -73,7 +73,8 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
                 students = msg.students,
                 likedList = msg.likedList,
                 dislikedList = msg.dislikedList,
-                isUpdateNeeded = false
+                isUpdateNeeded = false,
+                columnNames = if(columnNames.none { it.type == "!cl5" }) (columnNames + ReportColumn(title = "clРабота на уроке", type = "!cl5")).sortedBy { customOrder[it.type] } else columnNames
             )
 
             is LessonReportStore.Message.DetailedMarksFetched -> copy(detailedMarks = msg.marks)

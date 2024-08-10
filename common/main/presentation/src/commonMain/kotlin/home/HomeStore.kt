@@ -8,6 +8,7 @@ import home.HomeStore.Label
 import home.HomeStore.State
 import journal.init.TeacherGroup
 import main.ClientMainNotification
+import main.Period
 import report.Grade
 import report.ReportHeader
 import schedule.PersonScheduleItem
@@ -33,6 +34,12 @@ interface HomeStore : Store<Intent, State, Label> {
             Period.YEAR to null
         ),
         val ladderOfSuccess: HashMap<Period, Pair<Int, Int>?> = hashMapOf(
+            Period.WEEK to null,
+            Period.MODULE to null,
+            Period.HALF_YEAR to null,
+            Period.YEAR to null
+        ),
+        val achievements: Map<Period, Pair<Int, Int>?> = mapOf(
             Period.WEEK to null,
             Period.MODULE to null,
             Period.HALF_YEAR to null,
@@ -78,7 +85,7 @@ interface HomeStore : Store<Intent, State, Label> {
 
         data class SomeHeadersUpdated(val someHeaders: List<ReportHeader>) : Message
         data class TeacherGroupUpdated(val teacherGroups: List<TeacherGroup>): Message
-        data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Pair<Int, Int>?>) : Message
+        data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Pair<Int, Int>?>, val achievements: Map<Period, Pair<Int, Int>?>?) : Message
 
         data class UpdateHomeWorkEmoji(val emoji: String?) : Message
 
@@ -96,10 +103,6 @@ interface HomeStore : Store<Intent, State, Label> {
 
     sealed interface Label
 
-
-    enum class Period {
-        WEEK, MODULE, HALF_YEAR, YEAR
-    }
 
 
 }

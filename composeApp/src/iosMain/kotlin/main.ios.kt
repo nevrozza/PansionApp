@@ -1,4 +1,3 @@
-import android.service.controls.DeviceTypes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.ui.window.ComposeUIViewController
@@ -8,6 +7,7 @@ import com.arkivanov.essenty.lifecycle.ApplicationLifecycle
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import platform.UIKit.UIViewController
 import root.RootComponentImpl
+import server.DeviceTypex
 
 @OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class,
     ExperimentalFoundationApi::class

@@ -2156,7 +2156,8 @@ fun LessonReportTopBar(
                     date = model.date,
                     isFullView = isFullView,
                     isStartPadding = true,
-                    isEnded = model.status //false
+                    isEnded = model.status, //false,
+                    module = model.module
                 ) {
                     component.onEvent(LessonReportStore.Intent.ChangeInfoShowing)
                 }

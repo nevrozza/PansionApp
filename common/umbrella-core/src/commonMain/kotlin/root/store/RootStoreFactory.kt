@@ -31,7 +31,7 @@ class RootStoreFactory(
         RootStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "RootStore",
-            initialState = State(role = authRepository.fetchRole(), moderation = authRepository.fetchModeration(), isGreetingsShowing = authRepository.isUserLoggedIn()),
+            initialState = State(role = authRepository.fetchRole(), moderation = authRepository.fetchModeration(), birthday = authRepository.fetchBirthday(), isGreetingsShowing = authRepository.isUserLoggedIn()),
             executorFactory = { RootExecutor(authRepository = authRepository, checkNInterface = checkNInterface, gotoHome = gotoHome) },
             reducer = RootReducer
         )

@@ -28,6 +28,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -127,6 +128,21 @@ fun DetailedStupsContent(
             Crossfade(nModel.state) { state ->
                 when (state) {
                     NetworkState.None -> CLazyColumn(padding) {
+                        item {
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                FilledTonalButton(
+                                    onClick = {
+                                        component.onOutput(
+                                            DetailedStupsComponent.Output.NavigateToAchievements(
+                                                model.login
+                                            )
+                                        )
+                                    }
+                                ) {
+                                    Text("Открыть достижения")
+                                }
+                            }
+                        }
                         items(model.subjects.sortedBy {
                             it.stups.filter {
                                 it.reason.subSequence(

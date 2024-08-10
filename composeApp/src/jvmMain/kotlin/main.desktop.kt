@@ -67,6 +67,7 @@ import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import components.CustomTextButton
 import di.Inject
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -117,11 +118,12 @@ private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
 //}
 
 @ExperimentalFoundationApi
-@OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class,
+    DelicateCoroutinesApi::class
+)
 fun main() {
 //
-    val isAppRunning = AtomicBoolean(false)
-    if (isAppRunning.compareAndSet(false, true)) {
+
         GlobalScope.launch(Dispatchers.IO) {
             com.nevrozq.pansion.main()
         }
@@ -134,6 +136,7 @@ fun main() {
                 deviceId = getDeviceId()
             )
         )
+
         val lifecycle = LifecycleRegistry()
         val stateKeeper =
             StateKeeperDispatcher() //File(SAVED_STATE_FILE_NAME).readSerializableContainer()
@@ -156,6 +159,9 @@ fun main() {
 
 
         application {
+
+
+
             val windowState = rememberWindowState()
             windowState.size = DpSize(950.dp, 480.dp) //950 480 //480 800
 
@@ -277,7 +283,6 @@ fun main() {
 //            }
 //        }
 //    }
-    }
 }
 
 @Composable

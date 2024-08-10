@@ -1,5 +1,5 @@
 object RequestPaths {
-    const val ip = "192.168.0.107:8081"
+    const val ip = "127.0.0.1:8081"//"192.168.0.107:8081"
 
     object Achievements {
         const val Create = "server/achievements/create"

@@ -510,7 +510,7 @@ class LessonReportExecutor(
                 val studentsData = journalRepository.fetchReportStudents(
                     RFetchReportStudentsReceive(
                         reportId = state().lessonReportId,
-                        module = header.module.toInt(),
+                        module = header.module.toIntOrNull() ?: 1,
                         date = header.date,
                         minutes = header.time.toMinutes()
                     )
@@ -575,11 +575,9 @@ class LessonReportExecutor(
                     )
                 )
                 nInterface.nSuccess()
-            } catch (_: Throwable) {
-//                        dispatch(LessonReportStore.Message.isFABShowing(true))
-                nInterface.nError("Что-то пошло не так") {
-                    //TODO
-                    nInterface.goToNone()
+            } catch (e: Throwable) {
+                nInterface.nError("Что-то пошло не так//${e}") {
+                    init()
                 }
             }
         }

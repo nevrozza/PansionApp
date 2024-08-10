@@ -32,6 +32,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         val isInfoShowing: Boolean = true,
 //        val isFabShowing: Boolean = false,
         val status: Boolean,
+        val module: Int,
         val ids: Int,
         val isMentorWas: Boolean,
         val detailedMarksLogin: String = "",

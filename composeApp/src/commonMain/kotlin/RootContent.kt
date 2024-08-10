@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -113,7 +114,11 @@ import root.RootComponent.RootCategories.Home
 import root.RootComponent.RootCategories.Journal
 import root.RootComponent.RootCategories.Mentoring
 import root.RootComponent.RootCategories.Rating
+import server.getDate
 import view.WindowCalculator
+import androidx.compose.material.icons.rounded.Cake
+import androidx.compose.material3.NavigationBarDefaults
+import server.cut
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -556,17 +561,33 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 Box(
                     Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
                 ) {
-                    Text(
-                        when (Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).hour) {
-                            in 5..10 -> "Доброе утро!"
-                            in 11..18 -> "Добрый день!"
-                            in 19..21 -> "Добрый вечер!"
-                            else -> "Доброй ночи!"
-                        },
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    val isBirthday = model.birthday.cut(4) == getDate().replace(".", "").cut(4) && model.birthday != "01012000"
+                    Column(
+                        modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+                        AnimatedVisibility(isBirthday) {
+                            Column {
+                                Icon(
+                                    imageVector = Icons.Rounded.Cake, contentDescription = null,
+                                    modifier = Modifier.size(100.dp)
+                                )
+                                Spacer(Modifier.height(20.dp))
+                            }
+                        }
+                        Text(
+                            when (Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).hour) {
+                                in 5..10 -> "Доброе утро!"
+                                in 11..18 -> "Добрый день!"
+                                in 19..21 -> "Добрый вечер!"
+                                else -> "Доброй ночи!"
+                            },
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(bottom = if (isBirthday) 120.dp else 0.dp)
+                        )
+                    }
                     Crossfade(
                         targetState = nCheckModel.state,
                         modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)
@@ -792,7 +813,8 @@ fun CustomNavigationBar(
                 style = viewManager.hazeStyle!!.value
             ) else Modifier
         ).fillMaxWidth(),
-        containerColor = Color.Transparent
+        containerColor = if (viewManager.hazeStyle != null) Color.Transparent else MaterialTheme.colorScheme.background,
+        tonalElevation = 0.dp
     ) {
         items.filterNotNull().forEach { item ->
             NavigationBarItem(

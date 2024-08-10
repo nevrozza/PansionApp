@@ -43,6 +43,7 @@ fun ReportTitle(
     isFullView: Boolean,
     isStartPadding: Boolean,
     isEnded: Boolean,
+    module: Int,
     onClick: (() -> Unit)?
 ) {
     val bigTextSize = 20.sp// if (!isLarge) else 40.sp
@@ -53,6 +54,10 @@ fun ReportTitle(
             Box(Modifier.offset(x = (-8).dp, y = (-10).dp).align(Alignment.CenterStart).size(5.dp).clip(
                 CircleShape).background(MaterialTheme.colorScheme.primary))
         }
+        Text(
+            text = module.toString(),
+            modifier = Modifier.offset(x = (-8).dp).align(Alignment.CenterStart)
+        )
         Box(
             Modifier.padding(start = startPadding).clip(RoundedCornerShape(15.dp)).then(
                 if (onClick != null) {

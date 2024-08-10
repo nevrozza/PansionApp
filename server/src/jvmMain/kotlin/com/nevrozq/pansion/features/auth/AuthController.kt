@@ -193,6 +193,7 @@ class AuthController {
         var moderation: String = ""
         var avatarId: Int = 0
         var isParent: Boolean = false
+        var birthday: String = ""
 
         if (isTokenValid) {
             val user = Users.fetchUser(call.login)!!
@@ -203,6 +204,7 @@ class AuthController {
             moderation = user.moderation
             avatarId = user.avatarId
             isParent = user.isParent
+            birthday = user.birthday
         }
         call.respond(
             RCheckConnectionResponse(
@@ -213,7 +215,8 @@ class AuthController {
                 role = role,
                 moderation = moderation,
                 avatarId = avatarId,
-                isParent = isParent
+                isParent = isParent,
+                birthday = birthday
             )
         )
 

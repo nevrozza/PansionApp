@@ -60,9 +60,9 @@ private fun MutableList<AddItem>.pAdd(
     }
 }
 
-private fun getModuleDays(moduleDay: String): Pair<String, String?> {
+fun getModuleDays(moduleDay: String): Pair<String, String?> {
     val module = Calendar.getModuleStartEnd(moduleDay.toIntOrNull() ?: 0)
-    return module
+    return module ?: Pair("01.01.2000", null)
 }
 
 private fun initItems(login: String, r: RTables): MutableList<AddItem> {
@@ -82,7 +82,7 @@ private fun initItems(login: String, r: RTables): MutableList<AddItem> {
         if (date in getWeekDays()) {
             weekAchievements.add(it)
         }
-        if (epoch >= start.toEpochDays() && end == null || epoch < (end?.toEpochDays() ?: 0)) {
+        if (epoch >= start.toEpochDays() && (end == null || epoch < (end?.toEpochDays() ?: 0))) {
             moduleAchievements.add(it)
         }
     }
@@ -144,7 +144,7 @@ private fun initItems(login: String, r: RTables): MutableList<AddItem> {
         if (date in getWeekDays()) {
             subjectsWeekAchievements.add(it)
         }
-        if (epoch >= start.toEpochDays() && end == null || epoch < (end?.toEpochDays() ?: 0)) {
+        if (epoch >= start.toEpochDays() && (end == null || epoch < (end?.toEpochDays() ?: 0))) {
             subjectsModuleAchievements.add(it)
         }
     }
@@ -368,8 +368,8 @@ fun updateRatings() {
                     if (date in getWeekDays()) {
                         weekAchievements.add(it)
                     }
-                    if (epoch >= start.toEpochDays() && end == null || epoch < (end?.toEpochDays()
-                            ?: 0)
+                    if (epoch >= start.toEpochDays() && (end == null || epoch < (end?.toEpochDays()
+                            ?: 0))
                     ) {
                         moduleAchievements.add(it)
                     }

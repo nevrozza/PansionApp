@@ -33,7 +33,7 @@ interface MainRepository {
     suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse
     suspend fun fetchStudentsInGroup(groupId: Int): RFetchStudentsInGroupResponse
 
-    suspend fun fetchMainAvg(login: String, reason: String): RFetchMainAVGResponse
+    suspend fun fetchMainAvg(login: String, reason: String, isFirst: Boolean): RFetchMainAVGResponse
     suspend fun fetchMainHomeTasksCount(r: RFetchMainHomeTasksCountReceive) : RFetchMainHomeTasksCountResponse
 
     suspend fun fetchReportHeaders(): RFetchHeadersResponse

@@ -35,11 +35,26 @@ object Calendar : Table() {
             Calendar.select { num eq module }.firstOrNull()?.get(halfNum) ?: 1
         }
     }
-    fun getModuleStartEnd(module: Int): Pair<String, String?> {
-        return transaction {
-            val first = Calendar.select { num eq module }.first()[start]
-            val second = Calendar.select { num eq module+1 }.firstOrNull()?.get(start)
-            Pair(first, second)
+    fun getModuleStartEnd(module: Int): Pair<String, String?>? {
+        return try {
+            transaction {
+                val first = Calendar.select { num eq module }.first()[start]
+                val second = Calendar.select { num eq module + 1 }.firstOrNull()?.get(start)
+                Pair(first, second)
+            }
+        } catch (e: Throwable) {
+            println(e)
+            null
+        }
+    }
+    fun getModuleStart(module: Int): String? {
+        return try {
+            transaction {
+                Calendar.select { num eq module }.first()[start]
+            }
+        } catch (e: Throwable) {
+            println(e)
+            null
         }
     }
 

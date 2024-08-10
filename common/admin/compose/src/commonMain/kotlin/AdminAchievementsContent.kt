@@ -398,7 +398,8 @@ private fun BottomSheetContent(
             autoCorrect = true,
             keyboardType = KeyboardType.Text,
             modifier = Modifier.fillMaxWidth(),
-            isSingleLine = false
+            isSingleLine = false,
+            supText = "Например: ВСОШ Математика [Региональный этап]"
         )
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             ExposedDropdownMenuBox(
@@ -476,7 +477,8 @@ private fun BottomSheetContent(
                 isMoveUpLocked = true,
                 autoCorrect = false,
                 keyboardType = KeyboardType.Number,
-                modifier = Modifier.fillMaxWidth(.5f)
+                modifier = Modifier.fillMaxWidth(.5f),
+                supText = "Можно пустым"
             )
             Spacer(Modifier.width(5.dp))
 //            if (model.bsId != null) {
@@ -538,7 +540,8 @@ private fun HugeBottomSheetContent(
             autoCorrect = true,
             keyboardType = KeyboardType.Text,
             modifier = Modifier.fillMaxWidth(),
-            isSingleLine = false
+            isSingleLine = false,
+            supText = "Например: ВСОШ Математика [Региональный этап]"
         )
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             CustomTextField(
@@ -565,7 +568,8 @@ private fun HugeBottomSheetContent(
                 isMoveUpLocked = true,
                 autoCorrect = false,
                 keyboardType = KeyboardType.Number,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                supText = "Можно пустым"
             )
         }
         AnimatedCommonButton(

@@ -63,7 +63,9 @@ class JournalExecutor(
                         ) {
                             studentsInGroupCAlertDialogComponent.nInterface.goToNone()
                         }
-                        dispatch(Message.ReportCreated(-1))
+                        scope.launch {
+                            dispatch(Message.ReportCreated(-1))
+                        }
                     }
                 }
             }

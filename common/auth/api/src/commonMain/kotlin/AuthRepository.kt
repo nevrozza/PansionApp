@@ -36,6 +36,7 @@ interface AuthRepository {
     fun fetchModeration(): String
     fun fetchIsParent(): Boolean
     fun fetchLogin(): String
+    fun fetchBirthday(): String
 
     suspend fun logout()
 }

@@ -61,6 +61,7 @@ class DetailedStupsComponent(
 
     sealed class Output {
         data object Back : Output()
+        data class NavigateToAchievements(val login: String) : Output()
 
     }
 }

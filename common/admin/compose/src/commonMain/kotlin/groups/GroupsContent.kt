@@ -624,7 +624,8 @@ fun GroupsContent(
                         focusManager = focusManager,
                         isMoveUpLocked = false,
                         autoCorrect = false,
-                        keyboardType = KeyboardType.Number
+                        keyboardType = KeyboardType.Number,
+                        supText = "Число [1-11]"
                     )
                     Spacer(Modifier.height(7.dp))
                     CustomTextField(
@@ -826,7 +827,8 @@ fun GroupsContent(
                         focusManager = focusManager,
                         isMoveUpLocked = true,
                         autoCorrect = true,
-                        keyboardType = KeyboardType.Text
+                        keyboardType = KeyboardType.Text,
+                        supText = "10 кл Усиленная"
                     )
                     Spacer(Modifier.height(7.dp))
 
@@ -912,7 +914,8 @@ fun GroupsContent(
                         focusManager = focusManager,
                         isMoveUpLocked = false,
                         autoCorrect = false,
-                        keyboardType = KeyboardType.Number
+                        keyboardType = KeyboardType.Number,
+                        supText = "Цифра [0-9]"
                     )
                     Spacer(Modifier.height(7.dp))
                     AnimatedCommonButton(

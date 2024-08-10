@@ -643,6 +643,7 @@ class RootComponentImpl(
     private fun onDetailedStupsOutput(output: DetailedStupsComponent.Output): Unit =
         when (output) {
             DetailedStupsComponent.Output.Back -> popOnce(Child.HomeDetailedStups::class)
+            is DetailedStupsComponent.Output.NavigateToAchievements -> navigation.bringToFront(Config.HomeAchievements(studentLogin = output.login))
         }
 
     private fun onDnevnikRuMarksOutput(output: DnevnikRuMarksComponent.Output): Unit =
@@ -831,7 +832,8 @@ class RootComponentImpl(
         rootStore.accept(
             RootStore.Intent.UpdatePermissions(
                 role = authRepository.fetchRole(),
-                moderation = authRepository.fetchModeration()
+                moderation = authRepository.fetchModeration(),
+                birthday = authRepository.fetchBirthday()
             )
         )
     }

@@ -49,7 +49,8 @@ class LessonReportStoreFactory(
                 ids = data.ids,
                 isMentorWas = data.isMentorWas,
                 columnNames = getColumns(((data.customColumns) - "")),
-                subjectId = data.header.subjectId
+                subjectId = data.header.subjectId,
+                module = data.header.module.toIntOrNull() ?: 1
             ),
             executorFactory = {
                 LessonReportExecutor(

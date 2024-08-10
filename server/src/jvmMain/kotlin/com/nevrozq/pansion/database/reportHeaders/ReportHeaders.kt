@@ -123,7 +123,7 @@ object ReportHeaders : Table() {
                 it[groupName] = Groups.getName(r.groupId)
                 it[ReportHeaders.teacherLogin] = teacherLogin
                 it[teacherName] = tN
-                it[module] = getModuleByDate(r.date)?.num.toString()
+                it[module] = getModuleByDate(r.date)?.num?.toString() ?: "1"
             }[ReportHeaders.id]
 
             r.studentLogins.forEach {

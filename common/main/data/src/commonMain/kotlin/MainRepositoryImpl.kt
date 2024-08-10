@@ -66,11 +66,12 @@ class MainRepositoryImpl(
         )
     }
 
-    override suspend fun fetchMainAvg(login: String, reason: String): RFetchMainAVGResponse {
+    override suspend fun fetchMainAvg(login: String, reason: String, isFirst: Boolean): RFetchMainAVGResponse {
         return remoteDataSource.fetchMainAvg(
             RFetchMainAVGReceive(
                 login,
-                reason
+                reason,
+                isFirst
             )
         )
     }
