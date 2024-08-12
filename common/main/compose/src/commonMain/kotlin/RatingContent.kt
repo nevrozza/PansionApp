@@ -379,7 +379,7 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false)
                     )
                     Spacer(Modifier.height(1.dp))
                     Text(
-                        text = "${item.formNum}${if (item.formShortTitle.length < 2) "-" else " "}${item.formShortTitle}: ${item.groupName}",
+                        text = "${item.formNum}${if (item.formShortTitle.length < 2) "-" else " "}${item.formShortTitle}: ${item.groupName.split("кл ").getOrNull(1) ?: item.groupName}",
                         fontSize = 14.sp, // Adjust font size for body text
                         lineHeight = 15.sp,
                         color = Color.Gray

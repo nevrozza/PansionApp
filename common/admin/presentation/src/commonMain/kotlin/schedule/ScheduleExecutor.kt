@@ -220,7 +220,7 @@ class ScheduleExecutor(
                     items.forEach {
                         it.value.forEach { item ->
                             val teacher =
-                                state().teachers.firstOrNull { item.groupId in it.groups }?.login
+                                state().teachers.firstOrNull { item.groupId in it.groups.map { it.first } }?.login
                             if (teacher != null) {
                                 val list =
                                     (commonList[date])
@@ -359,7 +359,7 @@ class ScheduleExecutor(
                             (!((it.t.end.toMinutes() <= s.first.toMinutes() ||
                                     it.t.start.toMinutes() >= s.second.toMinutes())) && it.groupId == -11))
                 }
-            val students = state().students.filter { id in it.groups }
+            val students = state().students.filter { id in it.groups.map { it.first } }
             val cabinetError = coItems.firstOrNull {
                 if (it.teacherLogin == login) {
                     true
@@ -373,12 +373,12 @@ class ScheduleExecutor(
             }?.groupId ?: 0
             val studentErrors: MutableList<StudentError> = mutableListOf()
             val studentErrorItems =
-                coItems.filter { it.groupId in students.flatMap { student -> student.groups } }
+                coItems.filter { it.groupId in students.flatMap { student -> student.groups.map { it.first } } }
 
             studentErrorItems.forEach { item ->
                 val error = StudentError(
                     groupId = item.groupId,
-                    logins = students.filter { item.groupId in it.groups }.map { it.login }
+                    logins = students.filter { item.groupId in it.groups.map { it.first } }.map { it.login }
                 )
                 try {
                     studentErrors.remove(error)
@@ -412,7 +412,7 @@ class ScheduleExecutor(
                         (!((it.t.end.toMinutes() <= s.first.toMinutes() ||
                                 it.t.start.toMinutes() >= s.second.toMinutes())) && it.groupId == -11))
             }
-        val students = state().students.filter { state().ciId in it.groups }
+        val students = state().students.filter { state().ciId in it.groups.map { it.first } }
         val cabinetError = coItems.firstOrNull {
             if (it.teacherLogin == state().ciLogin) {
                 true
@@ -426,12 +426,12 @@ class ScheduleExecutor(
         }?.groupId ?: 0
         val studentErrors: MutableList<StudentError> = mutableListOf()
         val studentErrorItems =
-            coItems.filter { it.groupId in students.flatMap { student -> student.groups } }
+            coItems.filter { it.groupId in students.flatMap { student -> student.groups.map { it.first } } }
 
         studentErrorItems.forEach { item ->
             val error = StudentError(
                 groupId = item.groupId,
-                logins = students.filter { item.groupId in it.groups }.map { it.login }
+                logins = students.filter { item.groupId in it.groups.map { it.first } }.map { it.login }
             )
             try {
                 studentErrors.remove(error)

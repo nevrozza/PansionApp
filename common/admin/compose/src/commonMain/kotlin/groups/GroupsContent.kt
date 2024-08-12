@@ -6,6 +6,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,9 +18,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,7 +34,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -250,7 +256,8 @@ fun GroupsContent(
                             ) {
                                 SubjectItem(
                                     title = "без класса",
-                                    isChosen = 0 == studentsModel.chosenFormTabId
+                                    isChosen = 0 == studentsModel.chosenFormTabId,
+                                    onEditClick = null
                                 ) {
                                     component.studentsComponent.onEvent(
 //                            GroupsStore.Intent.ChangeCurrentClass(
@@ -276,7 +283,8 @@ fun GroupsContent(
                             ) {
                                 SubjectItem(
                                     title = "${it.form.classNum}${if (it.form.shortTitle.length < 2) "-" else " "}${it.form.shortTitle} класс",
-                                    isChosen = it.id == studentsModel.chosenFormTabId
+                                    isChosen = it.id == studentsModel.chosenFormTabId,
+                                    onEditClick = null
                                 ) {
                                     component.studentsComponent.onEvent(
                                         StudentsStore.Intent.ClickOnFormTab(it.id)
@@ -301,7 +309,6 @@ fun GroupsContent(
 //            verticalAlignment = Alignment.CenterVertically
                     ) {
                         item {
-
                             FilledTonalIconButton(
                                 onClick = {
                                     component.subjectsComponent.cSubjectDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
@@ -331,7 +338,14 @@ fun GroupsContent(
                             ) {
                                 SubjectItem(
                                     title = it.name,
-                                    isChosen = it.id == subjectsModel.chosenSubjectId
+                                    isChosen = it.id == subjectsModel.chosenSubjectId,
+                                    onEditClick = {
+                                        component.subjectsComponent.onEvent(SubjectsStore.Intent.EditSubjectInit(
+                                            text = it.name,
+                                            subjectId = it.id
+                                        ))
+                                        component.subjectsComponent.editSubjectDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                    }
                                 ) {
                                     component.subjectsComponent.onEvent(SubjectsStore.Intent.ClickOnSubject(it.id))
                                     coroutineScope.launch {
@@ -340,6 +354,28 @@ fun GroupsContent(
                                 }
                             }
                             Spacer(Modifier.width(5.dp))
+                        }
+                        if(model.subjects.any { !it.isActive }) {
+                            item {
+                                FilledTonalIconButton(
+                                    onClick = {
+                                        component.subjectsComponent.inactiveSubjectsDialog.onEvent(
+                                            CAlertDialogStore.Intent.ShowDialog
+                                        )
+                                    },
+                                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                            2.dp
+                                        )
+                                    ),
+                                    modifier = Modifier.height(30.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.DeleteOutline,
+                                        null
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -442,7 +478,7 @@ fun GroupsContent(
                             when (it) {
                                 GroupsStore.Views.Subjects -> {
                                     if (subjectsModel.chosenSubjectId == 0) {
-                                        if (model.subjects.isNotEmpty()) {
+                                        if (model.subjects.any { it.isActive }) {
                                             component.subjectsComponent.onEvent(
                                                 SubjectsStore.Intent.ClickOnSubject(
                                                     model.subjects.last().id
@@ -483,6 +519,39 @@ fun GroupsContent(
                     LoadingAnimation()
                 }
 
+            }
+        }
+
+        //InActiveSubjects
+        CAlertDialogContent(
+            component = component.subjectsComponent.inactiveSubjectsDialog,
+            isCustomButtons = true
+        ) {
+            if(model.subjects.none { !it.isActive }) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Здесь пусто")
+                }
+            } else {
+                LazyColumn(Modifier.padding(10.dp)) {
+                    items(model.subjects.filter { !it.isActive }) { s ->
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(s.name)
+                            IconButton(
+                                onClick = {
+                                    component.subjectsComponent.onEvent(
+                                        SubjectsStore.Intent.EditSubjectInit(
+                                            subjectId = s.id,
+                                            text = s.name
+                                        )
+                                    )
+                                    component.subjectsComponent.onEvent(SubjectsStore.Intent.EditSubject(sameCount = 0))
+                                }
+                            ) {
+                                Icon(Icons.Rounded.RestartAlt, null)
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -828,7 +897,7 @@ fun GroupsContent(
                         isMoveUpLocked = true,
                         autoCorrect = true,
                         keyboardType = KeyboardType.Text,
-                        supText = "10 кл Усиленная"
+                        supText = "10 кл Профиль"
                     )
                     Spacer(Modifier.height(7.dp))
 
@@ -944,21 +1013,36 @@ fun GroupsContent(
 fun SubjectItem(
     title: String,
     isChosen: Boolean,
+    onEditClick: (() -> Unit)?,
     onClick: () -> Unit
 ) {
+    val isEditable = isChosen && onEditClick != null
+
     FilledTonalButton(
         onClick = { if (!isChosen) onClick() },
         modifier = Modifier.fillMaxHeight(),
-        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+        contentPadding = PaddingValues(start = 10.dp, end = if(isEditable) 0.dp else 10.dp),
         colors = ButtonDefaults.filledTonalButtonColors(
             containerColor = if (isChosen) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
                 2.dp
             )
         )
     ) {
-        Text(
-            title,
-            color = if (isChosen) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                title,
+                color = if (isChosen) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.offset(x = if (isEditable) 3.dp else 0.dp)
+            )
+            AnimatedVisibility(isEditable) {
+                IconButton(
+                    onClick = {
+                        onEditClick?.invoke()
+                    },
+                ) {
+                    Icon(Icons.Rounded.Edit, null, modifier = Modifier.size(25.dp))
+                }
+            }
+        }
     }
 }

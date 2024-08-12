@@ -22,8 +22,11 @@ import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.materials.HazeMaterials
+import forks.splitPane.ExperimentalSplitPaneApi
+import forks.splitPane.SplitPaneState
+import forks.splitPane.rememberSplitPaneState
 
-class ViewManager(
+class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
     val seedColor: MutableState<Color>,
     val tint: MutableState<ThemeTint> = mutableStateOf(ThemeTint.Auto),
     var isDark: MutableState<Boolean> = mutableStateOf(false),
@@ -32,7 +35,9 @@ class ViewManager(
     var hazeStyle: MutableState<HazeStyle>? = null,
     var size: BoxWithConstraintsScope? = null,
     var orientation: MutableState<WindowScreen> = mutableStateOf(WindowScreen.Vertical),
-    var colorMode: MutableState<String>
+    var colorMode: MutableState<String>,
+    val splitPaneState: SplitPaneState,
+    val isFullScreen: MutableState<Boolean> = mutableStateOf(true)
 )
 val LocalViewManager: ProvidableCompositionLocal<ViewManager> = compositionLocalOf {
     error("No ViewManager provided")

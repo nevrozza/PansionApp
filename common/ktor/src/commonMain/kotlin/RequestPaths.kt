@@ -14,6 +14,7 @@ object RequestPaths {
         const val FetchAllUsers = "server/user/fetchAll"
         const val ClearPasswordAdmin = "server/user/clearPassword"
         const val EditUser = "server/user/edit"
+        const val DeleteUser = "server/user/delete"
     }
 
     object Main {
@@ -87,6 +88,8 @@ object RequestPaths {
         const val UpdateCabinets = "server/admin/updateCabinets"
         const val FetchAllSubjects = "server/lessons/fetchAllSubjects"
         const val CreateSubject = "server/lessons/createSubject"
+        const val DeleteSubject = "server/lessons/deleteSubject"
+        const val EditSubject = "server/lessons/editSubject"
         const val FetchGroups = "server/lessons/fetchGroups"
         const val FetchCutedGroups = "server/lessons/fetchCutedGroups"
         const val FetchStudentGroups = "server/lessons/fetchStudentGroups"
@@ -95,7 +98,9 @@ object RequestPaths {
         const val FetchStudentsInForm = "server/lessons/fetchStudentsInForm"
         const val BindStudentToForm = "server/lessons/bindStudentToForm"
         const val CreateGroup = "server/lessons/createGroup"
+        const val EditGroup = "server/lessons/editGroup"
         const val CreateForm = "server/lessons/createForm"
+        const val EditForm = "server/lessons/editForm"
         const val CreateFormGroup = "server/lessons/createFormGroup"
         const val CreateStudentGroup = "server/lessons/createStudentGroup"
         const val FetchFormGroups = "server/lessons/fetchFormGroups"

@@ -30,6 +30,11 @@ class FormsComponent(
         storeFactory,
         name = "creatingFormBottomSheet"
     )
+    val editFormBottomSheet = CBottomSheetComponent(
+        componentContext,
+        storeFactory,
+        name = "editFormBottomSheet"
+    )
 
     val nFormsModel = nFormsInterface.networkModel
     val nFormGroupsModel = nFormGroupsInterface.networkModel
@@ -40,7 +45,8 @@ class FormsComponent(
                 nFormGroupsInterface = nFormGroupsInterface,
                 adminRepository = adminRepository,
                 creatingFormBottomSheet = creatingFormBottomSheet,
-                updateForms = updateForms
+                updateForms = updateForms,
+                editFormBottomSheet = editFormBottomSheet
             ).create()
         }
     val model = formsStore.asValue()

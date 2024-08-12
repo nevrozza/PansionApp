@@ -1,11 +1,13 @@
 package com.nevrozq.pansion.database.forms
 
+import admin.groups.forms.outside.REditFormReceive
 import mentoring.MentorForms
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 object Forms : Table() {
     private val id = Forms.integer("id").autoIncrement().uniqueIndex()
@@ -14,6 +16,18 @@ object Forms : Table() {
     private val mentorLogin = Forms.varchar("teacherLogin", 30)
     private val classNum = Forms.integer("classNum")
     private val isActive = Forms.bool("isActive")
+
+
+    fun update(r: REditFormReceive) {
+        transaction {
+            Forms.update({ Forms.id eq r.id }) {
+                it[title] = r.form.title
+                it[shortTitle] = r.form.shortTitle
+                it[mentorLogin] = r.form.mentorLogin
+                it[classNum] = r.form.classNum
+            }
+        }
+    }
 
     fun insert(form: FormDTO) {
         try {

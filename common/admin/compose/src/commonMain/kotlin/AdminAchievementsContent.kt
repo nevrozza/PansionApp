@@ -321,7 +321,7 @@ private fun BottomSheetContent(
     Column(Modifier.padding(horizontal = 10.dp).padding(bottom = 10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             val studentsMap =
-                model.students.associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: "").first()}." }
+                model.students.filter { it.isActive }.associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: "").first()}." }
 
             ExposedDropdownMenuBox(
                 expanded = expandedStudents,

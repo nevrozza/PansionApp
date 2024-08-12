@@ -28,6 +28,7 @@ class SubjectsComponent(
 //    val nStudentsModel = nStudentsInterface.networkModel
 //    val nStudentGroupsModel = nStudentGroupsInterface.networkModel
 
+
     val mainRepository: MainRepository = Inject.instance()
 
     val nGroupInterface = NetworkInterface(
@@ -49,6 +50,33 @@ class SubjectsComponent(
 //        }
     )
 
+    val inactiveSubjectsDialog = CAlertDialogComponent(
+        componentContext,
+        storeFactory,
+        name = "inactiveSubjectsDialog",
+        onAcceptClick = {
+
+        }
+    )
+    val deleteSubjectDialog = CAlertDialogComponent(
+        componentContext,
+        storeFactory,
+        name = "deleteSubjectDialog",
+        onAcceptClick = {
+            onEvent(SubjectsStore.Intent.DeleteSubject)
+        }
+    )
+    val editSubjectDialog = CAlertDialogComponent(
+        componentContext,
+        storeFactory,
+        name = "editSubjectDialog",
+        onAcceptClick = ::onEditSubjectDialog
+    )
+    private fun onEditSubjectDialog() {
+        println("SADIK: INT")
+        onEvent(SubjectsStore.Intent.EditSubject(sameCount = groupModel.value.subjects.filter { it.name == model.value.eSubjectText }.size))
+    }
+
     fun dialogOnDeclineClick() {
         onEvent(SubjectsStore.Intent.ChangeCSubjectText(""))
     }
@@ -61,6 +89,11 @@ class SubjectsComponent(
         componentContext,
         storeFactory,
         name = "createGroupBottomSheet"
+    )
+    val eGroupBottomSheet = CBottomSheetComponent(
+        componentContext,
+        storeFactory,
+        name = "editGroupBottomSheet"
     )
 //    val formsListComponent = ListComponent(
 //        componentContext,
@@ -81,7 +114,10 @@ class SubjectsComponent(
                 cSubjectDialog = cSubjectDialog,
                 cGroupBottomSheet = cGroupBottomSheet,
                 mainRepository = mainRepository,
-                nGroupInterface = nGroupInterface
+                nGroupInterface = nGroupInterface,
+                editSubjectDialog = editSubjectDialog,
+                deleteSubjectDialog = deleteSubjectDialog,
+                eGroupBottomSheet = eGroupBottomSheet
             ).create()
         }
     val model = studentsStore.asValue()

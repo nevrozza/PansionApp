@@ -17,6 +17,16 @@ object Subjects : Table() {
     val isActive = Subjects.bool("isActive")
 
 
+    fun update(subjectId: Int, name: String?, isActive: Boolean = true) {
+        transaction {
+            Subjects.update({Subjects.id eq subjectId}) {
+                if(name != null) {
+                    it[Subjects.name] = name
+                }
+                it[Subjects.isActive] = isActive
+            }
+        }
+    }
 
     fun getSubjectById(subjectId: Int): SubjectDTO? {
         return transaction {

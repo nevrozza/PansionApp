@@ -17,6 +17,7 @@ class FormsStoreFactory(
     private val adminRepository: AdminRepository,
     private val updateForms: () -> Unit,
     private val creatingFormBottomSheet: CBottomSheetComponent,
+    private val editFormBottomSheet: CBottomSheetComponent,
 ) {
 
     fun create(): FormsStore {
@@ -45,7 +46,8 @@ class FormsStoreFactory(
                     adminRepository = adminRepository,
                     nFormGroupsInterface = nFormGroupsInterface,
                     creatingFormBottomSheet = creatingFormBottomSheet,
-                    updateForms = updateForms
+                    updateForms = updateForms,
+                    editFormBottomSheet = editFormBottomSheet
                 )
             },
             reducer = FormsReducer

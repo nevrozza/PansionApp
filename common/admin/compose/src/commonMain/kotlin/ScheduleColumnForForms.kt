@@ -93,7 +93,7 @@ fun LazyItemScope.ScheduleColumnForForms(
     density: Density
 ) {
     val groups = model.groups.filter {
-        it.id in model.students.filter { s -> s.login in form.logins }.flatMap { s -> s.groups }
+        it.id in model.students.filter { s -> s.login in form.logins }.flatMap { s -> s.groups.map { it.first } }
     }
 
     Box(
@@ -267,7 +267,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                     )
                                 ) {
                                     val kids = model.students.filter { it.login in form.logins }
-                                        .filter { e.groupId in it.groups }
+                                        .filter { e.groupId in it.groups.map { it.first } }
                                     Column(Modifier.padding(horizontal = 10.dp, vertical = 5.dp)) {
                                         Text("В этой группе:")
                                         if (kids.isNotEmpty()) {

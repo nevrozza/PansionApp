@@ -334,7 +334,7 @@ class AuthController {
                                     .cut(16)
                             )
                         )
-                        if (userDTO.isActive) {
+                        //if (userDTO.isActive) {
                             call.respond(
                                 LoginResponse(
                                     activation = ActivationResponse(
@@ -355,15 +355,15 @@ class AuthController {
                                     avatarId = userDTO.avatarId
                                 )
                             )
-                        } else {
+                        //} else {
 //                            call.respond(
 //                                HttpStatusCode.Forbidden,
 //                                "Your account has been deactivated"
 //                            )
-                            call.respond(
-                                errorLogin("deactivated")
-                            )
-                        }
+                        //    call.respond(
+                        //        errorLogin("deactivated")
+                        //    )
+                        //}
                     }
 
 //                    null -> {

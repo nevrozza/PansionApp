@@ -591,9 +591,9 @@ private fun LazyItemScope.ScheduleColumn(
                         ) {
                             when {
                                 model.ciId == null -> {
-                                    (model.teachers.first { it.login == c.login }.groups.sortedBy { x -> model.groups.first { it.id == x }.subjectId }).forEach { s ->
+                                    (model.teachers.first { it.login == c.login }.groups.filter { it.second }.sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
                                         val group =
-                                            model.groups.firstOrNull { it.id == s }
+                                            model.groups.firstOrNull { it.id == s.first }
                                         if (group != null) {
                                             val subject =
                                                 model.subjects.firstOrNull { it.id == group.subjectId }
@@ -603,7 +603,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                     onClick = {
                                                         component.onEvent(
                                                             ScheduleStore.Intent.ciChooseGroup(
-                                                                s
+                                                                s.first
                                                             )
                                                         )
                                                     },
@@ -1369,9 +1369,9 @@ private fun LazyItemScope.ScheduleColumn(
                                                 }
 
 
-                                                EditState.Groups -> (model.teachers.first { it.login == c.login }.groups.sortedBy { x -> model.groups.first { it.id == x }.subjectId }).forEach { s ->
+                                                EditState.Groups -> (model.teachers.first { it.login == c.login }.groups.filter { it.second }.sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
                                                     val egroup =
-                                                        model.groups.firstOrNull { it.id == s }
+                                                        model.groups.firstOrNull { it.id == s.first }
                                                     if (egroup != null) {
                                                         val esubject =
                                                             model.subjects.firstOrNull { it.id == egroup.subjectId }
@@ -1387,13 +1387,13 @@ private fun LazyItemScope.ScheduleColumn(
                                                                         ScheduleStore.Intent.eiCheck(
                                                                             cabinet = cabinetik,
                                                                             login = login,
-                                                                            id = s,
+                                                                            id = s.first,
                                                                             s = t
                                                                         )
                                                                     )
                                                                     component.onEvent(
                                                                         ScheduleStore.Intent.eiChooseGroup(
-                                                                            s
+                                                                            s.first
                                                                         )
                                                                     )
                                                                 },

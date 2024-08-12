@@ -3,6 +3,7 @@ package groups
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,11 +23,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.Person
@@ -53,23 +58,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.AnimatedCommonButton
 import components.CLazyColumn
 import components.CustomTextButton
+import components.CustomTextField
 import components.GroupPicker
 import components.LoadingAnimation
+import components.cBottomSheet.CBottomSheetStore
 import components.nSCutedGroup
 import components.nSSubject
 import components.networkInterface.NetworkState
+import decomposeComponents.CBottomSheetContent
 import groups.forms.FormsComponent
 import groups.forms.FormsStore
 import groups.students.StudentsStore
 
+@OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun FormsContent(
@@ -153,22 +169,37 @@ fun FormsContent(
                                             }
                                         }
 
-                                        Crossfade(nFGModel.state == NetworkState.Loading) {
-                                            Box(
-                                                modifier = Modifier.size(25.dp),
-                                                contentAlignment = Alignment.Center
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            IconButton(
+                                                onClick = {
+                                                    component.onEvent(FormsStore.Intent.ChangeEFormClassNum(form.form.classNum.toString()))
+                                                    component.onEvent(FormsStore.Intent.ChangeEFormTitle(form.form.title))
+                                                    component.onEvent(FormsStore.Intent.ChangeEFormShortTitle(form.form.shortTitle))
+                                                    component.onEvent(FormsStore.Intent.ChangeEFormMentorLogin(form.form.mentorLogin))
+                                                    component.onEvent(FormsStore.Intent.EditFormInit(form.id))
+                                                    component.editFormBottomSheet.onEvent(
+                                                        CBottomSheetStore.Intent.ShowSheet)
+                                                }
                                             ) {
-                                                if (it && form.id == model.chosenFormId) {
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier.size(
-                                                            20.dp
+                                                Icon(Icons.Rounded.Edit, null)
+                                            }
+                                            Crossfade(nFGModel.state == NetworkState.Loading) {
+                                                Box(
+                                                    modifier = Modifier.size(25.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    if (it && form.id == model.chosenFormId) {
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier.size(
+                                                                20.dp
+                                                            )
                                                         )
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        if (form.id == model.chosenFormId) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                                                        null
-                                                    )
+                                                    } else {
+                                                        Icon(
+                                                            if (form.id == model.chosenFormId) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                                                            null
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -316,6 +347,196 @@ fun FormsContent(
                         component.nFormsInterface
                     )
                 }
+            }
+        }
+    }
+
+
+    CBottomSheetContent(
+        component = component.editFormBottomSheet,
+        customMaxHeight = 0.dp
+    ) {
+//            println(formsModel)
+        val focusManager = LocalFocusManager.current
+
+        var num = 0
+        Column(
+            Modifier//.padding(top = 5.dp, bottom = 10.dp).padding(horizontal = 10.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            var expandedMentors by remember { mutableStateOf(false) }
+            val properties = listOf(
+                model.eFormTitle,
+                model.eFormMentorLogin,
+                model.eFormClassNum
+            )
+            num = properties.count { (it ?: "").isNotBlank() }
+            Text(
+                buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    ) {
+                        val form = gModel.forms.firstOrNull { it.id == model.eFormId }?.form
+
+                        append("${form?.classNum}${if ((form?.title?.length ?: 0) < 2) "-" else " "}${form?.title?.lowercase()} класс ")
+                    }
+                    withStyle(
+                        SpanStyle(
+                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    ) {
+                        append("$num/${properties.size}")
+                    }
+                }
+            )
+            Column(
+                Modifier.imePadding()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Spacer(Modifier.height(5.dp))
+                CustomTextField(
+                    value = model.eFormClassNum,
+                    onValueChange = {
+                        if (it.length < 3) {
+                            component.onEvent(
+                                FormsStore.Intent.ChangeEFormClassNum(
+                                    it
+                                )
+                            )
+                        }
+                    },
+                    onEnterClicked = {
+                        focusManager.moveFocus(FocusDirection.Next)
+                    },
+                    text = "Номер класса",
+                    isEnabled = component.nFormsInterface.networkModel.value.state != NetworkState.Loading,
+                    focusManager = focusManager,
+                    isMoveUpLocked = false,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Number,
+                    supText = "Число [1-11]"
+                )
+                Spacer(Modifier.height(7.dp))
+                CustomTextField(
+                    value = model.eFormTitle,
+                    onValueChange = {
+                        component.onEvent(
+                            FormsStore.Intent.ChangeEFormTitle(
+                                it
+                            )
+                        )
+                    },
+                    text = "Название направления",
+                    isEnabled = component.nFormsInterface.networkModel.value.state != NetworkState.Loading,
+                    onEnterClicked = {
+                        focusManager.moveFocus(FocusDirection.Next)
+                    },
+                    supText = "Инженерный/А",
+                    focusManager = focusManager,
+                    isMoveUpLocked = true,
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text
+                )
+                Spacer(Modifier.height(7.dp))
+
+
+                CustomTextField(
+                    value = model.eFormShortTitle,
+                    onValueChange = {
+                        component.onEvent(
+                            FormsStore.Intent.ChangeEFormShortTitle(
+                                it
+                            )
+                        )
+                    },
+                    text = "Сокращение",
+                    isEnabled = component.nFormsInterface.networkModel.value.state != NetworkState.Loading,
+                    onEnterClicked = {
+                        focusManager.moveFocus(FocusDirection.Next)
+                        expandedMentors = true
+                    },
+                    supText = "инж/А",
+                    focusManager = focusManager,
+                    isMoveUpLocked = true,
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text
+                )
+                Spacer(Modifier.height(7.dp))
+
+                val mentorsMap =
+                    model.mentors.associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: "").first()}." }
+
+                ExposedDropdownMenuBox(
+                    expanded = expandedMentors,
+                    onExpandedChange = {
+                        expandedMentors = !expandedMentors
+                    }
+                ) {
+                    // textfield
+                    val mentor =
+                        model.mentors.find { it.login == model.eFormMentorLogin }
+                    val mentorName =
+                        try {
+                            "${mentor!!.fio.surname} ${mentor.fio.name.first()}. ${(mentor.fio.praname ?: " ").first()}."
+                        } catch (_: Throwable) {
+                            ""
+                        }
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                        readOnly = true,
+                        value = mentorName,
+                        placeholder = { Text("Выберите") },
+                        onValueChange = {},
+                        label = { Text("Наставник") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = expandedMentors
+                            )
+                        },
+                        shape = RoundedCornerShape(15.dp),
+                        enabled = component.nFormsInterface.networkModel.value.state != NetworkState.Loading
+                    )
+                    // menu
+
+                    ExposedDropdownMenu(
+                        expanded = expandedMentors,
+                        onDismissRequest = {
+                            expandedMentors = false
+                        },
+                    ) {
+                        // menu items
+                        mentorsMap.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption.value) },
+                                onClick = {
+                                    component.onEvent(
+                                        FormsStore.Intent.ChangeEFormMentorLogin(
+                                            selectionOption.key
+                                        )
+                                    )
+                                    expandedMentors = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(7.dp))
+                AnimatedCommonButton(
+                    text = "Редактировать",
+                    modifier = Modifier.width(TextFieldDefaults.MinWidth),
+                    isEnabled = num == properties.size
+                ) {
+                    component.onEvent(FormsStore.Intent.EditForm)
+                }
+                Spacer(Modifier.height(10.dp))
             }
         }
     }

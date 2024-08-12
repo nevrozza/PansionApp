@@ -8,6 +8,12 @@ data class CreateFormReceive(
     val form: FormInit
 )
 
+@Serializable
+data class REditFormReceive(
+    val id: Int,
+    val form: FormInit
+)
+
 
 //@Serializable
 //data class CreateNewFormResponse(

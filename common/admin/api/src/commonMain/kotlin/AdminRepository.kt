@@ -13,8 +13,10 @@ import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
 import admin.groups.forms.outside.RFetchMentorsResponse
 import admin.groups.subjects.RFetchTeachersResponse
 import admin.groups.forms.RFetchFormGroupsResponse
+import admin.groups.forms.outside.REditFormReceive
 import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormResponse
+import admin.groups.subjects.REditGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RCreateUserResponse
@@ -45,9 +47,12 @@ interface AdminRepository {
 
     suspend fun clearUserPassword(login: String)//: RClearUserPasswordReceive
     suspend fun editUser(login: String, user: UserInit)//: REditUserReceive
+    suspend fun deleteUser(login: String, user: UserInit)//: REditUserReceive
 
     suspend fun fetchAllSubjects(): RFetchAllSubjectsResponse
     suspend fun createSubject(name: String)//: R
+    suspend fun editSubject(subjectId: Int, name: String)//: R
+    suspend fun deleteSubject(subjectId: Int)//: R
 
     suspend fun fetchGroups(subjectId: Int): RFetchGroupsResponse
     suspend fun fetchStudentGroups(login: String): RFetchStudentGroupsResponse
@@ -60,6 +65,9 @@ interface AdminRepository {
         subjectId: Int,
         groupId: Int,
     )//: RCreateFormGroupReceive
+    suspend fun editForm(
+        r: REditFormReceive
+    )
 
     suspend fun createStudentGroup(
         studentLogin: String,
@@ -84,7 +92,10 @@ interface AdminRepository {
         mentorLogin: String,
         subjectId: Int,
         difficult: String
-    )//: CreateNewGroupResponse
+    )
+    suspend fun editGroup(
+        r: REditGroupReceive
+    )
 
     suspend fun createForm(
         title: String,

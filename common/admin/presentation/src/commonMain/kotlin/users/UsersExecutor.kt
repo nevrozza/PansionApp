@@ -5,6 +5,8 @@ import FIO
 import admin.users.User
 import admin.users.UserInit
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
+import components.cAlertDialog.CAlertDialogComponent
+import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
@@ -20,6 +22,7 @@ class UsersExecutor(
     private val nUsersInterface: NetworkInterface,
     private val eUserBottomSheet: CBottomSheetComponent,
     private val cUserBottomSheet: CBottomSheetComponent,
+    private val eDeleteDialog: CAlertDialogComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -56,6 +59,45 @@ class UsersExecutor(
             Intent.EditUser -> editUser(state())
             is Intent.ChangeCParentFirstFIO -> dispatch(Message.CParentFirstFIOChanged(intent.fio))
             is Intent.ChangeCParentSecondFIO -> dispatch(Message.CParentSecondFIOChanged(intent.fio))
+            is Intent.DeleteAccount -> deleteAccount()
+            is Intent.DeleteAccountInit -> scope.launch {
+                eDeleteDialog.onEvent(if(intent.login != null) CAlertDialogStore.Intent.ShowDialog else CAlertDialogStore.Intent.HideDialog)
+                dispatch(Message.DeletingAccountInit(intent.login))
+            }
+        }
+    }
+
+    private fun deleteAccount() {
+        scope.launch {
+            eDeleteDialog.nInterface.nStartLoading()
+            try {
+                adminRepository.deleteUser(
+                    login = state().eLogin, UserInit(
+                        fio = FIO(
+                            name = state().eName,
+                            surname = state().eSurname,
+                            praname = state().ePraname
+                        ),
+                        birthday = state().eBirthday,
+                        role = state().eRole,
+                        moderation = if (state().eIsModerator && state().eIsMentor) Moderation.both
+                        else if (state().eIsMentor) Moderation.mentor
+                        else if (state().eIsModerator) Moderation.moderator
+                        else Moderation.nothing,
+                        isParent = state().eIsParent
+                    )
+                )
+                eDeleteDialog.fullySuccess()
+                eUserBottomSheet.fullySuccess()
+            } catch (_: Throwable) {
+                with(eDeleteDialog.nInterface) {
+                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                        goToNone()
+                    })
+                }
+            }
+        }.invokeOnCompletion {
+            fetchUsers()
         }
     }
 

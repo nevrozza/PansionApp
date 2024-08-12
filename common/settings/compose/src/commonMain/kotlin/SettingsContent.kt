@@ -71,6 +71,7 @@ import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.rememberSplitPaneState
 import server.DeviceTypex
 import view.LocalViewManager
+import view.ViewManager
 
 
 @ExperimentalSplitPaneApi
@@ -82,13 +83,13 @@ fun SettingsContent(
     settingsComponent: SettingsComponent
 //    secondScreen: @Composable () -> Unit
 ) {
+    val viewManager = LocalViewManager.current
     if (isExpanded) {
-        val splitterState = rememberSplitPaneState(.5f)
         HorizontalSplitPane(
-            splitPaneState = splitterState
+            splitPaneState = viewManager.splitPaneState
         ) {
-            first(minSize = 320.dp) {
-                SettingsView(settingsComponent)
+            first(minSize = 400.dp) {
+                SettingsView(settingsComponent, viewManager)
             }
             dSplitter()
             second(minSize = 500.dp) {
@@ -103,16 +104,17 @@ fun SettingsContent(
             }
         }
     } else {
-        SettingsView(settingsComponent)
+        SettingsView(settingsComponent, viewManager)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-    component: SettingsComponent
+    component: SettingsComponent,
+    viewManager: ViewManager
 ) {
-    val viewManager = LocalViewManager.current
+
 
     val isHazeNeedToUpdate = remember { mutableStateOf(false) }
     val isHaze = remember { mutableStateOf(viewManager.hazeStyle?.value != null) }

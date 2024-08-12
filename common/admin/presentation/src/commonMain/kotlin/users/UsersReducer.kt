@@ -60,6 +60,7 @@ object UsersReducer : Reducer<State, Message> {
 
             is Message.CParentFirstFIOChanged -> copy(cParentFirstFIO = msg.fio)
             is Message.CParentSecondFIOChanged -> copy(cParentSecondFIO = msg.fio)
+            is Message.DeletingAccountInit -> copy(eDeletingLogin = msg.login)
         }
     }
 }

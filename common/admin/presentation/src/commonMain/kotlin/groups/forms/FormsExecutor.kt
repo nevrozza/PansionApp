@@ -1,6 +1,10 @@
 package groups.forms
 
 import AdminRepository
+import CDispatcher
+import admin.groups.forms.FormInit
+import admin.groups.forms.outside.REditFormReceive
+import admin.groups.subjects.REditGroupReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
@@ -14,7 +18,8 @@ class FormsExecutor(
     private val adminRepository: AdminRepository,
     private val nFormGroupsInterface: NetworkInterface,
     private val updateForms: () -> Unit,
-    private val creatingFormBottomSheet: CBottomSheetComponent
+    private val creatingFormBottomSheet: CBottomSheetComponent,
+    private val editFormBottomSheet: CBottomSheetComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(i: Intent) {
         when (i) {
@@ -33,7 +38,45 @@ class FormsExecutor(
             is Intent.ChangeCFormMentorLogin -> dispatch(Message.CFormMentorLoginChanged(i.mentorLogin))
             Intent.CreateFormGroup -> createFormGroup(state())
             Intent.UpdateMentors -> updateMentors()
-            is Intent.DeleteFormGroup -> deleteFormGroup(subjectId = i.subjectId, groupId = i.groupId)
+            is Intent.DeleteFormGroup -> deleteFormGroup(
+                subjectId = i.subjectId,
+                groupId = i.groupId
+            )
+
+            is Intent.ChangeEFormClassNum -> dispatch(Message.ChangeEFormClassNum(i.classNum))
+            is Intent.ChangeEFormMentorLogin -> dispatch(Message.ChangeEFormMentorLogin(i.mentorLogin))
+            is Intent.ChangeEFormShortTitle -> dispatch(Message.ChangeEFormShortTitle(i.shortTitle))
+            is Intent.ChangeEFormTitle -> dispatch(Message.ChangeEFormTitle(i.title))
+            Intent.EditForm -> editForm()
+            is Intent.EditFormInit -> dispatch(Message.EditFormInit(i.formId))
+        }
+    }
+
+    private fun editForm() {
+        scope.launch(CDispatcher) {
+            try {
+                editFormBottomSheet.nInterface.nStartLoading()
+                adminRepository.editForm(
+                    REditFormReceive(
+                        id = state().eFormId,
+                        form = FormInit(
+                            title = state().eFormTitle,
+                            shortTitle = state().eFormShortTitle,
+                            mentorLogin = state().eFormMentorLogin,
+                            classNum = state().eFormClassNum.toIntOrNull() ?: 1
+                        )
+                    )
+                )
+                scope.launch {
+                    updateForms()
+                    editFormBottomSheet.fullySuccess()
+                }
+            } catch (e: Throwable) {
+                println("EDITFORM: ${e}")
+                editFormBottomSheet.nInterface.nError("Не удалось изменить этот класс") {
+                    editFormBottomSheet.nInterface.goToNone()
+                }
+            }
         }
     }
 
@@ -41,7 +84,8 @@ class FormsExecutor(
         dispatch(Message.CFormGroupSubjectIdChanged(subjectId))
         scope.launch {
             try {
-                val cutedGroups = adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().formGroups.map { it.groupId } }
+                val cutedGroups =
+                    adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().formGroups.map { it.groupId } }
 //                println("animeGo: $mentors")
                 dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
 //                creatingFormBottomSheet.nInterface.nSuccess()

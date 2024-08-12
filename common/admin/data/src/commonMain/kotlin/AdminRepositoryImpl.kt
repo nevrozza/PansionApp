@@ -1,6 +1,5 @@
 import achievements.RCreateAchievementReceive
 import achievements.REditAchievementReceive
-import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
 import achievements.RUpdateGroupOfAchievementsReceive
 import admin.cabinets.CabinetItem
@@ -25,16 +24,21 @@ import admin.groups.subjects.RFetchTeachersResponse
 import admin.groups.subjects.RFetchGroupsReceive
 import admin.groups.forms.RFetchFormGroupsReceive
 import admin.groups.forms.RFetchFormGroupsResponse
+import admin.groups.forms.outside.REditFormReceive
 import admin.groups.students.deep.RFetchStudentGroupsReceive
 import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
+import admin.groups.subjects.REditGroupReceive
+import admin.groups.subjects.topBar.RDeleteSubject
+import admin.groups.subjects.topBar.REditSubjectReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
 import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
+import admin.users.RDeleteUserReceive
 import admin.users.RFetchAllUsersResponse
 import admin.users.UserInit
 import ktor.KtorAdminRemoteDataSource
@@ -129,6 +133,24 @@ class AdminRepositoryImpl(
             )
         )
     }
+    override suspend fun deleteUser(login: String, user: UserInit) {
+        remoteDataSource.performDeleteUser(
+            RDeleteUserReceive(
+                login = login,
+                user = UserInit(
+                    fio = FIO(
+                        name = user.fio.name,
+                        surname = user.fio.surname,
+                        praname = user.fio.praname
+                    ),
+                    birthday = user.birthday,
+                    role = user.role,
+                    moderation = user.moderation,
+                    isParent = user.isParent
+                )
+            )
+        )
+    }
 
     override suspend fun fetchAllSubjects(): RFetchAllSubjectsResponse {
         return remoteDataSource.performFetchAllSubjects()
@@ -138,6 +160,23 @@ class AdminRepositoryImpl(
         remoteDataSource.createNewSubject(
             RCreateSubjectReceive(
                 name = name
+            )
+        )
+    }
+
+    override suspend fun editSubject(subjectId: Int, name: String) {
+        remoteDataSource.editSubject(
+            REditSubjectReceive(
+                subjectId = subjectId,
+                name = name
+            )
+        )
+    }
+
+    override suspend fun deleteSubject(subjectId: Int) {
+        remoteDataSource.deleteSubject(
+            RDeleteSubject(
+                subjectId = subjectId
             )
         )
     }
@@ -207,6 +246,10 @@ class AdminRepositoryImpl(
         )
     }
 
+    override suspend fun editForm(r: REditFormReceive) {
+        remoteDataSource.editForm(r)
+    }
+
     override suspend fun deleteFormGroup(
         formId: Int,
         subjectId: Int,
@@ -257,6 +300,10 @@ class AdminRepositoryImpl(
                 )
             )
         )
+    }
+
+    override suspend fun editGroup(r: REditGroupReceive) {
+        remoteDataSource.createGroup(r)
     }
 
     override suspend fun createForm(

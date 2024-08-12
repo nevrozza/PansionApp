@@ -108,6 +108,18 @@ fun Application.configureLessonsRouting() {
         post(RequestPaths.Lessons.CreateGroup) {
             lessonsController.createGroup(call)
         }
+        post(RequestPaths.Lessons.EditGroup) {
+            lessonsController.editGroup(call)
+        }
+        post(RequestPaths.Lessons.EditForm) {
+            lessonsController.editForm(call)
+        }
+        post(RequestPaths.Lessons.DeleteSubject) {
+            lessonsController.deleteSubject(call)
+        }
+        post(RequestPaths.Lessons.EditSubject) {
+            lessonsController.editSubject(call)
+        }
         post(RequestPaths.Lessons.CreateForm) {
             lessonsController.createForm(call)
         }

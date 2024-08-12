@@ -17,11 +17,9 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
     data class State(
         val users: List<User>? = null,
         val isDateDialogShowing: Boolean = false,
-
         val currentYear: Int = Clock.System.now()
             .toLocalDateTime(TimeZone.of("UTC+3")).year,
         val currentMillis: Long = Clock.System.now().toEpochMilliseconds(),
-
         val cLogin: String = "",
         val cParentLogins: List<String>? = null,
         val cName: String = "",
@@ -34,7 +32,6 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val cIsParent: Boolean = false,
         val cParentFirstFIO: String = "",
         val cParentSecondFIO: String = "",
-
         val eLogin: String = "",
         val eIsPassword: Boolean = false,
         val eName: String = "",
@@ -46,9 +43,15 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val eIsMentor: Boolean = false,
         val eIsParent: Boolean = false,
 
+        val eDeletingLogin: String? = null
         )
 
     sealed interface Intent {
+        data class DeleteAccountInit(val login: String?) : Intent
+
+        data object DeleteAccount : Intent
+
+
         data object FetchUsers : Intent
         data object FetchUsersInit : Intent
         data class ChangeDateDialogShowing(val isShowing: Boolean) : Intent
@@ -82,6 +85,8 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
     }
 
     sealed interface Message {
+        data class DeletingAccountInit(val login: String?) : Message
+
         data class UsersChanged(val users: List<User>?) : Message
 
         data class DateDialogShowingChanged(val isShowing: Boolean) : Message

@@ -269,9 +269,9 @@ fun updateRatings() {
     println("SADIK: 1")
 
 
-    val forms = Forms.getAllForms().filter { it.isActive }
-    val groups = Groups.getAllGroups().filter { it.isActive }
-    val subjects = Subjects.fetchAllSubjects().filter { it.isActive }
+    val forms = Forms.getAllForms().sortedBy { it.isActive }
+    val groups = Groups.getAllGroups().sortedBy { it.isActive }
+    val subjects = Subjects.fetchAllSubjects().sortedBy { it.isActive }
     val studentsInGroup = StudentGroups.fetchAll()
     val studentsInForm = StudentsInForm.fetchAll()
     val students0 = Users.fetchAllStudents()

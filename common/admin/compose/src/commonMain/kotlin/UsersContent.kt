@@ -2,6 +2,7 @@
 
 import admin.users.User
 import admin.users.UserInit
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
@@ -88,6 +90,7 @@ import components.LoadingAnimation
 import components.networkInterface.NetworkState
 import components.ScrollBaredBox
 import components.cBottomSheet.CBottomSheetStore
+import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
 import kotlinx.datetime.Instant
@@ -212,7 +215,7 @@ fun UsersContent(
                                 widthsInit = widthsInit,
                                 model.users!!.map {
                                     Pair(
-                                        "${it.user.fio.surname} ${it.user.fio.name}",
+                                        "${if(it.isActive) "" else "."}${it.user.fio.surname} ${it.user.fio.name}",
                                         mapOf(
                                             columnNames[0] to (it.user.fio.praname ?: "--"),
                                             columnNames[1] to it.login,
@@ -320,8 +323,11 @@ private fun editUserSheet(
     component: UsersComponent,
     model: UsersStore.State
 ) {
+
+
     val eNModel = component.eUserBottomSheet.nModel.subscribeAsState()
     val isEditingInProcess = (eNModel.value.state == NetworkState.Loading)
+    val isActive = model.users?.firstOrNull { it.login == model.eLogin }?.isActive != false
 
 //                LaunchedEffect(modalBottomSheetState.isVisible) {
 //                    if (modalBottomSheetState.isVisible) {
@@ -699,6 +705,23 @@ private fun editUserSheet(
                         )
                     }
                     Spacer(Modifier.height(7.dp))
+
+                    if(isActive) {
+                        AnimatedVisibility(
+                            !model.eIsMentor && !model.eIsParent && !model.eIsModerator
+                        ) {
+                            CustomTextButton(if (model.eRole == Roles.student) "Отчислить" else "Удалить") {
+                                component.onEvent(UsersStore.Intent.DeleteAccountInit(model.eLogin))
+                            }
+                            Spacer(Modifier.height(7.dp))
+                        }
+                    } else {
+                        CustomTextButton("Восстановить") {
+                            component.onEvent(UsersStore.Intent.EditUser)
+                        }
+                        Spacer(Modifier.height(7.dp))
+                    }
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(horizontal = 10.dp)
@@ -712,16 +735,20 @@ private fun editUserSheet(
                             ) {
                                 component.onEvent(UsersStore.Intent.ClearPassword)
                             }
-                            Spacer(Modifier.width(12.dp))
+                            if(isActive) {
+                                Spacer(Modifier.width(12.dp))
+                            }
                         }
-                        AnimatedCommonButton(
-                            text = "Редактировать",
-                            isEnabled = num == 5,
-                            modifier = if (!model.eIsPassword) Modifier.width(
-                                TextFieldDefaults.MinWidth
-                            ) else Modifier
-                        ) {
-                            component.onEvent(UsersStore.Intent.EditUser)
+                        if(isActive) {
+                            AnimatedCommonButton(
+                                text = "Редактировать",
+                                isEnabled = num == 5,
+                                modifier = if (!model.eIsPassword) Modifier.width(
+                                    TextFieldDefaults.MinWidth
+                                ) else Modifier
+                            ) {
+                                component.onEvent(UsersStore.Intent.EditUser)
+                            }
                         }
                     }
                     Spacer(Modifier.height(10.dp))
@@ -739,6 +766,31 @@ private fun editUserSheet(
 //                    }
 //                }
 //            }
+        }
+    }
+    CAlertDialogContent(
+        component = component.eDeleteDialog,
+        isCustomButtons = false,
+        title = "Удалить ${model.eDeletingLogin}?"
+    ) {
+        val deleteNModel by component.eDeleteDialog.nModel.subscribeAsState()
+        Crossfade(deleteNModel.state) {
+            when(it) {
+                NetworkState.Error -> Column(
+                    Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(deleteNModel.error)
+                    Spacer(Modifier.height(7.dp))
+                    CustomTextButton("Попробовать ещё раз") {
+                        deleteNModel.onFixErrorClick()
+                    }
+                }
+                NetworkState.Loading ->  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                else -> {}
+            }
         }
     }
 }

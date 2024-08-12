@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.database.groups
 
+import admin.groups.subjects.REditGroupReceive
 import com.nevrozq.pansion.database.subjects.SubjectDTO
 import com.nevrozq.pansion.database.subjects.Subjects
 import org.jetbrains.exposed.sql.Table
@@ -7,6 +8,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 object Groups : Table() {
     val id = Groups.integer("id").autoIncrement().uniqueIndex()
@@ -15,6 +17,17 @@ object Groups : Table() {
     private val subjectId = Groups.integer("subjectId")
     private val difficult = Groups.varchar("difficult", 1)
     private val isActive = Groups.bool("isActive")
+
+    fun update(id: Int, r: REditGroupReceive) {
+        transaction {
+            Groups.update({Groups.id eq id}) {
+                it[name] = r.name
+                it[teacherLogin] = r.mentorLogin
+                it[difficult] = r.difficult
+                it[isActive] = r.isActive
+            }
+        }
+    }
 
     fun insert(group: GroupDTO) {
         try {

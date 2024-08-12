@@ -89,11 +89,13 @@ class RatingExecutor(
                 scope.launch {
                     dispatch(Message.SubjectsUpdated(subjects))
                     subjectsListComponent.onEvent(ListDialogStore.Intent.InitList(
-                        subjects.map {
-                            ListItem(
-                                id = it.id.toString(),
-                                text = it.name
-                            )
+                        subjects.mapNotNull {
+                            if(it.isActive) {
+                                ListItem(
+                                    id = it.id.toString(),
+                                    text = it.name
+                                )
+                            } else null
                         }
                     ))
                     subjectsListComponent.nInterface.nSuccess()

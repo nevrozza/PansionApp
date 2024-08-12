@@ -67,6 +67,8 @@ import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import components.CustomTextButton
 import di.Inject
+import forks.splitPane.ExperimentalSplitPaneApi
+import forks.splitPane.rememberSplitPaneState
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -119,7 +121,7 @@ private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
 
 @ExperimentalFoundationApi
 @OptIn(ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class,
-    DelicateCoroutinesApi::class
+    DelicateCoroutinesApi::class, ExperimentalSplitPaneApi::class
 )
 fun main() {
 //
@@ -191,7 +193,7 @@ fun main() {
                 val settingsRepository: SettingsRepository = Inject.instance()
                 val rgb = settingsRepository.fetchSeedColor().toRGB()
                 val themeDefinition = JewelTheme.darkThemeDefinition()
-                val viewManager = remember {
+                val viewManager = //remember {
                     ViewManager(
                         seedColor = mutableStateOf(
                             Color(
@@ -201,9 +203,10 @@ fun main() {
                             )
                         ),
                         tint = mutableStateOf(settingsRepository.fetchTint().toTint()),
-                        colorMode = mutableStateOf(settingsRepository.fetchColorMode())
+                        colorMode = mutableStateOf(settingsRepository.fetchColorMode()),
+                        splitPaneState = rememberSplitPaneState(initialPositionPercentage = .5f)
                     )
-                }
+                //}
                 CompositionLocalProvider(
                     LocalViewManager provides viewManager
                 ) {

@@ -4,6 +4,7 @@ import AdminRepository
 import com.arkivanov.essenty.statekeeper.StateKeeper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
 import users.UsersStore.Intent
@@ -15,7 +16,8 @@ class UsersStoreFactory(
     private val adminRepository: AdminRepository,
     private val nUsersInterface: NetworkInterface,
     private val eUserBottomSheet: CBottomSheetComponent,
-    private val cUserBottomSheet: CBottomSheetComponent
+    private val cUserBottomSheet: CBottomSheetComponent,
+    private val eDeleteDialog: CAlertDialogComponent,
 ) {
 
     fun create(state: UsersStore.State?, stateKeeper: StateKeeper): UsersStore =
@@ -29,7 +31,8 @@ class UsersStoreFactory(
                     adminRepository = adminRepository,
                     nUsersInterface = nUsersInterface,
                     eUserBottomSheet = eUserBottomSheet,
-                    cUserBottomSheet = cUserBottomSheet
+                    cUserBottomSheet = cUserBottomSheet,
+                    eDeleteDialog = eDeleteDialog
                 )
             },
             reducer = UsersReducer

@@ -130,7 +130,7 @@ object StudentGroups : Table() {
                         surname = user.surname,
                         praname = user.praname
                     ),
-                    isActive = true
+                    isActive = user.isActive
                 )
             }
         }

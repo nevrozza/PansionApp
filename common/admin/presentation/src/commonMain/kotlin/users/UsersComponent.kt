@@ -7,6 +7,7 @@ import com.arkivanov.decompose.childContext
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.instancekeeper.getOrCreate
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
 import di.Inject
@@ -17,6 +18,11 @@ class UsersComponent(
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
+
+
+
+
+
     private val nUsersInterface = NetworkInterface(
         childContext("usersComponentNInterfaceContext"),
         storeFactory,
@@ -24,7 +30,6 @@ class UsersComponent(
     )
     val nModel = nUsersInterface.networkModel
 
-    private val adminRepository: AdminRepository = Inject.instance()
 
     val cUserBottomSheet = CBottomSheetComponent(
         childContext("creatingUserBottomSheetContext"),
@@ -38,6 +43,17 @@ class UsersComponent(
         name = "editingUserBottomSheet"
     )
 
+    private val eDeleteDialogName = "EDeleteDialogNameUserComponent"
+
+    val eDeleteDialog = CAlertDialogComponent(
+        childContext(eDeleteDialogName + "CONTEXT"),
+        storeFactory = storeFactory,
+        name = eDeleteDialogName,
+        onAcceptClick = {onEvent(UsersStore.Intent.DeleteAccount)},
+        onDeclineClick = { onEvent(UsersStore.Intent.DeleteAccountInit(null)) }
+    )
+
+    private val adminRepository: AdminRepository = Inject.instance()
     private val usersStore =
         instanceKeeper.getOrCreate {
 
@@ -46,20 +62,18 @@ class UsersComponent(
                 adminRepository = adminRepository,
                 nUsersInterface = nUsersInterface,
                 eUserBottomSheet = eUserBottomSheet,
-                cUserBottomSheet = cUserBottomSheet
+                cUserBottomSheet = cUserBottomSheet,
+                eDeleteDialog = eDeleteDialog
             ).create(stateKeeper.consume(
                 key = "USERS_STORE_STATE",
                 strategy = State.serializer()
             ) , stateKeeper)
         }
 
+    val model = usersStore.asValue()
+
     init {
-        println("INITED: sad")
-        println(instanceKeeper)
-        println(cUserBottomSheet.instanceKeeper)
-        println(componentContext.stateKeeper)
-        println(componentContext.stateKeeper.isRegistered("USERS_STORE_STATE"))
-        stateKeeper.register("USERS_STORE_STATE", strategy = State.serializer(), supplier = usersStore::state)
+        //stateKeeper.register("USERS_STORE_STATE", strategy = State.serializer(), supplier = usersStore::state)
 
 
 //        if(!stKeeper.isRegistered("UsersStoreState")) {
@@ -68,7 +82,6 @@ class UsersComponent(
         onEvent(UsersStore.Intent.FetchUsersInit)
     }
 
-    val model = usersStore.asValue()
 
 //    @OptIn(ExperimentalCoroutinesApi::class)
 //    val state: StateFlow<UsersStore.State> = usersStore.stateFlow

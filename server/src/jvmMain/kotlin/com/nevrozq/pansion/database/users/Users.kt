@@ -137,7 +137,8 @@ object Users : Table() {
         newBirthday: String,
         newRole: String,
         newModeration: String,
-        newIsParent: Boolean
+        newIsParent: Boolean,
+        newIsActive: Boolean = true
     ) {
         try {
             transaction {
@@ -149,6 +150,7 @@ object Users : Table() {
                     it[role] = newRole
                     it[moderation] = newModeration
                     it[isParent] = newIsParent
+                    it[isActive] = newIsActive
                 }
             }
         } catch (e: Throwable) {

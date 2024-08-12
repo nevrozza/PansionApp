@@ -46,19 +46,23 @@ interface RatingStore : Store<Intent, State, Label> {
 
 val startSubject =  ScheduleSubject(
     id = -1,
-    name = "Общий рейтинг"
+    name = "Общий рейтинг",
+    isActive = true
 )
 val mvdSubject =  ScheduleSubject(
     id = -2,
-    name = "Дисциплина"
+    name = "Дисциплина",
+    isActive = true
 )
 
 val socialWorkSubject =  ScheduleSubject(
     id = -3,
-    name = "Общественная работа"
+    name = "Общественная работа",
+    isActive = true
 )
 
 val creativeSubject =  ScheduleSubject(
     id = -4,
-    name = "Творчество"
+    name = "Творчество",
+    isActive = true
 )

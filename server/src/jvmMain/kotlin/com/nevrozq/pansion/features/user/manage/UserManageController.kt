@@ -7,6 +7,7 @@ import admin.users.REditUserReceive
 import server.Moderation
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
+import admin.users.RDeleteUserReceive
 import admin.users.RFetchAllUsersResponse
 import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.parents.ParentsDTO
@@ -144,6 +145,31 @@ class UserManageController() {
                 call.respond(HttpStatusCode.Conflict, "SQL Conflict")
             } catch (e: Throwable) {
                 call.respond(HttpStatusCode.BadRequest, "Can't edit user: ${e.localizedMessage}")
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+    suspend fun performDeleteUser(call: ApplicationCall) {
+        val r = call.receive<RDeleteUserReceive>()
+        if (call.isModer) {
+            try {
+                Users.update(
+                    login = r.login,
+                    newName = r.user.fio.name,
+                    newSurname = r.user.fio.surname,
+                    newPraname = r.user.fio.praname,
+                    newBirthday = r.user.birthday,
+                    newRole = r.user.role,
+                    newModeration = r.user.moderation,
+                    newIsParent = r.user.isParent,
+                    newIsActive = false
+                )
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "SQL Conflict")
+            } catch (e: Throwable) {
+                call.respond(HttpStatusCode.BadRequest, "Can't delete user: ${e.localizedMessage}")
             }
         } else {
             call.respond(HttpStatusCode.Forbidden, "No permission")

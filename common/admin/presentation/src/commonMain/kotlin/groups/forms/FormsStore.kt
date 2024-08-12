@@ -25,9 +25,25 @@ interface FormsStore : Store<Intent, State, Label> {
         val cFormShortTitle: String = "",
         val cFormMentorLogin: String = "",
         val cFormClassNum: String = "",
+
+        val eFormId: Int = 0,
+        val eFormTitle: String = "",
+        val eFormShortTitle: String = "",
+        val eFormMentorLogin: String = "",
+        val eFormClassNum: String = "",
     )
 
     sealed interface Intent {
+
+        data class EditFormInit(val formId: Int) : Intent
+
+        data class ChangeEFormTitle(val title: String) : Intent
+        data class ChangeEFormShortTitle(val shortTitle: String) : Intent
+        data class ChangeEFormMentorLogin(val mentorLogin: String) : Intent
+        data class ChangeEFormClassNum(val classNum: String) : Intent
+
+        data object EditForm : Intent
+
         data class ClickOnForm(val formId: Int) : Intent
 
         data class ChangeCFormTitle(val title: String) : Intent
@@ -53,6 +69,15 @@ interface FormsStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+        data class EditFormInit(val formId: Int) : Message
+
+        data class ChangeEFormTitle(val title: String) : Message
+        data class ChangeEFormShortTitle(val shortTitle: String) : Message
+        data class ChangeEFormMentorLogin(val mentorLogin: String) : Message
+        data class ChangeEFormClassNum(val classNum: String) : Message
+
+
+
         data class ChosenFormIdChanged(val formId: Int) : Message  //, val groups: List<FormGroup>
         data class FormGroupsUpdated(val groups: List<FormGroup>) : Message  //, val groups: List<FormGroup>
 //        data class FormsProcessStarted(val formId: Int) : Message

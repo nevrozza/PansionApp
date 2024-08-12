@@ -287,6 +287,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                         is MainHome -> MultiPaneSplit(
                             isExpanded = isExpanded,
+                            viewManager = viewManager,
                             currentScreen = { HomeContent(child.homeComponent) },
                             firstScreen = { HomeContent(child.homeComponent) },
                             secondScreen = {
@@ -309,6 +310,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                         is MainJournal -> MultiPaneSplit(
                             isExpanded = isExpanded,
+                            viewManager = viewManager,
                             currentScreen = {
                                 JournalContent(
                                     child.journalComponent,
@@ -339,6 +341,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is Child.HomeDnevnikRuMarks -> {
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
+                                viewManager = viewManager,
                                 currentScreen = { DnevnikRuMarkContent(child.dnevnikRuMarksComponent) },
                                 firstScreen = { HomeContent(child.homeComponent) },
                                 secondScreen = { DnevnikRuMarkContent(child.dnevnikRuMarksComponent) }
@@ -348,6 +351,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is Child.HomeDetailedStups -> {
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
+                                viewManager = viewManager,
                                 currentScreen = { DetailedStupsContent(child.detailedStups) },
                                 firstScreen = { HomeContent(child.homeComponent) },
                                 secondScreen = { DetailedStupsContent(child.detailedStups) }
@@ -376,6 +380,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             ) {
                                 MultiPaneSplit(
                                     isExpanded = isExpanded,
+                                    viewManager = viewManager,
                                     currentScreen = {
                                         AdminContent(
                                             child.adminComponent,
@@ -415,6 +420,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is AdminUsers ->
                             MultiPaneAdmin(
                                 isExpanded,
+                                viewManager = viewManager,
                                 adminComponent = child.adminComponent,
                                 currentRouting = AdminComponent.Output.NavigateToUsers,
                                 secondScreen = { UsersContent(child.usersComponent) }
@@ -423,6 +429,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is AdminGroups ->
                             MultiPaneAdmin(
                                 isExpanded,
+                                viewManager = viewManager,
                                 adminComponent = child.adminComponent,
                                 currentRouting = AdminComponent.Output.NavigateToGroups,
                                 secondScreen = { GroupsContent(child.groupsComponent) }
@@ -431,6 +438,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is LessonReport ->
                             MultiPaneJournal(
                                 isExpanded,
+                                viewManager = viewManager,
                                 journalComponent = child.journalComponent,
                                 currentReportId = 0,
                                 role = model.role,
@@ -447,6 +455,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is Child.HomeAllGroupMarks ->
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
+                                viewManager = viewManager,
                                 currentScreen = { AllGroupMarksContent(child.allGroupMarksComponent) },
                                 firstScreen = { AllGroupMarksContent(child.allGroupMarksComponent) },
                                 secondScreen = {
@@ -462,6 +471,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is Child.AdminSchedule -> ScheduleContent(child.scheduleComponent)
                         is Child.HomeProfile -> MultiPaneSplit(
                             isExpanded = isExpanded,
+                            viewManager = viewManager,
                             currentScreen = { ProfileContent(child.profileComponent) },
                             firstScreen = { HomeContent(child.homeComponent) },
                             secondScreen = {
@@ -471,6 +481,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                         is Child.AdminCabinets -> MultiPaneAdmin(
                             isExpanded,
+                            viewManager = viewManager,
                             adminComponent = child.adminComponent,
                             currentRouting = AdminComponent.Output.NavigateToCabinets,
                             secondScreen = { CabinetsContent(child.cabinetsComponent) }
@@ -478,6 +489,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                         is MainRating -> MultiPaneSplit(
                             isExpanded = isExpanded,
+                            viewManager = viewManager,
                             currentScreen = { RatingContent(child.ratingComponent) },
                             firstScreen = { HomeContent(child.homeComponent) },
                             secondScreen = {
@@ -487,6 +499,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                         is Child.HomeTasks -> MultiPaneSplit(
                             isExpanded = isExpanded,
+                            viewManager = viewManager,
                             currentScreen = { HomeTasksContent(child.homeTasksComponent) },
                             firstScreen = { HomeContent(child.homeComponent) },
                             secondScreen = {
@@ -496,6 +509,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                         is Child.AdminCalendar -> MultiPaneAdmin(
                             isExpanded,
+                            viewManager = viewManager,
                             adminComponent = child.adminComponent,
                             currentRouting = AdminComponent.Output.NavigateToCalendar,
                             secondScreen = { CalendarContent(child.calendarComponent) }
@@ -504,17 +518,20 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is MainMentoring -> MultiPaneMentoring(
                             isExpanded,
                             mentoringComponent = child.mentoringComponent,
-                            rootComponent = null
+                            rootComponent = null,
+                            viewManager = viewManager
                         )
 
                         is Child.SecondView -> MultiPaneMentoring(
                             isExpanded,
                             mentoringComponent = child.mentoringComponent,
-                            rootComponent = child.rootComponent
+                            rootComponent = child.rootComponent,
+                            viewManager = viewManager
                         )
 
                         is Child.AdminAchievements -> MultiPaneAdmin(
                             isExpanded,
+                            viewManager = viewManager,
                             adminComponent = child.adminComponent,
                             currentRouting = AdminComponent.Output.NavigateToAchievements,
                             secondScreen = { AdminAchievementsContent(child.adminAchievementsComponent) }
@@ -523,6 +540,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is Child.HomeAchievements ->
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
+                                viewManager = viewManager,
                                 currentScreen = { HomeAchievementsContent(child.achievementsComponent) },
                                 firstScreen = { HomeContent(child.homeComponent) },
                                 secondScreen = { HomeAchievementsContent(child.achievementsComponent) }
@@ -531,6 +549,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is Child.AdminParents ->
                             MultiPaneAdmin(
                                 isExpanded,
+                                viewManager = viewManager,
                                 adminComponent = child.adminComponent,
                                 currentRouting = AdminComponent.Output.NavigateToParents,
                                 secondScreen = { AdminParentsContent(child.parentsComponent) }
@@ -646,12 +665,13 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 @Composable
 fun MultiPaneMentoring(
     isExpanded: Boolean,
+    viewManager: ViewManager,
     mentoringComponent: MentoringComponent?,
     rootComponent: RootComponent?
 ) {
-    val viewManager = LocalViewManager.current
     MultiPaneSplit(
         isExpanded = isExpanded,
+        viewManager = viewManager,
         currentScreen = {
             if (rootComponent == null && mentoringComponent != null) MentoringContent(
                 mentoringComponent
@@ -696,22 +716,18 @@ fun MultiPaneJournal(
     currentReportId: Int,
     role: String,
     moderation: String,
+    viewManager: ViewManager,
     secondScreen: @Composable () -> Unit
 ) {
-
-    val isFullScreen = remember { mutableStateOf(true) }
-
     if (isExpanded) {
-        val splitterState = rememberSplitPaneState()
-
-        LaunchedEffect(isFullScreen.value) {
-            if (isFullScreen.value) {
-                splitterState.dispatchRawMovement(-30000f)
+        LaunchedEffect(viewManager.isFullScreen.value) {
+            if (viewManager.isFullScreen.value) {
+                viewManager.splitPaneState.dispatchRawMovement(-30000f)
             }
         }
-        val x = animateDpAsState(if (isFullScreen.value) 0.dp else 250.dp)
+        val x = animateDpAsState(if (viewManager.isFullScreen.value) 0.dp else 400.dp)
         HorizontalSplitPane(
-            splitPaneState = splitterState
+            splitPaneState = viewManager.splitPaneState
         ) {
             first(minSize = x.value) {
                 JournalContent(
@@ -723,7 +739,7 @@ fun MultiPaneJournal(
                 )
             }
 
-            dSplitter(isFullScreen)
+            dSplitter(viewManager.isFullScreen)
 
 
             second(minSize = 500.dp) {
@@ -741,12 +757,12 @@ fun MultiPaneAdmin(
     isExpanded: Boolean,
     adminComponent: AdminComponent,
     currentRouting: AdminComponent.Output,
+    viewManager: ViewManager,
     secondScreen: @Composable () -> Unit
 ) {
     if (isExpanded) {
-        val splitterState = rememberSplitPaneState()
         HorizontalSplitPane(
-            splitPaneState = splitterState
+            splitPaneState = viewManager.splitPaneState
         ) {
             first(minSize = 250.dp) {
                 AdminContent(adminComponent, currentRouting = currentRouting)
@@ -765,14 +781,14 @@ fun MultiPaneAdmin(
 @Composable
 fun MultiPaneSplit(
     isExpanded: Boolean,
+    viewManager: ViewManager,
     currentScreen: @Composable () -> Unit,
     firstScreen: @Composable () -> Unit,
     secondScreen: @Composable () -> Unit
 ) {
     if (isExpanded) {
-        val splitterState = rememberSplitPaneState(.5f)
         HorizontalSplitPane(
-            splitPaneState = splitterState
+            splitPaneState = viewManager.splitPaneState
         ) {
             first(minSize = 400.dp) {
                 firstScreen()

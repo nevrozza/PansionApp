@@ -28,10 +28,24 @@ interface SubjectsStore : Store<Intent, State, Label> {
         val cTeacherLogin: String = "",
         val cDifficult: String = "",
         val students: HashMap<Int, List<Person>> = hashMapOf(),
-        val currentGroup: Int = 0
+        val currentGroup: Int = 0,
+
+        val eSubjectId: Int = 0,
+        val eSubjectText: String = "",
+
+        val eGroupId: Int = 0,
+        val eName: String = "",
+        val eTeacherLogin: String = "",
+        val eDifficult: String = "",
     )
 
     sealed interface Intent {
+        data class ChangeESubjectText(val text: String) : Intent
+        data object DeleteSubject : Intent
+        data object Update : Intent
+        data class EditSubject(val sameCount: Int) : Intent
+        data class EditSubjectInit(val subjectId: Int, val text: String) : Intent
+
         data class FetchStudents(val groupId: Int) : Intent
         data class ClickOnSubject(val subjectId: Int) : Intent
 
@@ -46,6 +60,14 @@ interface SubjectsStore : Store<Intent, State, Label> {
 
         data object CreateGroup : Intent
 
+        data class GroupEditInit(val groupId: Int) : Intent
+        data class ChangeEName(val name: String) : Intent
+        data class ChangeETeacherLogin(val teacherLogin: String) : Intent
+        data class ChangeEDifficult(val difficult: String) : Intent
+
+        data object DeleteGroup : Intent
+        data object EditGroup : Intent
+
 
 //        data class ChangeCreatingSheetShowing(val isShowing: Boolean) : Intent
 //        data object TryCreateAgain : GroupsStore.Intent
@@ -54,6 +76,10 @@ interface SubjectsStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+        data class ESubjectTextChanged(val text: String) : Message //Subjects
+        data class EditSubjectInit(val subjectId: Int) : Message //Subjects
+
+
         data class CurrentGroupChanged(val currentGroup: Int) : Message
         data class StudentsFetched(val students: HashMap<Int, List<Person>>) : Message
         data class ChosenSubjectChanged(val subjectId: Int) : Message //Subjects
@@ -65,16 +91,10 @@ interface SubjectsStore : Store<Intent, State, Label> {
         data class CTeacherLoginChanged(val teacherLogin: String) : Message
         data class CDifficultChanged(val difficult: String) : Message
 
-//        data object CreateGSubjectAgainTryed : GroupsStore.Message //Subjects
-
-//        data class GroupsProcessStarted(val index: Int) : GroupsStore.Message
-
-//        data class CreatingSheetShowingChanged(val isShowing: Boolean) : GroupsStore.Message
-//        data object CreatingProcessStarted : GroupsStore.Message
-//        data object CreationError : GroupsStore.Message
-//        data object TryCreateAgain : GroupsStore.Message
-
-//        data class GroupCreated(val groups: List<SubjectGroup>) : GroupsStore.Message
+        data class EditGroupInit(val groupId: Int) : Message
+        data class ENameChanged(val name: String) : Message
+        data class ETeacherLoginChanged(val teacherLogin: String) : Message
+        data class EDifficultChanged(val difficult: String) : Message
     }
 
     sealed interface Label

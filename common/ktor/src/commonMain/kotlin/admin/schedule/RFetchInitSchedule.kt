@@ -17,7 +17,7 @@ data class RFetchInitScheduleResponse(
 data class SchedulePerson(
     val login: String,
     val fio: FIO,
-    val groups: List<Int>
+    val groups: List<Pair<Int, Boolean>>
 )
 
 @Serializable
@@ -30,7 +30,8 @@ data class ScheduleGroup(
 @Serializable
 data class ScheduleSubject(
     val id: Int,
-    val name: String
+    val name: String,
+    val isActive: Boolean
 )
 
 

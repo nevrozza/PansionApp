@@ -19,7 +19,10 @@ class SubjectsStoreFactory(
     private val nSubjectsInterface: NetworkInterface,
     private val updateSubjects: () -> Unit,
     private val cSubjectDialog: CAlertDialogComponent,
-    private val cGroupBottomSheet: CBottomSheetComponent
+    private val cGroupBottomSheet: CBottomSheetComponent,
+    private val eGroupBottomSheet: CBottomSheetComponent,
+    private val editSubjectDialog: CAlertDialogComponent,
+    private val deleteSubjectDialog: CAlertDialogComponent,
 ) {
 
     fun create(): SubjectsStore {
@@ -38,7 +41,10 @@ class SubjectsStoreFactory(
                 cSubjectDialog = cSubjectDialog,
                 cGroupBottomSheet = cGroupBottomSheet,
                 mainRepository = mainRepository,
-                nGroupInterface = nGroupInterface
+                nGroupInterface = nGroupInterface,
+                editSubjectDialog = editSubjectDialog,
+                deleteSubjectDialog = deleteSubjectDialog,
+                eGroupBottomSheet = eGroupBottomSheet
             ) },
             reducer = SubjectsReducer
         )

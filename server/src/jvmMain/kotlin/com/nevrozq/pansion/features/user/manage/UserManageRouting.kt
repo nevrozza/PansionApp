@@ -31,5 +31,8 @@ fun Application.configureRegisterRouting() {
 //            val registerController = RegisterController(call)
             userManageController.performEditUser(call)
         }
+        post(RequestPaths.UserManage.DeleteUser) {
+            userManageController.performDeleteUser(call)
+        }
     }
 }

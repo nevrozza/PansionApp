@@ -59,8 +59,8 @@ object Calendar : Table() {
     }
 
     fun getAllModulesOfHalfAsString(half: Int): String {
-        val modules = getAllModules().filter { it.halfNum == half }
-        return modules.map { it.num }.joinToString(separator = "").replace("[", "").replace("]", "")
+        val modules = getAllModules().filter { it.halfNum == half }.map { it.num }.joinToString(separator = "").replace("[", "").replace("]", "")
+        return modules.ifEmpty { if(half == 1) "1" else "" }
     }
 
     fun getAllModulesOfHalf(half: Int): List<Int> {

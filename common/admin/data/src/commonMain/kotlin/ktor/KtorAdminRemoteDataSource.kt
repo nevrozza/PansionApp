@@ -3,7 +3,6 @@ package ktor
 import RequestPaths
 import achievements.RCreateAchievementReceive
 import achievements.REditAchievementReceive
-import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
 import achievements.RUpdateGroupOfAchievementsReceive
 import admin.cabinets.RFetchCabinetsResponse
@@ -24,16 +23,21 @@ import admin.groups.subjects.RFetchTeachersResponse
 import admin.groups.subjects.RFetchGroupsReceive
 import admin.groups.forms.RFetchFormGroupsReceive
 import admin.groups.forms.RFetchFormGroupsResponse
+import admin.groups.forms.outside.REditFormReceive
 import admin.groups.students.deep.RFetchStudentGroupsReceive
 import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
+import admin.groups.subjects.REditGroupReceive
+import admin.groups.subjects.topBar.RDeleteSubject
+import admin.groups.subjects.topBar.REditSubjectReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
 import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
+import admin.users.RDeleteUserReceive
 import admin.users.RFetchAllUsersResponse
 import checkOnNoOk
 import io.ktor.client.HttpClient
@@ -150,6 +154,16 @@ class KtorAdminRemoteDataSource(
         }.status.value.checkOnNoOk()
 
     }
+    suspend fun performDeleteUser(request: RDeleteUserReceive) {
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.UserManage.DeleteUser)
+                setBody(request)
+            }
+        }.status.value.checkOnNoOk()
+
+    }
 
     suspend fun updateCalendar(r: RUpdateCalendarReceive) {
         httpClient.post {
@@ -239,6 +253,24 @@ class KtorAdminRemoteDataSource(
             }
         }.status.value.checkOnNoOk()
     }
+    suspend fun deleteSubject(r: RDeleteSubject) {
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.DeleteSubject)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+    suspend fun editSubject(r: REditSubjectReceive) {
+        httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.EditSubject)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
 
     suspend fun createFormGroup(request: RCreateFormGroupReceive){
         httpClient.post {
@@ -300,12 +332,30 @@ class KtorAdminRemoteDataSource(
             }
         }.status.value.checkOnNoOk()
     }
+    suspend fun createGroup(request: REditGroupReceive) {
+        return httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.EditGroup)
+                setBody(request)
+            }
+        }.status.value.checkOnNoOk()
+    }
 
     suspend fun createForm(request: CreateFormReceive) {
         return httpClient.post {
             bearer()
             url {
                 path(RequestPaths.Lessons.CreateForm)
+                setBody(request)
+            }
+        }.status.value.checkOnNoOk()
+    }
+    suspend fun editForm(request: REditFormReceive) {
+        return httpClient.post {
+            bearer()
+            url {
+                path(RequestPaths.Lessons.EditForm)
                 setBody(request)
             }
         }.status.value.checkOnNoOk()

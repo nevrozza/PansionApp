@@ -21,8 +21,7 @@ object FormsReducer : Reducer<State, Message> {
             is Message.CFormMentorLoginChanged -> copy(cFormMentorLogin = msg.mentorLogin)
             is Message.CFormShortTitleChanged -> copy(cFormShortTitle = msg.shortTitle)
             is Message.CFormTitleChanged -> copy(cFormTitle = msg.title)
-//            Message.FormCreated -> TODO()
-//            Message.FormGroupCreated -> TODO()
+
             Message.FormGroupCreatingMenuOpened -> copy(isFormGroupCreatingMenu = true)
             Message.FormGroupCreationMenuClosed -> copy(isFormGroupCreatingMenu = false)
             is Message.FormGroupsUpdated -> copy(formGroups = msg.groups)
@@ -33,6 +32,12 @@ object FormsReducer : Reducer<State, Message> {
                 cFormGroupGroupId = 0,
                 cutedGroups = listOf()
             )
+
+            is Message.ChangeEFormClassNum -> copy(eFormClassNum = msg.classNum)
+            is Message.ChangeEFormMentorLogin -> copy(eFormMentorLogin = msg.mentorLogin)
+            is Message.ChangeEFormShortTitle -> copy(eFormShortTitle = msg.shortTitle)
+            is Message.ChangeEFormTitle -> copy(eFormTitle = msg.title)
+            is Message.EditFormInit -> copy(eFormId = msg.formId)
         }
     }
 }

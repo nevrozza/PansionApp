@@ -260,6 +260,7 @@ open class RatingEntity : Table() {
     }
 
     fun fetchForUserQuarters(login: String, quartersNum: String, isQuarters: Boolean) : List<RatingEntityDTO> {
+
         val x = if(isQuarters) quartersNum else Calendar.getAllModulesOfHalfAsString(quartersNum.toInt())
         val quartersList = x.map { it.toString() }
         return transaction {

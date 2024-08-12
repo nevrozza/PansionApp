@@ -13,6 +13,7 @@ import admin.groups.forms.RFetchCutedGroupsResponse
 import admin.groups.forms.RFetchFormGroupsReceive
 import admin.groups.forms.RFetchFormGroupsResponse
 import admin.groups.forms.outside.CreateFormReceive
+import admin.groups.forms.outside.REditFormReceive
 import admin.groups.forms.outside.RFetchFormsResponse
 import admin.groups.forms.outside.RFetchMentorsResponse
 import admin.groups.students.RBindStudentToFormReceive
@@ -22,6 +23,9 @@ import admin.groups.students.deep.RCreateStudentGroupReceive
 import admin.groups.students.deep.RFetchStudentGroupsReceive
 import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.subjects.RCreateGroupReceive
+import admin.groups.subjects.REditGroupReceive
+import admin.groups.subjects.topBar.RDeleteSubject
+import admin.groups.subjects.topBar.REditSubjectReceive
 import admin.groups.subjects.RFetchGroupsReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.RFetchTeachersResponse
@@ -93,6 +97,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
@@ -138,7 +143,11 @@ class LessonsController() {
 
                 val checkedNotifications = CheckedNotifications.fetchByLogin(r.studentLogin)
 
-                val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(-2 to "Дисциплина", -3 to "Общественная работа", -4 to "Творчество")
+                val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
+                    -2 to "Дисциплина",
+                    -3 to "Общественная работа",
+                    -4 to "Творчество"
+                )
                 val groups = Groups.getAllGroups()
                 val reports = ReportHeaders.fetchReportHeaders()
                 val achievements = Achievements.fetchAllByLogin(r.studentLogin).map {
@@ -164,23 +173,29 @@ class LessonsController() {
                                 date = header.date,
                                 login = r.studentLogin
                             )
-                            val time =  header.time.toMinutes()
-                            val is2NKA = if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
+                            val time = header.time.toMinutes()
+                            val is2NKA =
+                                if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
                             if ((x.lateTime.isNotEmpty() && x.lateTime != "0") || isNka || is2NKA) {
-                                val subject = if (group != null) subjects[group.subjectId].toString() else "null"
-                                    ClientMainNotification(
-                                        key = if (is2NKA || isNka) "N.${x.login}.${x.reportId}" else "Op.${x.login}.${x.reportId}",
-                                        subjectName = subject,
-                                        reason = if (is2NKA) "N.${if (pa!!.isGood) "2" else "1"}" else if (isNka) "N.${x.attended}" else "Op.${x.lateTime}",
-                                        date = header.date.toString(),
-                                        reportTime = header.time.toString(),
-                                        groupName = group?.name.toString()
-                                    )
+                                val subject =
+                                    if (group != null) subjects[group.subjectId].toString() else "null"
+                                ClientMainNotification(
+                                    key = if (is2NKA || isNka) "N.${x.login}.${x.reportId}" else "Op.${x.login}.${x.reportId}",
+                                    subjectName = subject,
+                                    reason = if (is2NKA) "N.${if (pa!!.isGood) "2" else "1"}" else if (isNka) "N.${x.attended}" else "Op.${x.lateTime}",
+                                    date = header.date.toString(),
+                                    reportTime = header.time.toString(),
+                                    groupName = group?.name.toString()
+                                )
                             } else null
                         } else null
                     }
                 val filtered = (achievements + nKiOpozd).filter { it.key !in checkedNotifications }
-                    .sortedWith(compareBy({getLocalDate(it.date).toEpochDays()}, {it.reportTime?.toMinutes()})).reversed()
+                    .sortedWith(
+                        compareBy(
+                            { getLocalDate(it.date).toEpochDays() },
+                            { it.reportTime?.toMinutes() })
+                    ).reversed()
 
                 call.respond(
                     RFetchMainNotificationsResponse(
@@ -311,10 +326,11 @@ class LessonsController() {
             try {
                 val subjects = Subjects.fetchAllSubjects()
                 call.respond(
-                    RFetchScheduleSubjectsResponse(subjects.map {
+                    RFetchScheduleSubjectsResponse(subjects.mapNotNull {
                         ScheduleSubject(
                             id = it.id,
-                            name = it.name
+                            name = it.name,
+                            isActive = it.isActive
                         )
                     })
                 )
@@ -585,12 +601,12 @@ class LessonsController() {
 
                 val tt = Users.fetchAllTeachers().filter { it.isActive }
                 val ss = Users.fetchAllStudents().filter { it.isActive }
-                val gg = Groups.getAllGroups().filter { it.isActive }
+                val gg = Groups.getAllGroups().sortedBy { it.isActive }
                 val gs = StudentGroups.fetchAll()
                 val subjects = Subjects.fetchAllSubjects()
 
                 tt.forEach { t ->
-                    val groups = gg.filter { it.teacherLogin == t.login }.map { it.id }
+                    val groups = gg.filter { it.teacherLogin == t.login }.map { Pair(it.id, it.isActive) }
                     teachers.add(
                         SchedulePerson(
                             login = t.login,
@@ -607,9 +623,10 @@ class LessonsController() {
                 ss.forEach { s ->
                     val groups =
                         gs.filter { it.studentLogin == s.login }.filter {
-                            val id = it.groupId
-                            gg.first { it.id == id }.isActive
-                        }.map { it.groupId }
+                            true
+//                            val id = it.groupId
+//                            gg.firstOrNull { it.id == id }?.isActive == true
+                        }.map { xs -> Pair(xs.groupId, gg.firstOrNull { it.id == xs.groupId }?.isActive == true) }
 
                     students.add(
                         SchedulePerson(
@@ -635,10 +652,11 @@ class LessonsController() {
                                 name = it.name
                             )
                         },
-                        subjects = subjects.filter { it.isActive }.map {
+                        subjects = subjects.map {
                             ScheduleSubject(
                                 id = it.id,
-                                name = it.name
+                                name = it.name,
+                                isActive = it.isActive
                             )
                         },
                         forms = forms
@@ -790,6 +808,26 @@ class LessonsController() {
         }
     }
 
+    suspend fun editGroup(call: ApplicationCall) {
+        if (call.isModer) {
+            val r = call.receive<REditGroupReceive>()
+            try {
+                Groups.update(id = r.id, r)
+
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Group already exists")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't edit group: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
     suspend fun createForm(call: ApplicationCall) {
         val r = call.receive<CreateFormReceive>()
         if (call.isModer) {
@@ -803,6 +841,26 @@ class LessonsController() {
                         isActive = true
                     )
                 )
+
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Form already exists")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't create group: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+    suspend fun editForm(call: ApplicationCall) {
+        if (call.isModer) {
+            val r = call.receive<REditFormReceive>()
+            try {
+
+                Forms.update(r)
 
                 call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
@@ -1001,7 +1059,7 @@ class LessonsController() {
     suspend fun fetchTeacherGroups(call: ApplicationCall) {
         if (call.isTeacher) {
             try {
-                val groups = Groups.getGroupsOfTeacher(call.login)
+                val groups = Groups.getGroupsOfTeacher(call.login).filter { it.isActive }
                 call.respond(RFetchTeacherGroupsResponse(groups.map { it.mapToTeacherGroup() }))
             } catch (e: Throwable) {
                 call.respond(
@@ -1020,7 +1078,7 @@ class LessonsController() {
             try {
                 val students = StudentGroups.fetchStudentsOfGroup(
                     groupId = r.groupId
-                )
+                ).filter { it.isActive }
                 call.respond(RFetchStudentsInGroupResponse(students))
             } catch (e: Throwable) {
                 call.respond(
@@ -1090,6 +1148,60 @@ class LessonsController() {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Can't create subject: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun editSubject(call: ApplicationCall) {
+        if (call.isModer) {
+            val r = call.receive<REditSubjectReceive>()
+            try {
+                Subjects.update(r.subjectId, r.name)
+
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Subject already exists")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't edit subject: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun deleteSubject(call: ApplicationCall) {
+        if (call.isModer) {
+            val r = call.receive<RDeleteSubject>()
+            try {
+                val groups = Groups.fetchGroupOfSubject(r.subjectId)
+                transaction {
+                    groups.forEach {
+                        Groups.update(
+                            it.id,
+                            REditGroupReceive(
+                                id = it.id,
+                                name = it.name,
+                                mentorLogin = it.teacherLogin,
+                                difficult = it.difficult,
+                                isActive = false
+                            )
+                        )
+                    }
+                }
+                Subjects.update(r.subjectId, null, false)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Subject already exists")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't delete subject: ${e.localizedMessage}"
                 )
             }
         } else {

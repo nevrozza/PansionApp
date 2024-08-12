@@ -401,7 +401,7 @@ class ReportsController() {
 
                 val result = mutableListOf<AllGroupMarksStudent>()
                 val students = StudentGroups.fetchStudentsOfGroup(r.groupId)
-                students.forEach { s ->
+                students.filter { it.isActive }.forEach { s ->
                     val isQuarter = isQuarter(RIsQuartersReceive(s.login))
                     val marks = Marks.fetchForUserSubject(
                         login = s.login,
