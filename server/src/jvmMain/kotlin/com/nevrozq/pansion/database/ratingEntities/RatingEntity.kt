@@ -166,6 +166,34 @@ open class RatingEntity : Table() {
             }
         }
     }
+    fun fetchForUserReport(sLogin: String, reportId: Int) : List<RatingEntityDTO> {
+        return transaction {
+            try {
+                val ratingEntities =
+                    this@RatingEntity.select { (this@RatingEntity.reportId eq reportId) and (this@RatingEntity.login eq sLogin) }
+                ratingEntities.map {
+                    RatingEntityDTO(
+                        groupId = it[groupId],
+                        reportId = it[this@RatingEntity.reportId],
+                        login = it[login],
+                        content = it[content],
+                        reason = it[reason],
+                        id = it[this@RatingEntity.id],
+                        part = it[part],
+                        isGoToAvg = it[isGoToAvg],
+                        subjectId = it[subjectId],
+                        date = it[date],
+                        deployDate = it[deployDate],
+                        deployTime = it[deployTime],
+                        deployLogin = it[deployLogin]
+                    )
+                }
+            } catch (e: Throwable) {
+                println(e)
+                listOf()
+            }
+        }
+    }
 
     fun fetchUserByDate(login: String, date: String) : List<RatingEntityDTO> {
         return transaction {

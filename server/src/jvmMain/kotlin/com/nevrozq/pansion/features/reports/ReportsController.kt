@@ -67,6 +67,10 @@ import report.RFetchReportDataReceive
 import report.RFetchReportDataResponse
 import report.RFetchReportStudentsReceive
 import report.RFetchReportStudentsResponse
+import report.RFetchStudentLinesReceive
+import report.RFetchStudentLinesResponse
+import report.RFetchStudentReportReceive
+import report.RFetchStudentReportResponse
 import report.RFetchSubjectQuarterMarksReceive
 import report.RFetchSubjectQuarterMarksResponse
 import report.RIsQuartersReceive
@@ -74,6 +78,7 @@ import report.RIsQuartersResponse
 import report.RUpdateReportReceive
 import report.ReportHeader
 import report.ServerStudentLine
+import report.StudentReportInfo
 import report.UserMark
 import report.UserMarkPlus
 import server.getCurrentDate
@@ -105,13 +110,126 @@ class ReportsController() {
         }
     }
 
+    suspend fun fetchClientStudentLines(call: ApplicationCall) {
+
+        if (call.isMember) {
+            try {
+                val r = call.receive<RFetchStudentLinesReceive>()
+
+                val studentLines = StudentLines.fetchClientStudentLines(login = r.login)
+
+                call.respond(
+                    RFetchStudentLinesResponse(
+                        studentLines = studentLines
+                    )
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch studentLines: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun fetchStudentReport(call: ApplicationCall) {
+
+        if (call.isMember) {
+            try {
+                val r = call.receive<RFetchStudentReportReceive>()
+
+                val sl = StudentLines.fetchClientStudentLine(login = r.login, reportId = r.reportId)
+                if (sl == null) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        "Can't fetch studentLine: null"
+                    )
+                } else {
+                    val marks = Marks.fetchForUserReport(sLogin = r.login, reportId = r.reportId)
+                    val stups = Stups.fetchForUserReport(sLogin = r.login, reportId = r.reportId)
+
+                    val h = ReportHeaders.fetchHeader(reportId = r.reportId)
+
+                    val info = StudentReportInfo(
+                        subjectName = h.subjectName,
+                        groupName = h.groupName,
+                        teacherName = h.teacherName,
+                        date = h.date,
+                        module = h.module,
+                        time = h.time,
+                        theme = h.topic
+                    )
+
+                    val homeTasks = HomeTasks.getAllHomeTasksByReportId(reportId = r.reportId).filter {
+                        it.studentLogins == null || r.login in it.studentLogins
+                    }
+
+                    call.respond(
+                        RFetchStudentReportResponse(
+                            studentLine = sl,
+                            marks = marks.map {
+                                UserMarkPlus(
+                                    mark = UserMark(
+                                        id = it.id,
+                                        content = it.content,
+                                        reason = it.reason,
+                                        isGoToAvg = it.isGoToAvg,
+                                        groupId = it.groupId,
+                                        date = it.date,
+                                        reportId = it.reportId,
+                                        module = it.part
+                                    ),
+                                    deployDate = it.deployDate,
+                                    deployTime = it.deployTime,
+                                    deployLogin = it.deployLogin
+                                )
+                            },
+                            stups = stups.map {
+                                UserMarkPlus(
+                                    mark = UserMark(
+                                        id = it.id,
+                                        content = it.content,
+                                        reason = it.reason,
+                                        isGoToAvg = it.isGoToAvg,
+                                        groupId = it.groupId,
+                                        date = it.date,
+                                        reportId = it.reportId,
+                                        module = it.part
+                                    ),
+                                    deployDate = it.deployDate,
+                                    deployTime = it.deployTime,
+                                    deployLogin = it.deployLogin
+                                )
+                            },
+                            info = info,
+                            homeTasks = homeTasks.map {
+                                it.text
+                            }
+                        )
+                    )
+                }
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch studentReport: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
     suspend fun fetchFullReportData(call: ApplicationCall) {
         val r = call.receive<RFetchFullReportData>()
         if (call.isTeacher || call.isMember) {
             try {
                 val l = ReportHeaders.fetchHeader(r.reportId)
-                println("DATE: ${l.date}")
-                println("TIME: ${l.time}")
 
                 call.respond(
                     ReportData(
@@ -218,7 +336,7 @@ class ReportsController() {
                 var achievementsStups: MutableMap<Period, Pair<Int, Int>>? = null
 
 
-                if(r.isFirst) {
+                if (r.isFirst) {
                     achievementsStups = mutableMapOf(
                         Period.WEEK to Pair(0, 0),
                         Period.MODULE to Pair(0, 0),
@@ -265,7 +383,7 @@ class ReportsController() {
                         val half = Calendar.getHalfOfModule(module.toInt())
 
                         val modules = Calendar.getAllModulesOfHalf(half).sorted()
-                        if(modules.isNotEmpty()) {
+                        if (modules.isNotEmpty()) {
                             val firstModuleStartDate =
                                 Calendar.getModuleStart(modules.first()) ?: "01.01.2000"
                             val lastModuleStartDate = Calendar.getModuleStart(modules.last() + 1)
@@ -282,7 +400,8 @@ class ReportsController() {
                                 )
                             }
                         } else {
-                            achievementsStups[Period.HALF_YEAR] = achievementsStups[Period.YEAR] ?: Pair(0, 0)
+                            achievementsStups[Period.HALF_YEAR] =
+                                achievementsStups[Period.YEAR] ?: Pair(0, 0)
                         }
 
 

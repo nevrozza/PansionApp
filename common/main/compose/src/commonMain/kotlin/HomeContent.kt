@@ -54,6 +54,8 @@ import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material.icons.rounded.ManageSearch
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ButtonDefaults
@@ -142,6 +144,7 @@ import server.getLocalDate
 import server.roundTo
 import server.toMinutes
 import server.weekPairs
+import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
 import view.WindowScreen
 import view.blend
@@ -727,105 +730,117 @@ fun StudentHomeContent(
             ) {
                 item {
                     ElevatedCard(Modifier.fillMaxWidth()) {
-                        Row(
-                            Modifier.padding(10.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier.clip(CircleShape).clickable {
-                                    component.onOutput(
-                                        HomeComponent.Output.NavigateToProfile(
-                                            studentLogin = model.login,
-                                            fio = FIO(
-                                                name = model.name,
-                                                praname = model.praname,
-                                                surname = model.surname
-                                            ),
-                                            avatarId = model.avatarId
-                                        )
-                                    )
-                                }
+                        Box() {
+                            Row(
+                                Modifier.padding(10.dp)
                             ) {
-                                GetAvatar(
-                                    avatarId = model.avatarId,
-                                    name = model.name
-                                )
-                            }
-                            Spacer(Modifier.width(15.dp))
-                            Column {
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                Box(
+                                    modifier = Modifier.clip(CircleShape).clickable {
+                                        component.onOutput(
+                                            HomeComponent.Output.NavigateToProfile(
+                                                studentLogin = model.login,
+                                                fio = FIO(
+                                                    name = model.name,
+                                                    praname = model.praname,
+                                                    surname = model.surname
+                                                ),
+                                                avatarId = model.avatarId
+                                            )
+                                        )
+                                    }
                                 ) {
-                                    Text(
-                                        model.name,
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold,
+                                    GetAvatar(
+                                        avatarId = model.avatarId,
+                                        name = model.name
                                     )
-                                    AnimatedContent(
-                                        when (model.period) {
-                                            Period.WEEK -> "неделя"
-                                            Period.MODULE -> "модуль"
-                                            Period.HALF_YEAR -> "полугодие"
-                                            Period.YEAR -> "год"
-                                        },
-                                        transitionSpec = {
-                                            fadeIn().togetherWith(fadeOut())
-                                        }
+                                }
+                                Spacer(Modifier.width(15.dp))
+                                Column {
+                                    Row(
+                                        Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        CustomTextButton(
-                                            text = it,
+                                        Text(
+                                            model.name,
+                                            fontSize = 20.sp,
                                             fontWeight = FontWeight.Bold,
-                                            //color = MaterialTheme.colorScheme.primary//secondary
+                                        )
+                                        AnimatedContent(
+                                            when (model.period) {
+                                                Period.WEEK -> "неделя"
+                                                Period.MODULE -> "модуль"
+                                                Period.HALF_YEAR -> "полугодие"
+                                                Period.YEAR -> "год"
+                                            },
+                                            transitionSpec = {
+                                                fadeIn().togetherWith(fadeOut())
+                                            }
                                         ) {
-                                            component.onEvent(HomeStore.Intent.ChangePeriod)
+                                            CustomTextButton(
+                                                text = it,
+                                                fontWeight = FontWeight.Bold,
+                                                //color = MaterialTheme.colorScheme.primary//secondary
+                                            ) {
+                                                component.onEvent(HomeStore.Intent.ChangePeriod)
+                                            }
                                         }
                                     }
-                                }
-                                Crossfade(nQuickTabModel.state) {
-                                    Column {
-                                        when (it) {
-                                            NetworkState.Error -> {
-                                                Text("Ошибка")
-                                                CustomTextButton("Попробовать ещё раз") {
-                                                    nQuickTabModel.onFixErrorClick()
+                                    Crossfade(nQuickTabModel.state) {
+                                        Column {
+                                            when (it) {
+                                                NetworkState.Error -> {
+                                                    Text("Ошибка")
+                                                    CustomTextButton("Попробовать ещё раз") {
+                                                        nQuickTabModel.onFixErrorClick()
+                                                    }
                                                 }
-                                            }
 
-                                            else -> {
-                                                QuickTabItem(
-                                                    "Средний балл",
-                                                    value = model.averageGradePoint[model.period]
-                                                ) {
+                                                else -> {
+                                                    QuickTabItem(
+                                                        "Средний балл",
+                                                        value = model.averageGradePoint[model.period]
+                                                    ) {
 
-                                                }
-                                                val achievementsPairAdd =
-                                                    if (model.achievements[model.period] != null) Pair(
-                                                        model.achievements[model.period]!!.first,
-                                                        model.achievements[model.period]!!.second
-                                                    ) else Pair(0, 0)
-                                                val ladderPair =
-                                                    if (model.ladderOfSuccess[model.period] != null) Pair(
-                                                        (model.ladderOfSuccess[model.period]!!.first + achievementsPairAdd.first).toFloat(),
-                                                        model.ladderOfSuccess[model.period]!!.second + achievementsPairAdd.second
-                                                    ) else Pair(null, 0)
+                                                    }
+                                                    val achievementsPairAdd =
+                                                        if (model.achievements[model.period] != null) Pair(
+                                                            model.achievements[model.period]!!.first,
+                                                            model.achievements[model.period]!!.second
+                                                        ) else Pair(0, 0)
+                                                    val ladderPair =
+                                                        if (model.ladderOfSuccess[model.period] != null) Pair(
+                                                            (model.ladderOfSuccess[model.period]!!.first + achievementsPairAdd.first).toFloat(),
+                                                            model.ladderOfSuccess[model.period]!!.second + achievementsPairAdd.second
+                                                        ) else Pair(null, 0)
 
-                                                QuickTabItem(
-                                                    "Ступени",
-                                                    value = ladderPair.first,
-                                                    dsValue = ladderPair.second
-                                                ) {
-                                                    component.onOutput(
-                                                        HomeComponent.Output.NavigateToDetailedStups(
-                                                            model.login,
-                                                            model.period.ordinal
+                                                    QuickTabItem(
+                                                        "Ступени",
+                                                        value = ladderPair.first,
+                                                        dsValue = ladderPair.second
+                                                    ) {
+                                                        component.onOutput(
+                                                            HomeComponent.Output.NavigateToDetailedStups(
+                                                                model.login,
+                                                                model.period.ordinal
+                                                            )
                                                         )
-                                                    )
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
+                                }
+                            }
+                            IconButton(
+                                onClick = {
+                                    component.onOutput(HomeComponent.Output.NavigateToStudentLines(model.login))
+                                },
+                                modifier = Modifier.align(Alignment.BottomEnd)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.ManageSearch, null
+                                )
                             }
                         }
                     }
@@ -935,7 +950,12 @@ fun StudentHomeContent(
                                     LazyRow(Modifier.fillMaxWidth()) {
                                         items(model.grades.sortedBy { getLocalDate(it.date).toEpochDays() }
                                             .reversed()) {
-                                            cGrade(it, coroutineScope)
+                                            cGrade(it, coroutineScope) {
+                                                component.studentReportDialog.onEvent(StudentReportDialogStore.Intent.OpenDialog(
+                                                    login = model.login,
+                                                    reportId = it.reportId
+                                                ))
+                                            }
                                         }
                                     }
 
@@ -1009,6 +1029,7 @@ fun StudentHomeContent(
         }
 
     }
+    StudentReportDialogContent(component.studentReportDialog)
 }
 
 @Composable
@@ -1319,7 +1340,7 @@ fun Lesson(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun cGrade(mark: Grade, coroutineScope: CoroutineScope) {
+fun cGrade(mark: Grade, coroutineScope: CoroutineScope, onClick: () -> Unit) {
     val tState = rememberTooltipState(isPersistent = false)
     TooltipBox(
         state = tState,
@@ -1344,10 +1365,8 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope) {
                 coroutineScope.launch {
                     tState.show()
                 }
+                onClick()
             }.handy()
-                .pointerInput(PointerEventType.Press) {
-                    println("asd")
-                }
         )
     }
 }

@@ -8,9 +8,15 @@ fun Application.configureReportsRouting() {
     routing {
         val reportsController = ReportsController()
 
+        post(RequestPaths.Reports.FetchStudentReport) {
+            reportsController.fetchStudentReport(call)
+        }
 
         post(RequestPaths.HomeTasks.SaveReportHomeTasks) {
             reportsController.saveReportHomeTasks(call)
+        }
+        post(RequestPaths.Reports.FetchStudentLines) {
+            reportsController.fetchClientStudentLines(call)
         }
 
         post(RequestPaths.HomeTasks.FetchReportHomeTasks) {

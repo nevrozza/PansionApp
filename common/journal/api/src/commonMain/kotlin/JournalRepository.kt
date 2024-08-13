@@ -15,6 +15,10 @@ import report.RFetchDetailedStupsResponse
 import report.RFetchDnevnikRuMarksResponse
 import report.RFetchReportStudentsReceive
 import report.RFetchReportStudentsResponse
+import report.RFetchStudentLinesReceive
+import report.RFetchStudentLinesResponse
+import report.RFetchStudentReportReceive
+import report.RFetchStudentReportResponse
 import report.RFetchSubjectQuarterMarksResponse
 import report.RIsQuartersResponse
 import report.RUpdateReportReceive
@@ -22,6 +26,8 @@ import report.RUpdateReportReceive
 interface JournalRepository {
 
     suspend fun fetchAchievementsForStudent(r: RFetchAchievementsForStudentReceive) : RFetchAchievementsResponse
+    suspend fun fetchStudentLines(r: RFetchStudentLinesReceive) : RFetchStudentLinesResponse
+    suspend fun fetchStudentReport(r: RFetchStudentReportReceive) : RFetchStudentReportResponse
 
 
     suspend fun checkHomeTask(r: RCheckHomeTaskReceive)

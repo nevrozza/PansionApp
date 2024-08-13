@@ -58,6 +58,8 @@ object RequestPaths {
 
         const val FetchDnevnikRuMarks = "server/reports/user/fetchDnevnikRuMarks"
         const val FetchIsQuarters = "server/reports/user/fetchIsQuarters"
+        const val FetchStudentLines = "server/reports/user/fetchStudentLines"
+        const val FetchStudentReport = "server/reports/fetchStudentReport"
     }
 
     object Auth {

@@ -29,6 +29,10 @@ import report.RFetchDnevnikRuMarksResponse
 import report.RFetchFullReportData
 import report.RFetchReportStudentsReceive
 import report.RFetchReportStudentsResponse
+import report.RFetchStudentLinesReceive
+import report.RFetchStudentLinesResponse
+import report.RFetchStudentReportReceive
+import report.RFetchStudentReportResponse
 import report.RFetchSubjectQuarterMarksReceive
 import report.RFetchSubjectQuarterMarksResponse
 import report.RIsQuartersReceive
@@ -46,6 +50,26 @@ class KtorJournalRemoteDataSource(
             url {
                 bearer()
                 path(RequestPaths.Achievements.FetchForStudent)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun fetchStudentReport(r: RFetchStudentReportReceive): RFetchStudentReportResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Reports.FetchStudentReport)
+                setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun fetchStudentLines(r: RFetchStudentLinesReceive): RFetchStudentLinesResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Reports.FetchStudentLines)
                 setBody(r)
             }
         }.body()

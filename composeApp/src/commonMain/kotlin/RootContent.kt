@@ -245,26 +245,10 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 is MainHome -> fade()
                                 is MainAdmin -> fade()
                                 is MainMentoring -> fade()
-//                            is AdminMentors -> if (isExpanded) fade() else slide()
-                                is AdminUsers -> if (isExpanded) fade() else iosSlide()
-                                is AdminGroups -> if (isExpanded) fade() else iosSlide()
-                                is LessonReport -> iosSlide() //if (isExpanded) fade() else slide()
+                                is LessonReport -> iosSlide()
                                 is HomeSettings -> iosSlide()
-                                is Child.AuthActivation -> if (isExpanded) fade() else iosSlide()
-                                is Child.AuthLogin -> if (isExpanded) fade() else iosSlide()
-                                is Child.HomeProfile -> if (isExpanded) fade() else iosSlide()
-                                is Child.HomeDnevnikRuMarks -> if (isExpanded) fade() else iosSlide()
-                                is Child.HomeDetailedStups -> if (isExpanded) fade() else iosSlide()
-                                is Child.HomeAllGroupMarks -> if (isExpanded) fade() else iosSlide()
                                 is Child.AdminSchedule -> iosSlide()
-                                is Child.AdminCabinets -> if (isExpanded) fade() else iosSlide()
-                                is Child.HomeTasks -> if (isExpanded) fade() else iosSlide()
-                                is Child.AdminCalendar -> if (isExpanded) fade() else iosSlide()
-                                is Child.SecondView -> if (isExpanded) fade() else iosSlide()
-                                is Child.AdminAchievements -> if (isExpanded) fade() else iosSlide()
-                                is Child.HomeAchievements -> if (isExpanded) fade() else iosSlide()
-                                is Child.AdminParents -> if (isExpanded) fade() else iosSlide()
-
+                                else -> if (isExpanded) fade() else iosSlide()
                             }
                         },
                         selector = { initialBackEvent, _, _ ->
@@ -345,6 +329,15 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = { DnevnikRuMarkContent(child.dnevnikRuMarksComponent) },
                                 firstScreen = { HomeContent(child.homeComponent) },
                                 secondScreen = { DnevnikRuMarkContent(child.dnevnikRuMarksComponent) }
+                            )
+                        }
+                        is Child.HomeStudentLines -> {
+                            MultiPaneSplit(
+                                isExpanded = isExpanded,
+                                viewManager = viewManager,
+                                currentScreen = { StudentLinesContent(child.studentLinesComponent) },
+                                firstScreen = { HomeContent(child.homeComponent) },
+                                secondScreen = { StudentLinesContent(child.studentLinesComponent)  }
                             )
                         }
 
@@ -580,7 +573,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 Box(
                     Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
                 ) {
-                    val isBirthday = model.birthday.cut(4) == getDate().replace(".", "").cut(4) && model.birthday != "01012000"
+                    val isBirthday = model.birthday.cut(4) == getDate().replace(".", "")
+                        .cut(4) && model.birthday != "01012000"
                     Column(
                         modifier = Modifier.fillMaxWidth().align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -912,6 +906,7 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         Config.HomeSettings -> Home
         is Config.HomeTasks -> Home
         is Config.HomeAchievements -> Home
+        is Config.HomeStudentLines -> Home
 
         Config.MainAdmin -> Admin
         Config.MainHome -> Home

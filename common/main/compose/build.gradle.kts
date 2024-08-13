@@ -9,6 +9,8 @@ kotlin {
             dependencies {
 
                 api(project(":common:main:presentation"))
+                api(project(":common:journal:presentation"))
+                api(project(":common:journal:compose"))
                 ////implementation(":common:settings:presentation")
                 implementation(project(":common:core"))
 

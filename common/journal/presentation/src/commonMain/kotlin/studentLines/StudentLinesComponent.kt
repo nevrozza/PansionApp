@@ -1,4 +1,4 @@
-package dnevnikRuMarks
+package studentLines
 
 import JournalRepository
 import asValue
@@ -8,59 +8,51 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
-import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
 import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import studentReportDialog.StudentReportComponent
 
-
-class DnevnikRuMarksComponent(
+class StudentLinesComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    private val output: (Output) -> Unit,
-    private val studentLogin: String
+    login: String,
+    private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
 //    private val authRepository: AuthRepository = Inject.instance()
 
-    val nInterface =
-        NetworkInterface(componentContext, storeFactory, "DnevnikRuMarksComponent")
+    val nInterfaceName = "StudentLinesInterfaceName"
 
 
     val studentReportDialog = StudentReportComponent(
-        componentContext = childContext("DnevnikRuMarksComponentDIALOGCONTEXT"),
+        componentContext = childContext(nInterfaceName + "DIALOGCONTEXT"),
         storeFactory = storeFactory
     )
 
+    val nInterface =
+        NetworkInterface(childContext(nInterfaceName + "CONTEXT"), storeFactory, nInterfaceName)
+
     val journalRepository: JournalRepository = Inject.instance()
 
-    val stupsDialogComponent = CAlertDialogComponent(
-        componentContext,
-        storeFactory,
-        name = "StupsDialogComponentIntDnevnikRuMarks",
-        {}
-    )
-
-    private val dnevnikRuMarkStore =
-        instanceKeeper.getStore(key = "dnevnikRuMark/$studentLogin") {
-            DnevnikRuMarkStoreFactory(
+    private val studentLinesStore =
+        instanceKeeper.getStore {
+            StudentLinesStoreFactory(
                 storeFactory = storeFactory,
-                login = studentLogin,
-                nInterface = nInterface,
+                login = login,
                 journalRepository = journalRepository,
-                stupsDialogComponent = stupsDialogComponent
+                nInterface = nInterface
             ).create()
         }
 
-    val model = dnevnikRuMarkStore.asValue()
+    val model = studentLinesStore.asValue()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<DnevnikRuMarkStore.State> = dnevnikRuMarkStore.stateFlow
+    val state: StateFlow<StudentLinesStore.State> = studentLinesStore.stateFlow
 
-    fun onEvent(event: DnevnikRuMarkStore.Intent) {
-        dnevnikRuMarkStore.accept(event)
+    fun onEvent(event: StudentLinesStore.Intent) {
+        studentLinesStore.accept(event)
     }
 
     fun onOutput(output: Output) {
@@ -69,12 +61,10 @@ class DnevnikRuMarksComponent(
 
 
     init {
-        onEvent(DnevnikRuMarkStore.Intent.Init)
-
+        onEvent(StudentLinesStore.Intent.Init)
     }
 
     sealed class Output {
         data object Back : Output()
-
     }
 }

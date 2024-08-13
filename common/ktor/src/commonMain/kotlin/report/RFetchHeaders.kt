@@ -23,6 +23,30 @@ data class ReportHeader(
     val time: String,
     val status: Boolean,
     val theme: String
-//    val ids: Int,
-//    val isMentorWas: Boolean
+)
+
+@Serializable
+data class RFetchStudentReportReceive(
+    val login: String,
+    val reportId: Int
+)
+
+@Serializable
+data class RFetchStudentReportResponse(
+    val marks: List<UserMarkPlus>,
+    val stups: List<UserMarkPlus>,
+    val studentLine: ClientStudentLine,
+    val info: StudentReportInfo,
+    val homeTasks: List<String>
+)
+
+@Serializable
+data class StudentReportInfo(
+    val subjectName: String,
+    val groupName: String,
+    val teacherName: String,
+    val date: String,
+    val module: String,
+    val time: String,
+    val theme: String
 )

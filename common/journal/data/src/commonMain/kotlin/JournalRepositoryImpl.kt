@@ -20,6 +20,10 @@ import report.RFetchDnevnikRuMarksResponse
 import report.RFetchFullReportData
 import report.RFetchReportStudentsReceive
 import report.RFetchReportStudentsResponse
+import report.RFetchStudentLinesReceive
+import report.RFetchStudentLinesResponse
+import report.RFetchStudentReportReceive
+import report.RFetchStudentReportResponse
 import report.RFetchSubjectQuarterMarksReceive
 import report.RFetchSubjectQuarterMarksResponse
 import report.RIsQuartersReceive
@@ -33,6 +37,14 @@ class JournalRepositoryImpl(
 
     override suspend fun fetchAchievementsForStudent(r: RFetchAchievementsForStudentReceive): RFetchAchievementsResponse {
         return remoteDataSource.fetchAchievementsForStudent(r)
+    }
+
+    override suspend fun fetchStudentLines(r: RFetchStudentLinesReceive): RFetchStudentLinesResponse {
+        return remoteDataSource.fetchStudentLines(r)
+    }
+
+    override suspend fun fetchStudentReport(r: RFetchStudentReportReceive): RFetchStudentReportResponse {
+        return remoteDataSource.fetchStudentReport(r)
     }
 
     override suspend fun checkHomeTask(r: RCheckHomeTaskReceive) {

@@ -112,7 +112,7 @@ fun MarkContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = true) {
+fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = true, onClick: (() -> Unit)? = null) {
     val markSize = 30.dp
     val yOffset = 3.dp
     val tState = rememberTooltipState(isPersistent = false)
@@ -136,6 +136,7 @@ fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = tr
                 coroutineScope.launch {
                     tState.show()
                 }
+                onClick?.invoke()
             }.handy()
                 .pointerInput(PointerEventType.Press) {
                     println("asd")

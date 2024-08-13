@@ -1,4 +1,4 @@
-@file:OptIn(
+    @file:OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class
 )
@@ -77,6 +77,7 @@ import report.UserMarkPlus
 import server.fetchReason
 import server.getLocalDate
 import server.roundTo
+import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
 import view.rememberImeState
 
@@ -276,6 +277,10 @@ fun DnevnikRuMarkContent(
         }
     }
 
+    StudentReportDialogContent(
+        component = component.studentReportDialog
+    )
+
 
 }
 
@@ -345,7 +350,12 @@ private fun SubjectMarksItem(
                 if (!isFullView.value) {
                     LazyRow(rowModifier, userScrollEnabled = false) {
                         items(marks) {
-                            cMark(it, coroutineScope = coroutineScope)
+                            cMark(it, coroutineScope = coroutineScope) {
+                                component.studentReportDialog.onEvent(StudentReportDialogStore.Intent.OpenDialog(
+                                    login = component.model.value.studentLogin,
+                                    reportId = it.reportId
+                                ))
+                            }
                         }
                     }
                 } else {
@@ -359,7 +369,12 @@ private fun SubjectMarksItem(
                                 )
                                 FlowRow(rowModifier) {
                                     m.forEach {
-                                        cMark(it, coroutineScope = coroutineScope)
+                                        cMark(it, coroutineScope = coroutineScope) {
+                                            component.studentReportDialog.onEvent(StudentReportDialogStore.Intent.OpenDialog(
+                                                login = component.model.value.studentLogin,
+                                                reportId = it.reportId
+                                            ))
+                                        }
                                     }
                                 }
                             }
@@ -367,7 +382,12 @@ private fun SubjectMarksItem(
                     } else {
                         FlowRow(rowModifier) {
                             marks.forEach {
-                                cMark(it, coroutineScope = coroutineScope)
+                                cMark(it, coroutineScope = coroutineScope) {
+                                    component.studentReportDialog.onEvent(StudentReportDialogStore.Intent.OpenDialog(
+                                        login = component.model.value.studentLogin,
+                                        reportId = it.reportId
+                                    ))
+                                }
                             }
                         }
                     }

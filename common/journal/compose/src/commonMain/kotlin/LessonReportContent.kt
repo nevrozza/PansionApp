@@ -2008,7 +2008,7 @@ fun LessonTable(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PrisutCheckBox(
+fun PrisutCheckBox(
     modifier: Modifier,
     attendedType: String,
     reason: String?,

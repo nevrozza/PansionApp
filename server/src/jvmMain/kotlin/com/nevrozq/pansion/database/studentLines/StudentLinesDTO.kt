@@ -8,7 +8,12 @@ data class StudentLinesDTO(
     val lateTime: String,
     val isLiked: String,
     val attended: String?,
-    val aReason: String?
+    val aReason: String?,
+
+    val subjectName: String,
+    val groupName: String,
+    val time: String,
+    val date: String
 )
 
 //fun GroupDTO.mapToGroup() =

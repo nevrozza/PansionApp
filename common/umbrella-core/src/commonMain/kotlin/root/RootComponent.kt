@@ -31,6 +31,7 @@ import profile.ProfileComponent
 import rating.RatingComponent
 import root.store.RootStore
 import schedule.ScheduleComponent
+import studentLines.StudentLinesComponent
 import users.UsersComponent
 
 
@@ -110,6 +111,10 @@ interface   RootComponent : BackHandlerOwner {
             val homeComponent: HomeComponent,
             val homeTasksComponent: HomeTasksComponent
         ) : Child()
+        class HomeStudentLines(
+            val homeComponent: HomeComponent,
+            val studentLinesComponent: StudentLinesComponent
+        ) : Child()
 
         class AdminSchedule(
             val scheduleComponent: ScheduleComponent
@@ -139,6 +144,7 @@ interface   RootComponent : BackHandlerOwner {
             val adminComponent: AdminComponent,
             val parentsComponent: AdminParentsComponent
         ) : Child()
+
 
     }
 
@@ -234,6 +240,8 @@ interface   RootComponent : BackHandlerOwner {
 
         @Serializable
         data class SecondView(val login: String, val fio: FIO, val avatarId: Int, val config: Config): Config
+        @Serializable
+        data class HomeStudentLines(val login: String): Config
     }
 
     companion object {

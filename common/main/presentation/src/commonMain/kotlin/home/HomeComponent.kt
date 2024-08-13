@@ -6,6 +6,7 @@ import MainRepository
 import admin.AdminComponent
 import asValue
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
@@ -15,8 +16,7 @@ import di.Inject
 import journal.JournalComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
-
-
+import studentReportDialog.StudentReportComponent
 
 
 class HomeComponent(
@@ -62,6 +62,11 @@ class HomeComponent(
         componentContext = componentContext,
         storeFactory = storeFactory,
         name = "ScheduleNetworkkInterface"
+    )
+
+    val studentReportDialog = StudentReportComponent(
+        componentContext = childContext("HomeComponentDIALOGCONTEXT"),
+        storeFactory = storeFactory
     )
 
     private val authRepository: AuthRepository = Inject.instance()
@@ -123,5 +128,6 @@ class HomeComponent(
         data class NavigateToDnevnikRuMarks(val studentLogin: String) : Output()
         data class NavigateToDetailedStups(val studentLogin: String, val reason: Int) : Output()
         data class NavigateToAllGroupMarks(val subjectId: Int, val subjectName: String, val groupId: Int, val groupName: String) : Output()
+        data class NavigateToStudentLines(val studentLogin: String) : Output()
     }
 }

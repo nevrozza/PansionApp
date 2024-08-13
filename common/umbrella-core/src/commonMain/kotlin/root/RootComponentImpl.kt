@@ -83,6 +83,7 @@ import root.store.RootStore
 import root.store.RootStoreFactory
 import schedule.ScheduleComponent
 import server.Roles
+import studentLines.StudentLinesComponent
 //import students.StudentsComponent
 import users.UsersComponent
 import kotlin.reflect.KClass
@@ -173,6 +174,7 @@ class RootComponentImpl(
     override fun onBackClicked() {
         when (val child = childStack.active.instance) {
             is Child.HomeSettings -> onHomeSettingsOutput(SettingsComponent.Output.Back)
+            is Child.HomeStudentLines -> onHomeStudentLinesOutput(StudentLinesComponent.Output.Back)
             is Child.AdminCabinets -> onAdminCabinetsOutput(CabinetsComponent.Output.Back)
             is Child.AdminCalendar -> onAdminCalendarOutput(CalendarComponent.Output.Back)
             is Child.AdminGroups -> onAdminGroupsOutput(GroupsComponent.Output.Back)
@@ -570,11 +572,27 @@ class RootComponentImpl(
                     output = ::onAdminParentsOutput
                 )
             )
+
+            is Config.HomeStudentLines ->
+                Child.HomeStudentLines(
+                    homeComponent = getMainHomeComponent(childContext, true),
+                    studentLinesComponent = StudentLinesComponent(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        output = ::onHomeStudentLinesOutput,
+                        login = config.login
+                    )
+                )
+
         }
 
     private fun onHomeAchievementsOutput(output: HomeAchievementsComponent.Output): Unit =
         when (output) {
             HomeAchievementsComponent.Output.Back -> popOnce(Child.HomeAchievements::class)
+        }
+    private fun onHomeStudentLinesOutput(output: StudentLinesComponent.Output): Unit =
+        when (output) {
+            StudentLinesComponent.Output.Back -> popOnce(Child.HomeStudentLines::class)
         }
 
     private fun onAdminParentsOutput(output: AdminParentsComponent.Output): Unit =
@@ -773,6 +791,8 @@ class RootComponentImpl(
                         name = output.name
                     )
                 )
+
+            is HomeComponent.Output.NavigateToStudentLines -> navigation.bringToFront(Config.HomeStudentLines(login = output.studentLogin))
         }
 
     override fun onEvent(event: RootStore.Intent) {

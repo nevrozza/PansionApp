@@ -23,6 +23,8 @@ import org.jetbrains.exposed.sql.update
 import report.RCreateReportReceive
 import report.RUpdateReportReceive
 import report.ServerRatingUnit
+import server.getDate
+import server.getSixTime
 import javax.management.monitor.StringMonitor
 import kotlin.math.abs
 
@@ -104,8 +106,10 @@ object ReportHeaders : Table() {
             val tN =
                 "${teacher.surname} ${teacher.name[0]}.${if (teacher.praname != null) " " + teacher.praname[0] + "." else ""}"
             val cSubjectId = Groups.fetchSubjectIdOfGroup(r.groupId)
-            val reportId = ReportHeaders.insert {
 
+            val subjectN = Subjects.fetchName(cSubjectId)
+            val groupN = Groups.getName(r.groupId)
+            val reportId = ReportHeaders.insert {
                 if (cSubjectId != -1) {
                     it[subjectId] = cSubjectId
                 } else Throwable("there is no subjectId")
@@ -119,8 +123,8 @@ object ReportHeaders : Table() {
                 it[isMentorWas] = false
                 it[status] = false
                 it[ids] = 0
-                it[subjectName] = Subjects.fetchName(cSubjectId)
-                it[groupName] = Groups.getName(r.groupId)
+                it[subjectName] = subjectN
+                it[groupName] = groupN
                 it[ReportHeaders.teacherLogin] = teacherLogin
                 it[teacherName] = tN
                 it[module] = getModuleByDate(r.date)?.num?.toString() ?: "1"
@@ -135,7 +139,11 @@ object ReportHeaders : Table() {
                         lateTime = "0",
                         isLiked = "",
                         attended = null,
-                        aReason = null
+                        aReason = null,
+                        subjectName = subjectN,
+                        groupName = groupN,
+                        time = getSixTime(),
+                        date = getDate()
                     ),
                     isDelete = false
                 )

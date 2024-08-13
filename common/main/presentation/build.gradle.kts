@@ -14,6 +14,7 @@ kotlin {
 //                api(project(":common:settings:api"))
 
                 implementation(project(":common:utils"))
+                implementation(project(":common:journal:presentation"))
                 implementation(libs.decompose.core)
                 implementation(libs.mvikotlin.core)
                 implementation(libs.mvikotlin.coroutines)

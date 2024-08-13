@@ -73,7 +73,7 @@ fun NotificationItem(
                             }
 
                         },
-                        fontWeight = FontWeight.Black, fontSize = 18.sp, color = textColor
+                        fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor
                     )
                 }
                 if (type == "A") {
@@ -88,13 +88,13 @@ fun NotificationItem(
                                 }
                             }
                         },
-                        fontWeight = FontWeight.Black, fontSize = 18.sp, color = textColor
+                        fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
                     )
                 } else if (type == "N") {
                     val isGood = data[1] == "2"
                     Text(
                         "Отсутствие по ${if (!isGood) "не" else ""}уважительной причине",
-                        fontWeight = FontWeight.Black, fontSize = 18.sp, color = textColor
+                        fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
                     )
                 } else if (type == "Op") {
                     val lateTime = data[1].removeSuffix(" мин").removePrefix("0")
@@ -105,7 +105,7 @@ fun NotificationItem(
                                 append("$lateTime мин.")
                             }
                         },
-                        fontWeight = FontWeight.Black, fontSize = (16.5).sp, color = textColor
+                        fontWeight = FontWeight.SemiBold, fontSize = (16.5).sp, color = textColor
                     )
                 }
             }
