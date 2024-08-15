@@ -29,6 +29,7 @@ class HomeComponent(
     private val surname: String,
     private val praname: String,
     private val role: String,
+    private val isParent: Boolean,
     val onBackButtonPress: (() -> Unit)? = null,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
@@ -87,7 +88,8 @@ class HomeComponent(
                 name = name,
                 surname = surname,
                 praname = praname,
-                role = role
+                role = role,
+                isParent = isParent
             ).create()
         }
 
@@ -129,5 +131,7 @@ class HomeComponent(
         data class NavigateToDetailedStups(val studentLogin: String, val reason: Int) : Output()
         data class NavigateToAllGroupMarks(val subjectId: Int, val subjectName: String, val groupId: Int, val groupName: String) : Output()
         data class NavigateToStudentLines(val studentLogin: String) : Output()
+
+        data class NavigateToChildren(val studentLogin: String, val fio: FIO, val avatarId: Int) : Output()
     }
 }

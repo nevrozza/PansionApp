@@ -1,6 +1,8 @@
 package home
 
 import FIO
+import Person
+import PersonPlus
 import auth.RCheckConnectionResponse
 import com.arkivanov.mvikotlin.core.store.Store
 import home.HomeStore.Intent
@@ -54,9 +56,12 @@ interface HomeStore : Store<Intent, State, Label> {
         val isDatesShown: Boolean = false,
 
         val role: String,
+        val isParent: Boolean,
         val someHeaders: List<ReportHeader> = emptyList(),
 
-        val notifications: List<ClientMainNotification> = emptyList()
+        val notifications: List<ClientMainNotification> = emptyList(),
+
+        val children: List<PersonPlus> = emptyList()
     )
 
     sealed interface Intent {
@@ -99,6 +104,7 @@ interface HomeStore : Store<Intent, State, Label> {
         data class PeriodChanged(val period: Period) : Message
 
         data class NotificationsUpdated(val notifications: List<ClientMainNotification>) : Message
+        data class ChildrenUpdated(val children: List<PersonPlus>) : Message
     }
 
     sealed interface Label

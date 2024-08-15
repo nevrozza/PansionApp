@@ -52,7 +52,7 @@ fun main() {
             ),
             deepLink = RootComponentImpl.DeepLink.None,//RootComponentImpl.DeepLink.Web(path = window.location.pathname),
             webHistoryController = null,//DefaultWebHistoryController(),
-            storeFactory = DefaultStoreFactory()
+            storeFactory = DefaultStoreFactory(), isMentoring = null
         )
 
     lifecycle.attachToDocument()

@@ -152,6 +152,7 @@ fun main() {
                     stateKeeper = stateKeeper
                 ),
                 storeFactory = DefaultStoreFactory(),
+                isMentoring = null
 //            deepLink = RootComponentImpl.DeepLink.None,
 //            webHistoryController = null
             )

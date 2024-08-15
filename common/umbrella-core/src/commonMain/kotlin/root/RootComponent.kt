@@ -39,6 +39,7 @@ interface   RootComponent : BackHandlerOwner {
     val secondLogin: String?
     val secondAvatarId: Int?
     val secondFIO: FIO?
+    val isMentoring: Boolean?
     val childStack: Value<ChildStack<*, Child>>
 //    val state: StateFlow<RootStore.State>
 
@@ -64,7 +65,8 @@ interface   RootComponent : BackHandlerOwner {
 
         class SecondView(
             val mentoringComponent: MentoringComponent?,
-            val rootComponent: RootComponent
+            val rootComponent: RootComponent,
+            val homeComponent: HomeComponent?
         ) : Child()
 
         class MainRating(val homeComponent: HomeComponent, val ratingComponent: RatingComponent) :
@@ -239,7 +241,7 @@ interface   RootComponent : BackHandlerOwner {
         data object AdminParents: Config
 
         @Serializable
-        data class SecondView(val login: String, val fio: FIO, val avatarId: Int, val config: Config): Config
+        data class SecondView(val login: String, val fio: FIO, val avatarId: Int, val config: Config, val isMentoring: Boolean): Config
         @Serializable
         data class HomeStudentLines(val login: String): Config
     }

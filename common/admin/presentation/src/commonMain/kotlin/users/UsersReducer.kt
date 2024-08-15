@@ -7,7 +7,7 @@ import users.UsersStore.Message
 object UsersReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
-            is Message.UsersChanged -> copy(users = msg.users)
+            is Message.UsersChanged -> copy(users = msg.users, forms = msg.forms)
 
 
             is Message.DateDialogShowingChanged -> copy(isDateDialogShowing = msg.isShowing)
@@ -32,7 +32,8 @@ object UsersReducer : Reducer<State, Message> {
                 cRole = "",
                 cSurname = "",
                 cParentFirstFIO = "",
-                cParentSecondFIO = ""
+                cParentSecondFIO = "",
+                cFormId = 0
             )
 
             is Message.UserCreated -> copy(cLogin = msg.login, cParentLogins = msg.parents)
@@ -61,6 +62,7 @@ object UsersReducer : Reducer<State, Message> {
             is Message.CParentFirstFIOChanged -> copy(cParentFirstFIO = msg.fio)
             is Message.CParentSecondFIOChanged -> copy(cParentSecondFIO = msg.fio)
             is Message.DeletingAccountInit -> copy(eDeletingLogin = msg.login)
+            is Message.CFormIdChanged -> copy(cFormId = msg.formId)
         }
     }
 }

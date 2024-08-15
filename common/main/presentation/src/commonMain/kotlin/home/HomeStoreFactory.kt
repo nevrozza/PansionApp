@@ -26,7 +26,8 @@ class HomeStoreFactory(
     private val name: String,
     private val surname: String,
     private val praname: String,
-    private val role: String
+    private val role: String,
+    private val isParent: Boolean,
 ) {
 
     fun create(): HomeStore {
@@ -43,7 +44,8 @@ class HomeStoreFactory(
                 name = name,
                 surname = surname,
                 praname = praname,
-                role = role
+                role = role,
+                isParent = isParent
             ),
             executorFactory = { HomeExecutor(
                 authRepository = authRepository,

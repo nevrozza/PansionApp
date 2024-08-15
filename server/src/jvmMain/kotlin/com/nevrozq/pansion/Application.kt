@@ -43,7 +43,6 @@ import com.nevrozq.pansion.features.lessons.configureLessonsRouting
 import com.nevrozq.pansion.features.mentoring.configureMentoringRouting
 import com.nevrozq.pansion.features.reports.configureReportsRouting
 import com.nevrozq.pansion.features.settings.configureSettingsRouting
-import com.nevrozq.pansion.features.user.manageOld.configureUserManageRouting
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
 import com.nevrozq.pansion.plugins.configureCORS
@@ -213,7 +212,6 @@ fun Application.module() {
     configureCORS()
     configureRegisterRouting()
     configureActivationRouting()
-    configureUserManageRouting()
     configureLessonsRouting()
     configureSettingsRouting()
     configureReportsRouting()

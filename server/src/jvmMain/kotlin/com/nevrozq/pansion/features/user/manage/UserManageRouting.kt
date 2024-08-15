@@ -7,9 +7,20 @@ import io.ktor.server.routing.*
 fun Application.configureRegisterRouting() {
     routing {
         val userManageController = UserManageController()
+
+        get("server/auth/manage/tokens/fetch") {
+            userManageController.performSearchTokens(call)
+        }
+        post("server/auth/manage/tokens/delete") {
+            userManageController.deleteToken(call)
+        }
+
         post(RequestPaths.UserManage.CreateUser) {
 //            val registerController = RegisterController(call)
             userManageController.createUser(call)
+        }
+        post(RequestPaths.Main.FetchChildren) {
+            userManageController.fetchChildren(call)
         }
 
         post(RequestPaths.UserManage.FetchAllUsers) {

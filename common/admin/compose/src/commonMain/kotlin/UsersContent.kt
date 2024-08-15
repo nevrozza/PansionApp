@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class)
 
+import admin.groups.forms.CutedForm
 import admin.users.User
 import admin.users.UserInit
 import androidx.compose.animation.AnimatedVisibility
@@ -1169,6 +1170,58 @@ private fun createUserSheet(
                                 )
                             }
                         } else {
+                            var expandedForms by remember { mutableStateOf(false) }
+
+                            ExposedDropdownMenuBox(
+                                expanded = expandedForms,
+                                onExpandedChange = {
+                                    expandedForms = !expandedForms
+                                }
+                            ) {
+                                val form = model.forms.firstOrNull { it.id == model.cFormId }
+
+                                // textfield
+                                OutlinedTextField(
+                                    modifier = Modifier
+                                        .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                                    readOnly = true,
+                                    value =  if(form != null) "${form.classNum} ${form.title}" else "",
+                                    placeholder = { Text("Выберите") },
+                                    onValueChange = {},
+                                    label = { Text("Класс") },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(
+                                            expanded = expandedForms
+                                        )
+                                    },
+                                    shape = RoundedCornerShape(15.dp),
+                                    enabled = !isCreatingInProcess
+                                )
+                                // menu
+                                ExposedDropdownMenu(
+                                    expanded = expandedForms,
+                                    onDismissRequest = {
+                                        expandedForms = false
+                                    },
+                                ) {
+                                    // menu items
+                                    (emptyList<CutedForm>() + CutedForm(id = 0, title = "Никакой", 0) + model.forms).forEach { selectionOption ->
+                                        DropdownMenuItem(
+                                            text = { Text("${selectionOption.classNum} ${selectionOption.title}") },
+                                            onClick = {
+                                                component.onEvent(
+                                                    UsersStore.Intent.ChangeCFormId(
+                                                        selectionOption.id
+                                                    )
+                                                )
+                                                expandedForms = false
+                                            },
+                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.height(7.dp))
                             CustomTextField(
                                 value = model.cParentFirstFIO,
                                 onValueChange = {

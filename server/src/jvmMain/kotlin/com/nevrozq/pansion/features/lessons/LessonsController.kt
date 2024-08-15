@@ -606,7 +606,8 @@ class LessonsController() {
                 val subjects = Subjects.fetchAllSubjects()
 
                 tt.forEach { t ->
-                    val groups = gg.filter { it.teacherLogin == t.login }.map { Pair(it.id, it.isActive) }
+                    val groups =
+                        gg.filter { it.teacherLogin == t.login }.map { Pair(it.id, it.isActive) }
                     teachers.add(
                         SchedulePerson(
                             login = t.login,
@@ -626,7 +627,12 @@ class LessonsController() {
                             true
 //                            val id = it.groupId
 //                            gg.firstOrNull { it.id == id }?.isActive == true
-                        }.map { xs -> Pair(xs.groupId, gg.firstOrNull { it.id == xs.groupId }?.isActive == true) }
+                        }.map { xs ->
+                            Pair(
+                                xs.groupId,
+                                gg.firstOrNull { it.id == xs.groupId }?.isActive == true
+                            )
+                        }
 
                     students.add(
                         SchedulePerson(
@@ -855,6 +861,7 @@ class LessonsController() {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
+
     suspend fun editForm(call: ApplicationCall) {
         if (call.isModer) {
             val r = call.receive<REditFormReceive>()

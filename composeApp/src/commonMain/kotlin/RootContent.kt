@@ -160,14 +160,18 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             if (model.moderation in listOf(
                     Moderation.both,
                     Moderation.mentor
-                )
+                ) && component.isMentoring == null
             ) NavigationItem(
                 icon = Icons.Rounded.Diversity1,
                 label = "Наставник",
                 category = Mentoring,
                 onClickOutput = RootComponent.Output.NavigateToMentoring
             ) else null,
-            if (!isExpanded && model.role == Roles.teacher) NavigationItem(
+            if (!isExpanded && (model.role == Roles.teacher || model.moderation in listOf(
+                    Moderation.moderator,
+                    Moderation.mentor,
+                    Moderation.both
+                ) ) && component.isMentoring == null) NavigationItem(
                 icon = Icons.Rounded.LibraryBooks,
                 label = "Журнал",
                 category = Journal,
@@ -177,14 +181,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     Moderation.moderator,
                     Moderation.mentor,
                     Moderation.both
-                )
+                )  && component.isMentoring == null
             ) NavigationItem(
                 icon = Icons.Rounded.GridView,
                 label = "Модерация",
                 category = Admin,
                 onClickOutput = RootComponent.Output.NavigateToAdmin
             ) else null,
-            if ((!isExpanded && model.role != Roles.teacher) || model.role == Roles.teacher) NavigationItem(
+            if ((!isExpanded) || (isExpanded && model.role == Roles.teacher && component.isMentoring == null )) NavigationItem(
                 icon = Icons.Rounded.Star,
                 label = "Рейтинг",
                 category = Rating,
@@ -199,7 +203,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 Box(Modifier.animateContentSize().fillMaxWidth()) {
                     AnimatedVisibility(
 
-                        visible = isBottomBarShowing(childStack.active.configuration as Config) && (isVertical && component.secondLogin == null),
+                        visible = isBottomBarShowing(childStack.active.configuration as Config) && ((isVertical && (component.secondLogin == null)) || component.isMentoring == false),
                         enter = fadeIn(animationSpec = tween(300)) +
                                 slideInVertically { it },
                         exit = fadeOut(animationSpec = tween(300)) + slideOutVertically { it },
@@ -275,7 +279,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             currentScreen = { HomeContent(child.homeComponent) },
                             firstScreen = { HomeContent(child.homeComponent) },
                             secondScreen = {
-                                if (model.moderation != Moderation.nothing || model.role == Roles.teacher) {
+                                if (model.moderation != Moderation.nothing || model.role == Roles.teacher && component.isMentoring == null) {
                                     JournalContent(
                                         child.journalComponent,
                                         role = model.role,
@@ -515,12 +519,24 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             viewManager = viewManager
                         )
 
-                        is Child.SecondView -> MultiPaneMentoring(
-                            isExpanded,
-                            mentoringComponent = child.mentoringComponent,
-                            rootComponent = child.rootComponent,
-                            viewManager = viewManager
-                        )
+                        is Child.SecondView -> if(component.isMentoring == true) {
+                            MultiPaneMentoring(
+                                isExpanded,
+                                mentoringComponent = child.mentoringComponent,
+                                rootComponent = child.rootComponent,
+                                viewManager = viewManager
+                            )
+                        } else {
+                            MultiPaneSplit(
+                                isExpanded = isExpanded,
+                                viewManager = viewManager,
+                                currentScreen = { RootContent(child.rootComponent) },
+                                firstScreen = { if(child.homeComponent != null) HomeContent(child.homeComponent!!, pickedLogin = child.rootComponent.secondLogin ?: "")  },
+                                secondScreen = {
+                                    RootContent(child.rootComponent)
+                                }
+                            )
+                        }
 
                         is Child.AdminAchievements -> MultiPaneAdmin(
                             isExpanded,

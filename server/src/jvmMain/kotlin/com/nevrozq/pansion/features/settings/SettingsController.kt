@@ -1,13 +1,14 @@
 package com.nevrozq.pansion.features.settings
 
 import com.nevrozq.pansion.database.tokens.Tokens
-import com.nevrozq.pansion.features.user.manageOld.models.DeleteTokenReceive
+import com.nevrozq.pansion.utils.UUIDSerializer
 import com.nevrozq.pansion.utils.toId
 import com.nevrozq.pansion.utils.token
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import kotlinx.serialization.Serializable
+import java.util.UUID
 
 class SettingsController {
     suspend fun logout(call: ApplicationCall) {
@@ -26,3 +27,9 @@ class SettingsController {
         }
     }
 }
+
+@kotlinx.serialization.Serializable
+data class DeleteTokenReceive(
+    @Serializable(with = UUIDSerializer::class)
+    val id: UUID
+)

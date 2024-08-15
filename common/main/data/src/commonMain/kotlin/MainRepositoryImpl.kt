@@ -5,6 +5,7 @@ import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import ktor.KtorMainRemoteDataSource
 import main.RDeleteMainNotificationsReceive
+import main.RFetchChildrenResponse
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
 import main.RFetchMainHomeTasksCountReceive
@@ -39,6 +40,10 @@ class MainRepositoryImpl(
 
     override suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive) {
         remoteDataSource.deleteMainNotification(r)
+    }
+
+    override suspend fun fetchChildren(): RFetchChildrenResponse {
+        return remoteDataSource.fetchChildren()
     }
 
     override suspend fun fetchMentorStudents(): RFetchMentoringStudentsResponse {

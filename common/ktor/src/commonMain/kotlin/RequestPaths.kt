@@ -25,6 +25,7 @@ object RequestPaths {
         const val CheckNotification = "server/main/checkNotification"
         const val FetchScheduleSubjects = "server/main/fetchSubjects"
         const val FetchSubjectRating = "server/main/fetchSubjectRating"
+        const val FetchChildren = "server/main/fetchChildren"
     }
 
     object Mentoring {

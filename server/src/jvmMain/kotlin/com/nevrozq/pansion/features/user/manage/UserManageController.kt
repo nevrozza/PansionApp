@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.features.user.manage
 
+import admin.groups.forms.CutedForm
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.users.RClearUserPasswordReceive
@@ -9,9 +10,14 @@ import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
 import admin.users.RDeleteUserReceive
 import admin.users.RFetchAllUsersResponse
+import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.parents.ParentsDTO
+import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
+import com.nevrozq.pansion.database.tokens.FetchTokensResponse
 import com.nevrozq.pansion.database.tokens.Tokens
+import com.nevrozq.pansion.database.tokens.toFetchTokensResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -20,9 +26,15 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.database.users.mapToUser
+import com.nevrozq.pansion.features.settings.DeleteTokenReceive
 import com.nevrozq.pansion.utils.createLogin
 import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.isModer
+import com.nevrozq.pansion.utils.isParent
+import com.nevrozq.pansion.utils.isTeacher
+import com.nevrozq.pansion.utils.login
+import com.nevrozq.pansion.utils.toId
+import main.RFetchChildrenResponse
 import server.Roles
 
 class UserManageController() {
@@ -80,6 +92,14 @@ class UserManageController() {
                     }
                 }
 
+                if(r.formId != 0) {
+                    StudentsInForm.insert(
+                        StudentInFormDTO(
+                            formId = r.formId,
+                            login = login
+                        )
+                    )
+                }
 
                 call.respond(RCreateUserResponse(login, pLogins))
             } catch (e: ExposedSQLException) {
@@ -96,7 +116,16 @@ class UserManageController() {
         if (call.isMember) {
             try {
                 val users = Users.fetchAll()
-                call.respond(RFetchAllUsersResponse(users.map { it.mapToUser() }.sortedBy { it.user.fio.surname }))
+                val forms = Forms.getAllForms().mapNotNull {
+                    if(it.isActive) {
+                        CutedForm(
+                            id = it.formId,
+                            title = it.title,
+                            classNum = it.classNum
+                        )
+                    } else null
+                }
+                call.respond(RFetchAllUsersResponse(users.map { it.mapToUser() }.sortedBy { it.user.fio.surname }, forms))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -105,6 +134,53 @@ class UserManageController() {
             }
         } else {
             call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun fetchChildren(call: ApplicationCall) {
+        if (call.isParent) {
+            try {
+                val children = Parents.fetchChildren(call.login)
+                call.respond(RFetchChildrenResponse(children))
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch children: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun performSearchTokens(call: ApplicationCall) {
+        val token = call.request.headers["Bearer-Authorization"].toId()
+        if (Tokens.isTokenValid(token)) {
+            val login = Tokens.getLoginOfThisToken(token)
+            call.respond(
+                FetchTokensResponse(
+                    Tokens.getTokensOfThisLogin(login).map { it.toFetchTokensResponse() }
+                )
+            )
+        } else {
+            call.respond(HttpStatusCode.Unauthorized, "Token expired")
+        }
+    }
+
+    suspend fun deleteToken(call: ApplicationCall) {
+        val token = call.request.headers["Bearer-Authorization"].toId()
+
+        val deleteTokenReceive = call.receive<DeleteTokenReceive>()
+        if (Tokens.isTokenValid(token)) {
+            val login = Tokens.getLoginOfThisToken(token)
+            if(Tokens.getTokensOfThisLogin(login).any { it.deviceId == deleteTokenReceive.id }) {
+                Tokens.deleteTokenByIdAndLogin(deleteTokenReceive.id, login)
+                call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "Invalid id")
+            }
+        } else {
+            call.respond(HttpStatusCode.Unauthorized, "Token expired")
         }
     }
 

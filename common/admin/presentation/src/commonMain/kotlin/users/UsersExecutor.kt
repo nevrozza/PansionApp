@@ -61,9 +61,11 @@ class UsersExecutor(
             is Intent.ChangeCParentSecondFIO -> dispatch(Message.CParentSecondFIOChanged(intent.fio))
             is Intent.DeleteAccount -> deleteAccount()
             is Intent.DeleteAccountInit -> scope.launch {
-                eDeleteDialog.onEvent(if(intent.login != null) CAlertDialogStore.Intent.ShowDialog else CAlertDialogStore.Intent.HideDialog)
+                eDeleteDialog.onEvent(if (intent.login != null) CAlertDialogStore.Intent.ShowDialog else CAlertDialogStore.Intent.HideDialog)
                 dispatch(Message.DeletingAccountInit(intent.login))
             }
+
+            is Intent.ChangeCFormId -> dispatch(Message.CFormIdChanged(intent.formId))
         }
     }
 
@@ -195,8 +197,11 @@ class UsersExecutor(
                     else Moderation.nothing,
                     isParent = state.cIsParent
                 )
-                val parents = listOf(state().cParentFirstFIO, state.cParentSecondFIO).filter { it.isNotBlank() }
-                val r = adminRepository.registerUser(user, parents = parents.ifEmpty { null })
+                val parents = listOf(
+                    state().cParentFirstFIO,
+                    state.cParentSecondFIO
+                ).filter { it.isNotBlank() }
+                val r = adminRepository.registerUser(user, parents = parents.ifEmpty { null }, formId = state.cFormId)
                 dispatch(Message.UserCreated(r.login, r.parents))
             } catch (_: Throwable) {
                 with(cUserBottomSheet.nInterface) {
@@ -214,8 +219,8 @@ class UsersExecutor(
         scope.launch {
             nUsersInterface.nStartLoading()
             try {
-                val users = adminRepository.fetchAllUsers().users
-                dispatch(Message.UsersChanged(users))
+                val r = adminRepository.fetchAllUsers()
+                dispatch(Message.UsersChanged(r.users, r.forms))
                 nUsersInterface.nSuccess()
             } catch (e: Throwable) {
                 if (isInit) {
@@ -229,7 +234,7 @@ class UsersExecutor(
                         }
                     )
 
-                    dispatch(Message.UsersChanged(null))
+                    dispatch(Message.UsersChanged(null, emptyList()))
                 }
             }
         }

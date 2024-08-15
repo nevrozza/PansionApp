@@ -111,6 +111,7 @@ class RootComponentImpl(
     deepLink: DeepLink = DeepLink.None,
 //    private val path: String = "",
     private val webHistoryController: WebHistoryController? = null,
+    override val isMentoring: Boolean?,
 ) : RootComponent, ComponentContext by componentContext {
     override val stateKeeper: StateKeeper
         get() = componentContext.stateKeeper
@@ -294,7 +295,8 @@ class RootComponentImpl(
                 surname = secondFIO?.surname ?: authRepository.fetchSurname(),
                 praname = secondFIO?.praname ?: authRepository.fetchPraname(),
                 role = if (secondLogin == null) authRepository.fetchRole() else Roles.student,
-                onBackButtonPress = onBackButtonPress
+                onBackButtonPress = onBackButtonPress,
+                isParent = if (secondLogin == null) authRepository.fetchIsParent() else false
             )
             mainHomeComponent!!
         }
@@ -541,8 +543,11 @@ class RootComponentImpl(
                         getMainMentoringComponent(childContext).onEvent(
                             MentoringStore.Intent.SelectStudent(null)
                         ); popOnce(Child.SecondView::class)
-                    }
-                )
+                    },
+                    isMentoring = config.isMentoring
+                ),
+                homeComponent = getMainHomeComponent(componentContext, getOld = true),
+
             )
 
             Config.AdminAchievements -> Child.AdminAchievements(
@@ -612,7 +617,8 @@ class RootComponentImpl(
                     login = output.login,
                     fio = output.fio,
                     avatarId = output.avatarId,
-                    config = output.config
+                    config = output.config,
+                    isMentoring = true
                 )
             )
         }
@@ -793,6 +799,15 @@ class RootComponentImpl(
                 )
 
             is HomeComponent.Output.NavigateToStudentLines -> navigation.bringToFront(Config.HomeStudentLines(login = output.studentLogin))
+            is HomeComponent.Output.NavigateToChildren -> navigation.bringToFront(
+                Config.SecondView(
+                    login = output.studentLogin,
+                    fio = output.fio,
+                    avatarId = output.avatarId,
+                    config =  RootComponent.Config.MainHome,
+                    isMentoring = false
+                )
+            )
         }
 
     override fun onEvent(event: RootStore.Intent) {

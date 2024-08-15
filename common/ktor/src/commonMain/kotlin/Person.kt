@@ -6,6 +6,13 @@ data class Person(
     val fio: FIO,
     val isActive: Boolean
 )
+@Serializable
+data class PersonPlus(
+    val login: String,
+    val avatarId: Int,
+    val fio: FIO,
+    val isActive: Boolean
+)
 
 @Serializable
 data class MentorPerson(

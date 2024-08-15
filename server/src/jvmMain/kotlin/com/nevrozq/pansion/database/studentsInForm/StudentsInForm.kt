@@ -28,6 +28,7 @@ object StudentsInForm : Table() {
         }
     }
 
+
     fun fetchStudentsLoginsByFormIds(ids: List<Int>): List<StudentInFormDTO> {
         return transaction {
             StudentsInForm.select { StudentsInForm.formId inList ids }.map {
@@ -57,7 +58,7 @@ object StudentsInForm : Table() {
 
 
     fun insert(studentInFormDTO: StudentInFormDTO) {
-        try {
+        if(studentInFormDTO.formId != 0) {
             deleteStudentInFormByLogin(studentInFormDTO.login)
             transaction {
                 StudentsInForm.insert {
@@ -78,8 +79,15 @@ object StudentsInForm : Table() {
                     )
                 }
             }
-        } catch (e: Throwable) {
-            println(e)
+        } else {
+            transaction {
+                StudentsInForm.deleteWhere {
+                    (StudentsInForm.login eq studentInFormDTO.login)
+                }
+                StudentGroups.deleteWhere {
+                    StudentGroups.studentLogin eq studentInFormDTO.login
+                }
+            }
         }
     }
 

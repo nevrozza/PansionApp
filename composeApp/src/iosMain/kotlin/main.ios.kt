@@ -24,6 +24,6 @@ fun MainViewController(): UIViewController =
         )
         val root = RootComponentImpl(componentContext = DefaultComponentContext(
             lifecycle = ApplicationLifecycle()
-        ), storeFactory = DefaultStoreFactory())
+        ), storeFactory = DefaultStoreFactory(), isMentoring = null)
         Root(root)
     }

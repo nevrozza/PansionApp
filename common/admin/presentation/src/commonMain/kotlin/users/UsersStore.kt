@@ -1,5 +1,7 @@
 package users
 
+import admin.groups.forms.CutedForm
+import admin.groups.forms.Form
 import admin.users.User
 import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.mvikotlin.core.store.Store
@@ -16,6 +18,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
     @Serializable
     data class State(
         val users: List<User>? = null,
+        val forms: List<CutedForm> = emptyList(),
         val isDateDialogShowing: Boolean = false,
         val currentYear: Int = Clock.System.now()
             .toLocalDateTime(TimeZone.of("UTC+3")).year,
@@ -27,6 +30,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val cPraname: String? = "",
         val cBirthday: String = "",
         val cRole: String = "",
+        val cFormId: Int = 0,
         val cIsModerator: Boolean = false,
         val cIsMentor: Boolean = false,
         val cIsParent: Boolean = false,
@@ -47,6 +51,9 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         )
 
     sealed interface Intent {
+
+
+
         data class DeleteAccountInit(val login: String?) : Intent
 
         data object DeleteAccount : Intent
@@ -61,6 +68,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class ChangeCPraname(val praname: String) : Intent
         data class ChangeCBirthday(val birthday: String) : Intent
         data class ChangeCRole(val role: String) : Intent
+        data class ChangeCFormId(val formId: Int) : Intent
         data class ChangeCIsModerator(val isModerator: Boolean) : Intent
         data class ChangeCIsMentor(val isMentor: Boolean) : Intent
         data class ChangeCIsParent(val isParent: Boolean) : Intent
@@ -87,7 +95,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
     sealed interface Message {
         data class DeletingAccountInit(val login: String?) : Message
 
-        data class UsersChanged(val users: List<User>?) : Message
+        data class UsersChanged(val users: List<User>?, val forms: List<CutedForm>) : Message
 
         data class DateDialogShowingChanged(val isShowing: Boolean) : Message
 
@@ -96,6 +104,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class CPranameChanged(val praname: String) : Message
         data class CBirthdayChanged(val birthday: String) : Message
         data class CRoleChanged(val role: String) : Message
+        data class CFormIdChanged(val formId: Int) : Message
         data class CIsModeratorChanged(val isModerator: Boolean) : Message
         data class CIsMentorChanged(val isMentor: Boolean) : Message
         data class CIsParentChanged(val isParent: Boolean) : Message

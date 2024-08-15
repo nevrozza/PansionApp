@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
 
-        val root = RootComponentImpl(componentContext = defaultComponentContext(), storeFactory = DefaultStoreFactory())
+        val root = RootComponentImpl(isMentoring = null, componentContext = defaultComponentContext(), storeFactory = DefaultStoreFactory())
 
         setContent {
             val x by root.childStack.subscribeAsState()

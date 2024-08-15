@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RRegisterUserReceive(
     val userInit: UserInit,
-    val parentFIOs: List<String>?
+    val parentFIOs: List<String>?,
+    val formId: Int
 )
 
 

@@ -121,8 +121,7 @@ class GroupsExecutor(
     }
 
     private fun updateFormsList(forms: List<Form>) {
-        println("sad:$forms")
-        formListComponent.onEvent(ListDialogStore.Intent.InitList(forms.map {
+        formListComponent.onEvent(ListDialogStore.Intent.InitList(emptyList<ListItem>() + ListItem("0", "Никакой") + forms.map {
             ListItem(
                 id = it.id.toString(),
                 text = "${it.form.classNum}${if (it.form.title.length < 2) "-" else " "}${it.form.title} класс"

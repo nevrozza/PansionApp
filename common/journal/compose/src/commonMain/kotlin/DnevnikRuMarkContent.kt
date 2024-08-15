@@ -345,7 +345,7 @@ private fun SubjectMarksItem(
                     }, fontWeight = FontWeight.Bold, fontSize = 25.sp
                 )
             }
-
+    //Pansion – StudentLinesContent.kt [Pansion.common.journal.compose.commonMain]
             if (marks.isNotEmpty()) {
                 if (!isFullView.value) {
                     LazyRow(rowModifier, userScrollEnabled = false) {

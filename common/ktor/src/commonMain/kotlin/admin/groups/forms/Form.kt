@@ -16,3 +16,10 @@ data class Form(
     val form: FormInit,
     val isActive: Boolean
 )
+
+@Serializable
+data class CutedForm(
+    val id: Int,
+    val title: String,
+    val classNum: Int
+)

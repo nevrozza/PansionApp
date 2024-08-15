@@ -21,6 +21,7 @@ import main.RDeleteMainNotificationsReceive
 import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainNotificationsReceive
 import schedule.PersonScheduleItem
+import server.Roles
 
 class HomeExecutor(
     private val authRepository: AuthRepository,
@@ -90,17 +91,43 @@ class HomeExecutor(
 
     private fun init() {
         scope.launch(CDispatcher) {
-            fetchQuickTab(period = state().period, isFirst = true)
-            fetchGrades()
-            fetchTeacherGroups()
-            fetchSchedule(
-                dayOfWeek = state().currentDate.first.toString(),
-                date = state().currentDate.second
-            )
-            fetchHomeTasksCount()
-            fetchNotifications()
+            if (state().role == Roles.student) {
+                fetchQuickTab(period = state().period, isFirst = true)
+                fetchGrades()
+                fetchHomeTasksCount()
+                fetchNotifications()
+            }
+            else if (state().role == Roles.teacher) {
+                fetchTeacherGroups()
+                fetchSchedule(
+                    dayOfWeek = state().currentDate.first.toString(),
+                    date = state().currentDate.second
+                )
+            }
+            if (state().isParent) {
+                fetchChildren()
+            }
         }
         journalComponent?.onEvent(JournalStore.Intent.Init)
+    }
+
+    private fun fetchChildren() {
+        scope.launch(CDispatcher) {
+            try {
+                gradesNInterface.nStartLoading()
+                val r =
+                    mainRepository.fetchChildren()
+
+                scope.launch {
+                    dispatch(Message.ChildrenUpdated(r.children))
+                    gradesNInterface.nSuccess()
+                }
+            } catch (e: Throwable) {
+                gradesNInterface.nError("Не удалось загрузить список детей") {
+                    fetchChildren()
+                }
+            }
+        }
     }
 
     private fun fetchHomeTasksCount() {

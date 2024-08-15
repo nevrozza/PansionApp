@@ -42,7 +42,7 @@ interface AdminRepository {
 
     suspend fun updateCabinets(cabinets: List<CabinetItem>)
 
-    suspend fun registerUser(user: UserInit, parents: List<String>?): RCreateUserResponse
+    suspend fun registerUser(user: UserInit, parents: List<String>?, formId: Int): RCreateUserResponse
     suspend fun fetchAllUsers(): RFetchAllUsersResponse
 
     suspend fun clearUserPassword(login: String)//: RClearUserPasswordReceive

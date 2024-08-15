@@ -121,11 +121,17 @@ class JournalExecutor(
             }
 
             is Intent.FilterTeacher -> {
+                val ids: MutableList<Int> = mutableListOf()
                 val groupItemList = state().headers.filter {
                     if (intent.teacherLogin != null) {
                         it.teacherLogin == intent.teacherLogin
                     } else true
-                }.map { ListItem(id = it.groupId.toString(), text = it.groupName) }.toSet().toList()
+                }.mapNotNull {
+                    if (it.groupId !in ids) {
+                        ids.add(it.groupId)
+                        ListItem(id = it.groupId.toString(), text = it.groupName)
+                    } else null
+                }.toSet().toList()
                 fGroupListComponent.onEvent(
                     ListDialogStore.Intent.InitList(
                         groupItemList
@@ -179,13 +185,24 @@ class JournalExecutor(
                     }.toSet().toList()
                     val dateItemList =
                         headers.reportHeaders.map { ListItem(id = it.date, text = it.date) }.toSet()
-                            .toList()
-                    val groupItemList = headers.reportHeaders.map {
-                        ListItem(
-                            id = it.groupId.toString(),
-                            text = it.groupName
-                        )
+                            .toList().reversed()
+                    
+                    val ids: MutableList<Int> = mutableListOf()
+
+                    val groupItemList = headers.reportHeaders.mapNotNull {
+                        if (it.groupId !in ids) {
+                            ids.add(it.groupId)
+                            ListItem(id = it.groupId.toString(), text = it.groupName)
+                        } else null
                     }.toSet().toList()
+
+                    fGroupListComponent.onEvent(
+                        ListDialogStore.Intent.InitList(
+                            groupItemList
+                        )
+                    )
+
+
 
                     fGroupListComponent.onEvent(
                         ListDialogStore.Intent.InitList(

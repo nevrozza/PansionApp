@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -155,20 +156,175 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun HomeContent(
-    component: HomeComponent
+    component: HomeComponent,
+    pickedLogin: String = ""
 ) {
     val model by component.model.subscribeAsState()
     if (model.role == Roles.student) {
         StudentHomeContent(component)
     } else if (model.role == Roles.teacher) {
-        TeacherHomeContent(component)
+        TeacherHomeContent(component, pickedLogin)
+    } else {
+        OtherHomeContent(
+            component = component,
+            pickedLogin = pickedLogin
+        )
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun OtherHomeContent(
+    component: HomeComponent,
+    pickedLogin: String
+) {
+    val viewManager = LocalViewManager.current
+    val model by component.model.subscribeAsState()
+    val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
+    Scaffold(
+        Modifier.fillMaxSize()
+            .onKeyEvent {
+                if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
+                    component.onEvent(HomeStore.Intent.Init)
+                }
+                false
+            },
+        topBar = {
+            AppBar(
+                title = {
+                    Text(
+                        "Главная",
+                        modifier = Modifier.padding(start = 10.dp),
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                actionRow = {
+                    if (viewManager.orientation.value != WindowScreen.Expanded) {
+                        IconButton(
+                            onClick = { component.onEvent(HomeStore.Intent.Init) }
+                        ) {
+                            Icon(
+                                Icons.Filled.Refresh, null
+                            )
+                        }
+
+
+                        IconButton(
+                            onClick = {
+                                component.onOutput(HomeComponent.Output.NavigateToSettings)
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.Settings, null
+                            )
+                        }
+                    }
+
+                },
+                isHaze = true
+            )
+        }
+    ) { padding ->
+        Box(Modifier.fillMaxSize().padding(padding).padding(bottom = if(viewManager.orientation.value == WindowScreen.Expanded) 0.dp else 80.dp), contentAlignment = Alignment.Center) {
+            if (model.isParent) {
+                Column(
+                    Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "Дети",
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Crossfade(
+                        nGradesModel.state,
+                        modifier = Modifier.animateContentSize()
+                    ) { state -> //, modifier = Modifier.padding(top = 10.dp)
+                        when (state) {
+                            NetworkState.None -> {
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    (model.children).forEach {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier.clip(
+                                                RoundedCornerShape(15.dp)
+                                            ).clickable {
+                                                component.onOutput(
+                                                    HomeComponent.Output.NavigateToChildren(
+                                                        studentLogin = it.login,
+                                                        avatarId = it.avatarId,
+                                                        fio = it.fio
+                                                    )
+                                                )
+                                            }.handy().background(
+                                                if (pickedLogin != it.login) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                                    4.dp
+                                                ), RoundedCornerShape(15.dp)
+                                            ).padding(4.dp)
+                                        ) {
+                                            GetAvatar(
+                                                avatarId = it.avatarId,
+                                                name = it.fio.name
+                                            )
+                                            Spacer(Modifier.height(5.dp))
+                                            Text(
+                                                it.fio.name,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            NetworkState.Loading -> {
+                                Box(
+                                    Modifier.height(100.dp).fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    LoadingAnimation()
+                                }
+                            }
+
+                            NetworkState.Error -> {
+                                Column(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(nGradesModel.error)
+                                    Spacer(Modifier.height(7.dp))
+                                    CustomTextButton("Попробовать ещё раз") {
+                                        nGradesModel.onFixErrorClick()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Text("Здесь когда-нибудь что-нибудь будет...")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TeacherHomeContent(
-    component: HomeComponent
+    component: HomeComponent,
+    pickedLogin: String
 ) {
+    val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
+
+
     if (component.journalComponent != null) {
         val model by component.model.subscribeAsState()
         val journalModel by component.journalComponent!!.model.subscribeAsState()
@@ -203,7 +359,6 @@ fun TeacherHomeContent(
                     component.journalComponent!!.onEvent(JournalStore.Intent.ResetReportData)
                 }
             }
-
         }
 
         Scaffold(
@@ -229,11 +384,11 @@ fun TeacherHomeContent(
                         containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
                         title = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                println(lazyListState.firstVisibleItemIndex)
                                 AnimatedContent(
                                     targetState = if (lazyListState.firstVisibleItemIndex !in listOf(
                                             0,
-                                            1
+                                            1,
+                                            2
                                         )
                                     ) "Расписание" else "Главная"
                                 ) {
@@ -407,6 +562,88 @@ fun TeacherHomeContent(
                                 }
                             }
                         } else if (num == 1) {
+                            AnimatedVisibility(model.children.isNotEmpty()) {
+                                Column(
+                                    Modifier.fillParentMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        "Дети",
+                                        modifier = Modifier.fillMaxWidth(),
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(Modifier.height(10.dp))
+                                    Crossfade(
+                                        nGradesModel.state,
+                                        modifier = Modifier.animateContentSize()
+                                    ) { state -> //, modifier = Modifier.padding(top = 10.dp)
+                                        when (state) {
+                                            NetworkState.None -> {
+                                                FlowRow(
+                                                    horizontalArrangement = Arrangement.Center,
+                                                    verticalArrangement = Arrangement.Center
+                                                ) {
+                                                    (model.children).forEach {
+                                                        Column(
+                                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                                            modifier = Modifier.clip(
+                                                                RoundedCornerShape(15.dp)
+                                                            ).clickable {
+                                                                component.onOutput(
+                                                                    HomeComponent.Output.NavigateToChildren(
+                                                                        studentLogin = it.login,
+                                                                        avatarId = it.avatarId,
+                                                                        fio = it.fio
+                                                                    )
+                                                                )
+                                                            }.handy().background(
+                                                                if (pickedLogin != it.login) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                                                    4.dp
+                                                                ), RoundedCornerShape(15.dp)
+                                                            ).padding(4.dp)
+                                                        ) {
+                                                            GetAvatar(
+                                                                avatarId = it.avatarId,
+                                                                name = it.fio.name
+                                                            )
+                                                            Spacer(Modifier.height(5.dp))
+                                                            Text(
+                                                                it.fio.name,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            NetworkState.Loading -> {
+                                                Box(
+                                                    Modifier.height(100.dp).fillMaxWidth(),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    LoadingAnimation()
+                                                }
+                                            }
+
+                                            NetworkState.Error -> {
+                                                Column(
+                                                    Modifier.fillMaxWidth(),
+                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                ) {
+                                                    Text(nGradesModel.error)
+                                                    Spacer(Modifier.height(7.dp))
+                                                    CustomTextButton("Попробовать ещё раз") {
+                                                        nGradesModel.onFixErrorClick()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (num == 2) {
                             RaspisanieTitleBox(
                                 isMainView = isMainView,
                                 model = model,
@@ -529,7 +766,11 @@ private fun RaspisanieTable(
             when (st) {
                 NetworkState.None -> {
                     if (items.isNullOrEmpty()) {
-                        Text("Здесь пока ничего нет", modifier = Modifier.fillMaxWidth().padding(top = 10.dp), textAlign = TextAlign.Center)
+                        Text(
+                            "Здесь пока ничего нет",
+                            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                            textAlign = TextAlign.Center
+                        )
                     } else {
                         items.sortedBy { it.start }
                             .forEachIndexed { id, it ->
@@ -834,7 +1075,11 @@ fun StudentHomeContent(
                             }
                             IconButton(
                                 onClick = {
-                                    component.onOutput(HomeComponent.Output.NavigateToStudentLines(model.login))
+                                    component.onOutput(
+                                        HomeComponent.Output.NavigateToStudentLines(
+                                            model.login
+                                        )
+                                    )
                                 },
                                 modifier = Modifier.align(Alignment.BottomEnd)
                             ) {
@@ -951,10 +1196,12 @@ fun StudentHomeContent(
                                         items(model.grades.sortedBy { getLocalDate(it.date).toEpochDays() }
                                             .reversed()) {
                                             cGrade(it, coroutineScope) {
-                                                component.studentReportDialog.onEvent(StudentReportDialogStore.Intent.OpenDialog(
-                                                    login = model.login,
-                                                    reportId = it.reportId
-                                                ))
+                                                component.studentReportDialog.onEvent(
+                                                    StudentReportDialogStore.Intent.OpenDialog(
+                                                        login = model.login,
+                                                        reportId = it.reportId
+                                                    )
+                                                )
                                             }
                                         }
                                     }

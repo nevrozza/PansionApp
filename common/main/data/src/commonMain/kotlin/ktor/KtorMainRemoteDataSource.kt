@@ -13,6 +13,7 @@ import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import main.RDeleteMainNotificationsReceive
+import main.RFetchChildrenResponse
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
 import main.RFetchMainHomeTasksCountReceive
@@ -48,6 +49,15 @@ class KtorMainRemoteDataSource(
                 bearer()
                 path(RequestPaths.Main.FetchNotifications)
                 setBody(r)
+            }
+        }.body()
+    }
+
+    suspend fun fetchChildren() : RFetchChildrenResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchChildren)
             }
         }.body()
     }
