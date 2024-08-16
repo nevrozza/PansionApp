@@ -19,5 +19,6 @@ data class RCheckConnectionResponse(
     val moderation: String,
     val avatarId: Int,
     val isParent: Boolean,
-    val birthday: String
+    val birthday: String,
+    val version: Int
 )

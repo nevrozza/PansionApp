@@ -26,7 +26,6 @@ class JournalExecutor(
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent,
     private val nInterface: NetworkInterface,
     private val nOpenReportInterface: NetworkInterface,
-
     private val fDateListComponent: ListComponent,
     private val fGroupListComponent: ListComponent,
     private val fTeachersListComponent: ListComponent,
@@ -140,6 +139,24 @@ class JournalExecutor(
                 dispatch(Message.TeacherFiltered(intent.teacherLogin))
                 fTeachersListComponent.onEvent(ListDialogStore.Intent.HideDialog)
             }
+
+            is Intent.FilterMyChildren -> filterMyChildren(intent.bool)
+        }
+    }
+
+    private fun filterMyChildren(filter: Boolean) {
+        dispatch(Message.MyChildrenFiltered(filter))
+        if(filter && state().childrenGroupIds.isEmpty()) {
+            fetchChildrenGroupIds()
+        }
+    }
+
+    private fun fetchChildrenGroupIds() {
+        scope.launch() {
+            try {
+                val r = mainRepository.fetchMentorGroupIds()
+                dispatch(Message.MyChildrenGroupsFetched(r.ids))
+            } catch (_: Throwable) {}
         }
     }
 
@@ -147,6 +164,9 @@ class JournalExecutor(
         scope.launch {
             fetchHeaders() //async { }
             fetchTeacherGroups() //async { }
+            if(state().isMentor) {
+                fetchChildrenGroupIds()
+            }
         }
     }
 

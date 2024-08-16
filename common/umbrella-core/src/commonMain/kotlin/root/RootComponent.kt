@@ -35,7 +35,7 @@ import studentLines.StudentLinesComponent
 import users.UsersComponent
 
 
-interface   RootComponent : BackHandlerOwner {
+interface RootComponent : BackHandlerOwner {
     val secondLogin: String?
     val secondAvatarId: Int?
     val secondFIO: FIO?
@@ -66,7 +66,8 @@ interface   RootComponent : BackHandlerOwner {
         class SecondView(
             val mentoringComponent: MentoringComponent?,
             val rootComponent: RootComponent,
-            val homeComponent: HomeComponent?
+            val homeComponent: HomeComponent?,
+            val isMentoring: Boolean
         ) : Child()
 
         class MainRating(val homeComponent: HomeComponent, val ratingComponent: RatingComponent) :

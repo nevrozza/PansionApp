@@ -1,10 +1,12 @@
 import io.ktor.client.request.post
 import io.ktor.http.path
+import journal.init.RFetchMentorGroupIdsResponse
 import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import ktor.KtorMainRemoteDataSource
 import main.RDeleteMainNotificationsReceive
+import main.RFetchChildrenMainNotificationsResponse
 import main.RFetchChildrenResponse
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
@@ -34,8 +36,16 @@ import schedule.RScheduleList
 class MainRepositoryImpl(
     private val remoteDataSource: KtorMainRemoteDataSource
 ) : MainRepository {
+    override suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse {
+        return remoteDataSource.fetchMentorGroupIds()
+    }
+
     override suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive): RFetchMainNotificationsResponse {
         return remoteDataSource.fetchMainNotifications(r)
+    }
+
+    override suspend fun fetchChildrenMainNotifications(): RFetchChildrenMainNotificationsResponse {
+        return remoteDataSource.fetchChildrenMainNotifications()
     }
 
     override suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive) {

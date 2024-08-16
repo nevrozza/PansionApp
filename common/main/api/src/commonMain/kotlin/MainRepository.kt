@@ -1,7 +1,9 @@
 import admin.schedule.ScheduleSubject
+import journal.init.RFetchMentorGroupIdsResponse
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import main.RDeleteMainNotificationsReceive
+import main.RFetchChildrenMainNotificationsResponse
 import main.RFetchChildrenResponse
 import main.RFetchMainAVGResponse
 import main.RFetchMainHomeTasksCountReceive
@@ -24,9 +26,10 @@ import schedule.RScheduleList
 
 interface MainRepository {
 
-
+    suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse
 
     suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive) : RFetchMainNotificationsResponse
+    suspend fun fetchChildrenMainNotifications() : RFetchChildrenMainNotificationsResponse
     suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive)
 
     suspend fun fetchChildren() : RFetchChildrenResponse

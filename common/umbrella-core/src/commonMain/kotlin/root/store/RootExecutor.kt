@@ -28,7 +28,8 @@ class RootExecutor(
             is Intent.UpdatePermissions -> updatePermissions(
                 intent.role,
                 intent.moderation,
-                intent.birthday
+                intent.birthday,
+                intent.version
             )
 
             Intent.CheckConnection -> checkConnection()
@@ -36,11 +37,11 @@ class RootExecutor(
         }
     }
 
-    private fun updatePermissions(role: String, moderation: String, birthday: String) {
+    private fun updatePermissions(role: String, moderation: String, birthday: String, version: Int) {
         scope.launch {
             dispatch(
                 Message.PermissionsUpdated(
-                    role, moderation, birthday
+                    role, moderation, birthday, version
                 )
             )
         }
@@ -56,7 +57,7 @@ class RootExecutor(
                 scope.launch {
                     checkNInterface.nSuccess()
                     if (r.isTokenValid) {
-                        updatePermissions(r.role, r.moderation, r.birthday)
+                        updatePermissions(r.role, r.moderation, r.birthday, r.version)
                         authRepository.updateAfterFetch(r)
 
                         gotoHome()

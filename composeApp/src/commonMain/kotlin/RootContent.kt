@@ -117,7 +117,11 @@ import root.RootComponent.RootCategories.Rating
 import server.getDate
 import view.WindowCalculator
 import androidx.compose.material.icons.rounded.Cake
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import server.cut
 
 @ExperimentalAnimationApi
@@ -130,6 +134,8 @@ import server.cut
 fun RootContent(component: RootComponent, isJs: Boolean = false) {
     val viewManager = LocalViewManager.current
     val childStack by component.childStack.subscribeAsState()
+
+    val isNewVersionDialogShowing = remember { mutableStateOf(true) }
 
     val model by component.model.subscribeAsState()
     val nCheckModel by component.checkNInterface.networkModel.subscribeAsState()
@@ -153,7 +159,10 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 icon = Icons.Rounded.Home,
                 label = "Главная",
                 category = if (isExpanded && getCategory(childStack.active.configuration as Config) == Journal) Journal
-                else if (isExpanded && getCategory(childStack.active.configuration as Config) == Rating && model.role != Roles.teacher) Rating
+                else if (isExpanded && getCategory(childStack.active.configuration as Config) == Rating && model.role != Roles.teacher && model.moderation !in listOf(
+                        Moderation.both,
+                        Moderation.mentor
+                    )) Rating
                 else Home,
                 onClickOutput = RootComponent.Output.NavigateToHome
             ),
@@ -163,7 +172,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 ) && component.isMentoring == null
             ) NavigationItem(
                 icon = Icons.Rounded.Diversity1,
-                label = "Наставник",
+                label = "Ученики",
                 category = Mentoring,
                 onClickOutput = RootComponent.Output.NavigateToMentoring
             ) else null,
@@ -171,7 +180,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     Moderation.moderator,
                     Moderation.mentor,
                     Moderation.both
-                ) ) && component.isMentoring == null) NavigationItem(
+                )) && component.isMentoring == null
+            ) NavigationItem(
                 icon = Icons.Rounded.LibraryBooks,
                 label = "Журнал",
                 category = Journal,
@@ -181,14 +191,18 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     Moderation.moderator,
                     Moderation.mentor,
                     Moderation.both
-                )  && component.isMentoring == null
+                ) && component.isMentoring == null
             ) NavigationItem(
                 icon = Icons.Rounded.GridView,
-                label = "Модерация",
+                label = "Админ",
                 category = Admin,
                 onClickOutput = RootComponent.Output.NavigateToAdmin
             ) else null,
-            if ((!isExpanded) || (isExpanded && model.role == Roles.teacher && component.isMentoring == null )) NavigationItem(
+            if ((!isExpanded) || (isExpanded && ((model.role == Roles.teacher || model.moderation in listOf(
+                    Moderation.moderator,
+                    Moderation.mentor,
+                    Moderation.both
+                ) )) && component.isMentoring == null)) NavigationItem(
                 icon = Icons.Rounded.Star,
                 label = "Рейтинг",
                 category = Rating,
@@ -335,13 +349,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = { DnevnikRuMarkContent(child.dnevnikRuMarksComponent) }
                             )
                         }
+
                         is Child.HomeStudentLines -> {
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
                                 viewManager = viewManager,
                                 currentScreen = { StudentLinesContent(child.studentLinesComponent) },
                                 firstScreen = { HomeContent(child.homeComponent) },
-                                secondScreen = { StudentLinesContent(child.studentLinesComponent)  }
+                                secondScreen = { StudentLinesContent(child.studentLinesComponent) }
                             )
                         }
 
@@ -519,7 +534,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             viewManager = viewManager
                         )
 
-                        is Child.SecondView -> if(component.isMentoring == true) {
+                        is Child.SecondView -> if (child.isMentoring) {
                             MultiPaneMentoring(
                                 isExpanded,
                                 mentoringComponent = child.mentoringComponent,
@@ -531,7 +546,12 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 isExpanded = isExpanded,
                                 viewManager = viewManager,
                                 currentScreen = { RootContent(child.rootComponent) },
-                                firstScreen = { if(child.homeComponent != null) HomeContent(child.homeComponent!!, pickedLogin = child.rootComponent.secondLogin ?: "")  },
+                                firstScreen = {
+                                    if (child.homeComponent != null) HomeContent(
+                                        child.homeComponent!!,
+                                        pickedLogin = child.rootComponent.secondLogin ?: ""
+                                    )
+                                },
                                 secondScreen = {
                                     RootContent(child.rootComponent)
                                 }
@@ -664,6 +684,28 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 }
             }
         }
+    }
+
+    if (isNewVersionDialogShowing.value && model.version > applicationVersion) {
+        AlertDialog(
+            onDismissRequest = { isNewVersionDialogShowing.value = false },
+            confirmButton = {
+                CustomTextButton(
+                    text = "Понятно"
+                ) {
+                    isNewVersionDialogShowing.value = false
+                }
+            },
+            text = { Text(
+                buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                        append("Доступна новая версия!\n")
+                    }
+                    append("Игнорирование приведёт к проблемам при загрузке данных")
+                }
+            ) }
+
+        )
     }
 }
 

@@ -8,7 +8,7 @@ object RootReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
             Message.GreetingsHided -> copy(isGreetingsShowing = false)
-            is Message.PermissionsUpdated -> copy(role = msg.role, moderation = msg.moderation, birthday = msg.birthday)
+            is Message.PermissionsUpdated -> copy(role = msg.role, moderation = msg.moderation, birthday = msg.birthday, version = msg.version )
             is Message.TokenValidationStatusChanged -> copy(isTokenValid = msg.isTokenValid)
         }
     }

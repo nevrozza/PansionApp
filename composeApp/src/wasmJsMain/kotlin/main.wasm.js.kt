@@ -28,6 +28,7 @@ import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import di.Inject
+import forks.splitPane.SplitPaneState
 import kotlinx.browser.window
 import root.RootComponentImpl
 import view.WindowType
@@ -88,7 +89,11 @@ fun main() {
                     )
                 ),
                 tint = mutableStateOf(settingsRepository.fetchTint().toTint()),
-                colorMode = mutableStateOf(settingsRepository.fetchColorMode())
+                colorMode = mutableStateOf(settingsRepository.fetchColorMode()),
+                splitPaneState = SplitPaneState(
+                    moveEnabled = true,
+                    initialPositionPercentage = 0f
+                )
             )
         }
         CompositionLocalProvider(

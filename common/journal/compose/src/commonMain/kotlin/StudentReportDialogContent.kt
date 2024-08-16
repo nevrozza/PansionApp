@@ -23,10 +23,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.HourglassBottom
+import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.ThumbDown
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
@@ -73,7 +75,8 @@ import view.handy
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun StudentReportDialogContent(
-    component: StudentReportComponent
+    component: StudentReportComponent,
+    openReport: ((Int) -> Unit)? = null
 ) {
 
     val size = 37.dp
@@ -88,162 +91,179 @@ fun StudentReportDialogContent(
         customMaxHeight = 0.dp
     ) {
         Crossfade(nModel.state) {
-            when (it) {
-                NetworkState.None ->
-                    AnimatedVisibility(model.studentLine != null && model.info != null) {
-                        Column(
-                            Modifier.fillMaxWidth().padding(horizontal = 5.dp)
-                                .padding(bottom = 25.dp)
-                                .alpha(if (nModel.state == NetworkState.Error) 0.4f else 1f),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                "${model.info!!.date}-${model.info!!.time}",
-                                modifier = Modifier.alpha(.5f)
-                            )
-                            if (model.info!!.theme.isNotBlank()) {
+            Box(Modifier.fillMaxWidth()) {
+                when (it) {
+                    NetworkState.None ->
+                        AnimatedVisibility(model.studentLine != null && model.info != null) {
+                            Column(
+                                Modifier.fillMaxWidth().padding(horizontal = 5.dp)
+                                    .padding(bottom = 25.dp)
+                                    .alpha(if (nModel.state == NetworkState.Error) 0.4f else 1f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Text(
-                                    model.info!!.theme,
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 20.sp,
-                                    //lineHeight = 27.sp,
-                                    textAlign = TextAlign.Center
+                                    "${model.info!!.date}-${model.info!!.time}",
+                                    modifier = Modifier.alpha(.5f)
                                 )
-                            }
-                            Text(
-                                "${model.studentLine!!.subjectName} ${model.studentLine!!.groupName}",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 17.sp,
-                                //lineHeight = 27.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.alpha(.5f)
-                            )
-
-
-                            Spacer(Modifier.height(2.5.dp))
-                            Text(model.info!!.module + " модуль")
-                            Spacer(Modifier.height(5.dp))
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                (model.marks + model.stups).sortedWith(
-                                    compareBy(
-                                        { getLocalDate(it.deployDate).toEpochDays() },
-                                        { it.deployTime.toMinutes() })
-                                ).reversed().forEach { x ->
-                                    val m = x.mark
-
-
-                                    val tState = rememberTooltipState(isPersistent = false)
-
-                                    val onClickMark = {
-                                        coroutineScope.launch {
-                                            tState.show()
-                                        }
-                                    }
-                                    TooltipBox(
-                                        state = tState,
-                                        tooltip = {
-                                            PlainTooltip(modifier = Modifier.clickable {}) {
-                                                Text(
-                                                    "${fetchReason(m.reason)}",
-                                                    textAlign = TextAlign.Center
-                                                )
-                                            }
-                                        },
-                                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
-                                    ) {
-
-                                        if (m.reason.subSequence(0, 3) != "!st" &&
-                                            m.reason.subSequence(0, 3) != "!ds"
-                                        ) {
-                                            MarkContent(
-                                                m.content,
-                                                size = size,
-                                                textYOffset = offset,
-                                                addModifier = Modifier.clickable {
-                                                    onClickMark()
-                                                }.handy()
-                                            )
-                                        } else {
-                                            StupContent(
-                                                m.content,
-                                                size = size,
-                                                textYOffset = offset,
-                                                addModifier = Modifier.clickable {
-                                                    onClickMark()
-                                                }.handy(),
-                                                isDs = m.reason.subSequence(0, 3) == "!ds"
-                                            )
-                                        }
-                                    }
+                                if (model.info!!.theme.isNotBlank()) {
+                                    Text(
+                                        model.info!!.theme,
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 20.sp,
+                                        //lineHeight = 27.sp,
+                                        textAlign = TextAlign.Center
+                                    )
                                 }
-                            }
-                            if (model.studentLine!!.isLiked in listOf("t", "f") ||
-                                (model.studentLine!!.lateTime.isNotBlank() && model.studentLine!!.lateTime != "00 мин" && model.studentLine!!.lateTime != "0") ||
-                                model.studentLine!!.attended !in listOf("0", null)
-                            ) {
-                                Spacer(Modifier.height(10.dp))
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
+                                Text(
+                                    "${model.studentLine!!.subjectName} ${model.studentLine!!.groupName}",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 17.sp,
+                                    //lineHeight = 27.sp,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.alpha(.5f)
+                                )
+
+
+                                Spacer(Modifier.height(2.5.dp))
+                                Text(model.info!!.module + " модуль")
+                                Spacer(Modifier.height(5.dp))
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.Center
                                 ) {
-                                    if (model.studentLine!!.lateTime.isNotBlank() && model.studentLine!!.lateTime != "00 мин" && model.studentLine!!.lateTime != "0") {
-                                        Icon(Icons.Rounded.HourglassBottom, null)
-                                        Spacer(Modifier.width(5.dp))
-                                        Text(model.studentLine!!.lateTime.removePrefix("0"))
+                                    (model.marks + model.stups).sortedWith(
+                                        compareBy(
+                                            { getLocalDate(it.deployDate).toEpochDays() },
+                                            { it.deployTime.toMinutes() })
+                                    ).reversed().forEach { x ->
+                                        val m = x.mark
 
-                                        Spacer(Modifier.width(10.dp))
+
+                                        val tState = rememberTooltipState(isPersistent = false)
+
+                                        val onClickMark = {
+                                            coroutineScope.launch {
+                                                tState.show()
+                                            }
+                                        }
+                                        TooltipBox(
+                                            state = tState,
+                                            tooltip = {
+                                                PlainTooltip(modifier = Modifier.clickable {}) {
+                                                    Text(
+                                                        "${fetchReason(m.reason)}",
+                                                        textAlign = TextAlign.Center
+                                                    )
+                                                }
+                                            },
+                                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+                                        ) {
+
+                                            if (m.reason.subSequence(0, 3) != "!st" &&
+                                                m.reason.subSequence(0, 3) != "!ds"
+                                            ) {
+                                                MarkContent(
+                                                    m.content,
+                                                    size = size,
+                                                    textYOffset = offset,
+                                                    addModifier = Modifier.clickable {
+                                                        onClickMark()
+                                                    }.handy()
+                                                )
+                                            } else {
+                                                StupContent(
+                                                    m.content,
+                                                    size = size,
+                                                    textYOffset = offset,
+                                                    addModifier = Modifier.clickable {
+                                                        onClickMark()
+                                                    }.handy(),
+                                                    isDs = m.reason.subSequence(0, 3) == "!ds"
+                                                )
+                                            }
+                                        }
                                     }
-                                    if (model.studentLine!!.isLiked in listOf("t", "f")) {
-                                        Icon(
-                                            Icons.Rounded.ThumbDown, null,
-                                            modifier = Modifier.rotate(if (model.studentLine!!.isLiked == "t") 180f else 0f)
-                                        )
+                                }
+                                if (model.studentLine!!.isLiked in listOf("t", "f") ||
+                                    (model.studentLine!!.lateTime.isNotBlank() && model.studentLine!!.lateTime != "00 мин" && model.studentLine!!.lateTime != "0") ||
+                                    model.studentLine!!.attended !in listOf("0", null)
+                                ) {
+                                    Spacer(Modifier.height(10.dp))
+                                    Row(
+                                        Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        if (model.studentLine!!.lateTime.isNotBlank() && model.studentLine!!.lateTime != "00 мин" && model.studentLine!!.lateTime != "0") {
+                                            Icon(Icons.Rounded.HourglassBottom, null)
+                                            Spacer(Modifier.width(5.dp))
+                                            Text(model.studentLine!!.lateTime.removePrefix("0"))
 
-                                        Spacer(Modifier.width(10.dp))
+                                            Spacer(Modifier.width(10.dp))
+                                        }
+                                        if (model.studentLine!!.isLiked in listOf("t", "f")) {
+                                            Icon(
+                                                Icons.Rounded.ThumbDown, null,
+                                                modifier = Modifier.rotate(if (model.studentLine!!.isLiked == "t") 180f else 0f)
+                                            )
+
+                                            Spacer(Modifier.width(10.dp))
+                                        }
+                                        PrisutCheckBox(
+                                            modifier = Modifier.size(27.dp),
+                                            attendedType = model.studentLine!!.attended ?: "0",
+                                            reason = null,
+                                            enabled = false
+                                        ) {}
                                     }
-                                    PrisutCheckBox(
-                                        modifier = Modifier.size(27.dp),
-                                        attendedType = model.studentLine!!.attended ?: "0",
-                                        reason = null,
-                                        enabled = false
-                                    ) {}
                                 }
-                            }
-                            if (model.homeTasks.isNotEmpty()) {
-                                Spacer(Modifier.height(10.dp))
-                                Text("Домашние задания", fontWeight = FontWeight.SemiBold)
-                                model.homeTasks.forEachIndexed { i, ht ->
-                                    Text("${i + 1}. ${ht}", textAlign = TextAlign.Center)
+                                if (model.homeTasks.isNotEmpty()) {
+                                    Spacer(Modifier.height(10.dp))
+                                    Text("Домашние задания", fontWeight = FontWeight.SemiBold)
+                                    model.homeTasks.forEachIndexed { i, ht ->
+                                        Text("${i + 1}. ${ht}", textAlign = TextAlign.Center)
+                                    }
                                 }
-                            }
 
 
+                            }
+                        }
+
+                    NetworkState.Error -> Column(
+                        Modifier.height(200.dp).fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(nModel.error)
+                        Spacer(Modifier.height(7.dp))
+                        CustomTextButton("Попробовать ещё раз") {
+                            nModel.onFixErrorClick()
                         }
                     }
 
-                NetworkState.Error -> Column(
-                    Modifier.height(200.dp).fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(nModel.error)
-                    Spacer(Modifier.height(7.dp))
-                    CustomTextButton("Попробовать ещё раз") {
-                        nModel.onFixErrorClick()
+                    NetworkState.Loading -> Box(
+                        Modifier.height(200.dp).fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
-
-                NetworkState.Loading -> Box(
-                    Modifier.height(200.dp).fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                if (openReport != null) {
+                    IconButton(
+                        onClick = {
+                            if (model.info != null) {
+                                openReport.invoke(model.info!!.reportId)
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Logout, null
+                        )
+                    }
                 }
             }
         }
+
     }
 }
 

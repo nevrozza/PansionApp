@@ -6,6 +6,7 @@ import admin.groups.Group
 import admin.groups.GroupInit
 import admin.groups.Subject
 import admin.users.UserInit
+import applicationVersion
 import auth.ActivationReceive
 import auth.ActivationResponse
 import auth.CheckActivationReceive
@@ -15,6 +16,7 @@ import auth.LoginReceive
 import auth.LoginResponse
 import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
+import auth.RCheckGIASubjectReceive
 import auth.RFetchAboutMeReceive
 import auth.RFetchAboutMeResponse
 import auth.RFetchAllDevicesResponse
@@ -24,7 +26,11 @@ import com.nevrozq.pansion.database.cabinets.CabinetsDTO
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.forms.mapToForm
+import com.nevrozq.pansion.database.homework.HomeTasksDone
+import com.nevrozq.pansion.database.pickedGIA.PickedGIA
+import com.nevrozq.pansion.database.pickedGIA.PickedGIADTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
+import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import io.ktor.http.*
@@ -44,6 +50,7 @@ import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.nullUUID
 import com.nevrozq.pansion.utils.toId
 import com.nevrozq.pansion.utils.token
+import homework.RCheckHomeTaskReceive
 import server.DataLength
 import server.Moderation
 import server.Roles
@@ -66,6 +73,18 @@ class AuthController {
                         .filter { it.isActive }
                 val teachers = ( Users.fetchAllTeachers()
                     .filter { it.isActive && it.login in groups.map { it.teacherLogin } } + Users.fetchAllMentors().firstOrNull { it.login == form.mentorLogin }).filterNotNull()
+                var likes = 0
+                var dislikes = 0
+
+                StudentLines.fetchStudentLinesByLogin(r.studentLogin).forEach {
+                    if(it.isLiked == "t") {
+                        likes++
+                    } else if (it.isLiked == "f") {
+                        dislikes++
+                    }
+                }
+
+
                 call.respond(
                     RFetchAboutMeResponse(
                         form = form.mapToForm(),
@@ -91,7 +110,10 @@ class AuthController {
                         teachers = HashMap(teachers.associateBy({
                             it.login
                         }, { "${it.surname} ${it.name[0]}. ${(it.praname ?: " ")[0]}." }
-                        ))
+                        )),
+                        likes = likes,
+                        dislikes = dislikes,
+                        giaSubjects = PickedGIA.fetchByStudent(r.studentLogin)
                     ))
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict when get about me")
@@ -124,6 +146,7 @@ class AuthController {
             )
         }
     }
+
 
     suspend fun fetchAllDevices(call: ApplicationCall) {
         if (call.isMember) {
@@ -216,10 +239,37 @@ class AuthController {
                 moderation = moderation,
                 avatarId = avatarId,
                 isParent = isParent,
-                birthday = birthday
+                birthday = birthday,
+                version = applicationVersion
             )
         )
+    }
 
+    suspend fun checkGIASubject(call: ApplicationCall) {
+        val r = call.receive<RCheckGIASubjectReceive>()
+        if (call.isMember && r.login == call.login) {
+            try {
+                val dto = PickedGIADTO(
+                    studentLogin = r.login,
+                    subjectGIAId = r.subjectId
+                )
+                if(r.isChecked) {
+                    PickedGIA.insert(dto)
+                } else {
+                    PickedGIA.delete(dto)
+                }
+                call.respond(
+                    HttpStatusCode.OK
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't check GIA: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
     }
 
 

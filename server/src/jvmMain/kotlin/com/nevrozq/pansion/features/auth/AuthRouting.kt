@@ -12,6 +12,10 @@ fun Application.configureActivationRouting() {
             authController.activateUser(call)
         }
 
+        post(RequestPaths.Auth.CheckGIASubject) {
+            authController.checkGIASubject(call)
+        }
+
         post(RequestPaths.Auth.FetchAllDevices) {
             authController.fetchAllDevices(call)
         }

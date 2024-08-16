@@ -102,7 +102,7 @@ fun AdminContent(
                 title = {
 
                     Text(
-                        "Модерация",
+                        "Администрация",
                         modifier = Modifier.padding(start = 10.dp),
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis

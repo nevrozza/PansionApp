@@ -11,6 +11,7 @@ import home.HomeStore.Label
 import home.HomeStore.State
 import home.HomeStore.Message
 import journal.JournalComponent
+import server.Moderation
 
 class HomeStoreFactory(
     private val storeFactory: StoreFactory,
@@ -27,6 +28,7 @@ class HomeStoreFactory(
     private val surname: String,
     private val praname: String,
     private val role: String,
+    private val moderation: String,
     private val isParent: Boolean,
 ) {
 
@@ -45,7 +47,8 @@ class HomeStoreFactory(
                 surname = surname,
                 praname = praname,
                 role = role,
-                isParent = isParent
+                isParent = isParent,
+                isMentor = moderation in listOf(Moderation.mentor, Moderation.both)
             ),
             executorFactory = { HomeExecutor(
                 authRepository = authRepository,

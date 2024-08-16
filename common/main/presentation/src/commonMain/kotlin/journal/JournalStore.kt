@@ -12,6 +12,8 @@ import server.getSixTime
 
 interface JournalStore : Store<Intent, State, Label> {
     data class State(
+        val isMentor: Boolean,
+        val childrenGroupIds: List<Int> = emptyList(),
         val studentsInGroup: List<Person> = emptyList(),
         val currentGroupId: Int = 0,
         val teacherGroups: List<TeacherGroup> = emptyList(),
@@ -20,11 +22,11 @@ interface JournalStore : Store<Intent, State, Label> {
         val openingReportData: ReportData? = null,
         val time: String = getSixTime(),
         val currentModule: String = "",
-
         val filterTeacherLogin: String? = null,
         val filterGroupId: Int? = null,
         val filterDate: String? = null,
-        val filterStatus: Boolean? = null
+        val filterStatus: Boolean? = null,
+        val filterMyChildren: Boolean = isMentor
     )
 
     sealed interface Intent {
@@ -45,6 +47,7 @@ interface JournalStore : Store<Intent, State, Label> {
         data class FilterGroup(val groupId: Int?) : Intent
         data class FilterDate(val date: String?) : Intent
         data class FilterStatus(val bool: Boolean?) : Intent
+        data class FilterMyChildren(val bool: Boolean) : Intent
     }
 
     sealed interface Message {
@@ -64,6 +67,8 @@ interface JournalStore : Store<Intent, State, Label> {
         data class GroupFiltered(val groupId: Int?) : Message
         data class DateFiltered(val date: String?) : Message
         data class StatusFiltered(val bool: Boolean?) : Message
+        data class MyChildrenFiltered(val bool: Boolean) : Message
+        data class MyChildrenGroupsFetched(val ids: List<Int>) : Message
     }
 
     sealed interface Label

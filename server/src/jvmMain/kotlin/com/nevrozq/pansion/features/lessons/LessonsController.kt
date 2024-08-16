@@ -54,6 +54,7 @@ import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
+import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
@@ -67,6 +68,7 @@ import com.nevrozq.pansion.database.ratingTable.RatingYear0Table
 import com.nevrozq.pansion.database.ratingTable.RatingYear1Table
 import com.nevrozq.pansion.database.ratingTable.RatingYear2Table
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
+import com.nevrozq.pansion.database.reportHeaders.ReportHeadersDTO
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.schedule.ScheduleDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
@@ -78,8 +80,11 @@ import com.nevrozq.pansion.database.subjects.SubjectDTO
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.subjects.mapToSubject
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.lastTimeRatingUpdate
 import com.nevrozq.pansion.utils.isMember
+import com.nevrozq.pansion.utils.isMentor
 import com.nevrozq.pansion.utils.isModer
+import com.nevrozq.pansion.utils.isParent
 import com.nevrozq.pansion.utils.isTeacher
 import com.nevrozq.pansion.utils.login
 import io.ktor.http.HttpStatusCode
@@ -91,6 +96,7 @@ import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import main.ClientMainNotification
 import main.RDeleteMainNotificationsReceive
+import main.RFetchChildrenMainNotificationsResponse
 import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -111,6 +117,7 @@ import schedule.RScheduleList
 import server.getLocalDate
 import server.toMinutes
 import java.util.HashMap
+import kotlin.math.log
 
 class LessonsController() {
 
@@ -120,7 +127,7 @@ class LessonsController() {
                 val r = call.receive<RDeleteMainNotificationsReceive>()
                 CheckedNotifications.insert(
                     CheckedNotificationsDTO(
-                        studentLogin = r.studentLogin,
+                        studentLogin = call.login,
                         key = r.key
                     )
                 )
@@ -136,66 +143,160 @@ class LessonsController() {
         }
     }
 
-    suspend fun fetchMainNotifications(call: ApplicationCall) {
+    private fun fetchMainNotificationsServer(
+        groups: List<GroupDTO>,
+        reports: List<ReportHeadersDTO>,
+        subjects: Map<Int, String>,
+        checkedNotifications: List<String>,
+        studentLogin: String
+    ): List<ClientMainNotification> {
+        val achievements = Achievements.fetchAllByLogin(studentLogin).map {
+            val xDate =
+                if ((it.showDate?.length ?: 0) > 5) it.showDate ?: it.date else it.date
+            ClientMainNotification(
+                key = "A.${it.studentLogin}.${it.id}",
+                subjectName = subjects[it.subjectId].toString(),
+                reason = "A.${it.text}.${it.stups}",
+                date = xDate,
+                reportTime = null,
+                groupName = null,
+                reportId = null
+            )
+        }
+        val nKiOpozd =
+            StudentLines.fetchStudentLinesByLogin(login = studentLogin).mapNotNull { x ->
+                val isL = x.isLiked in listOf("f", "t")
+                val isNka = x.attended == "1" || x.attended == "2"
+                val group = groups.firstOrNull { it.id == x.groupId }
+                val header =
+                    if (group != null) reports.firstOrNull { it.id == x.reportId } else null
+                if (header != null) {
+                    val pa = PreAttendance.fetchPreAttendanceByDateAndLogin(
+                        date = header.date,
+                        login = studentLogin
+                    )
+                    val time = header.time.toMinutes()
+                    val is2NKA =
+                        if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
+                    val isLate = (x.lateTime.isNotEmpty() && x.lateTime != "0")
+                    if (isLate || isNka || is2NKA || isL) {
+                        val subject =
+                            if (group != null) subjects[group.subjectId].toString() else "null"
+                        ClientMainNotification(
+                            key = if (is2NKA || isNka) "N.${x.login}.${x.reportId}" else if (isLate) "Op.${x.login}.${x.reportId}" else "L.${x.login}.${x.reportId}",
+                            subjectName = subject,
+                            reason = if (is2NKA) "N.${if (pa!!.isGood) "2" else "1"}" else if (isNka) "N.${x.attended}" else if (isLate) "Op.${x.lateTime}" else "L.${if (x.isLiked == "t") "T" else "F"}",
+                            date = header.date.toString(),
+                            reportTime = header.time.toString(),
+                            groupName = group?.name.toString(),
+                            reportId = x.reportId
+                        )
+                    } else null
+                } else null
+            }
+        return (achievements + nKiOpozd).filter { it.key !in checkedNotifications }
+            .sortedWith(
+                compareBy(
+                    { getLocalDate(it.date).toEpochDays() },
+                    { it.reportTime?.toMinutes() })
+            ).reversed()
+    }
+
+    suspend fun fetchMainChildrenNotifications(
+        call: ApplicationCall
+    ) {
         if (call.isMember) {
             try {
-                val r = call.receive<RFetchMainNotificationsReceive>()
 
-                val checkedNotifications = CheckedNotifications.fetchByLogin(r.studentLogin)
-
+                val checkedNotifications = CheckedNotifications.fetchByLogin(call.login)
+                val groups: List<GroupDTO> = Groups.getAllGroups()
+                val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
                 val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
                     -2 to "Дисциплина",
                     -3 to "Общественная работа",
                     -4 to "Творчество"
                 )
-                val groups = Groups.getAllGroups()
-                val reports = ReportHeaders.fetchReportHeaders()
-                val achievements = Achievements.fetchAllByLogin(r.studentLogin).map {
-                    val xDate =
-                        if ((it.showDate?.length ?: 0) > 5) it.showDate ?: it.date else it.date
-                    ClientMainNotification(
-                        key = "A.${it.studentLogin}.${it.id}",
-                        subjectName = subjects[it.subjectId].toString(),
-                        reason = "A.${it.text}.${it.stups}",
-                        date = xDate,
-                        reportTime = null,
-                        groupName = null
+
+                val logins: MutableList<Person> = mutableListOf()
+
+                if (call.isParent) {
+                    logins.addAll(Parents.fetchChildren(parentLogin = call.login).map {
+                        Person(
+                            login = it.login,
+                            fio = it.fio,
+                            isActive = it.isActive
+                        )
+                    }
                     )
                 }
-                val nKiOpozd =
-                    StudentLines.fetchStudentLinesByLogin(login = r.studentLogin).mapNotNull { x ->
-                        val isNka = x.attended == "1" || x.attended == "2"
-                        val group = groups.firstOrNull { it.id == x.groupId }
-                        val header =
-                            if (group != null) reports.firstOrNull { it.id == x.reportId } else null
-                        if (header != null) {
-                            val pa = PreAttendance.fetchPreAttendanceByDateAndLogin(
-                                date = header.date,
-                                login = r.studentLogin
+                if (call.isMentor) {
+                    val forms = Forms.fetchMentorForms(call.login)
+                    logins.addAll(
+                        StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id }).map {
+                            val user = Users.fetchUser(it.login)!!
+                            Person(
+                                login = it.login,
+                                fio = FIO(
+                                    name = user.name,
+                                    surname = user.surname,
+                                    praname = user.praname
+                                ),
+                                isActive = user.isActive
                             )
-                            val time = header.time.toMinutes()
-                            val is2NKA =
-                                if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
-                            if ((x.lateTime.isNotEmpty() && x.lateTime != "0") || isNka || is2NKA) {
-                                val subject =
-                                    if (group != null) subjects[group.subjectId].toString() else "null"
-                                ClientMainNotification(
-                                    key = if (is2NKA || isNka) "N.${x.login}.${x.reportId}" else "Op.${x.login}.${x.reportId}",
-                                    subjectName = subject,
-                                    reason = if (is2NKA) "N.${if (pa!!.isGood) "2" else "1"}" else if (isNka) "N.${x.attended}" else "Op.${x.lateTime}",
-                                    date = header.date.toString(),
-                                    reportTime = header.time.toString(),
-                                    groupName = group?.name.toString()
-                                )
-                            } else null
-                        } else null
-                    }
-                val filtered = (achievements + nKiOpozd).filter { it.key !in checkedNotifications }
-                    .sortedWith(
-                        compareBy(
-                            { getLocalDate(it.date).toEpochDays() },
-                            { it.reportTime?.toMinutes() })
-                    ).reversed()
+                        }
+                    )
+                }
+                val endLogins = logins.toSet().toList()
+                val end = endLogins.associate {
+                    it.login to fetchMainNotificationsServer(
+                        groups = groups,
+                        checkedNotifications = checkedNotifications,
+                        reports = reports,
+                        subjects = subjects,
+                        studentLogin = it.login
+                    )
+                }
+
+                call.respond(
+                    RFetchChildrenMainNotificationsResponse(
+                        students = endLogins.filter { !end[it.login].isNullOrEmpty() },
+                        notifications = end
+                    )
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch notifications: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun fetchMainNotifications(
+        call: ApplicationCall,
+    ) {
+        if (call.isMember) {
+            try {
+                val r = call.receive<RFetchMainNotificationsReceive>()
+
+                val checkedNotifications = CheckedNotifications.fetchByLogin(call.login)
+                val groups: List<GroupDTO> = Groups.getAllGroups()
+                val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
+                val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
+                    -2 to "Дисциплина",
+                    -3 to "Общественная работа",
+                    -4 to "Творчество"
+                )
+
+                val filtered = fetchMainNotificationsServer(
+                    groups = groups,
+                    checkedNotifications = checkedNotifications,
+                    reports = reports,
+                    subjects = subjects,
+                    studentLogin = r.studentLogin
+                )
 
                 call.respond(
                     RFetchMainNotificationsResponse(
@@ -308,7 +409,8 @@ class LessonsController() {
                     ),
                     me = hashMapOf(
                         r.subjectId to if (me != null) Pair(me.top, me.stups) else null
-                    )
+                    ),
+                    lastTimeEdit = lastTimeRatingUpdate
                 ))
             } catch (e: Throwable) {
                 call.respond(

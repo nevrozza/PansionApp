@@ -10,6 +10,10 @@ fun Application.configureMentoringRouting() {
     routing {
         val mentoringController = MentoringController()
 
+        post(RequestPaths.Main.FetchMentorGroupIds) {
+            mentoringController.fetchMentorGroupIds(call)
+        }
+
         post(RequestPaths.Mentoring.SavePreAttendanceDay) {
             mentoringController.savePreAttendanceDay(call)
         }

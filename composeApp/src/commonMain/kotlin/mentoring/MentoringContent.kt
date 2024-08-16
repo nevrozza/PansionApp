@@ -33,7 +33,10 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.HistoryEdu
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.ManageSearch
 import androidx.compose.material.icons.rounded.Receipt
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
@@ -109,7 +112,7 @@ fun MentoringContent(
                 title = {
 
                     Text(
-                        "Наставничество",
+                        "Ученики",
                         modifier = Modifier.padding(start = 10.dp),
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Black,
@@ -239,6 +242,7 @@ private fun FormsItem(
                                 .clip(RoundedCornerShape(15.dp))
                                 .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = .5f))
                         )
+                        Spacer(Modifier.width(5.dp))
                         IconButton(
                             onClick = {
                                 component.onOutput(
@@ -250,12 +254,35 @@ private fun FormsItem(
                                     )
                                 )
                                 component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-                            }
+                            },
+                            modifier = Modifier.size(30.dp)
                         ) {
                             Icon(
                                 Icons.Rounded.Home, null
                             )
                         }
+
+                        IconButton(
+                            onClick = {
+                                component.onOutput(
+                                    MentoringComponent.Output.CreateSecondView(
+                                        login = s.login,
+                                        fio = s.fio,
+                                        avatarId = s.avatarId,
+                                        config = Config.HomeStudentLines(
+                                            login = s.login
+                                        )
+                                    )
+                                )
+                                component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.ManageSearch, null
+                            )
+                        }
+
                         IconButton(
                             onClick = {
                                 component.onOutput(
@@ -274,6 +301,50 @@ private fun FormsItem(
                         ) {
                             Icon(
                                 Icons.Outlined.PlaylistAddCheckCircle, null
+                            )
+                        }
+
+
+                        IconButton(
+                            onClick = {
+                                component.onOutput(
+                                    MentoringComponent.Output.CreateSecondView(
+                                        login = s.login,
+                                        fio = s.fio,
+                                        avatarId = s.avatarId,
+                                        config = Config.HomeTasks(
+                                            studentLogin = s.login,
+                                            avatarId = s.avatarId,
+                                            name = s.fio.name
+                                        )
+                                    )
+                                )
+                                component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.HistoryEdu, null
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                component.onOutput(
+                                    MentoringComponent.Output.CreateSecondView(
+                                        login = s.login,
+                                        fio = s.fio,
+                                        avatarId = s.avatarId,
+                                        config = Config.HomeAchievements(
+                                            studentLogin = s.login
+                                        )
+                                    )
+                                )
+                                component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.EmojiEvents, null
                             )
                         }
                     }

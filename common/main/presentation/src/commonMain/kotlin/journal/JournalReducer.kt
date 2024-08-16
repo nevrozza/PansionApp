@@ -22,6 +22,8 @@ object JournalReducer : Reducer<State, Message> {
             is Message.GroupFiltered -> copy(filterGroupId = msg.groupId)
             is Message.StatusFiltered -> copy(filterStatus = msg.bool)
             is Message.TeacherFiltered -> copy(filterTeacherLogin = msg.teacherLogin)
+            is Message.MyChildrenFiltered -> copy(filterMyChildren = msg.bool)
+            is Message.MyChildrenGroupsFetched -> copy(childrenGroupIds = msg.ids)
         }
     }
 }

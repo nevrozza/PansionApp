@@ -10,6 +10,7 @@ import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.homework.HomeTasks
 import com.nevrozq.pansion.database.homework.HomeTasksDone
 import com.nevrozq.pansion.database.parents.Parents
+import com.nevrozq.pansion.database.pickedGIA.PickedGIA
 import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
@@ -46,13 +47,24 @@ import com.nevrozq.pansion.features.settings.configureSettingsRouting
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
 import com.nevrozq.pansion.plugins.configureCORS
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import server.getSixTime
+import kotlin.time.Duration
 
 // app: учителя,3333
 // server: типы уроков(айди, название, какие типы включает другие типы), классы (номер, направление), кабинеты
 // уроки +направление, группы +обязательность к классам, +проверка есть ли такой урок в классе
+
+var lastTimeRatingUpdate: String = getSixTime()
+
+@OptIn(DelicateCoroutinesApi::class)
 fun main() {
     Database.connect(
         "jdbc:postgresql://localhost:5432/pansionApp", driver = "org.postgresql.Driver",
@@ -95,9 +107,21 @@ fun main() {
             PreAttendance,
             Achievements,
             CheckedNotifications,
-            Parents
+            Parents,
+            PickedGIA
         )
-        updateRatings()
+//        updateRatings()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            while (true) {
+                transaction {
+                    updateRatings()
+                }
+                lastTimeRatingUpdate = getSixTime()
+                delay(1000 * 60 * 5)
+            }
+        }
+
 //        Users.deleteAll()
 //        Users.insert(
 //            UserDTO(

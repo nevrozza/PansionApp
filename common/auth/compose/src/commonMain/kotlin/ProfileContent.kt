@@ -36,6 +36,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -48,6 +50,7 @@ import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,15 +68,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -81,8 +88,10 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.GetAvatar
+import components.cBottomSheet.CBottomSheetStore
 import components.hazeHeader
 import components.networkInterface.NetworkState
+import decomposeComponents.CBottomSheetContent
 import profile.ProfileComponent
 import profile.ProfileStore
 import resources.Images
@@ -194,6 +203,18 @@ fun ProfileContent(
                         )
 
                         Spacer(Modifier.height(5.dp)) //3.dp
+                        Text(
+                            buildAnnotatedString {
+                                withStyle(SpanStyle(Color.Green)) {
+                                    append("+${model.likes}")
+                                }
+                                append("/")
+                                withStyle(SpanStyle(Color.Red)) {
+                                    append("-${model.dislikes}")
+                                }
+                            }
+                        )
+                        Spacer(Modifier.height(5.dp))
 //            HorizontalDivider(Modifier.width(340.dp).height(1.dp).padding(vertical = 15.dp, horizontal = 30.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = .1f))
                     }
                 }
@@ -303,6 +324,11 @@ fun ProfileContent(
                                                     Modifier.fillMaxWidth()
                                                         .clip(CardDefaults.elevatedShape)
                                                         .weight(1f)
+                                                        .clickable() {
+                                                            component.giaCBottomSheetComponent.onEvent(
+                                                                CBottomSheetStore.Intent.ShowSheet
+                                                            )
+                                                        }
                                                 ) {
                                                     val modifier = Modifier
                                                         .fillMaxWidth()
@@ -322,13 +348,20 @@ fun ProfileContent(
                                                                 fontWeight = FontWeight.Bold
                                                             )
                                                             Spacer(Modifier.height(2.dp))
-                                                            Text("${model.form!!.form.classNum}${if (model.form!!.form.title.length > 1) " " else "-"}${model.form!!.form.title} ${if (model.form!!.form.shortTitle.length > 1) "(${model.form!!.form.shortTitle})" else ""}", maxLines = 1)
+                                                            Text(
+                                                                "${model.form!!.form.classNum}${if (model.form!!.form.title.length > 1) " " else "-"}${model.form!!.form.title} ${if (model.form!!.form.shortTitle.length > 1) "(${model.form!!.form.shortTitle})" else ""}",
+                                                                maxLines = 1
+                                                            )
                                                             Spacer(Modifier.height(2.dp))
                                                             val mentorName =
                                                                 model.teachers[model.form!!.form.mentorLogin]
                                                             if (mentorName != null) {
-                                                                Text(mentorName, modifier = Modifier.horizontalScroll(
-                                                                    rememberScrollState()))
+                                                                Text(
+                                                                    mentorName,
+                                                                    modifier = Modifier.horizontalScroll(
+                                                                        rememberScrollState()
+                                                                    )
+                                                                )
                                                             }
                                                         }
                                                         Icon(
@@ -345,7 +378,11 @@ fun ProfileContent(
                                                     .clip(CardDefaults.elevatedShape)
                                                     .weight(1f)
                                                     .clickable() {
-                                                        component.onOutput(ProfileComponent.Output.OpenAchievements(model.studentLogin))
+                                                        component.onOutput(
+                                                            ProfileComponent.Output.OpenAchievements(
+                                                                model.studentLogin
+                                                            )
+                                                        )
                                                     }
                                             ) {
                                                 Column(
@@ -383,23 +420,26 @@ fun ProfileContent(
                                                 .clip(CardDefaults.elevatedShape)
 //                                            .weight(1f)
                                         ) {
-                                            Column(Modifier.padding(
-                                                vertical = 10.dp,
-                                                horizontal = 15.dp
-                                            )) {
+                                            Column(
+                                                Modifier.padding(
+                                                    vertical = 10.dp,
+                                                    horizontal = 15.dp
+                                                )
+                                            ) {
                                                 Text(
                                                     "Предметы",
                                                     fontSize = 17.sp,
                                                     fontWeight = FontWeight.Bold
                                                 )
 //                                                Spacer(Modifier.height(2.dp))
-                                                model.groups.sortedBy { it.group.subjectId }.forEach {
-                                                    GroupsItem(
-                                                        subjects = model.subjects,
-                                                        teachers = model.teachers,
-                                                        group = it
-                                                    )
-                                                }
+                                                model.groups.sortedBy { it.group.subjectId }
+                                                    .forEach {
+                                                        GroupsItem(
+                                                            subjects = model.subjects,
+                                                            teachers = model.teachers,
+                                                            group = it
+                                                        )
+                                                    }
                                             }
                                         }
                                         Spacer(Modifier.height(30.dp))
@@ -412,7 +452,11 @@ fun ProfileContent(
 
                 1 -> {
                     item {
-                        Text("В разработке", modifier = Modifier.fillMaxWidth().padding(top = 50.dp), textAlign = TextAlign.Center)
+                        Text(
+                            "В разработке",
+                            modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
 
@@ -437,13 +481,107 @@ fun ProfileContent(
             }
         }
     }
+
+    CBottomSheetContent(
+        component = component.giaCBottomSheetComponent
+    ) {
+        val necessarySubjects = if((model.form?.form?.classNum ?: 0) > 9) egeNecessarySubjects else ogeNecessarySubjects
+        val subjects = if((model.form?.form?.classNum ?: 0) > 9) egeSubjects else ogeSubjects
+
+        LazyColumn(
+            Modifier.padding(horizontal = 15.dp)
+        ) {
+            items(necessarySubjects) { s ->
+                SubjectItem(
+                    title = s.second,
+                    isChecked = true,
+                    modifier = Modifier.alpha(.5f)
+                ) {
+                    component.onEvent(ProfileStore.Intent.ClickOnGIASubject(subjectId = s.first, it))
+                }
+            }
+            items(subjects.sortedByDescending { it.first in model.giaSubjects }, key = { it.first }) { s ->
+                SubjectItem(
+                    title = s.second,
+                    isChecked = s.first in model.giaSubjects,
+                    modifier = Modifier.animateItemPlacement()
+                ) {
+                    component.onEvent(ProfileStore.Intent.ClickOnGIASubject(subjectId = s.first, it))
+                }
+            }
+            item {
+                Spacer(Modifier.height(40.dp))
+            }
+        }
+    }
 }
+
+@Composable
+private fun SubjectItem(
+    title: String,
+    isChecked: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: (Boolean) -> Unit
+) {
+    Row(modifier = modifier.fillMaxWidth(.8f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(title)
+        Checkbox(
+            checked = isChecked,
+            onCheckedChange = {
+                onClick(it)
+            }
+        )
+    }
+}
+
+val egeNecessarySubjects = mapOf<Int, String>(
+    0 to "Русский язык"
+).toList()
+
+val egeSubjects = mapOf<Int, String>(
+    1 to "Математика БАЗА",
+    2 to "Математика ПРОФИЛЬ",
+    3 to "Информатика",
+    4 to "Физика",
+    5 to "Обществознание",
+    6 to "История",
+    7 to "География",
+    8 to "Биология",
+    9 to "Литература",
+    10 to "Английский язык",
+    11 to "Французский язык",
+    12 to "Испанский язык",
+    13 to "Немецкий язык",
+    14 to "Китайский язык",
+).toList()
+val ogeNecessarySubjects = mapOf<Int, String>(
+    0 to "Русский язык",
+    1 to "Математика"
+).toList()
+
+val ogeSubjects = mapOf<Int, String>(
+    3 to "Информатика",
+    4 to "Физика",
+    5 to "Обществознание",
+    6 to "История",
+    7 to "География",
+    8 to "Биология",
+    9 to "Литература",
+    10 to "Английский язык",
+    11 to "Французский язык",
+    12 to "Испанский язык",
+    13 to "Немецкий язык",
+).toList()
 
 @Composable
 private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String>, group: Group) {
     val subject = subjects.firstOrNull { it.id == group.group.subjectId }?.name ?: "Название"
     val teacher = teachers[group.group.teacherLogin] ?: "Учитель"
-    Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Column {
             Row(Modifier.padding(start = 3.dp)) {
                 Text(subject, fontWeight = FontWeight.SemiBold)

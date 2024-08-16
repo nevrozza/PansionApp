@@ -32,6 +32,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -233,9 +234,8 @@ private fun TrueJournalContent(
                                 isBottomPaddingNeeded = true
                             ) {
                                 item {
-                                    Row(Modifier.offset(y = -6.dp).horizontalScroll(
-                                        rememberScrollState()
-                                    )) {
+                                    Row(modifier = Modifier.offset(y = (-6).dp).horizontalScroll(
+                                        rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
                                         Spacer(Modifier.width(7.dp))
                                         Box() {
                                             val isPicked = model.filterTeacherLogin != null
@@ -293,7 +293,6 @@ private fun TrueJournalContent(
                                             ListDialogDesktopContent(component.fGroupListComponent)
                                         }
                                         Spacer(Modifier.width(5.dp))
-
                                         Box() {
                                             val isPicked = model.filterDate != null
                                             AssistChip(
@@ -318,6 +317,16 @@ private fun TrueJournalContent(
                                             ListDialogDesktopContent(component.fDateListComponent)
                                         }
                                         Spacer(Modifier.width(15.dp))
+                                        if(model.isMentor) {
+                                            Checkbox(
+                                                checked = model.filterMyChildren,
+                                                onCheckedChange = {
+                                                    component.onEvent(JournalStore.Intent.FilterMyChildren(it))
+                                                }
+                                            )
+                                            Text("Только мои классы")
+                                            Spacer(Modifier.width(15.dp))
+                                        }
                                     }
                                 }
                                 items(model.headers
@@ -326,6 +335,7 @@ private fun TrueJournalContent(
                                     .filter { if(model.filterDate != null) it.date == model.filterDate else true }
                                     .filter { if(model.filterGroupId != null) it.groupId == model.filterGroupId else true }
                                     .filter { if(model.filterTeacherLogin != null) it.teacherLogin == model.filterTeacherLogin else true }
+                                    .filter { if(model.filterMyChildren && model.childrenGroupIds.isNotEmpty()) it.groupId in model.childrenGroupIds else true }
                                     .sortedBy { it.reportId }
                                     .toList().reversed()) { item ->
                                     JournalItemCompose(

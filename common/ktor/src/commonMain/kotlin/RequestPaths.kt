@@ -26,6 +26,10 @@ object RequestPaths {
         const val FetchScheduleSubjects = "server/main/fetchSubjects"
         const val FetchSubjectRating = "server/main/fetchSubjectRating"
         const val FetchChildren = "server/main/fetchChildren"
+
+
+        const val FetchMentorGroupIds = "server/journal/fetchMentorGroupIds"
+        const val FetchChildrenNotifications = "server/journal/fetchChildrenNotifications"
     }
 
     object Mentoring {
@@ -72,6 +76,7 @@ object RequestPaths {
         const val ChangeAvatarId = "server/changeAvatarId"
 
         const val FetchAboutMe = "server/fetchAboutMe"
+        const val CheckGIASubject = "server/profile/checkGIASubject"
 
         const val Logout = "server/profile/logout"
         const val FetchAllDevices = "server/devices/fetchAll"

@@ -14,8 +14,13 @@ object ProfileReducer : Reducer<State, Message> {
                 groups = msg.groups,
                 subjects = msg.subjects,
                 teachers = msg.teachers,
-                form = msg.form
+                form = msg.form,
+                likes = msg.likes,
+                dislikes = msg.dislikes,
+                giaSubjects = msg.giaSubjects
             )
+
+            is Message.GIASubjectsUpdated -> copy(giaSubjects = msg.giaSubjects)
         }
     }
 }

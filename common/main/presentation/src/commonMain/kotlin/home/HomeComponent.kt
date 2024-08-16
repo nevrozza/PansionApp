@@ -30,6 +30,7 @@ class HomeComponent(
     private val praname: String,
     private val role: String,
     private val isParent: Boolean,
+    private val moderation: String,
     val onBackButtonPress: (() -> Unit)? = null,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
@@ -89,7 +90,8 @@ class HomeComponent(
                 surname = surname,
                 praname = praname,
                 role = role,
-                isParent = isParent
+                isParent = isParent,
+                moderation = moderation
             ).create()
         }
 

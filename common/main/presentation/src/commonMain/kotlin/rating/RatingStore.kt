@@ -20,6 +20,7 @@ interface RatingStore : Store<Intent, State, Label> {
            startSubject,
             mvdSubject
         ),
+        val lastEditTime: String = "",
         val items: Map<Int, List<RatingItem>> = hashMapOf(),
         val period: Int = 0, // Week, Module, Year
         val forms: Int = 0, //All, 5-8, 9-11
@@ -34,7 +35,7 @@ interface RatingStore : Store<Intent, State, Label> {
 
     sealed interface Message {
         data class SubjectsUpdated(val subjects: List<ScheduleSubject>) : Message
-        data class RatingUpdated(val items: Map<Int, List<RatingItem>>, val me: Map<Int, Pair<Int, Int>?>) : Message
+        data class RatingUpdated(val items: Map<Int, List<RatingItem>>, val me: Map<Int, Pair<Int, Int>?>, val lastEditTime: String) : Message
         data class OnSubjectClicked(val subjectId: Int) : Message
         data class OnFormClicked(val formNum: Int) : Message
         data class OnPeriodClicked(val period: Int) : Message

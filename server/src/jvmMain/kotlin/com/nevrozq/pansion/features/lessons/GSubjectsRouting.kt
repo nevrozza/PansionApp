@@ -8,6 +8,10 @@ fun Application.configureLessonsRouting() {
     routing {
         val lessonsController = LessonsController()
 
+        post(RequestPaths.Main.FetchChildrenNotifications) {
+            lessonsController.fetchMainChildrenNotifications(call)
+        }
+
         post(RequestPaths.Main.CheckNotification) {
             lessonsController.checkMainNotification(call)
         }

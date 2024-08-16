@@ -25,6 +25,15 @@ class KtorAuthRemoteDataSource(
             }
         }.body()
     }
+    suspend fun checkPickedGIA(r: RCheckGIASubjectReceive){
+        httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Auth.CheckGIASubject)
+            }
+        }.status.value.checkOnNoOk()
+    }
 
     suspend fun checkConnection(): RCheckConnectionResponse {
         return httpClient.post {

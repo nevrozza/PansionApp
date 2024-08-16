@@ -152,7 +152,8 @@ class JournalComponent(
                 fTeachersListComponent = fTeachersListComponent,
                 fGroupListComponent = fGroupListComponent,
                 fDateListComponent = fDateListComponent,
-                fStatusListComponent = fStatusListComponent
+                fStatusListComponent = fStatusListComponent,
+                authRepository = authRepository
             ).create()
         }
 

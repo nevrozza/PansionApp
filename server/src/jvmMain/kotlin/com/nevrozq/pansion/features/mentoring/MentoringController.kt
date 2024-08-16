@@ -15,6 +15,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import journal.init.RFetchMentorGroupIdsResponse
 import mentoring.RFetchMentoringStudentsResponse
 import mentoring.preAttendance.ClientPreAttendance
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
@@ -23,6 +24,26 @@ import mentoring.preAttendance.RSavePreAttendanceDayReceive
 import mentoring.preAttendance.ScheduleForAttendance
 
 class MentoringController {
+
+    suspend fun fetchMentorGroupIds(call: ApplicationCall) {
+        if (call.isMentor) {
+            try {
+                val forms = Forms.fetchMentorForms(call.login)
+                val students = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
+                val groups = StudentGroups.fetchGroupIdsOfStudents(students.map { it.login })
+                call.respond(
+                    RFetchMentorGroupIdsResponse(groups)
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch mentor group ids: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
 
     suspend fun savePreAttendanceDay(call: ApplicationCall) {
         if (call.isMentor) {

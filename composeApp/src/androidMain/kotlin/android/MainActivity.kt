@@ -35,6 +35,9 @@ import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.items
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import di.Inject
+import forks.splitPane.ExperimentalSplitPaneApi
+import forks.splitPane.SplitPaneState
+import forks.splitPane.rememberSplitPaneState
 import io.ktor.util.decodeBase64Bytes
 import root.RootComponent
 import root.RootComponentImpl
@@ -51,7 +54,7 @@ class MainActivity : AppCompatActivity() {
     //@SuppressLint("SourceLockedOrientationActivity")
 
     @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class,
-        ExperimentalDecomposeApi::class
+        ExperimentalDecomposeApi::class, ExperimentalSplitPaneApi::class
     )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,7 +91,11 @@ class MainActivity : AppCompatActivity() {
                 ViewManager(
                     seedColor = mutableStateOf(Color(red = rgb[0], green = rgb[1], blue = rgb[2])),
                     tint = mutableStateOf(settingsRepository.fetchTint().toTint()),
-                    colorMode = mutableStateOf(settingsRepository.fetchColorMode())
+                    colorMode = mutableStateOf(settingsRepository.fetchColorMode()),
+                    splitPaneState = SplitPaneState(
+                        moveEnabled = true,
+                        initialPositionPercentage = 0f
+                    )
                 )
             }
             CompositionLocalProvider(

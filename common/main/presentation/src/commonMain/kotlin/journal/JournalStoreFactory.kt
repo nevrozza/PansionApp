@@ -1,5 +1,6 @@
 package journal
 
+import AuthRepository
 import MainRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -9,15 +10,16 @@ import components.networkInterface.NetworkInterface
 import journal.JournalStore.Intent
 import journal.JournalStore.Label
 import journal.JournalStore.State
+import server.Moderation
 
 class JournalStoreFactory(
     private val storeFactory: StoreFactory,
     private val mainRepository: MainRepository,
+    private val authRepository: AuthRepository,
     private val groupListComponent: ListComponent,
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent,
     private val nInterface: NetworkInterface,
     private val nOpenReportInterface: NetworkInterface,
-
     private val fDateListComponent: ListComponent,
     private val fGroupListComponent: ListComponent,
     private val fTeachersListComponent: ListComponent,
@@ -32,7 +34,9 @@ class JournalStoreFactory(
         JournalStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "JournalStore",
-            initialState = JournalStore.State(),
+            initialState = JournalStore.State(
+                isMentor = authRepository.fetchModeration() in listOf(Moderation.mentor, Moderation.both)
+            ),
             executorFactory = { JournalExecutor(
                 mainRepository = mainRepository,
                 groupListComponent = groupListComponent,

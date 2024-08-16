@@ -18,4 +18,5 @@ data class RFetchSubjectRatingReceive(
 data class RFetchSubjectRatingResponse(
     val hash: HashMap<Int, List<RatingItem>>,
     val me: HashMap<Int, Pair<Int, Int>?>,
+    val lastTimeEdit: String
 )

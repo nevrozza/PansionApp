@@ -57,11 +57,15 @@ interface HomeStore : Store<Intent, State, Label> {
 
         val role: String,
         val isParent: Boolean,
+        val isMentor: Boolean,
         val someHeaders: List<ReportHeader> = emptyList(),
 
         val notifications: List<ClientMainNotification> = emptyList(),
 
-        val children: List<PersonPlus> = emptyList()
+        val children: List<PersonPlus> = emptyList(),
+
+        val childrenNotifications: Map<String, List<ClientMainNotification>> = emptyMap(),
+        val notChildren: List<Person> = emptyList()
     )
 
     sealed interface Intent {
@@ -86,6 +90,12 @@ interface HomeStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+
+        //val childrenNotifications: Map<String, List<ClientMainNotification>> = emptyMap(),
+        //        val notChildren: List<Person>
+        data class ChildrenNotificationsInited(val notChildren: List<Person>, val childrenNotifications: Map<String, List<ClientMainNotification>> ) : Message
+
+
         data class AvatarIdUpdated(val avatarId: Int) : Message
 
         data class SomeHeadersUpdated(val someHeaders: List<ReportHeader>) : Message

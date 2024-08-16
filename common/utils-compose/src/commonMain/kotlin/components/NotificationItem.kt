@@ -1,6 +1,8 @@
 package components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,23 +44,37 @@ fun NotificationItem(
     not: ClientMainNotification,
     modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = (2.5).dp).padding(top = 5.dp),
     viewManager: ViewManager,
+    onClick: (Int) -> Unit,
     onDismissClick: (String) -> Unit
 ) {
     val data = not.reason.split(".")
-    val textColor =  if (viewManager.colorMode.value == "3") Color.White else MaterialTheme.colorScheme.onBackground
+    val textColor =
+        if (viewManager.colorMode.value == "3") Color.White else MaterialTheme.colorScheme.onBackground
     val type = data[0]
     val backColor = getColor(type, data[1])
     Surface(
-        modifier,
+        modifier.clip(
+            RoundedCornerShape(15.dp)).clickable(enabled = not.reportId != null) {
+            if (not.reportId != null) {
+                onClick(not.reportId!!)
+            }
+        },
         shape = RoundedCornerShape(15.dp),
-        color = if (viewManager.colorMode.value == "3") MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp).blend(backColor, .6f) else MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+        color = if (viewManager.colorMode.value == "3") MaterialTheme.colorScheme.surfaceColorAtElevation(
+            10.dp
+        ).blend(backColor, .6f) else MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
     ) {
         Box() {
             Column(Modifier.padding(horizontal = 10.dp, vertical = 5.dp)) {
                 Text(
                     buildAnnotatedString {
                         append(not.subjectName)
-                        withStyle(SpanStyle(color = textColor.copy(alpha = .5f), fontSize = 17.sp)) {
+                        withStyle(
+                            SpanStyle(
+                                color = textColor.copy(alpha = .5f),
+                                fontSize = 17.sp
+                            )
+                        ) {
                             append(" ${not.date}")
                         }
                     },
@@ -90,13 +106,15 @@ fun NotificationItem(
                         },
                         fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
                     )
-                } else if (type == "N") {
+                }
+                else if (type == "N") {
                     val isGood = data[1] == "2"
                     Text(
                         "Отсутствие по ${if (!isGood) "не" else ""}уважительной причине",
                         fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
                     )
-                } else if (type == "Op") {
+                }
+                else if (type == "Op") {
                     val lateTime = data[1].removeSuffix(" мин").removePrefix("0")
                     Text(
                         buildAnnotatedString {
@@ -108,30 +126,48 @@ fun NotificationItem(
                         fontWeight = FontWeight.SemiBold, fontSize = (16.5).sp, color = textColor
                     )
                 }
-            }
-            Row(Modifier.padding(top = 5.dp, end = 10.dp).align(Alignment.TopEnd), verticalAlignment = Alignment.CenterVertically) {
-                if (viewManager.colorMode.value !in listOf("2", "3", "4")) {
-                    Box(
-                        Modifier.size(5.dp).clip(
-                            CircleShape
-                        ).background(backColor ?: Color.Transparent) //MaterialTheme.colorScheme.primary
+                else if (type == "L") {
+                    Text(
+                        "Отмечено ${if(data[1] == "T") "хорошее" else "плохое"} поведение",
+                        fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
                     )
-                    Spacer(Modifier.width(2.5.dp))
                 }
-                IconButton(
-                    onClick = {
-                        onDismissClick(not.key)
-                    },
-                    modifier = Modifier
-                        .size(15.dp)
+            }
+            Box(
+                Modifier.height(30.dp).width(60.dp).align(Alignment.TopEnd).clickable(
+                    interactionSource = MutableInteractionSource(),
+                    indication = null
+                ) { onDismissClick(not.key) }
+            ) {
+                Row(
+                    Modifier.padding(top = 5.dp, end = 10.dp).align(Alignment.TopEnd),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        Icons.Rounded.Close,
-                        null,
-                        modifier = Modifier.background(
-                            MaterialTheme.colorScheme.surfaceColorAtElevation(15.dp).copy(.3f)
+                    if (viewManager.colorMode.value !in listOf("2", "3", "4")) {
+                        Box(
+                            Modifier.size(5.dp).clip(
+                                CircleShape
+                            ).background(
+                                backColor ?: Color.Transparent
+                            ) //MaterialTheme.colorScheme.primary
                         )
-                    )
+                        Spacer(Modifier.width(2.5.dp))
+                    }
+                    IconButton(
+                        onClick = {
+                            onDismissClick(not.key)
+                        },
+                        modifier = Modifier
+                            .size(15.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Close,
+                            null,
+                            modifier = Modifier.background(
+                                MaterialTheme.colorScheme.surfaceColorAtElevation(15.dp).copy(.3f)
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -145,6 +181,7 @@ private fun getColor(type: String, isUv: String): Color {
         "A" -> Color(0xff3CB371)
         "N" -> if (isUv == "1") Color.Black else Color(0xffffff00)
         "Op" -> Color.Red
+        "L" -> if (isUv == "T") Color(0xff3CB371) else Color.Red
         else -> Color.Red
     }
 }

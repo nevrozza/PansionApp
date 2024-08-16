@@ -14,7 +14,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object CheckedNotifications : Table() {
     private val studentLogin = this.varchar("studentLogin", 30)
-    private val key = this.varchar("key", 40)
+    private val key = this.varchar("key", 80)
 
     fun insert(dto: CheckedNotificationsDTO) {
         transaction {

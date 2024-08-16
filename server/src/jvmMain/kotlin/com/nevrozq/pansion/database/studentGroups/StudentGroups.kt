@@ -4,7 +4,6 @@ import FIO
 import Person
 import com.nevrozq.pansion.database.groups.GroupDTO
 import com.nevrozq.pansion.database.groups.Groups
-import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.SubjectDTO
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
@@ -84,6 +83,20 @@ object StudentGroups : Table() {
             } catch (e: Throwable) {
                 println(e)
                 listOf()
+            }
+        }
+    }
+
+    fun fetchGroupIdsOfStudents(logins: List<String>): List<Int> {
+        return transaction {
+            val was = mutableListOf<Int>()
+            StudentGroups.select { StudentGroups.studentLogin inList logins }.mapNotNull {
+                val groupId =
+                    it[StudentGroups.groupId]
+                if (groupId !in was) {
+                    was.add(groupId)
+                    groupId
+                } else null
             }
         }
     }

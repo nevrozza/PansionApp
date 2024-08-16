@@ -21,3 +21,5 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
             disposable.dispose()
         }
     }
+
+val applicationVersion = 0

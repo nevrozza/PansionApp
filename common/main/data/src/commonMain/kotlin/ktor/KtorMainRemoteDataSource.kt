@@ -9,10 +9,12 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.path
+import journal.init.RFetchMentorGroupIdsResponse
 import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import main.RDeleteMainNotificationsReceive
+import main.RFetchChildrenMainNotificationsResponse
 import main.RFetchChildrenResponse
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
@@ -43,12 +45,29 @@ class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
 
+    suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchMentorGroupIds)
+            }
+        }.body()
+    }
+
     suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive) : RFetchMainNotificationsResponse {
         return httpClient.post {
             url {
                 bearer()
                 path(RequestPaths.Main.FetchNotifications)
                 setBody(r)
+            }
+        }.body()
+    }
+    suspend fun fetchChildrenMainNotifications() : RFetchChildrenMainNotificationsResponse{
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchChildrenNotifications)
             }
         }.body()
     }

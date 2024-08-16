@@ -161,7 +161,8 @@ class ReportsController() {
                         date = h.date,
                         module = h.module,
                         time = h.time,
-                        theme = h.topic
+                        theme = h.topic,
+                        reportId = h.id
                     )
 
                     val homeTasks = HomeTasks.getAllHomeTasksByReportId(reportId = r.reportId).filter {

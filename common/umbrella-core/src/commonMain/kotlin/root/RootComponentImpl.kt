@@ -10,6 +10,7 @@ import achievements.HomeAchievementsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
 import allGroupMarks.AllGroupMarksComponent
+import applicationVersion
 import asValue
 import cabinets.CabinetsComponent
 import calendar.CalendarComponent
@@ -105,13 +106,13 @@ class RootComponentImpl(
     override val secondLogin: String? = null,
     override val secondAvatarId: Int? = null,
     override val secondFIO: FIO? = null,
+    override val isMentoring: Boolean? = null,
     private val firstScreen: Config = Config.AuthActivation,
     val onBackButtonPress: (() -> Unit)? = null,
 //    override val stateKeeper: StateKeeper,
     deepLink: DeepLink = DeepLink.None,
 //    private val path: String = "",
-    private val webHistoryController: WebHistoryController? = null,
-    override val isMentoring: Boolean?,
+    private val webHistoryController: WebHistoryController? = null
 ) : RootComponent, ComponentContext by componentContext {
     override val stateKeeper: StateKeeper
         get() = componentContext.stateKeeper
@@ -296,7 +297,8 @@ class RootComponentImpl(
                 praname = secondFIO?.praname ?: authRepository.fetchPraname(),
                 role = if (secondLogin == null) authRepository.fetchRole() else Roles.student,
                 onBackButtonPress = onBackButtonPress,
-                isParent = if (secondLogin == null) authRepository.fetchIsParent() else false
+                isParent = if (secondLogin == null) authRepository.fetchIsParent() else false,
+                moderation = if (secondLogin == null) authRepository.fetchModeration() else Roles.nothing
             )
             mainHomeComponent!!
         }
@@ -530,25 +532,28 @@ class RootComponentImpl(
                 mentoringComponent = getMainMentoringComponent(childContext)
             )
 
-            is Config.SecondView -> Child.SecondView(
-                mentoringComponent = getMainMentoringComponent(childContext),
-                rootComponent = RootComponentImpl(
-                    componentContext = childContext,
-                    storeFactory = storeFactory,
-                    secondLogin = config.login,
-                    secondAvatarId = config.avatarId,
-                    secondFIO = config.fio,
-                    firstScreen = config.config,
-                    onBackButtonPress = {
-                        getMainMentoringComponent(childContext).onEvent(
-                            MentoringStore.Intent.SelectStudent(null)
-                        ); popOnce(Child.SecondView::class)
-                    },
+            is Config.SecondView -> {
+                println("WTFIK: ${config.isMentoring}")
+                Child.SecondView(
+                    mentoringComponent = getMainMentoringComponent(childContext),
+                    rootComponent = RootComponentImpl(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        secondLogin = config.login,
+                        secondAvatarId = config.avatarId,
+                        secondFIO = config.fio,
+                        firstScreen = config.config,
+                        onBackButtonPress = {
+                            getMainMentoringComponent(childContext).onEvent(
+                                MentoringStore.Intent.SelectStudent(null)
+                            ); popOnce(Child.SecondView::class)
+                        },
+                        isMentoring = config.isMentoring
+                    ),
+                    homeComponent = getMainHomeComponent(componentContext, getOld = true),
                     isMentoring = config.isMentoring
-                ),
-                homeComponent = getMainHomeComponent(componentContext, getOld = true),
-
-            )
+                    )
+            }
 
             Config.AdminAchievements -> Child.AdminAchievements(
                 adminComponent = getMainAdminComponent(childContext, getOld = true),
@@ -868,7 +873,8 @@ class RootComponentImpl(
             RootStore.Intent.UpdatePermissions(
                 role = authRepository.fetchRole(),
                 moderation = authRepository.fetchModeration(),
-                birthday = authRepository.fetchBirthday()
+                birthday = authRepository.fetchBirthday(),
+                version = applicationVersion
             )
         )
     }

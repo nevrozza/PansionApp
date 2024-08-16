@@ -2,19 +2,16 @@ package rating
 
 import CDispatcher
 import MainRepository
-import admin.schedule.ScheduleSubject
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
-import home.HomeStore
 import kotlinx.coroutines.launch
 import rating.RatingStore.Intent
 import rating.RatingStore.Label
 import rating.RatingStore.State
 import rating.RatingStore.Message
-import schedule.PersonScheduleItem
 
 class RatingExecutor(
     private val mainRepository: MainRepository,
@@ -50,7 +47,7 @@ class RatingExecutor(
         scope.launch(CDispatcher) {
             try {
                 nInterface.nStartLoading()
-                val response = mainRepository.fetchSubjectRating(
+                val r = mainRepository.fetchSubjectRating(
                     login = state().login,
                     subjectId = subjectId,
                     period = period,
@@ -60,8 +57,9 @@ class RatingExecutor(
                 scope.launch {
                     dispatch(
                         Message.RatingUpdated(
-                            items = state().items + response.hash,
-                            me = state().me + response.me
+                            items = state().items + r.hash,
+                            me = state().me + r.me,
+                            lastEditTime = r.lastTimeEdit
                         )
                     )
                     nInterface.nSuccess()

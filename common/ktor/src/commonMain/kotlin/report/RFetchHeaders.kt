@@ -42,6 +42,7 @@ data class RFetchStudentReportResponse(
 
 @Serializable
 data class StudentReportInfo(
+    val reportId: Int,
     val subjectName: String,
     val groupName: String,
     val teacherName: String,

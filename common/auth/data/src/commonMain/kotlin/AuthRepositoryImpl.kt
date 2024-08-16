@@ -10,6 +10,10 @@ class AuthRepositoryImpl(
     private val cacheDataSource: SettingsAuthDataSource
 ) : AuthRepository {
     private val cPlatformConfiguration: CommonPlatformConfiguration = Inject.instance()
+    override suspend fun checkGIASubject(r: RCheckGIASubjectReceive) {
+        remoteDataSource.checkPickedGIA(r)
+    }
+
     override suspend fun fetchAboutMe(studentLogin: String): RFetchAboutMeResponse {
         return remoteDataSource.fetchAboutMe(RFetchAboutMeReceive(studentLogin = studentLogin))
     }

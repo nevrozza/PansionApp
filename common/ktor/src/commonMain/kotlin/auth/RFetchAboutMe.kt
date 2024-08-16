@@ -15,5 +15,8 @@ data class RFetchAboutMeResponse(
     val form: Form,
     val groups: List<Group>,
     val subjects: List<Subject>,
-    val teachers: HashMap<String, String>
+    val teachers: HashMap<String, String>,
+    val likes: Int,
+    val dislikes: Int,
+    val giaSubjects: List<Int>
 )

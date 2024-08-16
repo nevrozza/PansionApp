@@ -55,6 +55,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -118,15 +119,25 @@ fun RatingContent(
         topBar = {
             AppBar(
                 title = {
-
-                    Text(
-                        "Рейтинг",
-                        modifier = Modifier.padding(start = 10.dp),
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Рейтинг",
+                            modifier = Modifier.padding(start = 10.dp),
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            model.lastEditTime,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.alpha(.5f).padding(top = 3.5.dp)
+                        )
+                    }
 
                 },
                 actionRow = {
@@ -282,7 +293,8 @@ fun RatingContent(
                 } else {
                     item {
                         Column(
-                            Modifier.fillMaxWidth().padding(top = viewManager.size!!.maxHeight / 2 - padding.calculateTopPadding() - viewManager.topPadding),
+                            Modifier.fillMaxWidth()
+                                .padding(top = viewManager.size!!.maxHeight / 2 - padding.calculateTopPadding() - viewManager.topPadding),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             if (nModel.state != NetworkState.Loading) {
@@ -290,7 +302,7 @@ fun RatingContent(
                                     text = if (nModel.state == NetworkState.None) "Здесь пусто 0_0\nТребования для участия в таблице рейтинга:\nСтупени >= 1 & Ср. Балл >=4" else if (nModel.state == NetworkState.Error) "Произошла ошибка" else "",
                                     textAlign = TextAlign.Center
                                 )
-                                if(nModel.state == NetworkState.Error) {
+                                if (nModel.state == NetworkState.Error) {
                                     CustomTextButton(text = "Попробовать ещё раз") {
                                         nModel.onFixErrorClick()
                                     }
@@ -379,7 +391,11 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false)
                     )
                     Spacer(Modifier.height(1.dp))
                     Text(
-                        text = "${item.formNum}${if (item.formShortTitle.length < 2) "-" else " "}${item.formShortTitle}: ${item.groupName.split("кл ").getOrNull(1) ?: item.groupName}",
+                        text = "${item.formNum}${if (item.formShortTitle.length < 2) "-" else " "}${item.formShortTitle}: ${
+                            item.groupName.split(
+                                "кл "
+                            ).getOrNull(1) ?: item.groupName
+                        }",
                         fontSize = 14.sp, // Adjust font size for body text
                         lineHeight = 15.sp,
                         color = Color.Gray

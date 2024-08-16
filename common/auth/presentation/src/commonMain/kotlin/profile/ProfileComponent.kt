@@ -4,9 +4,11 @@ import AuthRepository
 import FIO
 import asValue
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import components.cBottomSheet.CBottomSheetComponent
 import components.networkInterface.NetworkInterface
 import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,6 +34,13 @@ class ProfileComponent(
         storeFactory,
         "profileAvatarStoreNetworkInterface"
     )
+
+    val giaCBottomSheetComponent = CBottomSheetComponent(
+        componentContext = childContext("giaCBottomSheetComponentCONTEXT"),
+        storeFactory = storeFactory,
+        name = "giaCBottomSheetComponent"
+    )
+
     private val profileStore =
         instanceKeeper.getStore {
             ProfileStoreFactory(

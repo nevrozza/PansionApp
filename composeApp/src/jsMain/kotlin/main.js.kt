@@ -16,6 +16,7 @@ import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import di.Inject
+import forks.splitPane.SplitPaneState
 import org.jetbrains.skiko.wasm.onWasmReady
 import root.RootComponentImpl
 import server.DeviceTypex
@@ -72,7 +73,11 @@ fun main() {
                         )
                     ),
                     tint = mutableStateOf(settingsRepository.fetchTint().toTint()),
-                    colorMode = mutableStateOf(settingsRepository.fetchColorMode())
+                    colorMode = mutableStateOf(settingsRepository.fetchColorMode()),
+                    splitPaneState = SplitPaneState(
+                        moveEnabled = true,
+                        initialPositionPercentage = 0f
+                    )
                 )
             }
             CompositionLocalProvider(

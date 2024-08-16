@@ -2,6 +2,7 @@ package profile
 
 import AuthRepository
 import CDispatcher
+import auth.RCheckGIASubjectReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import kotlinx.coroutines.launch
@@ -22,6 +23,26 @@ class ProfileExecutor(
             is Intent.SetNewAvatarId -> dispatch(Message.NewAvatarIdChanged(intent.avatarId))
             Intent.SaveAvatarId -> saveAvatarId()
             Intent.Init -> init()
+            is Intent.ClickOnGIASubject -> clickOnGia(subjectId = intent.subjectId, isChecked = intent.isChecked)
+        }
+    }
+
+    private fun clickOnGia(subjectId: Int, isChecked: Boolean) {
+        scope.launch(CDispatcher) {
+            try {
+                authRepository.checkGIASubject(RCheckGIASubjectReceive(subjectId = subjectId, isChecked = isChecked, login = state().studentLogin))
+                val newList = state().giaSubjects.toMutableList()
+                if(isChecked) {
+                    newList.add(subjectId)
+                } else {
+                    newList.remove(element = subjectId)
+                }
+                scope.launch {
+                    dispatch(Message.GIASubjectsUpdated(newList))
+                }
+            } catch (_: Throwable) {
+
+            }
         }
     }
 
@@ -35,7 +56,10 @@ class ProfileExecutor(
                         form = aboutMe.form,
                         groups = aboutMe.groups,
                         subjects = aboutMe.subjects,
-                        teachers = aboutMe.teachers
+                        teachers = aboutMe.teachers,
+                        likes = aboutMe.likes,
+                        dislikes = aboutMe.dislikes,
+                        giaSubjects = aboutMe.giaSubjects
                     ))
                     nAboutMeInterface.nSuccess()
                 }

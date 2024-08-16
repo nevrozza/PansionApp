@@ -355,7 +355,7 @@ private fun AllGroupMarksStudentItem(
 
     val modules = marks.map { it.mark.module }.toSet().sorted().reversed()
 
-    val usedHalfNum = if (modules.first().toInt() in firstHalfNums) 1 else 2
+    val usedHalfNum = if(modules.isNotEmpty()) if (modules.first().toInt() in firstHalfNums) 1 else 2 else 1
 
     ElevatedCard(
         modifier.fillMaxWidth()//.padding(horizontal = 10.dp)

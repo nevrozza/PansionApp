@@ -6,6 +6,7 @@ import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.utils.isMember
+import com.nevrozq.pansion.utils.login
 import homework.ClientHomeworkItem
 import homework.CutedDateTimeGroup
 import homework.RCheckHomeTaskReceive
@@ -30,9 +31,10 @@ import server.toMinutes
 class HomeWorksController {
 
     suspend fun checkHomeTask(call: ApplicationCall) {
-        if (call.isMember) {
+
+        val r = call.receive<RCheckHomeTaskReceive>()
+        if (call.isMember && r.login == call.login) {
             try {
-                val r = call.receive<RCheckHomeTaskReceive>()
                 HomeTasksDone.checkTask(login = r.login, homeWorkId = r.homeWorkId, isDone = r.isCheck, id = r.id)
                 call.respond(
                     HttpStatusCode.OK

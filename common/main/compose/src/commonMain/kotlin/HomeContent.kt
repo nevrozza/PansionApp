@@ -13,10 +13,13 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -25,6 +28,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +46,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -52,6 +58,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.CalendarToday
@@ -117,6 +124,7 @@ import components.GetAvatar
 import components.LoadingAnimation
 import components.NotificationItem
 import components.cAlertDialog.CAlertDialogStore
+import components.cBottomSheet.CBottomSheetStore
 import components.cMark
 import components.getMarkColor
 import components.markColorsColored
@@ -160,16 +168,40 @@ fun HomeContent(
     pickedLogin: String = ""
 ) {
     val model by component.model.subscribeAsState()
-    if (model.role == Roles.student) {
-        StudentHomeContent(component)
-    } else if (model.role == Roles.teacher) {
-        TeacherHomeContent(component, pickedLogin)
-    } else {
-        OtherHomeContent(
-            component = component,
-            pickedLogin = pickedLogin
-        )
+    when (model.role) {
+        Roles.student -> {
+            StudentHomeContent(component)
+        }
+        Roles.teacher -> {
+            TeacherHomeContent(component, pickedLogin)
+        }
+        else -> {
+            OtherHomeContent(
+                component = component,
+                pickedLogin = pickedLogin
+            )
+        }
     }
+
+
+    if(component.journalComponent != null) {
+        val journalModel by component.journalComponent!!.model.subscribeAsState()
+        if (journalModel.openingReportData != null) {
+            component.journalComponent!!.openReport(journalModel.openingReportData!!)
+            component.journalComponent!!.onEvent(JournalStore.Intent.ResetReportData)
+        }
+    }
+    StudentReportDialogContent(component.studentReportDialog, openReport = if(model.isMentor) { item ->
+        val header = component.journalComponent!!.model.value.headers.firstOrNull{ it.reportId == item }
+        if(header != null) {
+            component.studentReportDialog.dialog.onEvent(CBottomSheetStore.Intent.HideSheet)
+            component.journalComponent?.onEvent(
+                JournalStore.Intent.FetchReportData(
+                    header
+                )
+            )
+        }
+    } else null)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -181,6 +213,7 @@ fun OtherHomeContent(
     val viewManager = LocalViewManager.current
     val model by component.model.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
+    val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     Scaffold(
         Modifier.fillMaxSize()
             .onKeyEvent {
@@ -228,90 +261,175 @@ fun OtherHomeContent(
             )
         }
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding).padding(bottom = if(viewManager.orientation.value == WindowScreen.Expanded) 0.dp else 80.dp), contentAlignment = Alignment.Center) {
-            if (model.isParent) {
-                Column(
-                    Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "Дети",
-                        modifier = Modifier.fillMaxWidth(),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Crossfade(
-                        nGradesModel.state,
-                        modifier = Modifier.animateContentSize()
-                    ) { state -> //, modifier = Modifier.padding(top = 10.dp)
-                        when (state) {
-                            NetworkState.None -> {
-                                FlowRow(
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    (model.children).forEach {
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier.clip(
-                                                RoundedCornerShape(15.dp)
-                                            ).clickable {
-                                                component.onOutput(
-                                                    HomeComponent.Output.NavigateToChildren(
-                                                        studentLogin = it.login,
-                                                        avatarId = it.avatarId,
-                                                        fio = it.fio
+        CLazyColumn(padding, isBottomPaddingNeeded = true) {
+            item {
+                if (model.isParent) {
+                    Column(
+                        Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "Дети",
+                            modifier = Modifier.fillMaxWidth(),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Crossfade(
+                            nGradesModel.state,
+                            modifier = Modifier.animateContentSize()
+                        ) { state -> //, modifier = Modifier.padding(top = 10.dp)
+                            when (state) {
+                                NetworkState.None -> {
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        (model.children).forEach {
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                modifier = Modifier.clip(
+                                                    RoundedCornerShape(15.dp)
+                                                ).clickable {
+                                                    component.onOutput(
+                                                        HomeComponent.Output.NavigateToChildren(
+                                                            studentLogin = it.login,
+                                                            avatarId = it.avatarId,
+                                                            fio = it.fio
+                                                        )
                                                     )
+                                                }.handy().background(
+                                                    if (pickedLogin != it.login) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                                        4.dp
+                                                    ), RoundedCornerShape(15.dp)
+                                                ).padding(4.dp)
+                                            ) {
+                                                GetAvatar(
+                                                    avatarId = it.avatarId,
+                                                    name = it.fio.name
                                                 )
-                                            }.handy().background(
-                                                if (pickedLogin != it.login) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                                    4.dp
-                                                ), RoundedCornerShape(15.dp)
-                                            ).padding(4.dp)
-                                        ) {
-                                            GetAvatar(
-                                                avatarId = it.avatarId,
-                                                name = it.fio.name
-                                            )
-                                            Spacer(Modifier.height(5.dp))
-                                            Text(
-                                                it.fio.name,
-                                                fontWeight = FontWeight.Bold
-                                            )
+                                                Spacer(Modifier.height(5.dp))
+                                                Text(
+                                                    it.fio.name,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                NetworkState.Loading -> {
+                                    Box(
+                                        Modifier.height(100.dp).fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        LoadingAnimation()
+                                    }
+                                }
+
+                                NetworkState.Error -> {
+                                    Column(
+                                        Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(nGradesModel.error)
+                                        Spacer(Modifier.height(7.dp))
+                                        CustomTextButton("Попробовать ещё раз") {
+                                            nGradesModel.onFixErrorClick()
                                         }
                                     }
                                 }
                             }
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
+            item {
+                Text(
+                    "Уведомления",
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
+            item {
 
-                            NetworkState.Loading -> {
-                                Box(
-                                    Modifier.height(100.dp).fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    LoadingAnimation()
+                AnimatedVisibility(
+                    nQuickTabModel.state != NetworkState.None || model.childrenNotifications.isEmpty(),
+                    enter = fadeIn() + expandVertically(
+                        expandFrom = Alignment.Top, clip = false
+                    ),
+                    exit = fadeOut() + shrinkVertically(
+                        shrinkTowards = Alignment.Top, clip = false
+                    )
+                ) {
+                    Column {
+                        Spacer(Modifier.height(7.5.dp))
+                        Crossfade(
+                            nQuickTabModel.state,
+                            modifier = Modifier.fillMaxSize()
+                        ) { state ->
+                            when (state) {
+                                NetworkState.None -> if (model.childrenNotifications.isEmpty()) {
+                                    Text("Нет никаких уведомлений")
                                 }
-                            }
 
-                            NetworkState.Error -> {
-                                Column(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(nGradesModel.error)
-                                    Spacer(Modifier.height(7.dp))
-                                    CustomTextButton("Попробовать ещё раз") {
-                                        nGradesModel.onFixErrorClick()
+                                NetworkState.Loading -> {
+                                    Box(
+                                        Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                }
+
+                                NetworkState.Error -> {
+                                    Column(
+                                        Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(nQuickTabModel.error)
+                                        Spacer(Modifier.height(7.dp))
+                                        CustomTextButton("Попробовать ещё раз") {
+                                            nQuickTabModel.onFixErrorClick()
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            } else {
-                Text("Здесь когда-нибудь что-нибудь будет...")
             }
+            items(model.notChildren) { s ->
+                Spacer(Modifier.height(5.5.dp))
+                Text(
+                    "${s.fio.surname} ${s.fio.name}",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                model.childrenNotifications[s.login]!!.forEach {
+                    NotificationItem(
+                        not = it,
+                        viewManager = viewManager,
+                        onClick = { reportId ->
+                            component.studentReportDialog.onEvent(
+                                StudentReportDialogStore.Intent.OpenDialog(
+                                    login = s.login,
+                                    reportId = reportId
+                                )
+                            )
+                        }
+                    ) { key ->
+                        component.onEvent(HomeStore.Intent.CheckNotification(key))
+                    }
+                }
+            }
+
         }
     }
 }
@@ -1244,7 +1362,15 @@ fun StudentHomeContent(
                     ) {
                         NotificationItem(
                             not,
-                            viewManager = viewManager
+                            viewManager = viewManager,
+                            onClick = {
+                                component.studentReportDialog.onEvent(
+                                    StudentReportDialogStore.Intent.OpenDialog(
+                                        login = model.login,
+                                        reportId = it
+                                    )
+                                )
+                            }
                         ) { key ->
                             component.onEvent(HomeStore.Intent.CheckNotification(key))
                         }
@@ -1276,7 +1402,6 @@ fun StudentHomeContent(
         }
 
     }
-    StudentReportDialogContent(component.studentReportDialog)
 }
 
 @Composable

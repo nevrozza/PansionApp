@@ -3,10 +3,13 @@ import auth.LoginResponse
 import auth.CheckActivationResponse
 import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
+import auth.RCheckGIASubjectReceive
 import auth.RFetchAboutMeResponse
 import auth.RFetchAllDevicesResponse
 
 interface AuthRepository {
+
+    suspend fun checkGIASubject(r: RCheckGIASubjectReceive)
 
     suspend fun fetchAboutMe(studentLogin: String): RFetchAboutMeResponse
 

@@ -66,7 +66,6 @@ class HomeExecutor(
                 try {
                     mainRepository.deleteMainNotification(
                         RDeleteMainNotificationsReceive(
-                            studentLogin = state().login,
                             key = intent.key
                         )
                     )
@@ -79,6 +78,28 @@ class HomeExecutor(
                     }
                 } catch (_: Throwable) {
 
+                }
+            }
+        }
+    }
+
+    private fun fetchChildrenNotifications() {
+        scope.launch(CDispatcher) {
+            try {
+                quickTabNInterface.nStartLoading()
+                val r =
+                    mainRepository.fetchChildrenMainNotifications()
+
+                scope.launch {
+                    dispatch(Message.ChildrenNotificationsInited(
+                        notChildren = r.students,
+                        childrenNotifications = r.notifications
+                    ))
+                    quickTabNInterface.nSuccess()
+                }
+            } catch (e: Throwable) {
+                quickTabNInterface.nError("Не удалось загрузить уведомления") {
+                    fetchChildren()
                 }
             }
         }
@@ -106,6 +127,9 @@ class HomeExecutor(
             }
             if (state().isParent) {
                 fetchChildren()
+            }
+            if(state().isParent || state().isMentor) {
+                fetchChildrenNotifications()
             }
         }
         journalComponent?.onEvent(JournalStore.Intent.Init)
