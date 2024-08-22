@@ -18,5 +18,13 @@ kotlin {
                 implementation(libs.decompose.compose)
             }
         }
+
+        iosMain.dependencies {
+            implementation("network.chaintech:qr-kit:2.0.0")
+        }
+
+        androidMain.dependencies {
+            implementation("network.chaintech:qr-kit:2.0.0")
+        }
     }
 }

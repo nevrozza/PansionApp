@@ -7,6 +7,22 @@ import io.ktor.server.routing.*
 fun Application.configureActivationRouting() {
     routing {
         val authController = AuthController()
+
+        post(RequestPaths.Auth.PollQRToken) {
+            authController.QRTokenStartPolling(call)
+        }
+
+        post(RequestPaths.Auth.ActivateQRTokenAtAll) {
+            authController.ActivateQRTokenAtAll(call)
+        }
+        post(RequestPaths.Auth.ActivateQRToken) {
+            authController.ActivateQRToken(call)
+        }
+
+        post(RequestPaths.Auth.FetchQRToken) {
+            authController.fetchQRToken(call)
+        }
+
         post(RequestPaths.Auth.ActivateProfile) {
 //            val registerController = RegisterController(call)
             authController.activateUser(call)

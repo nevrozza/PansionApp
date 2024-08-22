@@ -85,6 +85,8 @@ class SettingsComponent(
     sealed class Output {
         data object Back : Output()
         data object GoToZero : Output()
+
+        data object GoToScanner : Output()
     }
 
 

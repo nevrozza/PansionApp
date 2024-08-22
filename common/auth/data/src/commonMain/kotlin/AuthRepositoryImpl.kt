@@ -10,6 +10,40 @@ class AuthRepositoryImpl(
     private val cacheDataSource: SettingsAuthDataSource
 ) : AuthRepository {
     private val cPlatformConfiguration: CommonPlatformConfiguration = Inject.instance()
+    override suspend fun activateQRTokenAtAll(r: RFetchQrTokenResponse) {
+        remoteDataSource.activateQRTokenAtAll(r)
+    }
+
+    override suspend fun activateQRToken(r: RFetchQrTokenResponse)  : RActivateQrTokenResponse {
+        return remoteDataSource.activateQRToken(r)
+    }
+
+    override suspend fun saveUser(
+        a: ActivationResponse,
+        avatarId: Int
+    ) {
+        cacheDataSource.saveUser(
+            token = a.token,
+            name = a.user.fio.name,
+            surname = a.user.fio.surname,
+            praname = a.user.fio.praname,
+            role = a.user.role,
+            moderation = a.user.moderation,
+            login = a.login,
+            avatarId = avatarId,
+            isParent = a.user.isParent,
+            birthday = a.user.birthday
+        )
+    }
+
+    override suspend fun fetchQrToken(r: RFetchQrTokenReceive): RFetchQrTokenResponse {
+        return remoteDataSource.fetchQRToken(r)
+    }
+
+    override suspend fun pollQrToken(r: RFetchQrTokenReceive): LoginResponse {
+        return remoteDataSource.pollQRToken(r)
+    }
+
     override suspend fun checkGIASubject(r: RCheckGIASubjectReceive) {
         remoteDataSource.checkPickedGIA(r)
     }
@@ -42,18 +76,7 @@ class AuthRepositoryImpl(
                 )
             )
 //        cacheDataSource.saveToken(response.token)
-        cacheDataSource.saveUser(
-            token = r.activation.token,
-            name = r.activation.user.fio.name,
-            surname = r.activation.user.fio.surname,
-            praname = r.activation.user.fio.praname,
-            role = r.activation.user.role,
-            moderation = r.activation.user.moderation,
-            login = r.activation.login,
-            avatarId = r.avatarId,
-            isParent = r.activation.user.isParent,
-            birthday = r.activation.user.birthday
-        )
+        saveUser(r.activation, r.avatarId)
         return r
     }
 

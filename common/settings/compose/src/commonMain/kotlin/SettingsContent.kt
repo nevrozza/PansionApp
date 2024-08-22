@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.Computer
 import androidx.compose.material.icons.rounded.DeviceUnknown
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.PhoneIphone
+import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -69,6 +70,7 @@ import forks.colorPicker.toHex
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.rememberSplitPaneState
+import qr.QRComponent
 import server.DeviceTypex
 import view.LocalViewManager
 import view.ViewManager
@@ -229,6 +231,13 @@ fun SettingsView(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("Устройства", fontSize = 23.sp, fontWeight = FontWeight.Black)
+                    IconButton(
+                        onClick = {component.onOutput(SettingsComponent.Output.GoToScanner)}
+                    ) {
+                        Icon(
+                            Icons.Rounded.QrCodeScanner, null
+                        )
+                    }
                     AnimatedVisibility(nDevicesModel.state == NetworkState.Loading) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp))
                     }
@@ -244,7 +253,7 @@ fun SettingsView(
                         }
                     }
                 }
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(7.dp))
                 AnimatedVisibility(model.deviceList.isNotEmpty()) {
                     Column {
                         model.deviceList.forEach { device ->

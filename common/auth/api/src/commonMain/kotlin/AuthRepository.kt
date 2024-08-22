@@ -1,13 +1,22 @@
 import auth.ActivationResponse
 import auth.LoginResponse
 import auth.CheckActivationResponse
-import auth.RChangeAvatarIdReceive
+import auth.RActivateQrTokenResponse
 import auth.RCheckConnectionResponse
 import auth.RCheckGIASubjectReceive
 import auth.RFetchAboutMeResponse
-import auth.RFetchAllDevicesResponse
+import auth.RFetchQrTokenReceive
+import auth.RFetchQrTokenResponse
 
 interface AuthRepository {
+    suspend fun activateQRTokenAtAll(r: RFetchQrTokenResponse)
+    suspend fun activateQRToken(r: RFetchQrTokenResponse) : RActivateQrTokenResponse
+
+
+    suspend fun saveUser(a: ActivationResponse, avatarId: Int)
+
+    suspend fun fetchQrToken(r: RFetchQrTokenReceive) : RFetchQrTokenResponse
+    suspend fun pollQrToken(r: RFetchQrTokenReceive) : LoginResponse
 
     suspend fun checkGIASubject(r: RCheckGIASubjectReceive)
 

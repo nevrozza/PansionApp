@@ -1,7 +1,6 @@
 package com.nevrozq.pansion.features.auth
 
 import FIO
-import admin.cabinets.RUpdateCabinetsReceive
 import admin.groups.Group
 import admin.groups.GroupInit
 import admin.groups.Subject
@@ -14,19 +13,18 @@ import auth.CheckActivationResponse
 import auth.Device
 import auth.LoginReceive
 import auth.LoginResponse
+import auth.RActivateQrTokenResponse
 import auth.RChangeAvatarIdReceive
 import auth.RCheckConnectionResponse
 import auth.RCheckGIASubjectReceive
 import auth.RFetchAboutMeReceive
 import auth.RFetchAboutMeResponse
 import auth.RFetchAllDevicesResponse
+import auth.RFetchQrTokenReceive
+import auth.RFetchQrTokenResponse
 import auth.RTerminateDeviceReceive
-import com.nevrozq.pansion.database.cabinets.Cabinets
-import com.nevrozq.pansion.database.cabinets.CabinetsDTO
-import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.forms.mapToForm
-import com.nevrozq.pansion.database.homework.HomeTasksDone
 import com.nevrozq.pansion.database.pickedGIA.PickedGIA
 import com.nevrozq.pansion.database.pickedGIA.PickedGIADTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
@@ -45,18 +43,29 @@ import com.nevrozq.pansion.database.tokens.TokenDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.isMember
-import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.nullUUID
 import com.nevrozq.pansion.utils.toId
 import com.nevrozq.pansion.utils.token
-import homework.RCheckHomeTaskReceive
+import kotlinx.coroutines.delay
 import server.DataLength
 import server.Moderation
 import server.Roles
 import server.cut
+import server.delayForNewQRToken
 import java.util.HashMap
 import java.util.UUID
+
+
+val authQRCalls: MutableMap<String, ApplicationCall> = mutableMapOf()
+val authQRIds: MutableMap<String, String> = mutableMapOf()
+val authQRDevice: MutableMap<String, QRDevice> = mutableMapOf()
+
+data class QRDevice(
+    val id: String,
+    val type: String,
+    val name: String
+)
 
 class AuthController {
 
@@ -71,13 +80,14 @@ class AuthController {
                 val subjects =
                     Subjects.fetchAllSubjects().filter { it.id in groups.map { it.subjectId } }
                         .filter { it.isActive }
-                val teachers = ( Users.fetchAllTeachers()
-                    .filter { it.isActive && it.login in groups.map { it.teacherLogin } } + Users.fetchAllMentors().firstOrNull { it.login == form.mentorLogin }).filterNotNull()
+                val teachers = (Users.fetchAllTeachers()
+                    .filter { it.isActive && it.login in groups.map { it.teacherLogin } } + Users.fetchAllMentors()
+                    .firstOrNull { it.login == form.mentorLogin }).filterNotNull()
                 var likes = 0
                 var dislikes = 0
 
                 StudentLines.fetchStudentLinesByLogin(r.studentLogin).forEach {
-                    if(it.isLiked == "t") {
+                    if (it.isLiked == "t") {
                         likes++
                     } else if (it.isLiked == "f") {
                         dislikes++
@@ -143,6 +153,140 @@ class AuthController {
         } else {
             call.respond(
                 HttpStatusCode.Forbidden
+            )
+        }
+    }
+
+    suspend fun ActivateQRToken(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+
+                val r = call.receive<RFetchQrTokenResponse>()
+
+                val device = authQRDevice[r.token]!!
+
+                call.respond(
+                    RActivateQrTokenResponse(
+                        deviceName = device.name,
+                        deviceType = device.type
+                    )
+                )
+
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't Activate TOKEN FIRST: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(
+                HttpStatusCode.Forbidden
+            )
+        }
+    }
+
+    suspend fun ActivateQRTokenAtAll(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+
+                val r = call.receive<RFetchQrTokenResponse>()
+                println("RRR:")
+                println(authQRDevice)
+                println(authQRCalls)
+                println(authQRCalls[r.token])
+                val userDTO = Users.fetchUser(call.login)
+                val token = UUID.randomUUID()
+
+                val device = authQRDevice[r.token]!!
+                Tokens.insert(
+                    TokenDTO(
+                        deviceId = device.id.toId(),
+                        login = userDTO!!.login,
+                        token = token,
+                        deviceName = device.name,
+                        deviceType = device.type,
+                        time = Clock.System.now()
+                            .toLocalDateTime(TimeZone.of("UTC+3")).toString()
+                            .cut(16)
+                    )
+                )
+                authQRCalls[r.token]!!.respond(
+                    LoginResponse(
+                        activation = ActivationResponse(
+                            token = token.toString(),
+                            user = UserInit(
+                                fio = FIO(
+                                    name = userDTO.name,
+                                    surname = userDTO.surname,
+                                    praname = userDTO.praname
+                                ),
+                                birthday = userDTO.birthday,
+                                role = userDTO.role,
+                                moderation = userDTO.moderation,
+                                isParent = userDTO.isParent
+                            ),
+                            login = userDTO.login
+                        ),
+                        avatarId = userDTO.avatarId
+                    )
+                )
+
+
+                call.respond(HttpStatusCode.OK)
+
+                authQRCalls.remove(r.token)
+                authQRIds.remove(device.id)
+                authQRDevice.remove(r.token)
+
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't Activate TOKEN: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(
+                HttpStatusCode.Forbidden
+            )
+        }
+    }
+
+    suspend fun QRTokenStartPolling(call: ApplicationCall) {
+        try {
+            println("meow: ${call}")
+            authQRCalls[authQRIds[call.receive<RFetchQrTokenReceive>().deviceId]!!] = call
+
+            delay(delayForNewQRToken)
+
+        } catch (e: Throwable) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Can't Poll TOKEN: ${e.localizedMessage}"
+            )
+        }
+    }
+
+    suspend fun fetchQRToken(call: ApplicationCall) {
+        try {
+            val r = call.receive<RFetchQrTokenReceive>()
+            val token = "AUTH" + UUID.randomUUID().toString().cut(6)
+            authQRIds[r.deviceId] = token
+
+            authQRDevice[token] = QRDevice(
+                id = r.deviceId,
+                name = r.deviceName,
+                type = r.deviceType
+            )
+
+            call.respond(
+                RFetchQrTokenResponse(
+                    token
+                )
+            )
+        } catch (e: Throwable) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Can't QR TOKEN: ${e.localizedMessage}"
             )
         }
     }
@@ -253,7 +397,7 @@ class AuthController {
                     studentLogin = r.login,
                     subjectGIAId = r.subjectId
                 )
-                if(r.isChecked) {
+                if (r.isChecked) {
                     PickedGIA.insert(dto)
                 } else {
                     PickedGIA.delete(dto)
@@ -385,26 +529,26 @@ class AuthController {
                             )
                         )
                         //if (userDTO.isActive) {
-                            call.respond(
-                                LoginResponse(
-                                    activation = ActivationResponse(
-                                        token = token.toString(),
-                                        user = UserInit(
-                                            fio = FIO(
-                                                name = userDTO.name,
-                                                surname = userDTO.surname,
-                                                praname = userDTO.praname
-                                            ),
-                                            birthday = userDTO.birthday,
-                                            role = userDTO.role,
-                                            moderation = userDTO.moderation,
-                                            isParent = userDTO.isParent
+                        call.respond(
+                            LoginResponse(
+                                activation = ActivationResponse(
+                                    token = token.toString(),
+                                    user = UserInit(
+                                        fio = FIO(
+                                            name = userDTO.name,
+                                            surname = userDTO.surname,
+                                            praname = userDTO.praname
                                         ),
-                                        login = userDTO.login
+                                        birthday = userDTO.birthday,
+                                        role = userDTO.role,
+                                        moderation = userDTO.moderation,
+                                        isParent = userDTO.isParent
                                     ),
-                                    avatarId = userDTO.avatarId
-                                )
+                                    login = userDTO.login
+                                ),
+                                avatarId = userDTO.avatarId
                             )
+                        )
                         //} else {
 //                            call.respond(
 //                                HttpStatusCode.Forbidden,

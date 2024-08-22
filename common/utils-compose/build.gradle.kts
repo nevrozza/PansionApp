@@ -10,8 +10,10 @@ kotlin {
 //                implementation("androidx.core:core:1.12.0")
                 api("androidx.core:core-ktx:1.13.0-alpha05")
                 implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+                implementation("com.google.accompanist:accompanist-permissions:0.34.0")
             }
         }
+
         commonMain {
             dependencies {
                 implementation(project(":common:utils"))

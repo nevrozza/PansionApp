@@ -10,6 +10,7 @@ kotlin {
             dependencies {
                 implementation(project(":common:auth:api"))
                 implementation(project(":common:core"))
+                implementation(project(":common:utils"))
 
                 implementation(libs.kodein.di)
                 implementation(libs.settings.core)

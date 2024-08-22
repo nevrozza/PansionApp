@@ -21,6 +21,8 @@ kotlin {
                 implementation(libs.decompose.core)
                 implementation(libs.decompose.compose)
 
+
+                implementation("io.github.alexzhirkevich:qrose:1.0.1")
                 //implementation("io.github.thechance101:chart:Beta-0.0.5")
 //                implementation(libs.moko.resources.compose)
 //                implementation(libs.moko.graphics)

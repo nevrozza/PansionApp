@@ -53,6 +53,7 @@ import mentoring.MentoringStore
 import parents.AdminParentsComponent
 import parents.AdminParentsStore
 import profile.ProfileComponent
+import qr.QRComponent
 import rating.RatingComponent
 import report.ReportHeader
 //import mentors.MentorsComponent
@@ -594,6 +595,21 @@ class RootComponentImpl(
                     )
                 )
 
+            is Config.QRScanner ->
+                Child.QRScanner(
+                    qrComponent = QRComponent(
+                        childContext,
+                        storeFactory = storeFactory,
+                        output = ::onQRScannerOutput,
+                        isRegistration = config.isRegistration
+                    )
+                )
+        }
+
+
+    private fun onQRScannerOutput(output: QRComponent.Output): Unit =
+        when (output) {
+            QRComponent.Output.Back -> popOnce(Child.QRScanner::class)
         }
 
     private fun onHomeAchievementsOutput(output: HomeAchievementsComponent.Output): Unit =
@@ -684,7 +700,11 @@ class RootComponentImpl(
         when (output) {
             SettingsComponent.Output.Back -> popOnce(Child.HomeSettings::class)
             SettingsComponent.Output.GoToZero -> navigation.replaceAll(Config.AuthActivation)
-
+            SettingsComponent.Output.GoToScanner -> navigation.bringToFront(
+                Config.QRScanner(
+                    isRegistration = false
+                )
+            )
         }
 
     private fun onHomeProfileOutput(output: ProfileComponent.Output): Unit =

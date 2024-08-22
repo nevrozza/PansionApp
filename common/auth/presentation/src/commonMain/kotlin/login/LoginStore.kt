@@ -15,6 +15,8 @@ interface LoginStore : Store<Intent, State, Label> {
         val error: String = "",
         val isErrorShown: Boolean = false,
         val logined: Boolean = false,
+
+        val qrToken: String = ""
     )
 
     sealed interface Intent {
@@ -22,6 +24,8 @@ interface LoginStore : Store<Intent, State, Label> {
         data class InputPassword(val password: String) : Intent
         data object CheckToGoMain : Intent
         data object HideError : Intent
+
+        data object GetQrToken : Intent
     }
 
     sealed interface Message {
@@ -31,6 +35,8 @@ interface LoginStore : Store<Intent, State, Label> {
         data class CustomError(val error: String) : Message
         data object Logined : Message
         data object ErrorHided : Message
+
+        data class QrTokenGet(val qrToken: String) : Message
     }
 
     sealed interface Label

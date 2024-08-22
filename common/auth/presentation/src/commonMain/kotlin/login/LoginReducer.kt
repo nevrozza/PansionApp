@@ -13,6 +13,7 @@ object LoginReducer : Reducer<State, Message> {
             is Message.CustomError -> copy(error = msg.error, isErrorShown = true, isInProcess = false)
             Message.Logined -> copy(logined = true, isInProcess = false)
             Message.ErrorHided -> copy(isErrorShown = false)
+            is Message.QrTokenGet -> copy(qrToken = msg.qrToken)
         }
     }
 }

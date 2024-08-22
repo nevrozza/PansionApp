@@ -28,6 +28,7 @@ import kotlinx.serialization.Serializable
 import mentoring.MentoringComponent
 import parents.AdminParentsComponent
 import profile.ProfileComponent
+import qr.QRComponent
 import rating.RatingComponent
 import root.store.RootStore
 import schedule.ScheduleComponent
@@ -148,6 +149,10 @@ interface RootComponent : BackHandlerOwner {
             val parentsComponent: AdminParentsComponent
         ) : Child()
 
+        class QRScanner(
+            val qrComponent: QRComponent
+        ) : Child()
+
 
     }
 
@@ -245,6 +250,8 @@ interface RootComponent : BackHandlerOwner {
         data class SecondView(val login: String, val fio: FIO, val avatarId: Int, val config: Config, val isMentoring: Boolean): Config
         @Serializable
         data class HomeStudentLines(val login: String): Config
+        @Serializable
+        data class QRScanner(val isRegistration: Boolean): Config
     }
 
     companion object {

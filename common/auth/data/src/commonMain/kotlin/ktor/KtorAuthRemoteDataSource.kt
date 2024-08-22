@@ -7,14 +7,54 @@ import auth.*
 import checkOnNoOk
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.path
+import server.delayForNewQRToken
 
 class KtorAuthRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun fetchQRToken(r: RFetchQrTokenReceive) : RFetchQrTokenResponse {
+        return httpClient.post {
+            url {
+                setBody(r)
+                path(RequestPaths.Auth.FetchQRToken)
+            }
+        }.body()
+    }
+    suspend fun activateQRTokenAtAll(r: RFetchQrTokenResponse) {
+        httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Auth.ActivateQRTokenAtAll)
+            }
+        }.status.value.checkOnNoOk()
+    }
+    suspend fun activateQRToken(r: RFetchQrTokenResponse) : RActivateQrTokenResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Auth.ActivateQRToken)
+            }
+        }.body()
+    }
+    suspend fun pollQRToken(r: RFetchQrTokenReceive) : LoginResponse {
+        return httpClient.post {
+            this.timeout {
+                this.requestTimeoutMillis = delayForNewQRToken
+            }
+            url {
+                setBody(r)
+                path(RequestPaths.Auth.PollQRToken)
+            }
+        }.body()
+    }
 
     suspend fun fetchAboutMe(r: RFetchAboutMeReceive): RFetchAboutMeResponse {
         return httpClient.post {

@@ -266,6 +266,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 is LessonReport -> iosSlide()
                                 is HomeSettings -> iosSlide()
                                 is Child.AdminSchedule -> iosSlide()
+                                is Child.QRScanner -> iosSlide()
                                 else -> if (isExpanded) fade() else iosSlide()
                             }
                         },
@@ -370,6 +371,11 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
                         }
 
+                        is Child.QRScanner -> {
+                            QRContentActual(
+                                component = child.qrComponent
+                            )
+                        }
 
                         is MainAdmin ->
                             Scaffold(
@@ -974,5 +980,6 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         is Config.LessonReport -> Journal
         Config.MainMentoring -> Mentoring
         is Config.SecondView -> Mentoring
+        is Config.QRScanner -> Home
     }
 }

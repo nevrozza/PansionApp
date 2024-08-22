@@ -99,6 +99,9 @@ kotlin {
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
             }
+            distribution {
+                outputDirectory = file("$projectDir/build/wasmJsDistribution/")
+            }
         }
         useCommonJs()
         binaries.executable()

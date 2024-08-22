@@ -1,6 +1,8 @@
 package server
 
 
+const val delayForNewQRToken = 10000000000
+
 object DeviceTypex {
     const val android = "Android"
     const val ios = "IOS"

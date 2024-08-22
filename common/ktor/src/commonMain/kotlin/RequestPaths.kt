@@ -1,5 +1,5 @@
 object RequestPaths {
-    const val ip = "127.0.0.1:8081"//"192.168.0.107:8081"
+    const val ip = "192.168.0.108:8081"//""//"192.168.0.107:8081"
 
     object Achievements {
         const val Create = "server/achievements/create"
@@ -69,6 +69,11 @@ object RequestPaths {
 
     object Auth {
         const val ActivateProfile = "server/auth/activate"
+        const val FetchQRToken = "server/auth/fetchQRToken"
+        const val PollQRToken = "server/auth/pollQRToken"
+        const val ActivateQRTokenAtAll = "server/auth/activateQRTokenAtAll"
+        const val ActivateQRToken = "server/auth/activateQRToken"
+
         const val CheckActivation = "server/auth/check"
         const val PerformLogin = "server/auth/login"
         const val CheckConnection = "server/checkConnection"

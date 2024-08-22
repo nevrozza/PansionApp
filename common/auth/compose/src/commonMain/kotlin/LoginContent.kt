@@ -1,12 +1,17 @@
 import activation.ActivationComponent
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import components.AnimatedCommonButton
 import components.CustomTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,10 +26,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.QrCode
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -39,7 +47,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,6 +61,13 @@ import components.BottomThemePanel
 import components.CentreAppBar
 import components.LoadingAnimation
 import forks.colorPicker.toHex
+import io.github.alexzhirkevich.qrose.options.QrBallShape
+import io.github.alexzhirkevich.qrose.options.QrFrameShape
+import io.github.alexzhirkevich.qrose.options.QrPixelShape
+import io.github.alexzhirkevich.qrose.options.QrShapes
+import io.github.alexzhirkevich.qrose.options.circle
+import io.github.alexzhirkevich.qrose.options.roundCorners
+import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -88,7 +105,7 @@ fun LoginContent(
     Scaffold(
         Modifier.fillMaxSize(),
         snackbarHost = {
-            val hostState = remember{ mutableStateOf(SnackbarHostState()) }
+            val hostState = remember { mutableStateOf(SnackbarHostState()) }
             SnackbarHost(
                 hostState = hostState.value,
                 snackbar = {
@@ -143,11 +160,34 @@ fun LoginContent(
             ) {
                 Spacer(Modifier)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Rounded.School,
-                        null,
-                        Modifier.size(150.dp)
-                    )
+                    Crossfade(model.qrToken == "", modifier = Modifier.animateContentSize()) {
+                        if (it) {
+                            Icon(
+                                Icons.Rounded.School,
+                                null,
+                                Modifier.size(150.dp)
+                            )
+                        } else {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Image(
+                                    rememberQrCodePainter(
+                                        data = model.qrToken,
+                                        shapes = QrShapes(
+                                            ball = QrBallShape.roundCorners(.25f),
+                                            //code = QrCodeShape.circle(),
+                                            darkPixel = QrPixelShape.roundCorners(),
+                                            frame = QrFrameShape.roundCorners(.25f)
+                                        )
+                                    ),
+                                    null,
+                                    Modifier.padding(bottom = 7.dp).size(150.dp),
+                                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
+                                )
+                                Text(model.qrToken)
+                                Spacer(Modifier.height(7.dp))
+                            }
+                        }
+                    }
                     CustomTextField(
                         value = model.login,
                         onValueChange = {
@@ -202,14 +242,38 @@ fun LoginContent(
                         )
                     }
                     Spacer(Modifier.height(10.dp))
-                    AnimatedCommonButton(
-                        modifier = Modifier.bringIntoView(scrollState, imeState),
-                        isEnabled = isButtonEnabled,
-                        onClick = {
-                            component.onEvent(Intent.CheckToGoMain)
-                        },
-                        text = "Войти в аккаунт"
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = {
+
+                            },
+                            modifier = Modifier.alpha(.0f),
+                            enabled = false
+                        ) {
+                            Icon(
+                                Icons.Rounded.QrCode, null
+                            )
+                        }
+                        AnimatedCommonButton(
+                            modifier = Modifier.bringIntoView(scrollState, imeState),
+                            isEnabled = isButtonEnabled,
+                            onClick = {
+                                component.onEvent(Intent.CheckToGoMain)
+                            },
+                            text = "Войти в аккаунт"
+                        )
+                        IconButton(
+                            onClick = {
+                                component.onEvent(Intent.GetQrToken)
+                            }
+                        ) {
+                            AnimatedContent(if (model.qrToken == "") Icons.Rounded.QrCode else Icons.Rounded.Refresh) {
+                                Icon(
+                                    it, null
+                                )
+                            }
+                        }
+                    }
                 }
 
                 BottomThemePanel(
