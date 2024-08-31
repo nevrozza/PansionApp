@@ -29,6 +29,7 @@ fun Application.configureCORS() {
 
         allowHeader(HttpHeaders.AccessControlAllowOrigin)
         allowHeader("Bearer-Authorization")
+        allowHeader("Vzlom")
         allowNonSimpleContentTypes = true
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Options)

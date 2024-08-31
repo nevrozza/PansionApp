@@ -203,9 +203,13 @@ kotlin {
         }
 
         jsMain.dependencies {
-
+            implementation("com.benasher44:uuid:0.8.4")
             implementation(project.dependencies.enforcedPlatform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:1.0.0-pre.648"))
             implementation("org.jetbrains.kotlin-wrappers:kotlin-browser")
+        }
+
+        wasmJsMain.dependencies {
+            implementation("com.benasher44:uuid:0.8.4")
         }
 
 //        val iosX64Main by getting

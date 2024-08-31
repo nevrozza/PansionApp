@@ -39,9 +39,9 @@ fun main() {
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
-            deviceName = "edge",//navigator.userAgent ?: "unknown",
+            deviceName = getDeviceName(),//navigator.userAgent ?: "unknown",
             deviceType = DeviceTypex.web,
-            deviceId = "c53379fe-19a7-3f07-911c-0c9d195b1925" //navigator.userAgent
+            deviceId = getOrCreateDeviceUUID() //navigator.userAgent
         )
     )
     val lifecycle = LifecycleRegistry()
@@ -93,6 +93,45 @@ fun main() {
                 }
             }
         }
+    }
+}
+
+fun getDeviceName(): String {
+    val userAgent = window.navigator.userAgent
+    var deviceName = when {
+        userAgent.contains("iPhone", ignoreCase = true) -> "iPhone"
+        userAgent.contains("Samsung", ignoreCase = true) -> "Samsung"
+        userAgent.contains("Ubuntu", ignoreCase = true) -> "Ubuntu"
+        userAgent.contains("Fedora", ignoreCase = true) -> "Fedora"
+        userAgent.contains("iPad", ignoreCase = true) -> "iPad"
+        userAgent.contains("Android", ignoreCase = true) -> "Android"
+        userAgent.contains("Windows", ignoreCase = true) -> "Windows"
+        userAgent.contains("Macintosh", ignoreCase = true) -> "MacOS"
+        userAgent.contains("Linux", ignoreCase = true) -> "Linux"
+        else -> "Устройство"
+    }
+    deviceName = when {
+        userAgent.contains("OPR", ignoreCase = true) -> "Opera "
+        userAgent.contains("Edg", ignoreCase = true) -> "Edge "
+        userAgent.contains("Firefox", ignoreCase = true) -> "Firefox "
+
+        userAgent.contains("EdgiOS", ignoreCase = true) -> "Edge "
+        userAgent.contains("FxiOS", ignoreCase = true) -> "Firefox "
+        userAgent.contains("CriOS", ignoreCase = true) -> "Chrome "
+        else -> ""
+    } + deviceName
+
+    return deviceName
+}
+
+fun getOrCreateDeviceUUID(): String {
+    val storedUUID = kotlinx.browser.localStorage.getItem("deviceUUID")
+    return if (storedUUID != null) {
+        storedUUID
+    } else {
+        val newUUID = "sad"
+        kotlinx.browser.localStorage.setItem("deviceUUID", newUUID)
+        newUUID
     }
 }
 

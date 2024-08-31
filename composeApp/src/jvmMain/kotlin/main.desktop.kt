@@ -141,13 +141,13 @@ fun main() {
         )
     )
 
-    val lifecycle = LifecycleRegistry()
+
     val stateKeeper =
         StateKeeperDispatcher() //File(SAVED_STATE_FILE_NAME).readSerializableContainer()
     val root = runOnUiThread {
 
         setMainThreadId(Thread.currentThread().id)
-
+        val lifecycle = LifecycleRegistry()
         RootComponentImpl(
             componentContext = DefaultComponentContext(
                 lifecycle = lifecycle,
@@ -231,11 +231,11 @@ fun main() {
 
                         ) {
 
-                            LifecycleController(
-                                lifecycleRegistry = lifecycle,
-                                windowState = windowState,
-                                windowInfo = LocalWindowInfo.current,
-                            )
+//                            LifecycleController(
+//                                lifecycleRegistry = lifecycle,
+//                                windowState = windowState,
+//                                windowInfo = LocalWindowInfo.current,
+//                            )
 
                             val l = LocalTitleBarStyle.current
                             viewManager.topPadding =
