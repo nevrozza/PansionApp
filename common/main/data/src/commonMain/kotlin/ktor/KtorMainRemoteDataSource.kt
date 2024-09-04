@@ -29,6 +29,11 @@ import mentoring.preAttendance.RSavePreAttendanceDayReceive
 import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
+import registration.CloseRequestQRReceive
+import registration.OpenRequestQRReceive
+import registration.ScanRequestQRReceive
+import registration.SendRegistrationRequestReceive
+import registration.SolveRequestReceive
 import report.RCreateReportReceive
 import report.RCreateReportResponse
 import report.RFetchHeadersResponse
@@ -44,6 +49,34 @@ import schedule.RScheduleList
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun openRegistrationQR(r: OpenRequestQRReceive) {
+        httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Registration.OpenQR)
+            }
+        }.status.value.checkOnNoOk()
+    }
+    suspend fun solveRegistrationRequest(r: SolveRequestReceive) {
+        httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Registration.SolveRequest)
+            }
+        }.status.value.checkOnNoOk()
+    }
+    suspend fun closeRegistrationQR(r: CloseRequestQRReceive) {
+        httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Registration.CloseQR)
+            }
+        }.status.value.checkOnNoOk()
+    }
 
     suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse {
         return httpClient.post {

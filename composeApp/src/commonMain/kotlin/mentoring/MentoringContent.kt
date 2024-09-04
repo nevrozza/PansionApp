@@ -3,10 +3,12 @@ package mentoring
 import FIO
 import MentorPerson
 import activation.ActivationStore
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +35,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.HistoryEdu
 import androidx.compose.material.icons.rounded.Home
@@ -60,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -75,6 +79,7 @@ import components.CLazyColumn
 import components.CustomTextButton
 import components.CustomTextField
 import components.DatesLine
+import components.GetAvatar
 import components.GroupPicker
 import components.LoadingAnimation
 import components.listDialog.ListDialogStore
@@ -84,7 +89,14 @@ import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import groups.DefaultGroupsErrorScreen
 import groups.students.StudentsStore
+import io.github.alexzhirkevich.qrose.options.QrBallShape
+import io.github.alexzhirkevich.qrose.options.QrFrameShape
+import io.github.alexzhirkevich.qrose.options.QrPixelShape
+import io.github.alexzhirkevich.qrose.options.QrShapes
+import io.github.alexzhirkevich.qrose.options.roundCorners
+import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import lessonReport.LessonReportStore
+import registration.RegistrationRequest
 import report.UserMarkPlus
 import root.RootComponent
 import root.RootComponent.Config
@@ -152,7 +164,8 @@ fun MentoringContent(
                                 form = f,
                                 students = model.students.filter { it.formId == f.id },
                                 component = component,
-                                model = model
+                                model = model,
+                                requests = model.requests.filter { it.formId == f.id }
                             )
                         }
                     }
@@ -181,17 +194,149 @@ fun MentoringContent(
 private fun FormsItem(
     form: MentorForms,
     students: List<MentorPerson>,
+    requests: List<RegistrationRequest>,
     model: MentoringStore.State,
     component: MentoringComponent
 ) {
     val nPAModel by component.nPreAttendanceInterface.networkModel.subscribeAsState()
-    Text(
-        "${form.num} ${form.title}",
-        modifier = Modifier.padding(start = 7.dp),
-        fontSize = 19.sp,
-        fontWeight = FontWeight.Bold
-    )
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            "${form.num} ${form.title}",
+            modifier = Modifier.padding(start = 7.dp),
+            fontSize = 19.sp,
+            fontWeight = FontWeight.Bold
+        )
+        IconButton(
+            onClick = {
+                component.onEvent(
+                    MentoringStore.Intent.ManageQr(
+                        formId = form.id,
+                        isOpen = !form.isQrActive
+                    )
+                )
+            }
+        ) {
+            AnimatedContent(
+                if (form.isQrActive) Icons.Rounded.Close
+                else Icons.Rounded.Add
+            ) {
+                Icon(it, null)
+            }
+        }
+    }
     Spacer(Modifier.height(2.dp))
+    AnimatedVisibility(form.isQrActive) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                rememberQrCodePainter(
+                    data = "Form" + form.id,
+                    shapes = QrShapes(
+                        ball = QrBallShape.roundCorners(.25f),
+                        //code = QrCodeShape.circle(),
+                        darkPixel = QrPixelShape.roundCorners(),
+                        frame = QrFrameShape.roundCorners(.25f)
+                    )
+                ),
+                null,
+                Modifier.padding(bottom = 7.dp).fillMaxWidth(),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
+            )
+            Spacer(Modifier.height(2.dp))
+            Text("Form" + form.id)
+        }
+    }
+    Spacer(Modifier.height(6.dp))
+    AnimatedVisibility(
+        requests.isNotEmpty()
+    ) {
+        Column {
+            requests.forEach { r ->
+                Surface(
+                    tonalElevation = 2.dp,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(6.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            GetAvatar(
+                                avatarId = r.avatarId,
+                                name = r.name,
+                                size = 55.dp,
+                                textSize = 22.sp
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Column {
+                                Row {
+                                    Text(r.surname, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.width(3.dp))
+                                    Text(r.name, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.width(3.dp))
+                                    Text(r.praname, fontWeight = FontWeight.Bold)
+                                }
+                                if (r.fioFather.isNotEmpty()) {
+                                    Row {
+                                        Text(r.fioFather)
+                                    }
+                                }
+                                if (r.fioMother.isNotEmpty()) {
+                                    Row {
+                                        Text(r.fioMother)
+                                    }
+                                }
+                            }
+
+                        }
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Spacer(Modifier.width(15.dp))
+                            Text(
+                                "${r.birthday.subSequence(0, 2)}.${r.birthday.subSequence(2, 4)}.${r.birthday.subSequence(4, 8)}"
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        component.onEvent(MentoringStore.Intent.SolveRequest(true, r))
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Done, null
+                                    )
+                                }
+                                Spacer(Modifier.width(7.dp))
+
+                                IconButton(
+                                    onClick = {
+                                        component.onEvent(MentoringStore.Intent.SolveRequest(false, r))
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Close, null
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+    }
     students.forEach { s ->
         val isChosenPA = model.chosenAttendanceLogin == s.login
         Surface(

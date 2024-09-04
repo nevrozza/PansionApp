@@ -16,6 +16,11 @@ import mentoring.preAttendance.RFetchPreAttendanceDayResponse
 import mentoring.preAttendance.RSavePreAttendanceDayReceive
 import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingResponse
+import registration.CloseRequestQRReceive
+import registration.OpenRequestQRReceive
+import registration.ScanRequestQRReceive
+import registration.SendRegistrationRequestReceive
+import registration.SolveRequestReceive
 import report.RCreateReportReceive
 import report.RCreateReportResponse
 import report.RFetchHeadersResponse
@@ -25,6 +30,10 @@ import schedule.RPersonScheduleList
 import schedule.RScheduleList
 
 interface MainRepository {
+    suspend fun openRegistrationQR(r: OpenRequestQRReceive)
+    suspend fun closeRegistrationQR(r: CloseRequestQRReceive)
+    suspend fun solveRegistrationRequest(r: SolveRequestReceive)
+
 
     suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse
 

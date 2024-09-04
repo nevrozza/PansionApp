@@ -13,6 +13,28 @@ fun Application.configureMentoringRouting() {
         post(RequestPaths.Main.FetchMentorGroupIds) {
             mentoringController.fetchMentorGroupIds(call)
         }
+        post(RequestPaths.Registration.OpenQR) {
+            mentoringController.openRegistrationQR(call)
+        }
+
+        post(RequestPaths.Registration.CloseQR) {
+            mentoringController.closeRegistrationQR(call)
+        }
+        post(RequestPaths.Registration.ScanQR) {
+            mentoringController.scanRegistrationQR(call)
+        }
+
+        post(RequestPaths.Registration.FetchLogins) {
+            mentoringController.fetchLogins(call)
+        }
+
+        post(RequestPaths.Registration.SolveRequest) {
+            mentoringController.solveRegistrationRequest(call)
+        }
+
+        post(RequestPaths.Registration.SendRequest) {
+            mentoringController.sendRegistrationRequest(call)
+        }
 
         post(RequestPaths.Mentoring.SavePreAttendanceDay) {
             mentoringController.savePreAttendanceDay(call)

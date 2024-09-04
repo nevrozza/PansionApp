@@ -1,5 +1,18 @@
+
 object RequestPaths {
-    const val ip = "192.168.0.108:8081"//""//"192.168.0.107:8081"
+    const val ip = "192.168.43.110:8081"//""//"192.168.0.107:8081"
+
+    object Registration {
+        const val OpenQR = "server/registration/open"
+        const val CloseQR = "server/registration/close"
+//        const val FetchRequests = "server/registration/requests"
+        const val SolveRequest = "server/registration/solve"
+//        const val Poll = "server/registration/poll"
+
+        const val ScanQR = "server/registration/scan"
+        const val SendRequest = "server/registration/send"
+        const val FetchLogins = "server/registration/logins"
+    }
 
     object Achievements {
         const val Create = "server/achievements/create"

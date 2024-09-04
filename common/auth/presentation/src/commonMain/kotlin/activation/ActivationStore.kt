@@ -15,7 +15,8 @@ interface ActivationStore : Store<Intent, State, Nothing> {
         val isInProcess: Boolean = false,
         val error: String = "",
         val isErrorShown: Boolean = false,
-        val activated: Boolean = false
+        val activated: Boolean = false,
+        val logins: List<String> = emptyList()
     )
 
     sealed interface Intent {
@@ -27,9 +28,12 @@ interface ActivationStore : Store<Intent, State, Nothing> {
         data object ChangeStepOnActivation : Intent
         data object CheckToGoMain : Intent
         data object HideError : Intent
+
+        data object Init : Intent
     }
 
     sealed interface Message {
+        data class Inited(val logins: List<String>) : Message
         data object AllReseted: Message
         data class LoginChanged(val login: String) : Message
         data class PasswordChanged(val password: String) : Message

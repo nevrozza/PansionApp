@@ -10,6 +10,7 @@ import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
 import kotlinx.coroutines.launch
 import login.LoginStore
+import registration.FetchLoginsReceive
 import view.Language
 import view.ThemeTint
 import view.isCanInDynamic
@@ -25,6 +26,17 @@ class ActivationExecutor(private val settingsRepository: SettingsRepository, pri
             is Intent.ChangeStep -> dispatch(Message.StepChanged(intent.step))
             Intent.HideError -> dispatch(Message.ErrorHided)
             Intent.ResetAll -> dispatch(Message.AllReseted)
+            Intent.Init -> init()
+        }
+    }
+    private fun init() {
+        scope.launch {
+            try {
+                val r = authRepository.fetchLogins()
+                dispatch(Message.Inited(logins = r.logins))
+            } catch (_: Throwable) {
+
+            }
         }
     }
 

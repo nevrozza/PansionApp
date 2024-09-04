@@ -1,6 +1,7 @@
 package com.nevrozq.pansion.database.forms
 
 import admin.groups.forms.outside.REditFormReceive
+import com.nevrozq.pansion.features.mentoring.activeRegistrationForms
 import mentoring.MentorForms
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
@@ -51,7 +52,8 @@ object Forms : Table() {
                 if(it[isActive]) MentorForms(
                     id = it[Forms.id],
                     num = it[Forms.classNum],
-                    title = it[Forms.title]
+                    title = it[Forms.title],
+                    isQrActive = it[Forms.id] in activeRegistrationForms
                 )
                 else null
             }

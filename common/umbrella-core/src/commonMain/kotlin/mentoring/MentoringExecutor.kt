@@ -12,6 +12,10 @@ import mentoring.MentoringStore.Message
 import mentoring.preAttendance.ClientPreAttendance
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
 import mentoring.preAttendance.RSavePreAttendanceDayReceive
+import registration.CloseRequestQRReceive
+import registration.OpenRequestQRReceive
+import registration.RegistrationRequest
+import registration.SolveRequestReceive
 
 class MentoringExecutor(
     private val mainRepository: MainRepository,
@@ -40,6 +44,58 @@ class MentoringExecutor(
                 start = state().cStart.toString(), end = state().cEnd.toString(),
                 reason = state().cReason.toString(), isGood = state().cIsGood ?: false
             )
+
+            is Intent.ManageQr -> manageQR(formId = intent.formId, isOpen = intent.isOpen)
+            is Intent.SolveRequest -> solveRequest(isAccepted = intent.isAccepted, r = intent.r)
+        }
+    }
+    private fun solveRequest(isAccepted: Boolean, r: RegistrationRequest) {
+        scope.launch(CDispatcher) {
+            try {
+                mainRepository.solveRegistrationRequest(
+                    SolveRequestReceive(
+                        isAccepted = isAccepted,
+                        request = r
+                    )
+                )
+                fetchStudents()
+            } catch (e: Throwable) {
+                println("IDK: ${e}")
+            }
+        }
+    }
+
+    private fun manageQR(formId: Int, isOpen: Boolean) {
+        scope.launch(CDispatcher) {
+            try {
+                println("SADIKX${formId}${isOpen}")
+                if (isOpen) {
+                    mainRepository.openRegistrationQR(
+                        OpenRequestQRReceive(
+                            formId = formId
+                        )
+                    )
+                } else {
+                    mainRepository.closeRegistrationQR(
+                        CloseRequestQRReceive(
+                            formId = formId
+                        )
+                    )
+                }
+                scope.launch {
+                    dispatch(Message.FormsUpdated(
+                        forms = state().forms.map {
+                            if (it.id == formId)
+                                it.copy(isQrActive = isOpen)
+                            else it
+                        }
+                    ))
+                    println("SSX")
+                }
+
+            } catch (e: Throwable) {
+                println("XXS: ${e}")
+            }
         }
     }
 
@@ -136,7 +192,7 @@ class MentoringExecutor(
             try {
                 val r = mainRepository.fetchMentorStudents()
                 scope.launch {
-                    dispatch(Message.StudentsFetched(forms = r.forms, students = r.students))
+                    dispatch(Message.StudentsFetched(forms = r.forms, students = r.students, requests = r.requests))
                     nInterface.nSuccess()
                 }
             } catch (_: Throwable) {

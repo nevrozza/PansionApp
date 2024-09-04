@@ -17,6 +17,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import components.AnimatedCommonButton
 import components.AnimatedElevatedButton
@@ -48,8 +49,10 @@ import androidx.compose.material.icons.rounded.ArrowBackIos
 import androidx.compose.material.icons.rounded.AutoMode
 import androidx.compose.material.icons.rounded.Cake
 import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ColorScheme
@@ -58,13 +61,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
@@ -75,6 +82,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
@@ -89,11 +97,13 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.BottomThemePanel
 import components.LoadingAnimation
+import components.MarkContent
 import forks.colorPicker.toHex
 import kotlinx.coroutines.launch
 import login.LoginComponent
 import login.LoginStore
 import resources.Images
+import server.fetchReason
 import view.defaultDarkPalette
 import view.defaultLightPalette
 import view.greenDarkPalette
@@ -108,6 +118,7 @@ import view.ThemeTint
 import view.bringIntoView
 import view.dynamicDarkScheme
 import view.dynamicLightScheme
+import view.handy
 import view.rememberImeState
 
 
@@ -137,7 +148,7 @@ fun ActivationContent(
     Scaffold(
         Modifier.fillMaxSize(),
         snackbarHost = {
-            val hostState = remember{mutableStateOf(SnackbarHostState())}
+            val hostState = remember { mutableStateOf(SnackbarHostState()) }
             SnackbarHost(
                 hostState = hostState.value,
                 snackbar = {
@@ -256,9 +267,61 @@ fun ActivationContent(
                                         keyboardType = KeyboardType.Password
                                     )
                                     Spacer(Modifier.height(10.dp))
-                                    CustomTextButton("Уже активирован") {
-                                        component.onOutput(ActivationComponent.Output.NavigateToLogin)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(start = 35.dp)
+                                    ) {
+                                        CustomTextButton("Уже активирован") {
+                                            component.onOutput(ActivationComponent.Output.NavigateToLogin)
+                                        }
+                                        Spacer(Modifier.width(5.dp))
+
+
+                                        val tState =
+                                            rememberTooltipState(isPersistent = true)
+                                        Row(modifier = Modifier.size(30.dp)) {
+                                            AnimatedVisibility(
+                                                model.logins.isNotEmpty()
+                                            ) {
+                                                TooltipBox(
+                                                    state = tState,
+                                                    tooltip = {
+                                                        PlainTooltip() {
+                                                            Column {
+                                                                model.logins.forEach {
+                                                                    Text(it)
+                                                                    if (model.logins.last() != it) {
+                                                                        Spacer(Modifier.height(2.dp))
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                                    enableUserInput = false,
+                                                    focusable = false
+                                                ) {
+
+
+                                                    IconButton(
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                tState.show()
+                                                            }
+                                                        },
+                                                        modifier = Modifier.size(30.dp)
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Rounded.History, null
+                                                        )
+                                                    }
+
+                                                }
+                                            }
+                                        }
                                     }
+
+
                                     AnimatedVisibility(
                                         model.isInProcess
                                     ) {
@@ -334,7 +397,7 @@ fun ActivationContent(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             when (label) {
-                                ActivationStore.Step.Choice -> Column(horizontalAlignment = Alignment.CenterHorizontally){
+                                ActivationStore.Step.Choice -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     CustomTextButton("QR-код") {}
                                     Spacer(Modifier.height(10.dp))
                                     OutlinedButton(
@@ -347,27 +410,28 @@ fun ActivationContent(
                                 }
 
                                 ActivationStore.Step.Login -> {
-//                                    IconButton(
-//                                        onClick = {
-//                                            component.onEvent(
-//                                                ActivationStore.Intent.ChangeStep(
-//                                                    ActivationStore.Step.Choice
-//                                                )
-//                                            )
-//                                        }
-//                                    ) {
-//                                        Icon(
-//                                            Icons.Rounded.ArrowBackIos,
-//                                            null
-//                                        )
-//                                    }
-//                                    Spacer(Modifier.width(5.dp))
+                                    IconButton(
+                                        onClick = {},
+                                        enabled = false
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.QrCodeScanner, null,
+                                            modifier = Modifier.alpha(0f)
+                                        )
+                                    }
                                     AnimatedElevatedButton(
                                         text = "Далее",
                                         isEnabled = isLoginButtonEnabled
                                     ) {
                                         component.onEvent(
                                             ActivationStore.Intent.ChangeStepOnActivation
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { component.onOutput(ActivationComponent.Output.GoToScanner) }
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.QrCodeScanner, null
                                         )
                                     }
                                 }

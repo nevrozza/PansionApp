@@ -21,6 +21,11 @@ import mentoring.preAttendance.RSavePreAttendanceDayReceive
 import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
+import registration.CloseRequestQRReceive
+import registration.OpenRequestQRReceive
+import registration.ScanRequestQRReceive
+import registration.SendRegistrationRequestReceive
+import registration.SolveRequestReceive
 import report.RCreateReportReceive
 import report.RCreateReportResponse
 import report.RFetchHeadersResponse
@@ -36,6 +41,19 @@ import schedule.RScheduleList
 class MainRepositoryImpl(
     private val remoteDataSource: KtorMainRemoteDataSource
 ) : MainRepository {
+    override suspend fun openRegistrationQR(r: OpenRequestQRReceive) {
+        remoteDataSource.openRegistrationQR(r)
+    }
+
+    override suspend fun closeRegistrationQR(r: CloseRequestQRReceive) {
+        remoteDataSource.closeRegistrationQR(r)
+    }
+
+    override suspend fun solveRegistrationRequest(r: SolveRequestReceive) {
+        remoteDataSource.solveRegistrationRequest(r)
+    }
+
+
     override suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse {
         return remoteDataSource.fetchMentorGroupIds()
     }

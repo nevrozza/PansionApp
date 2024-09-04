@@ -4,6 +4,7 @@ import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.checkedNotifications.CheckedNotifications
+import com.nevrozq.pansion.database.deviceBinds.DeviceBinds
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
@@ -108,7 +109,8 @@ fun main() {
             Achievements,
             CheckedNotifications,
             Parents,
-            PickedGIA
+            PickedGIA,
+            DeviceBinds
         )
 //        updateRatings()
 

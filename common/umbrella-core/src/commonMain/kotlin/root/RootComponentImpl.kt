@@ -776,8 +776,9 @@ class RootComponentImpl(
 
     private fun onActivationOutput(output: ActivationComponent.Output): Unit =
         when (output) {
-            ActivationComponent.Output.NavigateToLogin -> navigation.push(Config.AuthLogin)
+            ActivationComponent.Output.NavigateToLogin -> navigation.bringToFront(Config.AuthLogin)
             ActivationComponent.Output.NavigateToMain -> navigateAfterAuth()
+            ActivationComponent.Output.GoToScanner -> navigation.bringToFront(Config.QRScanner(isRegistration = true))
         }
 
     private fun onHomeOutput(output: HomeComponent.Output): Unit =

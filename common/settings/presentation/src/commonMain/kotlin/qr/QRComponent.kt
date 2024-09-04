@@ -26,6 +26,11 @@ class QRComponent(
         storeFactory = storeFactory,
         name = "QRCBottomSheetComponent"
     )
+    val registerBottomSheet = CBottomSheetComponent(
+        componentContext = childContext("REGISTERQRCBottomSheetComponentCONTEXT"),
+        storeFactory = storeFactory,
+        name = "REGISTERQRCBottomSheetComponent"
+    )
 
     val nInterface = NetworkInterface(
         componentContext = childContext("QRNetworkInterfaceCONTEXT"),
@@ -40,7 +45,9 @@ class QRComponent(
                 isRegistration = isRegistration,
                 nInterface = nInterface,
                 authRepository = authRepository,
-                authBottomSheet = authBottomSheet
+                authBottomSheet = authBottomSheet,
+                registerBottomSheet = registerBottomSheet,
+                settingsRepository = settingsRepository
             ).create()
         }
 

@@ -1,12 +1,27 @@
 import auth.RFetchAllDevicesResponse
 import auth.RTerminateDeviceReceive
 import ktor.KtorSettingsRemoteDataSource
+import registration.ScanRequestQRReceive
+import registration.ScanRequestQRResponse
+import registration.SendRegistrationRequestReceive
 import settings.SettingsDataSource
 
 class SettingsRepositoryImpl(
     private val cacheDataSource: SettingsDataSource,
     private val remoteDataSource: KtorSettingsRemoteDataSource,
 ): SettingsRepository {
+    override suspend fun scanRegistrationQR(formId: Int) : ScanRequestQRResponse{
+        return remoteDataSource.scanRegistrationQR(
+            ScanRequestQRReceive(
+                formId = formId
+            )
+        )
+    }
+
+    override suspend fun sendRegistrationRequest(r: SendRegistrationRequestReceive) {
+        remoteDataSource.sendRegistrationRequest(r)
+    }
+
     override suspend fun fetchDevices(): RFetchAllDevicesResponse {
         return remoteDataSource.fetchDevices()
     }

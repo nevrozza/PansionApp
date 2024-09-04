@@ -4,6 +4,8 @@ import di.Inject
 import ktor.KtorAuthRemoteDataSource
 import settings.SettingsAuthDataSource
 import auth.*
+import registration.FetchLoginsReceive
+import registration.FetchLoginsResponse
 
 class AuthRepositoryImpl(
     private val remoteDataSource: KtorAuthRemoteDataSource,
@@ -14,7 +16,15 @@ class AuthRepositoryImpl(
         remoteDataSource.activateQRTokenAtAll(r)
     }
 
-    override suspend fun activateQRToken(r: RFetchQrTokenResponse)  : RActivateQrTokenResponse {
+    override suspend fun fetchLogins(): FetchLoginsResponse {
+        return remoteDataSource.fetchLogins(
+            FetchLoginsReceive(
+                deviceId = cPlatformConfiguration.deviceId
+            )
+        )
+    }
+
+    override suspend fun activateQRToken(r: RFetchQrTokenResponse): RActivateQrTokenResponse {
         return remoteDataSource.activateQRToken(r)
     }
 

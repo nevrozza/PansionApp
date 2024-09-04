@@ -12,6 +12,8 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.path
+import registration.FetchLoginsReceive
+import registration.FetchLoginsResponse
 import server.delayForNewQRToken
 
 class KtorAuthRemoteDataSource(
@@ -23,6 +25,14 @@ class KtorAuthRemoteDataSource(
             url {
                 setBody(r)
                 path(RequestPaths.Auth.FetchQRToken)
+            }
+        }.body()
+    }
+    suspend fun fetchLogins(r: FetchLoginsReceive) : FetchLoginsResponse {
+        return httpClient.post {
+            url {
+                setBody(r)
+                path(RequestPaths.Registration.FetchLogins)
             }
         }.body()
     }

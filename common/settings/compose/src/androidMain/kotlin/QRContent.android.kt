@@ -109,7 +109,7 @@ actual fun QRContent(component: QRComponent, snackBarHostState: SnackbarHostStat
                 flashlightOn = flashlightOn,
                 openImagePicker = openImagePicker,
                 onCompletion = {
-                    if(!component.authBottomSheet.model.value.isDialogShowing) {
+                    if(!component.authBottomSheet.model.value.isDialogShowing && !component.registerBottomSheet.model.value.isDialogShowing) {
                         component.onEvent(
                             QRStore.Intent.ChangeCode(it)
                         )

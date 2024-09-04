@@ -1,6 +1,7 @@
 package qr
 
 import AuthRepository
+import SettingsRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cBottomSheet.CBottomSheetComponent
@@ -14,7 +15,9 @@ class QRStoreFactory(
     private val isRegistration: Boolean,
     private val nInterface: NetworkInterface,
     private val authRepository: AuthRepository,
+    private val settingsRepository: SettingsRepository,
     private val authBottomSheet: CBottomSheetComponent,
+    private val registerBottomSheet: CBottomSheetComponent,
 ) {
 
     fun create(): QRStore {
@@ -29,7 +32,9 @@ class QRStoreFactory(
             executorFactory = { QRExecutor(
                 nInterface = nInterface,
                 authRepository = authRepository,
-                authBottomSheet = authBottomSheet
+                authBottomSheet = authBottomSheet,
+                settingsRepository = settingsRepository,
+                registerBottomSheet = registerBottomSheet
             ) },
             reducer = QRReducer
         )

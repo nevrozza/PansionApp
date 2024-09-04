@@ -33,6 +33,8 @@ object ActivationReducer : Reducer<State, Message> {
                 isErrorShown = false,
                 activated = false
             )
+
+            is Message.Inited -> copy(logins = msg.logins)
         }
     }
 }

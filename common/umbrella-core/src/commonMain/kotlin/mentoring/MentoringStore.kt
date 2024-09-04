@@ -9,6 +9,7 @@ import mentoring.MentoringStore.Label
 import mentoring.MentoringStore.State
 import mentoring.preAttendance.ClientPreAttendance
 import mentoring.preAttendance.ScheduleForAttendance
+import registration.RegistrationRequest
 import root.RootComponent
 import server.getCurrentDate
 import server.getDates
@@ -24,6 +25,7 @@ interface MentoringStore : Store<Intent, State, Label> {
     data class State(
         val forms: List<MentorForms> = emptyList(),
         val students: List<MentorPerson> = emptyList(),
+        val requests: List<RegistrationRequest> = emptyList(),
         val preAttendance: Map<String/*Login*/, Map<String/*Date*/, ClientPreAttendance?>> = emptyMap(),
         val schedule: Map<String/*Login*/, Map<String/*Date*/, List<ScheduleForAttendance>>> = emptyMap(),
         val chosenLogin: String? = null,
@@ -39,6 +41,8 @@ interface MentoringStore : Store<Intent, State, Label> {
 
     sealed interface Intent {
         data object FetchStudents : Intent
+        data class SolveRequest(val isAccepted: Boolean, val r: RegistrationRequest) : Intent
+        data class ManageQr(val formId: Int, val isOpen: Boolean) : Intent
         data class SelectStudent(val login: String?) : Intent
         data class SelectPreAttendanceLogin(val login: String?, val date: String) : Intent
         data class ChangeDate(val date: Pair<Int, String>) : Intent
@@ -54,7 +58,9 @@ interface MentoringStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
-        data class StudentsFetched(val forms: List<MentorForms>, val students: List<MentorPerson>) :
+        data class FormsUpdated(val forms: List<MentorForms>) : Message
+
+        data class StudentsFetched(val forms: List<MentorForms>, val students: List<MentorPerson>, val requests: List<RegistrationRequest>) :
             Message
 
         data class StudentSelected(val login: String?) : Message

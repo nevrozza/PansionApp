@@ -74,8 +74,13 @@ class ActivationComponent(
         output(output)
     }
 
+    init {
+        onEvent(ActivationStore.Intent.Init)
+    }
+
     sealed class Output {
         data object NavigateToMain : Output()
         data object NavigateToLogin : Output()
+        data object GoToScanner : Output()
     }
 }

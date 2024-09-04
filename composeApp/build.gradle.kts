@@ -142,6 +142,9 @@ kotlin {
 //    }
     sourceSets {
         commonMain.dependencies {
+            implementation("io.github.alexzhirkevich:qrose:1.0.1")
+
+
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(compose.foundation)

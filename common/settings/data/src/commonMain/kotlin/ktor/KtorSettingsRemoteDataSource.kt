@@ -9,6 +9,9 @@ import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.path
+import registration.ScanRequestQRReceive
+import registration.ScanRequestQRResponse
+import registration.SendRegistrationRequestReceive
 
 class KtorSettingsRemoteDataSource(
     private val httpClient: HttpClient
@@ -27,6 +30,24 @@ class KtorSettingsRemoteDataSource(
             url {
                 bearer()
                 path(RequestPaths.Auth.TerminateDevice)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+    suspend fun scanRegistrationQR(r: ScanRequestQRReceive) : ScanRequestQRResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Registration.ScanQR)
+                setBody(r)
+            }
+        }.body()
+    }
+    suspend fun sendRegistrationRequest(r: SendRegistrationRequestReceive) {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Registration.SendRequest)
                 setBody(r)
             }
         }.status.value.checkOnNoOk()

@@ -7,9 +7,13 @@ import auth.RCheckGIASubjectReceive
 import auth.RFetchAboutMeResponse
 import auth.RFetchQrTokenReceive
 import auth.RFetchQrTokenResponse
+import registration.FetchLoginsResponse
 
 interface AuthRepository {
+
+
     suspend fun activateQRTokenAtAll(r: RFetchQrTokenResponse)
+    suspend fun fetchLogins() : FetchLoginsResponse
     suspend fun activateQRToken(r: RFetchQrTokenResponse) : RActivateQrTokenResponse
 
 
