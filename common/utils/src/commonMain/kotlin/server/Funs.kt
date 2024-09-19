@@ -43,9 +43,15 @@ fun getCurrentDayTime() : String {
 fun isTimeFormat(str: String): Boolean {
     val pattern = """\b([01]?[0-9]|2[0-3]):[0-5][0-9]-([01]?[0-9]|2[0-3]):[0-5][0-9]\b""".toRegex()
     val parts = str.split("-")
-    val start = parts[0].toMinutes()
-    val end = parts[1].toMinutes()
-    return (pattern.matches(str) && start < end)
+
+    val isNums = parts[0].replaceFirst(":", "").toIntOrNull() != null &&
+            parts[1].replaceFirst(":", "").toIntOrNull() != null
+    println("${parts[0].replaceFirst(":", "")} ${parts[1].replaceFirst(":", "").toIntOrNull()}")
+    if (isNums) {
+        val start = parts[0].toMinutes()
+        val end = parts[1].toMinutes()
+        return (pattern.matches(str) && start < end)
+    } else return false
 }
 fun getWeekDays(): List<String> {
     val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).date

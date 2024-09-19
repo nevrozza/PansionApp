@@ -7,7 +7,10 @@ import parents.AdminParentsStore.Message
 object AdminParentsReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
-            else -> TODO()
+            is Message.Inited -> copy(users = msg.users, lines = msg.lines)
+            is Message.EditId -> copy(editId = msg.editId, addToStudent = "")
+            is Message.AddToStudent -> copy(editId = 0, addToStudent = msg.login)
+            is Message.KidsUpdated -> copy(kids = msg.kids)
         }
     }
 }

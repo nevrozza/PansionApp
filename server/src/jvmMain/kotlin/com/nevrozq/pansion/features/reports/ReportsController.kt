@@ -336,7 +336,6 @@ class ReportsController() {
                 val allStups: Int
                 var achievementsStups: MutableMap<Period, Pair<Int, Int>>? = null
 
-
                 if (r.isFirst) {
                     achievementsStups = mutableMapOf(
                         Period.WEEK to Pair(0, 0),

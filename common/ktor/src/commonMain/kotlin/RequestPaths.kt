@@ -2,6 +2,11 @@
 object RequestPaths {
     const val ip = "192.168.43.110:8081"//""//"192.168.0.107:8081"
 
+    object Parents {
+        const val FetchParents = "server/admin/parents/fetch"
+        const val UpdateParent = "server/admin/parents/update"
+    }
+
     object Registration {
         const val OpenQR = "server/registration/open"
         const val CloseQR = "server/registration/close"

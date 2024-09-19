@@ -591,7 +591,8 @@ private fun LazyItemScope.ScheduleColumn(
                         ) {
                             when {
                                 model.ciId == null -> {
-                                    (model.teachers.first { it.login == c.login }.groups.filter { it.second }.sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
+                                    (model.teachers.first { it.login == c.login }.groups.filter { it.second }
+                                        .sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
                                         val group =
                                             model.groups.firstOrNull { it.id == s.first }
                                         if (group != null) {
@@ -701,6 +702,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                                         )
                                                                     )
                                                                 )
+
                                                             }
                                                         }
                                                     },
@@ -1005,7 +1007,7 @@ private fun LazyItemScope.ScheduleColumn(
                                 .fillMaxWidth()
                                 .height(height),
                             colors = CardDefaults.cardColors(
-                                containerColor =if(e.teacherLogin == e.teacherLoginBefore) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer
+                                containerColor = if (e.teacherLogin == e.teacherLoginBefore) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer
                             ),
                             onClick = {
                                 component.onEvent(
@@ -1369,7 +1371,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                 }
 
 
-                                                EditState.Groups -> (model.teachers.first { it.login == c.login }.groups.filter { it.second }.sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
+                                                EditState.Groups -> (model.teachers.first { it.login == c.login }.groups.filter { it.second }
+                                                    .sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
                                                     val egroup =
                                                         model.groups.firstOrNull { it.id == s.first }
                                                     if (egroup != null) {

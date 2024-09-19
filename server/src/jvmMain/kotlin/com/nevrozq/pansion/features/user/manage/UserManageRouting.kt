@@ -8,6 +8,13 @@ fun Application.configureRegisterRouting() {
     routing {
         val userManageController = UserManageController()
 
+        post(RequestPaths.Parents.FetchParents) {
+            userManageController.fetchAllParents(call)
+        }
+        post(RequestPaths.Parents.UpdateParent) {
+            userManageController.updateParents(call)
+        }
+
         get("server/auth/manage/tokens/fetch") {
             userManageController.performSearchTokens(call)
         }

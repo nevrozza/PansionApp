@@ -18,6 +18,7 @@ import schedule.ScheduleItem
 import server.getCurrentDate
 import server.getDate
 import server.getDates
+import kotlin.time.times
 
 interface HomeStore : Store<Intent, State, Label> {
     data class State(
@@ -131,7 +132,14 @@ fun getEmoji(count: Int): String {
         3 -> Emojis.normal
         4 -> Emojis.scared
         5 -> Emojis.horror
-        else -> Emojis.death
+        else -> {
+            val deathsCount = ((count - 6) / 2)
+            var d = Emojis.death
+            for (i in 0..<deathsCount) {
+                d += Emojis.death
+            }
+            return d
+        }
     }
 }
 

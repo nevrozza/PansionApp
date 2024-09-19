@@ -63,6 +63,12 @@ object UsersReducer : Reducer<State, Message> {
             is Message.CParentSecondFIOChanged -> copy(cParentSecondFIO = msg.fio)
             is Message.DeletingAccountInit -> copy(eDeletingLogin = msg.login)
             is Message.CFormIdChanged -> copy(cFormId = msg.formId)
+            is Message.FNoAdmin -> copy(fNoAdmin = msg.isOn)
+            is Message.FOther -> copy(fOther = msg.isOn)
+            is Message.FStudents -> copy(fStudents = msg.isOn)
+            is Message.FTeachers -> copy(fTeachers = msg.isOn)
+            is Message.FInactive -> copy(fInActive = msg.isOn)
+            is Message.FParents -> copy(fParents = msg.isOn, fOther = if (msg.isOn) true else fOther)
         }
     }
 }

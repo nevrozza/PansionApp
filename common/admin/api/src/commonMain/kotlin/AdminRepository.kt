@@ -18,6 +18,8 @@ import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.subjects.REditGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
+import admin.parents.RFetchParentsListResponse
+import admin.parents.RUpdateParentsListReceive
 import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RCreateUserResponse
 import admin.users.RFetchAllUsersResponse
@@ -26,23 +28,31 @@ import schedule.RScheduleList
 
 interface AdminRepository {
 
+    suspend fun fetchParents(): RFetchParentsListResponse
+    suspend fun updateParents(r: RUpdateParentsListReceive): RFetchParentsListResponse
+
     suspend fun createAchievement(r: RCreateAchievementReceive): RFetchAchievementsResponse
     suspend fun editAchievement(r: REditAchievementReceive): RFetchAchievementsResponse
     suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive): RFetchAchievementsResponse
     suspend fun fetchAllAchievements(): RFetchAchievementsResponse
 
-    suspend fun fetchInitSchedule() : RFetchInitScheduleResponse
+    suspend fun fetchInitSchedule(): RFetchInitScheduleResponse
 
 
-    suspend fun fetchCalendar() : RFetchCalendarResponse
+    suspend fun fetchCalendar(): RFetchCalendarResponse
 
     suspend fun updateCalendar(calendar: List<CalendarModuleItem>)
 
-    suspend fun fetchCabinets() : RFetchCabinetsResponse
+    suspend fun fetchCabinets(): RFetchCabinetsResponse
 
     suspend fun updateCabinets(cabinets: List<CabinetItem>)
 
-    suspend fun registerUser(user: UserInit, parents: List<String>?, formId: Int): RCreateUserResponse
+    suspend fun registerUser(
+        user: UserInit,
+        parents: List<String>?,
+        formId: Int
+    ): RCreateUserResponse
+
     suspend fun fetchAllUsers(): RFetchAllUsersResponse
 
     suspend fun clearUserPassword(login: String)//: RClearUserPasswordReceive
@@ -65,6 +75,7 @@ interface AdminRepository {
         subjectId: Int,
         groupId: Int,
     )//: RCreateFormGroupReceive
+
     suspend fun editForm(
         r: REditFormReceive
     )
@@ -93,6 +104,7 @@ interface AdminRepository {
         subjectId: Int,
         difficult: String
     )
+
     suspend fun editGroup(
         r: REditGroupReceive
     )
@@ -103,11 +115,12 @@ interface AdminRepository {
         classNum: Int,
         shortTitle: String
     )//: CreateNewFormResponse
+
     suspend fun fetchAllForms(): RFetchFormsResponse
 
     suspend fun fetchAllTeachers(): RFetchTeachersResponse
     suspend fun fetchAllMentors(): RFetchMentorsResponse
 
-    suspend fun fetchSchedule(dayOfWeek: String, date: String) : RScheduleList
+    suspend fun fetchSchedule(dayOfWeek: String, date: String): RScheduleList
     suspend fun saveSchedule(list: RScheduleList)
 }

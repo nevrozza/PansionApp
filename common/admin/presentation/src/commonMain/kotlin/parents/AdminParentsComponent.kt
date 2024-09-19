@@ -9,6 +9,8 @@ import com.arkivanov.decompose.childContext
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import components.listDialog.ListComponent
+import components.listDialog.ListDialogExecutor
 import components.networkInterface.NetworkInterface
 import di.Inject
 
@@ -27,12 +29,42 @@ class AdminParentsComponent(
     private val adminRepository: AdminRepository = Inject.instance()
 
 
+    val parentEditPicker = ListComponent(
+        componentContext = childContext("ParentEditPicker" + "CONTEXT"),
+        storeFactory = storeFactory,
+        name = "ParentEditPicker",
+        onItemClick = {
+            onParentEditPickerItemClick(it.id)
+        }
+    )
+
+    val childCreatePicker = ListComponent(
+        componentContext = childContext("ChildCreatePicker" + "CONTEXT"),
+        storeFactory = storeFactory,
+        name = "ChildCreatePicker",
+        onItemClick = {
+            onChildCreatePickerItemClick(it.id)
+        }
+    )
+
+
+
+    private fun onParentEditPickerItemClick(login: String) {
+        onEvent(AdminParentsStore.Intent.PickParent(login))
+    }
+
+    private fun onChildCreatePickerItemClick(login: String) {
+        onEvent(AdminParentsStore.Intent.CreateChild(login))
+    }
+
     private val adminParentsStore =
         instanceKeeper.getStore {
             AdminParentsStoreFactory(
                 storeFactory = storeFactory,
                 adminRepository = adminRepository,
-                nInterface = nInterface
+                nInterface = nInterface,
+                parentEditPicker = parentEditPicker,
+                childCreatePicker = childCreatePicker
             ).create()
         }
 

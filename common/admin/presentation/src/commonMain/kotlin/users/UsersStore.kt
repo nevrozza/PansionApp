@@ -47,10 +47,25 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val eIsMentor: Boolean = false,
         val eIsParent: Boolean = false,
 
-        val eDeletingLogin: String? = null
+        val eDeletingLogin: String? = null,
+
+
+        val fTeachers: Boolean = true,
+        val fStudents: Boolean = true,
+        val fOther: Boolean = true,
+        val fParents: Boolean = true,
+        val fNoAdmin: Boolean = true,
+        val fInActive: Boolean = true,
         )
 
     sealed interface Intent {
+        data class FTeachers(val isOn: Boolean) : Intent
+        data class FStudents(val isOn: Boolean) : Intent
+        data class FOther(val isOn: Boolean) : Intent
+        data class FParents(val isOn: Boolean) : Intent
+        data class FInActive(val isOn: Boolean) : Intent
+        data class FNoAdmin(val isOn: Boolean) : Intent
+
 
 
 
@@ -93,6 +108,14 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
     }
 
     sealed interface Message {
+        data class FTeachers(val isOn: Boolean) : Message
+        data class FStudents(val isOn: Boolean) : Message
+        data class FOther(val isOn: Boolean) : Message
+        data class FParents(val isOn: Boolean) : Message
+        data class FInactive(val isOn: Boolean) : Message
+        data class FNoAdmin(val isOn: Boolean) : Message
+
+
         data class DeletingAccountInit(val login: String?) : Message
 
         data class UsersChanged(val users: List<User>?, val forms: List<CutedForm>) : Message

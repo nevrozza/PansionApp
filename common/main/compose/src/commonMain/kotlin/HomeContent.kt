@@ -589,7 +589,7 @@ fun TeacherHomeContent(
                     padding = padding,
                     isBottomPaddingNeeded = true
                 ) {
-                    items(3) { num ->
+                    items(4) { num ->
                         if (num == 0) {
                             Text(
                                 "Успеваемость учеников",

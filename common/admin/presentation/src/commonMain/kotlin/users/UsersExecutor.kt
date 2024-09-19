@@ -66,6 +66,12 @@ class UsersExecutor(
             }
 
             is Intent.ChangeCFormId -> dispatch(Message.CFormIdChanged(intent.formId))
+            is Intent.FNoAdmin -> dispatch(Message.FNoAdmin(intent.isOn))
+            is Intent.FOther -> dispatch(Message.FOther(intent.isOn))
+            is Intent.FStudents -> dispatch(Message.FStudents(intent.isOn))
+            is Intent.FTeachers -> dispatch(Message.FTeachers(intent.isOn))
+            is Intent.FInActive -> dispatch(Message.FInactive(intent.isOn))
+            is Intent.FParents -> dispatch(Message.FParents(intent.isOn))
         }
     }
 

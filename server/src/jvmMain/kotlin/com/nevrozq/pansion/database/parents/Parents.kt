@@ -2,12 +2,17 @@ package com.nevrozq.pansion.database.parents
 
 import FIO
 import PersonPlus
+import admin.parents.ParentLine
+import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 object Parents : Table() {
     val id = this.integer("id").autoIncrement().uniqueIndex()
@@ -22,6 +27,19 @@ object Parents : Table() {
             }
         }
     }
+    fun delete(id: Int) {
+        transaction {
+            Parents.deleteWhere { Parents.id eq id }
+        }
+    }
+
+    fun update(id: Int, parentLogin: String) {
+        transaction {
+            Parents.update({ Parents.id eq id}) {
+                it[Parents.parentLogin] = parentLogin
+            }
+        }
+    }
 
     fun fetchChildren(parentLogin: String): List<PersonPlus> {
         return transaction {
@@ -32,6 +50,17 @@ object Parents : Table() {
                     avatarId = user.avatarId,
                     fio = FIO(name = user.name, surname = user.surname, praname = user.praname),
                     isActive = user.isActive
+                )
+            }
+        }
+    }
+    fun fetchAll(): List<ParentLine> {
+        return transaction {
+            Parents.selectAll().map {
+                ParentLine(
+                    parentLogin = it[parentLogin],
+                    id = it[Parents.id],
+                    studentLogin = it[studentLogin]
                 )
             }
         }

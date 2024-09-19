@@ -122,7 +122,9 @@ import view.handy
 import view.rememberImeState
 
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun ActivationContent(
     component: ActivationComponent

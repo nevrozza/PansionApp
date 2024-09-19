@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -102,6 +104,7 @@ import kotlinx.datetime.toLocalDateTime
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
+import server.Moderation
 import server.Roles
 import server.twoNums
 import users.UsersComponent
@@ -151,14 +154,75 @@ fun UsersContent(
                     }
                 },
                 title = {
-                    Text(
-                        "Пользователи",
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.horizontalScroll(
+                            rememberScrollState()
+                        )
+                    ) {
+                        Text(
+                            "Пользователи",
 
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Checkbox(
+                            checked = model.fTeachers,
+                            onCheckedChange = {
+                                component.onEvent(
+                                    UsersStore.Intent.FTeachers(it)
+                                )
+                            }
+                        )
+                        Text("Учителя")
+                        Checkbox(
+                            checked = model.fStudents,
+                            onCheckedChange = {
+                                component.onEvent(
+                                    UsersStore.Intent.FStudents(it)
+                                )
+                            }
+                        )
+                        Text("Ученики")
+                        Checkbox(
+                            checked = model.fOther,
+                            onCheckedChange = {
+                                component.onEvent(
+                                    UsersStore.Intent.FOther(it)
+                                )
+                            }
+                        )
+                        Text("Другое")
+                        Checkbox(
+                            checked = model.fParents,
+                            onCheckedChange = {
+                                component.onEvent(
+                                    UsersStore.Intent.FParents(it)
+                                )
+                            }
+                        )
+                        Text("Родители")
+                        Checkbox(
+                            checked = model.fNoAdmin,
+                            onCheckedChange = {
+                                component.onEvent(
+                                    UsersStore.Intent.FNoAdmin(it)
+                                )
+                            }
+                        )
+                        Text("Не админ")
+                        Checkbox(
+                            checked = model.fInActive,
+                            onCheckedChange = {
+                                component.onEvent(
+                                    UsersStore.Intent.FInActive(it)
+                                )
+                            }
+                        )
+                        Text("Inactive")
+                    }
                 },
                 actionRow = {
                     if (model.users != null) {
@@ -206,6 +270,13 @@ fun UsersContent(
                 columnNames[6] to 120.dp
             )
         }
+
+        val roles = listOfNotNull(
+            if (model.fOther) Roles.nothing else null,
+            if (model.fTeachers) Roles.teacher else null,
+            if (model.fStudents) Roles.student else null
+        )
+
         Box(Modifier.fillMaxSize().padding(padding)) {
             Crossfade(targetState = nModel) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -214,9 +285,20 @@ fun UsersContent(
                             TableScreen(
                                 columnNames,
                                 widthsInit = widthsInit,
-                                model.users!!.map {
+                                model.users!!.filter {
+                                    val isInActive =
+                                        if (!model.fInActive) it.user.fio.surname[0] != '.' else true
+                                    val moder =
+                                        if (!model.fNoAdmin) it.user.moderation != Roles.nothing else true
+                                    val parent =
+                                        if (!model.fParents) !it.user.isParent else true
+                                    it.user.role in roles
+                                            && moder
+                                            && isInActive
+                                            && parent
+                                }.map {
                                     Pair(
-                                        "${if(it.isActive) "" else "."}${it.user.fio.surname} ${it.user.fio.name}",
+                                        "${if (it.isActive) "" else "."}${it.user.fio.surname} ${it.user.fio.name}",
                                         mapOf(
                                             columnNames[0] to (it.user.fio.praname ?: "--"),
                                             columnNames[1] to it.login,
@@ -707,7 +789,7 @@ private fun editUserSheet(
                     }
                     Spacer(Modifier.height(7.dp))
 
-                    if(isActive) {
+                    if (isActive) {
                         AnimatedVisibility(
                             !model.eIsMentor && !model.eIsParent && !model.eIsModerator
                         ) {
@@ -736,11 +818,11 @@ private fun editUserSheet(
                             ) {
                                 component.onEvent(UsersStore.Intent.ClearPassword)
                             }
-                            if(isActive) {
+                            if (isActive) {
                                 Spacer(Modifier.width(12.dp))
                             }
                         }
-                        if(isActive) {
+                        if (isActive) {
                             AnimatedCommonButton(
                                 text = "Редактировать",
                                 isEnabled = num == 5,
@@ -776,7 +858,7 @@ private fun editUserSheet(
     ) {
         val deleteNModel by component.eDeleteDialog.nModel.subscribeAsState()
         Crossfade(deleteNModel.state) {
-            when(it) {
+            when (it) {
                 NetworkState.Error -> Column(
                     Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -787,9 +869,14 @@ private fun editUserSheet(
                         deleteNModel.onFixErrorClick()
                     }
                 }
-                NetworkState.Loading ->  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+                NetworkState.Loading -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator()
                 }
+
                 else -> {}
             }
         }
@@ -797,7 +884,8 @@ private fun editUserSheet(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
     ExperimentalFoundationApi::class, ExperimentalFoundationApi::class
 )
 @Composable
@@ -1094,7 +1182,7 @@ private fun createUserSheet(
                             }
                         }
                         Spacer(Modifier.height(7.dp))
-                        if(model.cRole != Roles.student) {
+                        if (model.cRole != Roles.student) {
                             Row(
                                 Modifier.width(TextFieldDefaults.MinWidth)
                                     .padding(horizontal = 7.dp),
@@ -1185,7 +1273,7 @@ private fun createUserSheet(
                                     modifier = Modifier
                                         .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
                                     readOnly = true,
-                                    value =  if(form != null) "${form.classNum} ${form.title}" else "",
+                                    value = if (form != null) "${form.classNum} ${form.title}" else "",
                                     placeholder = { Text("Выберите") },
                                     onValueChange = {},
                                     label = { Text("Класс") },
@@ -1205,7 +1293,11 @@ private fun createUserSheet(
                                     },
                                 ) {
                                     // menu items
-                                    (emptyList<CutedForm>() + CutedForm(id = 0, title = "Никакой", 0) + model.forms).forEach { selectionOption ->
+                                    (emptyList<CutedForm>() + CutedForm(
+                                        id = 0,
+                                        title = "Никакой",
+                                        0
+                                    ) + model.forms).forEach { selectionOption ->
                                         DropdownMenuItem(
                                             text = { Text("${selectionOption.classNum} ${selectionOption.title}") },
                                             onClick = {
@@ -1273,7 +1365,8 @@ private fun createUserSheet(
             }
         } else {
             Column(
-                Modifier.padding(10.dp).fillMaxWidth().height(if(model.cParentLogins != null) 260.dp else 200.dp),
+                Modifier.padding(10.dp).fillMaxWidth()
+                    .height(if (model.cParentLogins != null) 260.dp else 200.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -1302,7 +1395,10 @@ private fun createUserSheet(
 
                     Spacer(Modifier.height(7.dp))
                     if (model.cParentLogins != null) {
-                        listOf(model.cParentFirstFIO, model.cParentSecondFIO).forEachIndexed { i, s ->
+                        listOf(
+                            model.cParentFirstFIO,
+                            model.cParentSecondFIO
+                        ).forEachIndexed { i, s ->
                             if (s.isNotEmpty()) {
                                 Text(
                                     s,
@@ -1370,7 +1466,10 @@ fun TableScreen(
                 columnNames.onEachIndexed { index, i ->
                     if (index != widths.size - 1) {
                         Spacer(Modifier.width(widths[i]!! - 0.5.dp))
-                        Divider(Modifier.height(allHeight.value).width(1.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = .4f))
+                        Divider(
+                            Modifier.height(allHeight.value).width(1.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
+                        )
                     }
                 }
 
@@ -1429,7 +1528,8 @@ fun TableScreen(
 
 
                 Divider(
-                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp).height(1.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
+                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp).height(1.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
                 )
                 LazyColumn(
                     modifier = Modifier,
@@ -1486,7 +1586,8 @@ fun TableScreen(
                             if (index != rows.lastIndex) {
                                 Divider(
                                     Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp)
-                                        .height(1.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
+                                        .height(1.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
                                 )
                             }
                         }

@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,6 +83,13 @@ fun HomeTasksContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+
+    LaunchedEffect(model.dates.size >= 1) {
+        if (model.dates.size >= 1) {
+            lazyListState.scrollToItem(index = model.dates.size - 1)
+        }
+    }
+
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     Scaffold(
@@ -124,7 +132,7 @@ fun HomeTasksContent(
         Column(Modifier.fillMaxSize()) {
             Crossfade(nInitModel.state) { state ->
                 when (state) {
-                    NetworkState.None -> CLazyColumn(padding = padding) {
+                    NetworkState.None -> CLazyColumn(padding = padding, state = lazyListState) {
                         itemsIndexed(items = model.dates.reversed()) { i, date ->
                             DateTasksItem(
                                 date = date,
@@ -134,7 +142,7 @@ fun HomeTasksContent(
                                 component = component,
                                 model = model
                             )
-                            if(i == model.dates.size-1) {
+                            if (i == model.dates.size - 1) {
                                 Spacer(Modifier.height(100.dp))
                             }
                         }
@@ -189,7 +197,7 @@ private fun DateTasksItem(
                 modifier = Modifier.height(50.dp).fillMaxWidth().clip(CardDefaults.elevatedShape)
                     .clickable {
                         isOpened.value = !isOpened.value
-                        if(isOpened.value) {
+                        if (isOpened.value) {
                             component.onEvent(HomeTasksStore.Intent.OpenDateItem(date = date))
                         }
                     }.padding(horizontal = 8.dp)
@@ -239,7 +247,7 @@ private fun DateTasksItem(
                             }
                         }
                     } else {
-                        if(nModel.state is NetworkState.Loading) {
+                        if (nModel.state is NetworkState.Loading) {
                             Box(
                                 Modifier.fillMaxWidth().padding(vertical = 5.dp),
                                 contentAlignment = Alignment.Center
@@ -247,7 +255,10 @@ private fun DateTasksItem(
                                 CircularProgressIndicator(Modifier.size(20.dp))
                             }
                         } else if (nModel.state is NetworkState.Error) {
-                            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Text(nModel.error)
                                 Spacer(Modifier.height(7.dp))
                                 CustomTextButton("Попробовать ещё раз") {
@@ -285,7 +296,7 @@ private fun SubjectTaskItem(
                 ) {
                     append(" · кол-во заданий: ${subjectTasks.size}")
                 }
-                if(stupsCount != 0) {
+                if (stupsCount != 0) {
                     withStyle(
                         SpanStyle(
                             color = MaterialTheme.colorScheme.primary,
@@ -304,7 +315,7 @@ private fun SubjectTaskItem(
             GroupTaskItems(
                 groupName = g.name,
                 groupTasks = groupTasks,
-                groupTime =  g.localDateTime?.toInstant(TimeZone.of("UTC+3"))?.toEpochMilliseconds(),
+                groupTime = g.localDateTime?.toInstant(TimeZone.of("UTC+3"))?.toEpochMilliseconds(),
                 component = component
             )
         }
@@ -320,7 +331,7 @@ private fun GroupTaskItems(
 ) {
     val isDone = false !in groupTasks.map { it.done }
     val currentTime = remember { Clock.System.now().toEpochMilliseconds() }
-    val remainingTime = (((groupTime ?: 0 )- currentTime) / 60000)
+    val remainingTime = (((groupTime ?: 0) - currentTime) / 60000)
     val remainingTimeHours = (remainingTime / 60)
     val remainingTimeMinutes = remainingTime - (remainingTimeHours * 60)
     val time =
@@ -335,7 +346,7 @@ private fun GroupTaskItems(
                         fontSize = 13.sp
                     )
                 ) {
-                    if(time != "") {
+                    if (time != "") {
                         append(" · $time")
                     }
                 }
@@ -345,7 +356,7 @@ private fun GroupTaskItems(
         )
         groupTasks.sortedBy { it.id }.forEachIndexed { i, t ->
             TaskItem(task = t, component = component)
-            if(i != groupTasks.size-1) {
+            if (i != groupTasks.size - 1) {
                 Spacer(Modifier.height(5.dp))
             }
         }
@@ -376,7 +387,7 @@ private fun TaskItem(
         Text(
             text = buildAnnotatedString {
                 append(task.text)
-                if(task.stups != 0) {
+                if (task.stups != 0) {
                     withStyle(
                         SpanStyle(
                             color = MaterialTheme.colorScheme.primary

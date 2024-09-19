@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,6 +52,7 @@ import androidx.compose.ui.res.useResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.application
@@ -265,7 +268,13 @@ fun main() {
                                             }
                                         },
 //                                            title = { Text("Закрыть приложение?") },
-                                        text = { Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)") }
+                                        text = {
+                                            Column {
+                                                Text("Закрыть приложение", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                                Spacer(Modifier.height(4.dp))
+                                                Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)")
+                                            }
+                                        }
 
                                     )
                                 }

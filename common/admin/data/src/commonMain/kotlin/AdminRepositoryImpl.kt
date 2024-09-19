@@ -35,6 +35,8 @@ import admin.groups.subjects.topBar.RDeleteSubject
 import admin.groups.subjects.topBar.REditSubjectReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
+import admin.parents.RFetchParentsListResponse
+import admin.parents.RUpdateParentsListReceive
 import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
@@ -48,6 +50,14 @@ import schedule.RScheduleList
 class AdminRepositoryImpl(
     private val remoteDataSource: KtorAdminRemoteDataSource
 ) : AdminRepository {
+    override suspend fun fetchParents(): RFetchParentsListResponse {
+        return remoteDataSource.fetchParents()
+    }
+
+    override suspend fun updateParents(r: RUpdateParentsListReceive): RFetchParentsListResponse {
+        return remoteDataSource.updateParents(r)
+    }
+
     override suspend fun createAchievement(r: RCreateAchievementReceive): RFetchAchievementsResponse {
         return remoteDataSource.createAchievement(r)
     }

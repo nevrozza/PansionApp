@@ -1,8 +1,13 @@
 package com.nevrozq.pansion.features.user.manage
 
+import FIO
+import Person
+import PersonParent
 import admin.groups.forms.CutedForm
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
+import admin.parents.RFetchParentsListResponse
+import admin.parents.RUpdateParentsListReceive
 import admin.users.RClearUserPasswordReceive
 import admin.users.REditUserReceive
 import server.Moderation
@@ -35,9 +40,82 @@ import com.nevrozq.pansion.utils.isTeacher
 import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.toId
 import main.RFetchChildrenResponse
+import org.jetbrains.exposed.sql.transactions.transaction
 import server.Roles
 
 class UserManageController() {
+
+    suspend fun fetchAllParents(call: ApplicationCall) {
+        if (call.isModer) {
+            try {
+                val users = Users.fetchAll().map {
+                    PersonParent(
+                        login = it.login,
+                        fio = FIO(
+                            name = it.name,
+                            surname = it.surname,
+                            praname = it.praname
+                        ),
+                        isActive = it.isActive,
+                        isParent = it.isParent
+                    )
+                }.sortedBy { it.fio.surname }.sortedBy { !it.isActive }
+
+                val lines = Parents.fetchAll()
+
+                call.respond(
+                    RFetchParentsListResponse(
+                        users = users,
+                        lines = lines
+                    )
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch all parentslines: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+    suspend fun updateParents(call: ApplicationCall) {
+        if (call.isModer) {
+            try {
+                val r = call.receive<RUpdateParentsListReceive>()
+                if (r.parentLogin == "0") {
+                    if (r.id != 0) {
+                        Parents.delete(r.id)
+                    }
+                }
+                else if (r.studentLogin != "") {
+                    Parents.insert(
+                        ParentsDTO(
+                            id = 0,
+                            studentLogin = r.studentLogin,
+                            parentLogin = r.parentLogin
+                        )
+                    )
+                } else if (r.id != 0) {
+                    Parents.update(
+                        id = r.id,
+                        parentLogin = r.parentLogin
+                    )
+                }
+
+
+                fetchAllParents(call)
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't update parentslines: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
     suspend fun createUser(call: ApplicationCall) {
         val r = call.receive<RRegisterUserReceive>()
         if (call.isModer) {

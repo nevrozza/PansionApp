@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -61,9 +62,12 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.CustomTextField
+import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
+import decomposeComponents.listDialogComponent.ListDialogDesktopContent
+import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import parents.AdminParentsComponent
 import parents.AdminParentsStore
 import server.getLocalDate
@@ -117,6 +121,20 @@ fun AdminParentsContent(
                             Icons.Rounded.Refresh, null
                         )
                     }
+                    Box() {
+                        IconButton(
+                            onClick = {
+                                component.childCreatePicker.onEvent(ListDialogStore.Intent.ShowDialog)
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.Add, null
+                            )
+                        }
+                        ListDialogDesktopContent(
+                            component = component.childCreatePicker
+                        )
+                    }
                 },
                 isHaze = true
             )
@@ -124,8 +142,76 @@ fun AdminParentsContent(
     ) { padding ->
         Crossfade(nModel.state, modifier = Modifier.fillMaxSize()) { state ->
             when (state) {
-                NetworkState.None -> CLazyColumn(padding = padding) {
+                NetworkState.None -> CLazyColumn(padding = padding, modifier = Modifier.horizontalScroll(
+                    rememberScrollState())) {
+                    items(model.kids) { s ->
 
+                        val p = model.users.firstOrNull { it.login == s}
+                        if (p != null) {
+
+                            val parents = model.lines.filter { it.studentLogin == s }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("${p.fio.surname} ${p.fio.name} ${p.fio.praname} ($s)", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                Spacer(Modifier.width(5.dp))
+                                if (parents.size < 2) {
+                                    Box {
+                                        IconButton(
+                                            onClick = {
+                                                component.onEvent(
+                                                    AdminParentsStore.Intent.AddToStudent(
+                                                        p.login
+                                                    )
+                                                )
+                                            },
+                                            modifier = Modifier.size(20.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Rounded.Add, null
+                                            )
+                                        }
+                                        if (model.addToStudent == p.login) {
+                                            ListDialogDesktopContent(
+                                                component = component.parentEditPicker
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            parents.forEach { x ->
+                                val xp = model.users.firstOrNull { it.login == x.parentLogin }
+                                if (xp != null) {
+                                    Row {
+                                        Text(" * ${xp.fio.surname} ${xp.fio.name} ${xp.fio.praname} (${x.parentLogin})")
+                                        Spacer(Modifier.width(5.dp))
+                                        Box() {
+                                            IconButton(
+                                                onClick = {
+                                                    component.onEvent(
+                                                        AdminParentsStore.Intent.EditId(
+                                                            x.id
+                                                        )
+                                                    )
+                                                },
+                                                modifier = Modifier.size(20.dp)
+                                            ) {
+                                                Icon(
+                                                    Icons.Rounded.Edit,
+                                                    null
+                                                )
+                                            }
+                                            if (model.editId == x.id) {
+                                                ListDialogDesktopContent(
+                                                    component = component.parentEditPicker
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.height(6.dp))
+                    }
                 }
 
                 NetworkState.Loading -> {
@@ -150,6 +236,12 @@ fun AdminParentsContent(
         }
 
 
+        ListDialogMobileContent(
+            component = component.parentEditPicker
+        )
 
+        ListDialogMobileContent(
+            component = component.childCreatePicker
+        )
     }
 }
