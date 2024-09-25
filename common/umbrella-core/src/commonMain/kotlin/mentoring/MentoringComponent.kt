@@ -34,13 +34,13 @@ class MentoringComponent(
     private val nPreAttendanceInterfaceName = "MentoringPreAttendanceComponentNInterface"
 
     val nInterface = NetworkInterface(
-        componentContext = childContext(nInterfaceName + "CONTEXT"),
+        componentContext = componentContext,
         storeFactory = storeFactory,
         name = nInterfaceName
     )
 
     val nPreAttendanceInterface = NetworkInterface(
-        componentContext = childContext(nPreAttendanceInterfaceName + "CONTEXT"),
+        componentContext = componentContext,
         storeFactory = storeFactory,
         name = nPreAttendanceInterfaceName
     )

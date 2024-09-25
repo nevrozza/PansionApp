@@ -24,6 +24,7 @@ import com.arkivanov.decompose.value.Value
 
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.router.stack.replaceAll
@@ -266,9 +267,10 @@ class RootComponentImpl(
     }
 
     private fun getMainMentoringComponent(
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
+        getOld: Boolean = true
     ): MentoringComponent {
-        return if (mainMentoringComponent != null) mainMentoringComponent!! else {
+        return if (getOld && mainMentoringComponent != null) mainMentoringComponent!! else {
             mainMentoringComponent = MentoringComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
@@ -887,9 +889,14 @@ class RootComponentImpl(
 
     private fun navigateAfterAuth() {
         val authRepository: AuthRepository = Inject.instance()
-        navigation.bringToFront(
-            Config.MainHome
-        )
+
+        getMainJournalComponent(componentContext, false)
+        getMainMentoringComponent(componentContext, false)
+        getMainRatingComponent(componentContext, false)
+        getMainHomeComponent(componentContext, false)
+        getMainAdminComponent(componentContext, false)
+
+
         rootStore.accept(
             RootStore.Intent.UpdatePermissions(
                 role = authRepository.fetchRole(),
@@ -897,6 +904,9 @@ class RootComponentImpl(
                 birthday = authRepository.fetchBirthday(),
                 version = applicationVersion
             )
+        )
+        navigation.bringToFront(
+            Config.MainHome
         )
     }
 

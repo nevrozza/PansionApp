@@ -27,7 +27,7 @@ class StudentReportComponent(
 
 
     val dialog = CBottomSheetComponent(
-        componentContext = childContext(nInterfaceName + "CONTEXT"),
+        componentContext = componentContext,
         storeFactory = storeFactory,
         name = nInterfaceName
     )

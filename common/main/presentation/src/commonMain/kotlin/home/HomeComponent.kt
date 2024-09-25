@@ -67,7 +67,7 @@ class HomeComponent(
     )
 
     val studentReportDialog = StudentReportComponent(
-        componentContext = childContext("HomeComponentDIALOGCONTEXT"),
+        componentContext = componentContext,
         storeFactory = storeFactory
     )
 
