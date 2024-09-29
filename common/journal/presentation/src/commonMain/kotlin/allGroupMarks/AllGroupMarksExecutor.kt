@@ -35,19 +35,13 @@ class AllGroupMarksExecutor(
             is Intent.ChangeFilterDate -> {
 
 
-                val df = if (intent.dateFilter is DatesFilter.Week) {
-                    DatesFilter.Week
-                } else if (state().dateFilter is DatesFilter.Week) {
-                    intent.dateFilter
-                } else {
-                    val prevMods = (state().dateFilter as DatesFilter.Module).modules
-                    val newMod = (intent.dateFilter as DatesFilter.Module).modules.first()
-                    val new = if (newMod in prevMods) prevMods - newMod else prevMods + newMod
-                    DatesFilter.Module(new)
-                }
+
                 dispatch(
                     Message.FilterDateChanged(
-                        df
+                        getDF(
+                            oldDF = state().dateFilter,
+                            newDF = intent.dateFilter
+                        )
                     )
                 )
             }
@@ -91,4 +85,17 @@ class AllGroupMarksExecutor(
     }
 
 
+}
+
+fun getDF(oldDF: DatesFilter, newDF: DatesFilter) : DatesFilter {
+    return if (newDF is DatesFilter.Week) {
+        DatesFilter.Week
+    } else if (oldDF is DatesFilter.Week) {
+        newDF
+    } else {
+        val prevMods = (oldDF as DatesFilter.Module).modules
+        val newMod = (newDF as DatesFilter.Module).modules.first()
+        val new = if (newMod in prevMods) prevMods - newMod else prevMods + newMod
+        DatesFilter.Module(new)
+    }
 }

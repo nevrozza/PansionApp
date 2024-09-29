@@ -1,8 +1,10 @@
-    @file:OptIn(
+@file:OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class
 )
 
+import allGroupMarks.AllGroupMarksStore
+import allGroupMarks.DatesFilter
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -32,10 +34,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.PermContactCalendar
+import androidx.compose.material.icons.rounded.TableChart
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,6 +69,8 @@ import components.AppBar
 import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
+import components.MarkTable
+import components.MarkTableItem
 import components.StupsButton
 import components.cMark
 import components.networkInterface.NetworkState
@@ -72,6 +79,7 @@ import dev.chrisbanes.haze.hazeChild
 import dnevnikRuMarks.DnevnikRuMarkStore
 import dnevnikRuMarks.DnevnikRuMarksComponent
 import kotlinx.coroutines.CoroutineScope
+import report.DnevnikRuMarksSubject
 import report.UserMark
 import report.UserMarkPlus
 import server.fetchReason
@@ -135,17 +143,26 @@ fun DnevnikRuMarkContent(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                    },
+                    actionRow = {
+                        IconButton(
+                            onClick = {
+                                component.onEvent(
+                                    DnevnikRuMarkStore.Intent.ChangeTableView(
+                                        !model.isTableView
+                                    )
+                                )
+                            }
+                        ) {
+                            Icon(
+                                if (!model.isTableView) Icons.Rounded.TableChart else Icons.Rounded.PermContactCalendar,
+                                null
+                            )
+                        }
                     }
                 )
                 AnimatedVisibility(
-                    model.isQuarters != null,
-//                    modifier = Modifier.then(
-//                        if (viewManager.hazeState != null && viewManager.hazeStyle != null) Modifier.hazeChild(
-//                            state = viewManager.hazeState!!.value,
-//                            style = viewManager.hazeStyle!!.value
-//                        )
-//                        else Modifier
-//                    )
+                    model.isQuarters != null && !model.isTableView,
                 ) {
                     BoxWithConstraints(
                         modifier = Modifier.fillMaxWidth(),
@@ -196,23 +213,106 @@ fun DnevnikRuMarkContent(
     ) { padding ->
         Crossfade(nModel.state) {
             when (it) {
-                NetworkState.None -> CLazyColumn(
-                    padding = PaddingValues(
-                        top = padding.calculateTopPadding(),
-                        bottom = padding.calculateBottomPadding()
-                    )
-                ) {
-                    items(model.subjects[(model.tabIndex ?: 0)] ?: listOf()) {
-                        SubjectMarksItem(
-                            title = it.subjectName,
-                            marks = it.marks.sortedBy { getLocalDate(it.date).toEpochDays() }
-                                .reversed(),//.sortedBy { it.date }.reversed(),
-                            stupsCount = it.stupCount,
-                            coroutineScope = coroutineScope,
-                            component = component,
-                            subjectId = it.subjectId,
-                            isQuarters = model.isQuarters ?: true
-                        )
+                NetworkState.None -> Crossfade(model.isTableView) { crossfadeState ->
+                    if (crossfadeState) {
+                        val subjects: List<DnevnikRuMarksSubject> = if (!model.isWeekDays) {
+                            model.subjects[(model.tabIndex ?: 0)] ?: listOf<DnevnikRuMarksSubject>()
+                        } else model.subjects.flatMap { it.value }
+                        val dates =
+                            subjects.flatMap {
+                                (it.marks + it.stups).filter {
+                                    when (model.isWeekDays) {
+                                        false -> true
+                                        true -> it.date in model.weekDays
+                                    }
+                                }.map { it.date }.toSet()
+                            }
+
+                        var s = 0
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column {
+                                Row {
+                                    FilterChip(
+                                        selected = model.isWeekDays,
+                                        onClick = {
+                                            component.onEvent(
+                                                DnevnikRuMarkStore.Intent.OpenWeek
+                                            )
+                                        },
+                                        label = { Text("За неделю") }
+                                    )
+                                    Spacer(Modifier.width(5.dp))
+                                    (1..model.tabsCount).forEach { modle ->
+                                        FilterChip(
+                                            selected = (model.tabIndex ?: 0) == modle && !model.isWeekDays,
+                                            onClick = {
+                                                component.onEvent(
+                                                    DnevnikRuMarkStore.Intent.ClickOnTab(
+                                                        modle
+                                                    )
+                                                )
+                                            },
+                                            label = { Text("За ${modle} ${if (model.isQuarters == true) "модуль" else "полугодие"}") }
+                                        )
+                                        Spacer(Modifier.width(5.dp))
+                                    }
+                                }
+                                MarkTable(
+                                    fields = subjects.associate { it.subjectId.toString() to it.subjectName },
+                                    dateMarks = dates.associate { d ->
+                                        d to subjects.flatMap {
+                                            s =
+                                                it.subjectId; (it.marks + it.stups).filter { it.date == d }
+                                        }
+                                            .map {
+                                                println("xx: $s")
+                                                MarkTableItem(
+                                                    content = it.content,
+                                                    login = s.toString(),
+                                                    reason = it.reason,
+                                                    reportId = it.reportId,
+                                                    module = it.module,
+                                                    date = it.date,
+                                                    onClick = {
+                                                        component.studentReportDialog.onEvent(
+                                                            StudentReportDialogStore.Intent.OpenDialog(
+                                                                login = model.studentLogin,
+                                                                reportId = it
+                                                            )
+                                                        )
+                                                    }
+                                                )
+                                            }
+                                    },
+                                    nki = subjects.associate { it.subjectId.toString() to it.nki }
+                                )
+                            }
+                        }
+                    } else {
+                        CLazyColumn(
+                            padding = PaddingValues(
+                                top = padding.calculateTopPadding(),
+                                bottom = padding.calculateBottomPadding()
+                            )
+                        ) {
+                            items(model.subjects[(model.tabIndex ?: 0)] ?: listOf()) {
+                                SubjectMarksItem(
+                                    title = it.subjectName,
+                                    marks = it.marks.sortedBy { getLocalDate(it.date).toEpochDays() }
+                                        .reversed(),//.sortedBy { it.date }.reversed(),
+                                    stupsCount = it.stups.filter {
+                                        it.reason.subSequence(
+                                            0,
+                                            3
+                                        ) != "!ds"
+                                    }.sumOf { it.content.toIntOrNull() ?: 0 },
+                                    coroutineScope = coroutineScope,
+                                    component = component,
+                                    subjectId = it.subjectId,
+                                    isQuarters = model.isQuarters ?: true
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -345,16 +445,18 @@ private fun SubjectMarksItem(
                     }, fontWeight = FontWeight.Bold, fontSize = 25.sp
                 )
             }
-    //Pansion – StudentLinesContent.kt [Pansion.common.journal.compose.commonMain]
+            //Pansion – StudentLinesContent.kt [Pansion.common.journal.compose.commonMain]
             if (marks.isNotEmpty()) {
                 if (!isFullView.value) {
                     LazyRow(rowModifier, userScrollEnabled = false) {
                         items(marks) {
                             cMark(it, coroutineScope = coroutineScope) {
-                                component.studentReportDialog.onEvent(StudentReportDialogStore.Intent.OpenDialog(
-                                    login = component.model.value.studentLogin,
-                                    reportId = it.reportId
-                                ))
+                                component.studentReportDialog.onEvent(
+                                    StudentReportDialogStore.Intent.OpenDialog(
+                                        login = component.model.value.studentLogin,
+                                        reportId = it.reportId
+                                    )
+                                )
                             }
                         }
                     }
@@ -370,10 +472,12 @@ private fun SubjectMarksItem(
                                 FlowRow(rowModifier) {
                                     m.forEach {
                                         cMark(it, coroutineScope = coroutineScope) {
-                                            component.studentReportDialog.onEvent(StudentReportDialogStore.Intent.OpenDialog(
-                                                login = component.model.value.studentLogin,
-                                                reportId = it.reportId
-                                            ))
+                                            component.studentReportDialog.onEvent(
+                                                StudentReportDialogStore.Intent.OpenDialog(
+                                                    login = component.model.value.studentLogin,
+                                                    reportId = it.reportId
+                                                )
+                                            )
                                         }
                                     }
                                 }
@@ -383,10 +487,12 @@ private fun SubjectMarksItem(
                         FlowRow(rowModifier) {
                             marks.forEach {
                                 cMark(it, coroutineScope = coroutineScope) {
-                                    component.studentReportDialog.onEvent(StudentReportDialogStore.Intent.OpenDialog(
-                                        login = component.model.value.studentLogin,
-                                        reportId = it.reportId
-                                    ))
+                                    component.studentReportDialog.onEvent(
+                                        StudentReportDialogStore.Intent.OpenDialog(
+                                            login = component.model.value.studentLogin,
+                                            reportId = it.reportId
+                                        )
+                                    )
                                 }
                             }
                         }

@@ -291,7 +291,7 @@ private fun StupContent(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            mark,
+            (if (mark.first() != '-') "+" else "")+mark,
             fontSize = size.value.sp / 1.6f,
             modifier = Modifier.fillMaxSize().offset(y = textYOffset),
             textAlign = TextAlign.Center,

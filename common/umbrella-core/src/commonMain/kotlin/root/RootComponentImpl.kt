@@ -16,6 +16,7 @@ import cabinets.CabinetsComponent
 import calendar.CalendarComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.childContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
@@ -103,7 +104,7 @@ import kotlin.reflect.KClass
 
 @ExperimentalDecomposeApi
 class RootComponentImpl(
-    private val componentContext: ComponentContext,
+    private var componentContext: ComponentContext, //idk 0_0 but works
     private val storeFactory: StoreFactory,
     override val secondLogin: String? = null,
     override val secondAvatarId: Int? = null,
@@ -290,7 +291,6 @@ class RootComponentImpl(
                 storeFactory = storeFactory,
                 journalComponent = getMainJournalComponent(
                     componentContext,
-                    //true
                 ),
                 output = ::onHomeOutput,
                 avatarId = secondAvatarId ?: authRepository.fetchAvatarId(),
@@ -352,7 +352,7 @@ class RootComponentImpl(
 
             is Config.MainHome -> {
                 Child.MainHome(
-                    homeComponent = getMainHomeComponent(childContext),
+                    homeComponent = getMainHomeComponent(childContext, true),
                     journalComponent = mainHomeComponent!!.journalComponent!!,//getMainJournalComponent(componentContext),
                     ratingComponent = getMainRatingComponent(childContext)
                 )
@@ -367,7 +367,7 @@ class RootComponentImpl(
 
             is Config.MainAdmin -> {
                 Child.MainAdmin(
-                    getMainAdminComponent(childContext)
+                    getMainAdminComponent(childContext, true)
                 )
             }
 //
@@ -555,7 +555,7 @@ class RootComponentImpl(
                     ),
                     homeComponent = getMainHomeComponent(componentContext, getOld = true),
                     isMentoring = config.isMentoring
-                    )
+                )
             }
 
             Config.AdminAchievements -> Child.AdminAchievements(
@@ -618,6 +618,7 @@ class RootComponentImpl(
         when (output) {
             HomeAchievementsComponent.Output.Back -> popOnce(Child.HomeAchievements::class)
         }
+
     private fun onHomeStudentLinesOutput(output: StudentLinesComponent.Output): Unit =
         when (output) {
             StudentLinesComponent.Output.Back -> popOnce(Child.HomeStudentLines::class)
@@ -690,7 +691,9 @@ class RootComponentImpl(
     private fun onDetailedStupsOutput(output: DetailedStupsComponent.Output): Unit =
         when (output) {
             DetailedStupsComponent.Output.Back -> popOnce(Child.HomeDetailedStups::class)
-            is DetailedStupsComponent.Output.NavigateToAchievements -> navigation.bringToFront(Config.HomeAchievements(studentLogin = output.login))
+            is DetailedStupsComponent.Output.NavigateToAchievements -> navigation.bringToFront(
+                Config.HomeAchievements(studentLogin = output.login)
+            )
         }
 
     private fun onDnevnikRuMarksOutput(output: DnevnikRuMarksComponent.Output): Unit =
@@ -780,7 +783,11 @@ class RootComponentImpl(
         when (output) {
             ActivationComponent.Output.NavigateToLogin -> navigation.bringToFront(Config.AuthLogin)
             ActivationComponent.Output.NavigateToMain -> navigateAfterAuth()
-            ActivationComponent.Output.GoToScanner -> navigation.bringToFront(Config.QRScanner(isRegistration = true))
+            ActivationComponent.Output.GoToScanner -> navigation.bringToFront(
+                Config.QRScanner(
+                    isRegistration = true
+                )
+            )
         }
 
     private fun onHomeOutput(output: HomeComponent.Output): Unit =
@@ -826,13 +833,18 @@ class RootComponentImpl(
                     )
                 )
 
-            is HomeComponent.Output.NavigateToStudentLines -> navigation.bringToFront(Config.HomeStudentLines(login = output.studentLogin))
+            is HomeComponent.Output.NavigateToStudentLines -> navigation.bringToFront(
+                Config.HomeStudentLines(
+                    login = output.studentLogin
+                )
+            )
+
             is HomeComponent.Output.NavigateToChildren -> navigation.bringToFront(
                 Config.SecondView(
                     login = output.studentLogin,
                     fio = output.fio,
                     avatarId = output.avatarId,
-                    config =  RootComponent.Config.MainHome,
+                    config = RootComponent.Config.MainHome,
                     isMentoring = false
                 )
             )
@@ -848,28 +860,7 @@ class RootComponentImpl(
             RootComponent.Output.NavigateToHome -> {
                 navigation.bringToFront(
                     Config.MainHome
-//                    if (secondLogin == null) {
-//                        Config.MainHome
-//                        (
-//                            avatarId = authRepository.fetchAvatarId(),
-//                            login = authRepository.fetchLogin(),
-//                            fio = FIO(
-//                                name = authRepository.fetchName(),
-//                                surname = authRepository.fetchSurname(),
-//                                praname = authRepository.fetchPraname(),
-//                            ),
-//                            role = authRepository.fetchRole()
-//                        )
-//                    } else {
-//                        Config.MainHome(
-//                            avatarId = secondAvatarId!!,
-//                            login = secondLogin,
-//                            fio = secondFIO!!,
-//                            role = Roles.student
-//                        )
-//                    }
                 )
-
             }
 
             RootComponent.Output.NavigateToJournal -> navigation.bringToFront(Config.MainJournal)
@@ -889,14 +880,7 @@ class RootComponentImpl(
 
     private fun navigateAfterAuth() {
         val authRepository: AuthRepository = Inject.instance()
-
-        getMainJournalComponent(componentContext, false)
-        getMainMentoringComponent(componentContext, false)
-        getMainRatingComponent(componentContext, false)
-        getMainHomeComponent(componentContext, false)
-        getMainAdminComponent(componentContext, false)
-
-
+        componentContext = childContext(authRepository.fetchLogin())
         rootStore.accept(
             RootStore.Intent.UpdatePermissions(
                 role = authRepository.fetchRole(),
@@ -905,7 +889,13 @@ class RootComponentImpl(
                 version = applicationVersion
             )
         )
-        navigation.bringToFront(
+
+        getMainJournalComponent(componentContext, false)
+        getMainMentoringComponent(componentContext, false)
+        getMainRatingComponent(componentContext, false)
+        getMainHomeComponent(componentContext, false)
+        getMainAdminComponent(componentContext, false)
+        navigation.replaceAll(
             Config.MainHome
         )
     }

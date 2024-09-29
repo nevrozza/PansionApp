@@ -3,6 +3,8 @@ package dnevnikRuMarks
 import CDispatcher
 import JournalRepository
 import allGroupMarks.AllGroupMarksStore
+import allGroupMarks.DatesFilter
+import allGroupMarks.getDF
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
@@ -37,6 +39,10 @@ class DnevnikRuMarkExecutor(
                     )
                 }
             }
+
+            is Intent.ChangeTableView -> dispatch(Message.TableViewChanged(intent.isTableView))
+
+            Intent.OpenWeek -> dispatch(Message.WeekOpened)
         }
     }
 

@@ -1,5 +1,8 @@
 package dnevnikRuMarks
 
+import allGroupMarks.AllGroupMarksStore
+import allGroupMarks.AllGroupMarksStore.Message
+import allGroupMarks.DatesFilter
 import com.arkivanov.mvikotlin.core.store.Store
 import dnevnikRuMarks.DnevnikRuMarkStore.Intent
 import dnevnikRuMarks.DnevnikRuMarkStore.Label
@@ -8,6 +11,7 @@ import kotlinx.serialization.Serializable
 import report.DnevnikRuMarksSubject
 import report.ServerRatingUnit
 import report.UserMark
+import server.getWeekDays
 
 interface DnevnikRuMarkStore : Store<Intent, State, Label> {
     data class State(
@@ -17,14 +21,24 @@ interface DnevnikRuMarkStore : Store<Intent, State, Label> {
         val tabIndex: Int? = null,
         val tabsCount: Int = 0,
 
-        val pickedSubjectId: Int = 0
+        val pickedSubjectId: Int = 0,
+
+        val isTableView: Boolean = false,
+        val isWeekDays: Boolean = false,
+        val weekDays: List<String> = getWeekDays()
     )
 
     sealed interface Intent {
         data object Init: Intent
+
+        data object OpenWeek : Intent
+
+
         data class ClickOnTab(val index: Int) : Intent
 
         data class ClickOnStupsSubject(val id: Int) : Intent
+
+        data class ChangeTableView(val isTableView: Boolean) : Intent
     }
 
     sealed interface Message {
@@ -32,6 +46,9 @@ interface DnevnikRuMarkStore : Store<Intent, State, Label> {
         data class IsQuartersInited(val isQuarters: Boolean, val tabIndex: Int, val tabsCount: Int) : Message
         data class OnTabClicked(val index: Int) : Message
         data class OnStupsSubjectClicked(val id: Int) : Message
+
+        data class TableViewChanged(val isTableView: Boolean) : Message
+        data object WeekOpened : Message
     }
 
     sealed interface Label

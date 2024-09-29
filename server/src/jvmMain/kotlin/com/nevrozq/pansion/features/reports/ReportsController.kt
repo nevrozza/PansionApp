@@ -769,7 +769,7 @@ class ReportsController() {
                     login = r.login,
                     quartersNum = r.quartersNum,
                     isQuarters = r.isQuarters
-                ).filter { it.reason.subSequence(0, 3) != "!ds" }
+                )
 
                 val responseList = mutableListOf<DnevnikRuMarksSubject>()
 
@@ -780,6 +780,8 @@ class ReportsController() {
                 val stupSubjects = stups.map { s ->
                     allSubjects.first { it.id == s.subjectId }
                 }
+
+                val groupIds = (marks + stups).associate { it.subjectId to it.groupId }
 
                 val all = subjects.union(markSubjects).union(stupSubjects)
 
@@ -802,7 +804,6 @@ class ReportsController() {
                                     module = it.part
                                 )
                             },
-                            stupCount = iStups.sumOf { it.content.toInt() },
                             stups = iStups.map {
                                 UserMark(
                                     id = it.id,
@@ -814,7 +815,11 @@ class ReportsController() {
                                     reportId = it.reportId,
                                     module = it.part
                                 )
-                            }
+                            },
+                            nki = StudentLines.fetchStudentLinesByLoginAndGroup(
+                                login = r.login,
+                                groupId = groupIds[s.id] ?: 0
+                            ).mapNotNull { if(it.attended != null) StudentNka(date = it.date, isUv = it.attended == "2") else null}
                         )
                     )
                 }

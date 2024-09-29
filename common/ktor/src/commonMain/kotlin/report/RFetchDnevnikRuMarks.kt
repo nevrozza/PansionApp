@@ -21,8 +21,8 @@ data class DnevnikRuMarksSubject(
     val subjectId: Int,
     val subjectName: String,
     val marks: List<UserMark>, //UserMark
-    val stupCount: Int,
-    val stups: List<UserMark>
+    val stups: List<UserMark>,
+    val nki: List<StudentNka>
 )
 
 @Serializable
