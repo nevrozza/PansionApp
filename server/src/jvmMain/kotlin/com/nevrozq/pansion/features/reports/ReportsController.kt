@@ -37,6 +37,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import main.ClientMainNotification
 import main.Period
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
@@ -78,6 +79,7 @@ import report.RIsQuartersResponse
 import report.RUpdateReportReceive
 import report.ReportHeader
 import report.ServerStudentLine
+import report.StudentNka
 import report.StudentReportInfo
 import report.UserMark
 import report.UserMarkPlus
@@ -165,9 +167,10 @@ class ReportsController() {
                         reportId = h.id
                     )
 
-                    val homeTasks = HomeTasks.getAllHomeTasksByReportId(reportId = r.reportId).filter {
-                        it.studentLogins == null || r.login in it.studentLogins
-                    }
+                    val homeTasks =
+                        HomeTasks.getAllHomeTasksByReportId(reportId = r.reportId).filter {
+                            it.studentLogins == null || r.login in it.studentLogins
+                        }
 
                     call.respond(
                         RFetchStudentReportResponse(
@@ -521,6 +524,8 @@ class ReportsController() {
                 val result = mutableListOf<AllGroupMarksStudent>()
                 val students = StudentGroups.fetchStudentsOfGroup(r.groupId)
                 students.filter { it.isActive }.forEach { s ->
+                    println("xxxx2:")
+                    println(s.login)
                     val isQuarter = isQuarter(RIsQuartersReceive(s.login))
                     val marks = Marks.fetchForUserSubject(
                         login = s.login,
@@ -568,6 +573,15 @@ class ReportsController() {
 
                     val shortFio =
                         "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}"
+                    val nki = mutableListOf<StudentNka>()
+                    StudentLines.fetchStudentLinesByLoginAndGroup(
+                        login = s.login,
+                        groupId = r.groupId
+                    ).filter { it.attended != null }.map { x ->
+                        nki.add(StudentNka(x.date, x.attended == "2"))
+                    }
+                    println(nki)
+
 
                     result.add(
                         AllGroupMarksStudent(
@@ -575,7 +589,8 @@ class ReportsController() {
                             shortFIO = shortFio,
                             marks = marks,
                             stups = stups,
-                            isQuarters = isQuarter
+                            isQuarters = isQuarter,
+                            nki = nki
                         )
                     )
                 }
@@ -600,10 +615,15 @@ class ReportsController() {
         if (call.isMember) {
             try {
                 val isQuarter = isQuarter(RIsQuartersReceive(r.login))
+                val half = Calendar.getHalfOfModule(r.quartersNum.toInt())
+                var modules = ""
+                Calendar.getAllModulesOfHalf(half).forEach {
+                    modules += it
+                }
                 val marks = Marks.fetchForUserSubjectQuarter(
                     login = r.login,
                     subjectId = r.subjectId,
-                    quartersNum = if (isQuarter) "4" else "34"
+                    quartersNum = if (isQuarter) r.quartersNum else modules
                 ).sortedWith(
                     compareBy({ getLocalDate(it.deployDate).toEpochDays() },
                         { it.deployTime.toMinutes() })
@@ -861,8 +881,8 @@ class ReportsController() {
                                     ) else null
                                 ),
                                 shortFio = shortFio,
-                                prevSum = forAvg.sum - marks.sumOf { it.content.toInt() },
-                                prevCount = forAvg.count - marks.size
+                                prevSum = forAvg.sum - marks.filter { m -> m.login == it.login }.sumOf { it.content.toInt() },
+                                prevCount = forAvg.count - marks.filter { m -> m.login == it.login }.size
                             )
                         },
                         marks = marks.mapToServerRatingUnit(),

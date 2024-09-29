@@ -161,6 +161,7 @@ import lessonReport.MarkColumn
 import lessonReport.Stup
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
+import server.cut
 import server.getDate
 import server.getSixTime
 import server.roundTo
@@ -169,6 +170,7 @@ import view.LocalViewManager
 import view.LockScreenOrientation
 import view.blend
 import view.rememberImeState
+import kotlin.math.max
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -371,181 +373,187 @@ fun LessonReportContent(
                 val minSize = (LocalViewManager.current.size?.maxWidth ?: 0.dp)
                 val isLikeMenuOpened =
                     remember { mutableStateOf(minSize >= BottomSheetDefaults.SheetMaxWidth) }
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    Crossfade(
-                        model.settingsTab
-                    ) {
-                        when (it) {
-                            LessonReportStore.SettingsTab.MarksTab -> {
+                Column {
+                    Box(Modifier.padding(horizontal = 5.dp)) {
+                        Crossfade(
+                            model.settingsTab
+                        ) {
+                            when (it) {
+                                LessonReportStore.SettingsTab.MarksTab -> {
 
-                                Column(Modifier) {
-                                    Text(
-                                        "Настройка колонок",
-                                        modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Center,
-                                        fontSize = 25.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(Modifier.height(25.dp))
-                                    MarksTabContent(component)
-
-                                }
-                            }
-
-                            LessonReportStore.SettingsTab.SetupTab -> {
-                                Column(Modifier) {
-                                    Text(
-                                        "Об уроке",
-                                        modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Center,
-                                        fontSize = 25.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(Modifier.height(15.dp))
-
-                                    SetupTabContent(component, isLikeMenuOpened)
-//                                    MarksTabContent(component)
-
-                                }
-
-                            }
-
-                            LessonReportStore.SettingsTab.HomeWorkTab -> {
-                                Column {
-                                    Box(
-                                        Modifier.fillMaxWidth()
-                                    ) {
-
+                                    Column(Modifier) {
                                         Text(
-                                            "Домашние задания",
-                                            modifier = Modifier.fillMaxWidth()
-                                                .align(Alignment.Center),
+                                            "Настройка колонок",
+                                            modifier = Modifier.fillMaxWidth(),
                                             textAlign = TextAlign.Center,
                                             fontSize = 25.sp,
                                             fontWeight = FontWeight.Bold
                                         )
+                                        Spacer(Modifier.height(25.dp))
+                                        MarksTabContent(component)
 
-                                        Row(
-                                            Modifier.align(Alignment.CenterEnd),
-                                            verticalAlignment = Alignment.CenterVertically
+                                    }
+                                }
+
+                                LessonReportStore.SettingsTab.SetupTab -> {
+                                    Column(Modifier) {
+                                        Text(
+                                            "Об уроке",
+                                            modifier = Modifier.fillMaxWidth(),
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 25.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(Modifier.height(15.dp))
+
+                                        SetupTabContent(component, isLikeMenuOpened)
+//                                    MarksTabContent(component)
+
+                                    }
+
+                                }
+
+                                LessonReportStore.SettingsTab.HomeWorkTab -> {
+                                    Column {
+                                        Box(
+                                            Modifier.fillMaxWidth()
                                         ) {
-                                            if (nHomeTasksModel.state is NetworkState.Loading) {
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.size(
-                                                        20.dp
+
+                                            Text(
+                                                "Домашние задания",
+                                                modifier = Modifier.fillMaxWidth()
+                                                    .align(Alignment.Center),
+                                                textAlign = TextAlign.Center,
+                                                fontSize = 25.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+
+                                            Row(
+                                                Modifier.align(Alignment.CenterEnd),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                if (nHomeTasksModel.state is NetworkState.Loading) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(
+                                                            20.dp
+                                                        )
                                                     )
-                                                )
-                                            }
-                                            if (nHomeTasksModel.state is NetworkState.Error) {
-                                                CustomTextButton("Кнопка") {
-                                                    nHomeTasksModel.onFixErrorClick()
                                                 }
-                                            }
-                                            if (model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }) {
-                                                val isReady =
-                                                    false !in model.hometasks.map { it.type.isNotBlank() }
+                                                if (nHomeTasksModel.state is NetworkState.Error) {
+                                                    CustomTextButton("Кнопка") {
+                                                        nHomeTasksModel.onFixErrorClick()
+                                                    }
+                                                }
+                                                if (model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }) {
+                                                    val isReady =
+                                                        false !in model.hometasks.map { it.type.isNotBlank() }
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (isReady) {
+                                                                component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
+                                                            }
+                                                        },
+                                                        enabled = isReady
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Rounded.Save,
+                                                            null
+                                                        )
+                                                    }
+                                                }
                                                 IconButton(
                                                     onClick = {
-                                                        if (isReady) {
-                                                            component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
-                                                        }
-                                                    },
-                                                    enabled = isReady
+                                                        component.homeTasksDialogComponent.onEvent(
+                                                            HomeTasksDialogStore.Intent.Init
+                                                        )
+                                                        component.homeTasksDialogComponent.dialogComponent.onEvent(
+                                                            CAlertDialogStore.Intent.ShowDialog
+                                                        )
+                                                    }
                                                 ) {
                                                     Icon(
-                                                        Icons.Rounded.Save,
+                                                        Icons.Rounded.History,
                                                         null
                                                     )
                                                 }
                                             }
-                                            IconButton(
-                                                onClick = {
-                                                    component.homeTasksDialogComponent.onEvent(
-                                                        HomeTasksDialogStore.Intent.Init)
-                                                    component.homeTasksDialogComponent.dialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                                                }
-                                            ) {
-                                                Icon(
-                                                    Icons.Rounded.History,
-                                                    null
-                                                )
-                                            }
                                         }
-                                    }
-                                    Spacer(Modifier.height(15.dp))
+                                        Spacer(Modifier.height(15.dp))
 
-                                    HomeWorkTabContent(component)
+                                        HomeWorkTabContent(component)
+                                    }
                                 }
                             }
                         }
-                    }
-                    Column() {
-                        FilledTonalIconToggleButton(
-                            checked = model.settingsTab == LessonReportStore.SettingsTab.SetupTab,
-                            onCheckedChange = {
-                                if (it) {
-                                    component.onEvent(
-                                        LessonReportStore.Intent.ChangeSettingsTab(
-                                            LessonReportStore.SettingsTab.SetupTab
-                                        )
-                                    )
-                                }
-                            }
-                        ) {
-                            Icon(
-                                Icons.Rounded.Tune,
-                                null
-                            )
-                        }
-                        FilledTonalIconToggleButton(
-                            checked = model.settingsTab == LessonReportStore.SettingsTab.MarksTab,
-                            onCheckedChange = {
-                                if (it) {
-                                    component.onEvent(
-                                        LessonReportStore.Intent.ChangeSettingsTab(
-                                            LessonReportStore.SettingsTab.MarksTab
-                                        )
-                                    )
-                                }
-                            }
-                        ) {
-                            Icon(
-                                Icons.Rounded.ViewWeek,
-                                null
-                            )
-                        }
-                        FilledTonalIconToggleButton(
-                            checked = model.settingsTab == LessonReportStore.SettingsTab.HomeWorkTab,
-                            onCheckedChange = {
-                                if (it) {
-                                    component.onEvent(
-                                        LessonReportStore.Intent.ChangeSettingsTab(
-                                            LessonReportStore.SettingsTab.HomeWorkTab
-                                        )
-                                    )
-                                }
-                            }
-                        ) {
-                            Icon(
-                                Icons.Rounded.AddHomeWork,
-                                null
-                            )
-                        }
-                        AnimatedVisibility(model.settingsTab == LessonReportStore.SettingsTab.SetupTab) {
-                            Spacer(Modifier.height(80.dp))
-                            IconToggleButton(
-                                checked = isLikeMenuOpened.value,
+                        Column() {
+                            FilledTonalIconToggleButton(
+                                checked = model.settingsTab == LessonReportStore.SettingsTab.SetupTab,
                                 onCheckedChange = {
-                                    isLikeMenuOpened.value = it
+                                    if (it) {
+                                        component.onEvent(
+                                            LessonReportStore.Intent.ChangeSettingsTab(
+                                                LessonReportStore.SettingsTab.SetupTab
+                                            )
+                                        )
+                                    }
                                 }
                             ) {
                                 Icon(
-                                    Icons.Rounded.ThumbsUpDown,
+                                    Icons.Rounded.Tune,
                                     null
                                 )
                             }
+                            FilledTonalIconToggleButton(
+                                checked = model.settingsTab == LessonReportStore.SettingsTab.MarksTab,
+                                onCheckedChange = {
+                                    if (it) {
+                                        component.onEvent(
+                                            LessonReportStore.Intent.ChangeSettingsTab(
+                                                LessonReportStore.SettingsTab.MarksTab
+                                            )
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.ViewWeek,
+                                    null
+                                )
+                            }
+                            FilledTonalIconToggleButton(
+                                checked = model.settingsTab == LessonReportStore.SettingsTab.HomeWorkTab,
+                                onCheckedChange = {
+                                    if (it) {
+                                        component.onEvent(
+                                            LessonReportStore.Intent.ChangeSettingsTab(
+                                                LessonReportStore.SettingsTab.HomeWorkTab
+                                            )
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.AddHomeWork,
+                                    null
+                                )
+                            }
+                            AnimatedVisibility(model.settingsTab == LessonReportStore.SettingsTab.SetupTab) {
+                                Spacer(Modifier.height(80.dp))
+                                IconToggleButton(
+                                    checked = isLikeMenuOpened.value,
+                                    onCheckedChange = {
+                                        isLikeMenuOpened.value = it
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.ThumbsUpDown,
+                                        null
+                                    )
+                                }
+                            }
                         }
                     }
+                    Spacer(Modifier.height(height = heightVal.dp/2))
                 }
             }
         }
@@ -1489,10 +1497,6 @@ fun LessonTable(
             }
             Column(
                 modifier = Modifier
-//                    .onGloballyPositioned { layoutCoordinates ->
-//                    allHeight.value =
-//                        with(density) { layoutCoordinates.size.height.toDp() }
-//                }
             ) {
                 Row(
                     modifier = Modifier,
@@ -1983,9 +1987,11 @@ fun LessonTable(
     val detailedMarksName =
         model.students.firstOrNull { it.login == model.detailedMarksLogin }?.shortFio ?: "null"
 
+    val avg = (model.detailedMarks.sumOf { it.content.toInt() } / max(model.detailedMarks.size, 1).toFloat()).toString().cut(4)
+
     CAlertDialogContent(
         component = component.marksDialogComponent,
-        title = "Оценки: $detailedMarksName",
+        title = "Оценки: $detailedMarksName $avg",
         titleXOffset = 5.dp
     ) {
         Column(Modifier.verticalScroll(rememberScrollState())) {

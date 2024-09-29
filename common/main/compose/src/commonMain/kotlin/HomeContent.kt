@@ -1645,7 +1645,7 @@ fun Lesson(
                             if (stupsSum != 0) {
                                 Spacer(Modifier.width(7.dp))
                                 Box(modifier = Modifier.padding(top = 3.dp)) {
-                                    BorderStup(stupsSum.toString())
+                                    BorderStup(stupsSum.toString(), "!st")
                                 }
                             }
                         }

@@ -4,9 +4,11 @@
     <title>Pansion App (JS)</title>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1, virtual-keyboard=overlays-content, interactive-widget=overlays-content">
+<!--    -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <preference name="KeyboardShrinksView" value="false"></preference>
     <link rel="stylesheet" type="text/css" href="styles.css">
 
     <script type="application/javascript" src="app.js"></script>
@@ -17,7 +19,7 @@
 <div>
     <div class="spinner" id="spinner"></div>
 </div>
-<div id="composeApp"></div>
+<canvas id="composeApp"></canvas>
 <script type="application/javascript" src="composeApp.js"></script>
 </body>
 </html>

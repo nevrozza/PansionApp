@@ -511,6 +511,7 @@ fun ProfileContent(
             }
             item {
                 Spacer(Modifier.height(40.dp))
+                Spacer(Modifier.height(height = heightVal.dp/2))
             }
         }
     }

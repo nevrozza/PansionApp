@@ -103,6 +103,7 @@ import dev.chrisbanes.haze.hazeChild
 import groups.forms.FormsStore
 import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
+import heightVal
 import kotlinx.coroutines.launch
 import view.LocalViewManager
 import view.WindowScreen
@@ -820,6 +821,7 @@ fun GroupsContent(
                         component.formsComponent.onEvent(FormsStore.Intent.CreateForm)
                     }
                     Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(height = heightVal.dp/2))
                 }
             }
         }
@@ -997,7 +999,7 @@ fun GroupsContent(
                         }
                     }
                     Spacer(Modifier.height(10.dp))
-
+                    Spacer(Modifier.height(height = heightVal.dp/2))
                 }
             }
         }

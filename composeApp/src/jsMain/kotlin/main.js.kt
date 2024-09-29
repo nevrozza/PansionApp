@@ -1,20 +1,36 @@
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
+import androidx.compose.ui.window.CanvasBasedWindow
 import com.arkivanov.decompose.router.stack.webhistory.DefaultWebHistoryController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import com.benasher44.uuid.UUID
+import com.benasher44.uuid.Uuid
+import com.benasher44.uuid.uuid4
 import di.Inject
 import forks.splitPane.SplitPaneState
 import org.jetbrains.skiko.wasm.onWasmReady
@@ -31,6 +47,7 @@ import view.toTint
 import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.events.EventType
+import web.viewport.visualViewport
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
@@ -58,9 +75,14 @@ fun main() {
 
     lifecycle.attachToDocument()
     onWasmReady {
-        ComposeViewport(
-            viewportContainerId = "composeApp",
+        CanvasBasedWindow(
+            canvasElementId = "composeApp",
+            applyDefaultStyles = false
         ) {
+
+//        ComposeViewport(
+//            viewportContainerId = "composeApp",
+//        ) {
             val settingsRepository: SettingsRepository = Inject.instance()
             val rgb = settingsRepository.fetchSeedColor().toRGB()
             val viewManager = remember {
@@ -85,13 +107,26 @@ fun main() {
             ) {
                 PageLoadNotify()
                 AppTheme {
-                    Root(
-                        root = root,
-                        device = WindowType.PC,
-                        isJs = true
-                    )
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        Box(
+                            modifier = Modifier.width(window.innerWidth.dp)
+                                .height(window.innerHeight.dp)
+                        ) {
+                            Root(
+                                root = root,
+                                device = WindowType.PC,
+                                isJs = true
+                            )
+                        }
+                        Box(Modifier.background(MaterialTheme.colorScheme.background).height(window.innerHeight.dp/2))
+                    }
+
+
                 }
+                
             }
+
+            heightVal = window.innerHeight
         }
     }
 }
@@ -129,7 +164,7 @@ fun getOrCreateDeviceUUID(): String {
     return if (storedUUID != null) {
         storedUUID
     } else {
-        val newUUID = "sad"
+        val newUUID = uuid4().toString()
         kotlinx.browser.localStorage.setItem("deviceUUID", newUUID)
         newUUID
     }

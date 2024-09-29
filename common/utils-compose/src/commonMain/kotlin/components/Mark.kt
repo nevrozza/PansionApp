@@ -73,39 +73,54 @@ fun MarkContent(
     offset: DpOffset = DpOffset(0.dp, 0.dp),
     paddingValues: PaddingValues = PaddingValues(start = 5.dp, top = 5.dp),
     size: Dp = 25.dp,
-    textYOffset: Dp = 0.dp
+    textYOffset: Dp = 0.dp,
+    reason: String? = null
 ) {
-    val viewManager = LocalViewManager.current
-    val color = background.getMarkColor(mark, viewManager, .2f)
-    Box(
-        Modifier.padding(paddingValues)
-            .offset(offset.x, offset.y)
-            .size(size)
-            .clip(RoundedCornerShape(percent = 30))
-            .background(
-                color
-            )
-            .then(addModifier),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
+    if (reason != null && (reason.subSequence(0, 3) == "!st" || reason.subSequence(0, 3) == "!ds")) {
+        BorderStup(
             mark,
-            fontSize = size.value.sp / 1.6f,
-            modifier = Modifier.fillMaxSize().offset(y = textYOffset),
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Black,
-            color = if (viewManager.colorMode.value == "3") color.blend(
-                Color.White,
-                1f
-            ) else MaterialTheme.colorScheme.onBackground
+            addModifier = addModifier.padding(paddingValues).clip(RoundedCornerShape(30)),
+            reason = reason
         )
-        if (viewManager.colorMode.value in listOf("0", "1")) {
-            val colors = if(viewManager.colorMode.value == "1") markColorsColored else markColorsMono
-            Box(
-                Modifier.padding(top = 5.dp, end = 5.dp).align(Alignment.TopEnd).size(5.dp).clip(
-                    CircleShape
-                ).background(colors[mark] ?: Color.Transparent) //MaterialTheme.colorScheme.primary
+    } else {
+
+
+        val viewManager = LocalViewManager.current
+        val color = background.getMarkColor(mark, viewManager, .2f)
+        Box(
+            Modifier.padding(paddingValues)
+                .offset(offset.x, offset.y)
+                .size(size)
+                .clip(RoundedCornerShape(percent = 30))
+                .background(
+                    color
+                )
+                .then(addModifier),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                mark,
+                fontSize = size.value.sp / 1.6f,
+                modifier = Modifier.fillMaxSize().offset(y = textYOffset),
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Black,
+                color = if (viewManager.colorMode.value == "3") color.blend(
+                    Color.White,
+                    1f
+                ) else MaterialTheme.colorScheme.onBackground
             )
+            if (viewManager.colorMode.value in listOf("0", "1")) {
+                val colors =
+                    if (viewManager.colorMode.value == "1") markColorsColored else markColorsMono
+                Box(
+                    Modifier.padding(top = 5.dp, end = 5.dp).align(Alignment.TopEnd).size(5.dp)
+                        .clip(
+                            CircleShape
+                        ).background(
+                        colors[mark] ?: Color.Transparent
+                    ) //MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

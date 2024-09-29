@@ -514,6 +514,7 @@ private fun BottomSheetContent(
                 }
             }
         }
+        Spacer(Modifier.height(height = heightVal.dp/2))
     }
 }
 
@@ -585,6 +586,7 @@ private fun HugeBottomSheetContent(
                 component.onEvent(AdminAchievementsStore.Intent.UpdateGroupAchievement)
             }
         }
+        Spacer(Modifier.height(height = heightVal.dp/2))
     }
 }
 
@@ -755,6 +757,7 @@ private fun EditBottomSheetContent(
                 }
             }
         }
+        Spacer(Modifier.height(height = heightVal.dp/2))
     }
 }
 

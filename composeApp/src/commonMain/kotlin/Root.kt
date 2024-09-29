@@ -46,17 +46,19 @@ fun Root(
 
     BoxWithConstraints() {
         viewManager.size = this
+        println("height: ${this.maxHeight}")
+        println("width: ${this.maxWidth}")
         viewManager.orientation.value =
             WindowCalculator.calculateScreen(size = DpSize(this.maxWidth, this.maxHeight), device)
         CompositionLocalProvider(
             LocalViewManager provides viewManager
         ) {
-            AppTheme() {
+//            AppTheme() {
                 Surface(Modifier.fillMaxSize()) {
                     StatusBarColorFix()
                     RootContent(root, isJs)
                 }
-            }
+//            }
         }
     }
 }

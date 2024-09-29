@@ -684,7 +684,7 @@ class LessonReportExecutor(
                 val marks = journalRepository.fetchSubjectQuarterMarks(
                     login,
                     subjectId = state().subjectId,
-                    quartersNum = ""
+                    quartersNum = state().module.toString()
                 ).marks.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed()
                 if (login == state().detailedMarksLogin) {
                     dispatch(LessonReportStore.Message.DetailedMarksFetched(marks))

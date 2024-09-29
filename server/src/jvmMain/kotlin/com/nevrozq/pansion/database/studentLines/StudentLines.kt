@@ -134,6 +134,33 @@ object StudentLines : Table() {
         }
     }
 
+    fun fetchStudentLinesByLoginAndGroup(login: String, groupId: Int): List<StudentLinesDTO> {
+        return transaction {
+            try {
+                val studentLines =
+                    StudentLines.select{(StudentLines.login eq login) and (StudentLines.groupId eq groupId)}
+                studentLines.map {
+                    StudentLinesDTO(
+                        reportId = it[StudentLines.reportId],
+                        groupId = it[StudentLines.groupId],
+                        login = it[StudentLines.login],
+                        lateTime = it[lateTime],
+                        isLiked = it[isLiked],
+                        attended = it[attended],
+                        aReason = it[aReason],
+                        subjectName = it[subjectN],
+                        groupName = it[groupN],
+                        time = it[timeN],
+                        date = it[dateN]
+                    )
+                }
+            } catch (e: Throwable) {
+                println(e)
+                listOf()
+            }
+        }
+    }
+
     fun fetchClientStudentLines(login: String): List<ClientStudentLine> {
         return transaction {
             try {

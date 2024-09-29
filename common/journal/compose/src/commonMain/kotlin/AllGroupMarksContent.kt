@@ -5,6 +5,7 @@
 
 import allGroupMarks.AllGroupMarksComponent
 import allGroupMarks.AllGroupMarksStore
+import allGroupMarks.DatesFilter
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -28,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -36,10 +38,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.PermContactCalendar
+import androidx.compose.material.icons.rounded.TableChart
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -75,6 +80,8 @@ import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
 import components.MarkContent
+import components.MarkTable
+import components.MarkTableItem
 import components.StupsButtons
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
@@ -191,11 +198,30 @@ fun AllGroupMarksContent(
                     },
                     isHaze = true,
                     actionRow = {
+
+                        IconButton(
+                            onClick = {
+                                component.onEvent(
+                                    AllGroupMarksStore.Intent.ChangeTableView(
+                                        !model.isTableView
+                                    )
+                                )
+                            }
+                        ) {
+                            Icon(
+                                if (!model.isTableView) Icons.Rounded.TableChart else Icons.Rounded.PermContactCalendar,
+                                null
+                            )
+                        }
+
                         IconButton(
                             onClick = {
                                 component.homeTasksDialogComponent.onEvent(
-                                    HomeTasksDialogStore.Intent.Init)
-                                component.homeTasksDialogComponent.dialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                    HomeTasksDialogStore.Intent.Init
+                                )
+                                component.homeTasksDialogComponent.dialogComponent.onEvent(
+                                    CAlertDialogStore.Intent.ShowDialog
+                                )
                             }
                         ) {
                             Icon(
@@ -211,34 +237,125 @@ fun AllGroupMarksContent(
             Column(Modifier.fillMaxSize()) {
                 Crossfade(nModel.state) { state ->
                     when (state) {
-                        NetworkState.None -> CLazyColumn(padding = padding) {
-                            if (model.students.isNotEmpty()) {
-                                items(model.students) { s ->
-
-                                    AllGroupMarksStudentItem(
-                                        title = s.shortFIO,
-                                        groupId = model.groupId,
-                                        marks = s.marks.sortedBy { getLocalDate(it.mark.date).toEpochDays() }
-                                            .reversed(),
-                                        stups = s.stups,
-                                        isQuarters = s.isQuarters,
-                                        modifier = Modifier.padding(top = if (model.students.first() == s) 0.dp else 10.dp),
-                                        coroutineScope = coroutineScope,
-                                        component = component,
-                                        firstHalfNums = model.firstHalfNums,
-                                        login = model.login
+                        NetworkState.None -> {
+                            Crossfade(model.isTableView) { crossfadeState ->
+                                if (crossfadeState) {
+                                    Box(
+                                        Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        component.onEvent(
-                                            AllGroupMarksStore.Intent.OpenDetailedStups(
-                                                s.login
+                                        Column {
+                                            Row {
+                                                FilterChip(
+                                                    selected = model.dateFilter is DatesFilter.Week,
+                                                    onClick = {
+                                                        component.onEvent(
+                                                            AllGroupMarksStore.Intent.ChangeFilterDate(
+                                                                DatesFilter.Week
+                                                            )
+                                                        )
+                                                    },
+                                                    label = { Text("За неделю") }
+                                                )
+                                                Spacer(Modifier.width(5.dp))
+                                                model.modules.forEach { module ->
+                                                    FilterChip(
+                                                        selected = model.dateFilter is DatesFilter.Module && module in (model.dateFilter as DatesFilter.Module).modules,
+                                                        onClick = {
+                                                            component.onEvent(
+                                                                AllGroupMarksStore.Intent.ChangeFilterDate(
+                                                                    DatesFilter.Module(
+                                                                        listOf(module)
+                                                                    )
+                                                                )
+                                                            )
+                                                        },
+                                                        label = { Text("За ${module} модуль") }
+                                                    )
+                                                    Spacer(Modifier.width(5.dp))
+                                                }
+                                            }
+                                            val students = model.students.sortedBy { it.shortFIO }
+                                            val filteredDates =
+                                                model.dates.filter {
+                                                    when (model.dateFilter) {
+                                                        is DatesFilter.Week -> it.date in model.weekDays
+                                                        is DatesFilter.Module -> it.module in (model.dateFilter as DatesFilter.Module).modules
+                                                        else -> false
+                                                    }
+                                                }
+                                            MarkTable(
+                                                fields = students.associate { it.login to it.shortFIO },
+                                                dateMarks = filteredDates.associate { y ->
+                                                    y.date
+                                                        .toString() to (students.flatMap { x ->
+                                                        (x.marks + x.stups).filter { it.mark.date == y.date }
+                                                            .map {
+                                                                MarkTableItem(
+                                                                    content = it.mark.content,
+                                                                    login = x.login,
+                                                                    reason = it.mark.reason,
+                                                                    reportId = it.mark.reportId,
+                                                                    module = it.mark.module,
+                                                                    date = it.mark.date,
+                                                                    deployDate = it.deployDate,
+                                                                    deployTime = it.deployTime,
+                                                                    deployLogin = it.deployLogin,
+                                                                    onClick = {
+                                                                        component.onEvent(
+                                                                            AllGroupMarksStore.Intent.OpenFullReport(
+                                                                                reportId = it
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                )
+                                                            }
+                                                    })
+                                                },
+                                                nki = students.associate {
+                                                    it.login to it.nki
+                                                }
                                             )
-                                        )
+                                            students.forEach {
+                                                println("xxxx:")
+                                                println(it.login)
+                                                println(it.nki)
+                                            }
+                                        }
                                     }
-                                }
+                                } else {
+                                    CLazyColumn(padding = padding) {
+                                        if (model.students.isNotEmpty()) {
+                                            items(model.students) { s ->
 
-                            } else {
-                                item() {
-                                    Text("Никто в этой группе не учится 0_0")
+                                                AllGroupMarksStudentItem(
+                                                    title = s.shortFIO,
+                                                    groupId = model.groupId,
+                                                    marks = s.marks.sortedBy { getLocalDate(it.mark.date).toEpochDays() }
+                                                        .reversed(),
+                                                    stups = s.stups,
+                                                    isQuarters = s.isQuarters,
+                                                    modifier = Modifier.padding(top = if (model.students.first() == s) 0.dp else 10.dp),
+                                                    coroutineScope = coroutineScope,
+                                                    component = component,
+                                                    firstHalfNums = model.firstHalfNums,
+                                                    login = model.login
+                                                ) {
+                                                    component.onEvent(
+                                                        AllGroupMarksStore.Intent.OpenDetailedStups(
+                                                            s.login
+                                                        )
+                                                    )
+                                                }
+                                            }
+
+                                        } else {
+                                            item() {
+                                                Text("Никто в этой группе не учится 0_0")
+                                            }
+                                        }
+                                    }
+
                                 }
                             }
                         }
@@ -288,7 +405,7 @@ fun AllGroupMarksContent(
                         ) {
                             Text(it.mark.date)
                             Text(fetchReason(it.mark.reason))
-                            BorderStup(it.mark.content)
+                            BorderStup(it.mark.content, reason = it.mark.reason)
                         }
                     }
                 }
@@ -355,7 +472,9 @@ private fun AllGroupMarksStudentItem(
 
     val modules = marks.map { it.mark.module }.toSet().sorted().reversed()
 
-    val usedHalfNum = if(modules.isNotEmpty()) if (modules.first().toInt() in firstHalfNums) 1 else 2 else 1
+    val usedHalfNum = if (modules.isNotEmpty()) if (modules.first()
+            .toInt() in firstHalfNums
+    ) 1 else 2 else 1
 
     ElevatedCard(
         modifier.fillMaxWidth()//.padding(horizontal = 10.dp)
@@ -459,7 +578,8 @@ private fun HalfYearRow(
     allMarks: List<UserMarkPlus>,
     firstHalfModules: List<Int>
 ) {
-    val marks = allMarks.filter { (num == 2 && it.mark.module.toInt() !in firstHalfModules) || (num == 1 && it.mark.module.toInt() in firstHalfModules) }
+    val marks =
+        allMarks.filter { (num == 2 && it.mark.module.toInt() !in firstHalfModules) || (num == 1 && it.mark.module.toInt() in firstHalfModules) }
     val value = (marks.sumOf { it.mark.content.toInt() }) / (marks.size).toFloat()
     Row {
         Row(

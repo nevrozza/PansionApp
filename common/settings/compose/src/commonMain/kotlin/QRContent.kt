@@ -218,6 +218,7 @@ fun QRContentActual(component: QRComponent) {
                 component.onEvent(QRStore.Intent.SendToServerAtAll)
             }
             Spacer(Modifier.height(25.dp))
+            Spacer(Modifier.height(height = heightVal.dp/2))
         }
     }
 
@@ -504,6 +505,9 @@ private fun createUserSheet(
                             component.onEvent(QRStore.Intent.SendToServerAtAll)
                         }
                         Spacer(Modifier.height(10.dp))
+                    }
+                    item {
+                        Spacer(Modifier.height(height = heightVal.dp/2))
                     }
                 }
             }

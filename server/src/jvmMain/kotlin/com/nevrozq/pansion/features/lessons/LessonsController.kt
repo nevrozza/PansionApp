@@ -171,21 +171,21 @@ class LessonsController() {
                 val header =
                     if (group != null) reports.firstOrNull { it.id == x.reportId } else null
                 if (header != null) {
-                    val pa = PreAttendance.fetchPreAttendanceByDateAndLogin(
-                        date = header.date,
-                        login = studentLogin
-                    )
+//                    val pa = PreAttendance.fetchPreAttendanceByDateAndLogin(
+//                        date = header.date,
+//                        login = studentLogin
+//                    )
                     val time = header.time.toMinutes()
-                    val is2NKA =
-                        if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
+//                    val is2NKA =
+//                        if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
                     val isLate = (x.lateTime.isNotEmpty() && x.lateTime != "0")
-                    if (isLate || isNka || is2NKA || isL) {
+                    if (isLate || isNka  || isL) { // || is2NKA
                         val subject =
                             if (group != null) subjects[group.subjectId].toString() else "null"
                         ClientMainNotification(
-                            key = if (is2NKA || isNka) "N.${x.login}.${x.reportId}" else if (isLate) "Op.${x.login}.${x.reportId}" else "L.${x.login}.${x.reportId}",
+                            key = if (/*is2NKA ||*/ isNka) "N.${x.login}.${x.reportId}" else if (isLate) "Op.${x.login}.${x.reportId}" else "L.${x.login}.${x.reportId}",
                             subjectName = subject,
-                            reason = if (is2NKA) "N.${if (pa!!.isGood) "2" else "1"}" else if (isNka) "N.${x.attended}" else if (isLate) "Op.${x.lateTime}" else "L.${if (x.isLiked == "t") "T" else "F"}",
+                            reason = /*if (is2NKA) "N.${if (pa!!.isGood) "2" else "1"}" else */if (isNka) "N.${x.attended}" else if (isLate) "Op.${x.lateTime}" else "L.${if (x.isLiked == "t") "T" else "F"}",
                             date = header.date.toString(),
                             reportTime = header.time.toString(),
                             groupName = group?.name.toString(),

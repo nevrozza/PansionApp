@@ -20,5 +20,12 @@ data class AllGroupMarksStudent(
     val shortFIO: String,
     val isQuarters: Boolean,
     val marks: List<UserMarkPlus>,
-    val stups: List<UserMarkPlus>
+    val stups: List<UserMarkPlus>,
+    val nki: List<StudentNka>
+)
+
+@Serializable
+data class StudentNka(
+    val date: String,
+    val isUv: Boolean
 )

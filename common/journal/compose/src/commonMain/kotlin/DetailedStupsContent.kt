@@ -250,7 +250,7 @@ private fun DetailedStupsSubjectItem(
                             ) {
                                 Text(it.date)
                                 Text(fetchReason(it.reason))
-                                BorderStup(it.content)
+                                BorderStup(it.content, reason = it.reason)
                             }
                         }
                 }

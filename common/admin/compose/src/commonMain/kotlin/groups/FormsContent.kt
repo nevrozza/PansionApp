@@ -84,6 +84,7 @@ import decomposeComponents.CBottomSheetContent
 import groups.forms.FormsComponent
 import groups.forms.FormsStore
 import groups.students.StudentsStore
+import heightVal
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -537,6 +538,7 @@ fun FormsContent(
                     component.onEvent(FormsStore.Intent.EditForm)
                 }
                 Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(height = heightVal.dp/2))
             }
         }
     }

@@ -29,6 +29,7 @@ import components.LoadingAnimation
 import components.networkInterface.NetworkState
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
+import heightVal
 import kotlinx.coroutines.launch
 
 @ExperimentalMaterial3Api

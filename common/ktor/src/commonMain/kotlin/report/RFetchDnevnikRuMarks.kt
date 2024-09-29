@@ -35,6 +35,7 @@ data class UserMark(
     val date: String,
     val reportId: Int,
     val module: String
+
 )
 
 @Serializable

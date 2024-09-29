@@ -148,7 +148,7 @@ fun getOrCreateDeviceUUID(): String {
     return if (storedUUID != null) {
         storedUUID
     } else {
-        val newUUID = "sad"
+        val newUUID = uuid4().toString()
         kotlinx.browser.localStorage.setItem("deviceUUID", newUUID)
         newUUID
     }

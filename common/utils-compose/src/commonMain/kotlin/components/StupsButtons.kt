@@ -16,7 +16,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -68,13 +76,13 @@ fun StupsButton(count: Int, onClick: () -> Unit) {
 }
 
 @Composable
-fun BorderStup(string: String) {
+fun BorderStup(string: String, reason: String, addModifier: Modifier = Modifier) {
     Box(
-        Modifier.size(25.dp).border(
+        addModifier.then(Modifier.size(25.dp).border(
             width = 1.dp,
-            color = MaterialTheme.colorScheme.outline.copy(1f),
+            color = MaterialTheme.colorScheme.outline.copy(if(reason.subSequence(0,3) != "!ds") 1f else 0f),
             shape = RoundedCornerShape(30)
-        ).clip(RoundedCornerShape(30)),
+        ).clip(RoundedCornerShape(30)).then(if(reason.subSequence(0,3) == "!ds") Modifier.dashedBorder(3.dp, color = MaterialTheme.colorScheme.outline, cornerRadiusDp = 8.dp) else Modifier)),
         contentAlignment = Alignment.Center
     ) {
         CostilText(string)
@@ -88,3 +96,28 @@ private fun CostilText(string: String) {
         "${if(!string.contains("-")) "+" else ""}${string}"//, modifier = Modifier.offset(x = -2.dp)
     )
 }
+
+fun Modifier.dashedBorder(strokeWidth: Dp, color: Color, cornerRadiusDp: Dp) = composed(
+    factory = {
+        val density = LocalDensity.current
+        val strokeWidthPx = density.run { strokeWidth.toPx() }
+        val cornerRadiusPx = density.run { cornerRadiusDp.toPx() }
+
+        this.then(
+            Modifier.drawWithCache {
+                onDrawBehind {
+                    val stroke = Stroke(
+                        width = strokeWidthPx,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                    )
+
+                    drawRoundRect(
+                        color = color,
+                        style = stroke,
+                        cornerRadius = CornerRadius(cornerRadiusPx)
+                    )
+                }
+            }
+        )
+    }
+)
