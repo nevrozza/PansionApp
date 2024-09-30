@@ -85,6 +85,7 @@ import report.UserMarkPlus
 import server.fetchReason
 import server.getLocalDate
 import server.roundTo
+import server.sortedDate
 import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
 import view.rememberImeState
@@ -226,7 +227,7 @@ fun DnevnikRuMarkContent(
                                         true -> it.date in model.weekDays
                                     }
                                 }.map { it.date }.toSet()
-                            }
+                            }.sortedDate()
 
                         var s = 0
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
