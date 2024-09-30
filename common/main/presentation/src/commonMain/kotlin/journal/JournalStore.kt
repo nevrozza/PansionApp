@@ -26,7 +26,8 @@ interface JournalStore : Store<Intent, State, Label> {
         val filterGroupId: Int? = null,
         val filterDate: String? = null,
         val filterStatus: Boolean? = null,
-        val filterMyChildren: Boolean = isMentor
+        val filterMyChildren: Boolean = isMentor,
+        val login: String
     )
 
     sealed interface Intent {

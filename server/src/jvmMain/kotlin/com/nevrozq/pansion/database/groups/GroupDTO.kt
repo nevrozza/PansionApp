@@ -35,7 +35,7 @@ fun GroupDTO.mapToCutedGroup() =
         groupName = this.name,
         isActive = this.isActive
     )
-fun GroupDTO.mapToTeacherGroup() =
+fun GroupDTO.mapToTeacherGroup(login: String) =
     TeacherGroup(
         cutedGroup = CutedGroup(
             groupId = this.id,
@@ -43,5 +43,6 @@ fun GroupDTO.mapToTeacherGroup() =
             isActive = this.isActive
         ),
         subjectId = this.subjectId,
-        subjectName = Subjects.fetchAllSubjects().find { it.id == this.subjectId }?.name ?: "Урок"
+        subjectName = Subjects.fetchAllSubjects().find { it.id == this.subjectId }?.name ?: "Урок",
+        teacherLogin = this.teacherLogin
     )

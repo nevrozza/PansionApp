@@ -22,6 +22,7 @@ import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.getModuleByDate
 import com.nevrozq.pansion.utils.isMember
+import com.nevrozq.pansion.utils.isMentor
 import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.isTeacher
 import com.nevrozq.pansion.utils.login
@@ -94,7 +95,7 @@ class ReportsController() {
 
     suspend fun updateReport(call: ApplicationCall) {
         val r = call.receive<RUpdateReportReceive>()
-        if (call.isTeacher || call.isModer) {
+        if ((call.isTeacher && ReportHeaders.fetchHeader(r.lessonReportId).teacherLogin == call.login) || call.isModer) {
             try {
                 ReportHeaders.updateWholeReport(r)
 
@@ -1071,10 +1072,20 @@ class ReportsController() {
 //                            isMentorWas = it.isMentorWas
                     )
                 }
+                val groups: MutableList<Int> = mutableListOf()
                 if (call.isTeacher) {
-                    val groups = Groups.getGroupsOfTeacher(call.login)
-                    headers = headers.filter { it.groupId in groups.map { it.id } }
+                    groups += Groups.getGroupsOfTeacher(call.login).map {it.id}
                 }
+                if (call.isMentor) {
+                    val forms = Forms.fetchMentorForms(call.login)
+                    val students = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
+                    groups += StudentGroups.fetchGroupIdsOfStudents(students.map { it.login })
+                }
+                if (call.isModer) {
+                    groups += headersNo.map { it.id }
+                }
+
+                headers = headers.filter { it.groupId in groups.map { it } }
 
                 call.respond(
                     RFetchHeadersResponse(

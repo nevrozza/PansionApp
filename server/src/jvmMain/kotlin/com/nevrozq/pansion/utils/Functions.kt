@@ -84,7 +84,7 @@ val ApplicationCall.isParent: Boolean get() {
     return Users.getIsParentStatus(this.login)
 }
 val ApplicationCall.isMentor: Boolean get() {
-    return Users.getModeration(this.login) in listOf(Moderation.both, Moderation.mentor)
+    return Users.getModeration(this.login) != Moderation.nothing//in listOf(Moderation.both, Moderation.mentor)
 }
 
 val ApplicationCall.token: String?

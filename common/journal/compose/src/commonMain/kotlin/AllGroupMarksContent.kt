@@ -307,7 +307,8 @@ fun AllGroupMarksContent(
                                                                                 reportId = it
                                                                             )
                                                                         )
-                                                                    }
+                                                                    },
+                                                                    isTransparent = it.deployLogin != model.login && model.isModer
                                                                 )
                                                             }
                                                     })
@@ -316,11 +317,6 @@ fun AllGroupMarksContent(
                                                     it.login to it.nki
                                                 }
                                             )
-                                            students.forEach {
-                                                println("xxxx:")
-                                                println(it.login)
-                                                println(it.nki)
-                                            }
                                         }
                                     }
                                 } else {
@@ -339,7 +335,8 @@ fun AllGroupMarksContent(
                                                     coroutineScope = coroutineScope,
                                                     component = component,
                                                     firstHalfNums = model.firstHalfNums,
-                                                    login = model.login
+                                                    login = model.login,
+                                                    isModer = model.isModer
                                                 ) {
                                                     component.onEvent(
                                                         AllGroupMarksStore.Intent.OpenDetailedStups(
@@ -465,6 +462,7 @@ private fun AllGroupMarksStudentItem(
     modifier: Modifier = Modifier,
     component: AllGroupMarksComponent,
     login: String,
+    isModer: Boolean,
     onClick: () -> Unit
 ) {
     val isFullView = remember { mutableStateOf(false) }
@@ -518,7 +516,8 @@ private fun AllGroupMarksStudentItem(
                     groupId = groupId,
                     coroutineScope = coroutineScope,
                     component = component,
-                    login = login
+                    login = login,
+                    isModer = isModer
                 )
                 Box(
                     Modifier.fillMaxWidth().padding(end = 5.dp),//.offset(y = -5.dp),
@@ -551,7 +550,8 @@ private fun AllGroupMarksStudentItem(
                                 groupId = groupId,
                                 coroutineScope = coroutineScope,
                                 component = component,
-                                login = login
+                                login = login,
+                                isModer = isModer
                             )
                         }
                     }
@@ -611,7 +611,8 @@ private fun ModuleView(
     groupId: Int,
     coroutineScope: CoroutineScope,
     component: AllGroupMarksComponent,
-    login: String
+    login: String,
+    isModer: Boolean
 ) {
     val rowModifier = Modifier.fillMaxWidth().padding(top = 5.dp, start = 2.dp)
 
@@ -638,8 +639,8 @@ private fun ModuleView(
         }
         FlowRow(rowModifier) {
             marks.forEach {
-                Box(Modifier.alpha(if (it.deployLogin != login) .2f else 1f)) {
-                    cMarkPlus(it, component = component)
+                Box(Modifier.alpha(if (it.deployLogin != login && isModer) .2f else 1f)) {
+                    cMarkPlus(it, component = component, isModer = isModer)
                 }
             }
         }
@@ -649,7 +650,7 @@ private fun ModuleView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent) {
+fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent, isModer: Boolean) {
     val markSize = 30.dp
     val yOffset = 2.dp
     val tState = rememberTooltipState(isPersistent = true)
@@ -658,7 +659,7 @@ fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent) {
         tooltip = {
             PlainTooltip() {
                 Text(
-                    "Выставил ${mark.deployLogin}\nв ${mark.deployDate}-${mark.deployTime}\nОб уроке:\n${mark.mark.date} №${mark.mark.reportId}\n${
+                    "${ if (isModer) "Выставил ${mark.deployLogin}\nв ${mark.deployDate}-${mark.deployTime}\n" else ""}Об уроке:\n${mark.mark.date} №${mark.mark.reportId}\n${
                         fetchReason(
                             mark.mark.reason
                         )

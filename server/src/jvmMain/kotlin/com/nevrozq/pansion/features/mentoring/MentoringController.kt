@@ -17,6 +17,7 @@ import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.createLogin
 import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.isMentor
+import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.toId
 import io.ktor.http.HttpStatusCode
@@ -25,6 +26,7 @@ import io.ktor.server.application.ApplicationPlugin
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import journal.init.RFetchMentorGroupIdsResponse
+import mentoring.MentorForms
 import mentoring.RFetchMentoringStudentsResponse
 import mentoring.preAttendance.ClientPreAttendance
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
@@ -342,15 +344,29 @@ class MentoringController {
     }
 
     suspend fun fetchStudents(call: ApplicationCall) {
-        if (call.isMentor) {
+        if (call.isMentor || call.isModer) {
             try {
-                val forms = Forms.fetchMentorForms(call.login)
-                val studentLogins = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
-                val students = Users.fetchByLoginsActivated(logins = studentLogins.map { it.login })
+                val forms = if (call.isModer) {
+                    Forms.getAllForms().map {
+                        MentorForms(
+                            id = it.formId,
+                            num = it.classNum,
+                            title = it.title,
+                            isQrActive = it.formId in activeRegistrationForms
+                        )
+                    }
+                }
+                else {
+                    Forms.fetchMentorForms(call.login)
+                }
+
+                val studentLogins =
+                    StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
+                val students =
+                    Users.fetchByLoginsActivated(logins = studentLogins.map { it.login })
                 val requests = activeRegistrationRequests.filter {
                     it.value.formId in forms.map { it.id }
                 }
-                println("WAT: ${activeRegistrationRequests}")
 
                 call.respond(
                     RFetchMentoringStudentsResponse(

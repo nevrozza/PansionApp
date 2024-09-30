@@ -49,6 +49,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -87,6 +88,7 @@ data class MarkTableItem(
     val deployDate: String? = null,
     val deployTime: String? = null,
     val deployLogin: String? = null,
+    val isTransparent: Boolean = false,
     val onClick: (reportId: Int) -> Unit
 )
 
@@ -101,8 +103,7 @@ fun MarkTableUnit(m: MarkTableItem, markSize: Dp) {
             PlainTooltip() {
                 Text(
                     "${
-                        if (m.deployLogin != null) "Выставил ${m.deployLogin}\n" +
-                                "в ${m.deployDate}-${m.deployTime}\n" else ""
+                        if (m.deployLogin != null) "${ if (m.isTransparent) "Выставил ${m.deployLogin}\nв ${m.deployDate}-${m.deployTime}\n" else ""}" else ""
                     }Об уроке:\n${if (m.date != null) "${m.date} " else ""}№${m.reportId}\n${
                         fetchReason(
                             m.reason
@@ -114,13 +115,14 @@ fun MarkTableUnit(m: MarkTableItem, markSize: Dp) {
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         enableUserInput = true
     ) {
+
         MarkContent(
             m.content,
             size = markSize,
             textYOffset = yOffset,
             addModifier = Modifier.handy().clickable {
                 m.onClick(m.reportId)
-            },
+            }.alpha(if (m.isTransparent) .2f else 1f),
             paddingValues = PaddingValues(start = 2.5.dp, end = 2.5.dp),
             reason = m.reason
         )

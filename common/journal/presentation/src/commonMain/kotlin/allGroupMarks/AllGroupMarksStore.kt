@@ -26,6 +26,7 @@ interface AllGroupMarksStore : Store<Intent, State, Label> {
         val subjectId: Int,
         val subjectName: String,
         val groupName: String,
+        val isModer: Boolean,
         val students: List<AllGroupMarksStudent> = emptyList(),
         val firstHalfNums: List<Int> = emptyList(),
         val detailedStupsLogin: String = "",

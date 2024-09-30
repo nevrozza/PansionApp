@@ -166,10 +166,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 else Home,
                 onClickOutput = RootComponent.Output.NavigateToHome
             ),
-            if (model.moderation in listOf(
-                    Moderation.both,
-                    Moderation.mentor
-                ) && component.isMentoring == null
+            if (model.moderation != Moderation.nothing
+                && component.isMentoring == null
             ) NavigationItem(
                 icon = Icons.Rounded.Diversity1,
                 label = "Ученики",
@@ -189,7 +187,6 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             ) else null,
             if (model.moderation in listOf(
                     Moderation.moderator,
-                    Moderation.mentor,
                     Moderation.both
                 ) && component.isMentoring == null
             ) NavigationItem(

@@ -8,6 +8,7 @@ import report.UserMark
 interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.State, LessonReportStore.Label> {
     data class State(
         val lessonReportId: Int,
+        val isModer: Boolean,
         val isEditable: Boolean,
         val subjectName: String,
         val subjectId: Int,

@@ -239,6 +239,7 @@ interface RootComponent : BackHandlerOwner {
             val groupName: String,
             val subjectId: Int,
             val subjectName: String,
+            val teacherLogin: String,
         ) : Config
 
         @Serializable

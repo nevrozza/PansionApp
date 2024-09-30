@@ -179,7 +179,7 @@ class LessonsController() {
 //                    val is2NKA =
 //                        if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
                     val isLate = (x.lateTime.isNotEmpty() && x.lateTime != "0")
-                    if (isLate || isNka  || isL) { // || is2NKA
+                    if (isLate || isNka || isL) { // || is2NKA
                         val subject =
                             if (group != null) subjects[group.subjectId].toString() else "null"
                         ClientMainNotification(
@@ -1166,10 +1166,20 @@ class LessonsController() {
     }
 
     suspend fun fetchTeacherGroups(call: ApplicationCall) {
-        if (call.isTeacher) {
+        if (call.isTeacher || call.isModer || call.isMentor) {
             try {
-                val groups = Groups.getGroupsOfTeacher(call.login).filter { it.isActive }
-                call.respond(RFetchTeacherGroupsResponse(groups.map { it.mapToTeacherGroup() }))
+                val groups = if (call.isModer) {
+                    Groups.getAllGroups().filter { it.isActive }
+                } else if (call.isMentor) {
+                    val forms = Forms.fetchMentorForms(call.login)
+                    StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
+                        .flatMap { s ->
+                            StudentGroups.fetchGroupsOfStudent(s.login)
+                        }.toSet().toList().filter { it.isActive }
+                } else {
+                    Groups.getGroupsOfTeacher(call.login).filter { it.isActive }
+                }
+                call.respond(RFetchTeacherGroupsResponse(groups.map { it.mapToTeacherGroup(call.login) }))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,

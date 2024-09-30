@@ -35,7 +35,8 @@ class JournalStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "JournalStore",
             initialState = JournalStore.State(
-                isMentor = authRepository.fetchModeration() in listOf(Moderation.mentor, Moderation.both)
+                isMentor = authRepository.fetchModeration() in listOf(Moderation.mentor, Moderation.both),
+                login = authRepository.fetchLogin()
             ),
             executorFactory = { JournalExecutor(
                 mainRepository = mainRepository,

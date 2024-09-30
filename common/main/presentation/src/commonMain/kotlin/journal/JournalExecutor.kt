@@ -193,6 +193,7 @@ class JournalExecutor(
             try {
                 nInterface.nStartLoading()
                 val headers = mainRepository.fetchReportHeaders()
+                println("XXXik: ${headers}")
                 scope.launch {
                     dispatch(Message.HeadersUpdated(headers.reportHeaders, headers.currentModule))
                     nInterface.nSuccess()
@@ -261,7 +262,7 @@ class JournalExecutor(
         scope.launch {
             try {
                 groupListComponent.nInterface.nStartLoading()
-                val groups = mainRepository.fetchTeacherGroups().groups
+                val groups = mainRepository.fetchTeacherGroups().groups.filter { it.teacherLogin == state().login }
                 groupListComponent.onEvent(ListDialogStore.Intent.InitList(
                     groups.filter { it.cutedGroup.isActive }.sortedBy { it.subjectId }.map {
                         ListItem(

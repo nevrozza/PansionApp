@@ -8,6 +8,7 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cAlertDialog.CAlertDialogComponent
 import components.listDialog.ListComponent
 import components.networkInterface.NetworkInterface
+import server.Moderation
 import server.fetchTitle
 
 class LessonReportStoreFactory(
@@ -50,7 +51,8 @@ class LessonReportStoreFactory(
                 isMentorWas = data.isMentorWas,
                 columnNames = getColumns(((data.customColumns) - "")),
                 subjectId = data.header.subjectId,
-                module = data.header.module.toIntOrNull() ?: 1
+                module = data.header.module.toIntOrNull() ?: 1,
+                isModer = authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator)
             ),
             executorFactory = {
                 LessonReportExecutor(

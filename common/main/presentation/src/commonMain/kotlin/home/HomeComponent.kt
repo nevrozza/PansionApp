@@ -131,7 +131,7 @@ class HomeComponent(
 
         data class NavigateToDnevnikRuMarks(val studentLogin: String) : Output()
         data class NavigateToDetailedStups(val studentLogin: String, val reason: Int) : Output()
-        data class NavigateToAllGroupMarks(val subjectId: Int, val subjectName: String, val groupId: Int, val groupName: String) : Output()
+        data class NavigateToAllGroupMarks(val subjectId: Int, val subjectName: String, val groupId: Int, val groupName: String, val teacherLogin: String) : Output()
         data class NavigateToStudentLines(val studentLogin: String) : Output()
 
         data class NavigateToChildren(val studentLogin: String, val fio: FIO, val avatarId: Int) : Output()

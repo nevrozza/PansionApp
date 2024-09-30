@@ -462,7 +462,8 @@ class RootComponentImpl(
                         groupId = config.groupId,
                         groupName = config.groupName,
                         subjectId = config.subjectId,
-                        subjectName = config.subjectName
+                        subjectName = config.subjectName,
+                        login = config.teacherLogin
                     )
                 )
             }
@@ -812,7 +813,8 @@ class RootComponentImpl(
                     groupId = output.groupId,
                     groupName = output.groupName,
                     subjectName = output.subjectName,
-                    subjectId = output.subjectId
+                    subjectId = output.subjectId,
+                    teacherLogin = output.teacherLogin
                 )
             )
 

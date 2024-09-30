@@ -15,6 +15,7 @@ class AllGroupMarksStoreFactory(
     private val storeFactory: StoreFactory,
     private val groupId: Int,
     private val login: String,
+    private val isModer: Boolean,
     private val subjectId: Int,
     private val groupName: String,
     private val subjectName: String,
@@ -37,7 +38,8 @@ class AllGroupMarksStoreFactory(
                 groupName = groupName,
                 subjectId = subjectId,
                 subjectName = subjectName,
-                login = login
+                login = login,
+                isModer = isModer
             ),
             executorFactory = { AllGroupMarksExecutor(
                 journalRepository = journalRepository,

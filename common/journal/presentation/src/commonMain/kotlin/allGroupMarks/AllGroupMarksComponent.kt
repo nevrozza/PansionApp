@@ -16,6 +16,7 @@ import di.Inject
 import homeTasksDialog.HomeTasksDialogComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
+import server.Moderation
 
 class AllGroupMarksComponent(
     componentContext: ComponentContext,
@@ -25,6 +26,7 @@ class AllGroupMarksComponent(
     private val groupName: String,
     private val subjectId: Int,
     private val subjectName: String,
+    private val login: String
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
 
@@ -64,7 +66,8 @@ class AllGroupMarksComponent(
                 journalRepository = journalRepository,
                 stupsDialogComponent = stupsDialogComponent,
                 nOpenReportInterface = nOpenReportInterface,
-                login = authRepository.fetchLogin()
+                login = login,
+                isModer = authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator)
             ).create()
         }
 

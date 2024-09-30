@@ -12,5 +12,6 @@ data class RFetchTeacherGroupsResponse(
 data class TeacherGroup(
     val cutedGroup: CutedGroup,
     val subjectId: Int,
-    val subjectName: String
+    val subjectName: String,
+    val teacherLogin: String
 )

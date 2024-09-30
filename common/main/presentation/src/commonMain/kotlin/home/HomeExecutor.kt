@@ -131,6 +131,9 @@ class HomeExecutor(
             if(state().isParent || state().isMentor) {
                 fetchChildrenNotifications()
             }
+            if ((state().isMentor || state().isModer) && state().role != Roles.teacher) {
+                fetchTeacherGroups()
+            }
         }
         journalComponent?.onEvent(JournalStore.Intent.Init)
     }
@@ -249,7 +252,7 @@ class HomeExecutor(
         scope.launch(CDispatcher) {
             try {
                 teacherNInterface.nStartLoading()
-                val groups = mainRepository.fetchTeacherGroups().groups
+                val groups = mainRepository.fetchTeacherGroups().groups.sortedBy { it.subjectId }.sortedBy { it.teacherLogin != state().login }
                 scope.launch {
                     dispatch(Message.TeacherGroupUpdated(groups))
 

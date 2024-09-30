@@ -665,11 +665,12 @@ class LessonReportExecutor(
                     nInterface.nSuccess()
                 }
             } catch (_: Throwable) {
-                dispatch(LessonReportStore.Message.IsErrorAnimation(true))
+                scope.launch {
+                    dispatch(LessonReportStore.Message.IsErrorAnimation(true))
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
-                nInterface.nError("Что-то пошло не так") {
-                    //TODO
-                    nInterface.goToNone()
+                    nInterface.nError("Что-то пошло не так") {
+                        nInterface.goToNone()
+                    }
                 }
             }
         }

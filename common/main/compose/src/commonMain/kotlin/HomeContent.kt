@@ -136,6 +136,7 @@ import dev.chrisbanes.haze.hazeChild
 import home.HomeComponent
 import home.HomeStore
 import journal.JournalStore
+import journal.init.TeacherGroup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -172,9 +173,11 @@ fun HomeContent(
         Roles.student -> {
             StudentHomeContent(component)
         }
+
         Roles.teacher -> {
             TeacherHomeContent(component, pickedLogin)
         }
+
         else -> {
             OtherHomeContent(
                 component = component,
@@ -184,24 +187,27 @@ fun HomeContent(
     }
 
 
-    if(component.journalComponent != null) {
+    if (component.journalComponent != null) {
         val journalModel by component.journalComponent!!.model.subscribeAsState()
         if (journalModel.openingReportData != null) {
             component.journalComponent!!.openReport(journalModel.openingReportData!!)
             component.journalComponent!!.onEvent(JournalStore.Intent.ResetReportData)
         }
     }
-    StudentReportDialogContent(component.studentReportDialog, openReport = if(model.isMentor) { item ->
-        val header = component.journalComponent!!.model.value.headers.firstOrNull{ it.reportId == item }
-        if(header != null) {
-            component.studentReportDialog.dialog.onEvent(CBottomSheetStore.Intent.HideSheet)
-            component.journalComponent?.onEvent(
-                JournalStore.Intent.FetchReportData(
-                    header
+    StudentReportDialogContent(
+        component.studentReportDialog,
+        openReport = if (model.isMentor) { item ->
+            val header =
+                component.journalComponent!!.model.value.headers.firstOrNull { it.reportId == item }
+            if (header != null) {
+                component.studentReportDialog.dialog.onEvent(CBottomSheetStore.Intent.HideSheet)
+                component.journalComponent?.onEvent(
+                    JournalStore.Intent.FetchReportData(
+                        header
+                    )
                 )
-            )
-        }
-    } else null)
+            }
+        } else null)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -348,6 +354,24 @@ fun OtherHomeContent(
             }
             item {
                 Text(
+                    "Успеваемость учеников",
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
+            item {
+                Spacer(Modifier.height(10.dp))
+            }
+            items(model.teacherGroups) {
+                TeacherGroupButton(
+                    component = component,
+                    it = it
+                )
+            }
+            item {
+                Text(
                     "Уведомления",
                     modifier = Modifier.fillMaxWidth(),
                     fontSize = 20.sp,
@@ -373,8 +397,10 @@ fun OtherHomeContent(
                             modifier = Modifier.fillMaxSize()
                         ) { state ->
                             when (state) {
-                                NetworkState.None -> if (model.childrenNotifications.isEmpty()) {
-                                    Text("Нет никаких уведомлений")
+                                NetworkState.None -> {
+                                    if (model.childrenNotifications.isEmpty()) {
+                                        Text("Нет никаких уведомлений")
+                                    }
                                 }
 
                                 NetworkState.Loading -> {
@@ -606,52 +632,11 @@ fun TeacherHomeContent(
                                 when (state) {
                                     NetworkState.None -> {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            model.teacherGroups.sortedBy { it.subjectId }.forEach {
-                                                FilledTonalButton(
-                                                    modifier = Modifier.fillMaxWidth()
-                                                        .padding(bottom = 10.dp)
-                                                        .padding(horizontal = 50.dp)
-                                                        .handy(),
-                                                    onClick = {
-                                                        component.onOutput(
-                                                            HomeComponent.Output.NavigateToAllGroupMarks(
-                                                                subjectId = it.subjectId,
-                                                                subjectName = it.subjectName,
-                                                                groupId = it.cutedGroup.groupId,
-                                                                groupName = it.cutedGroup.groupName
-                                                            )
-                                                        )
-                                                    },
-                                                    shape = RoundedCornerShape(30),
-                                                    colors = ButtonDefaults.filledTonalButtonColors(
-                                                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation( //if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else
-                                                            2.dp
-                                                        ),
-                                                        contentColor = MaterialTheme.colorScheme.onSurface //if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else
-                                                    )
-                                                ) {
-                                                    Row(
-                                                        Modifier.fillMaxWidth()
-                                                            .padding(vertical = 5.dp),
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.SpaceBetween
-                                                    ) {
-                                                        Text(
-                                                            buildAnnotatedString {
-                                                                withStyle(
-                                                                    SpanStyle(
-                                                                        fontWeight = FontWeight.Bold
-                                                                    )
-                                                                ) {
-                                                                    append(it.subjectName)
-                                                                }
-                                                                append(" ")
-                                                                append(it.cutedGroup.groupName)
-                                                            }
-                                                        )
-                                                        Icon(Icons.Rounded.ArrowForwardIos, null)
-                                                    }
-                                                }
+                                            model.teacherGroups.forEach {
+                                                TeacherGroupButton(
+                                                    component = component,
+                                                    it = it
+                                                )
                                             }
                                         }
                                     }
@@ -1751,6 +1736,56 @@ fun CalendarButton(component: HomeComponent) {
         Icon(
             Icons.Rounded.CalendarToday, null
         )
+    }
+}
+
+@Composable
+fun TeacherGroupButton(component: HomeComponent, it: TeacherGroup) {
+    FilledTonalButton(
+        modifier = Modifier.fillMaxWidth()
+            .padding(bottom = 10.dp)
+            .padding(horizontal = 50.dp)
+            .handy(),
+        onClick = {
+            component.onOutput(
+                HomeComponent.Output.NavigateToAllGroupMarks(
+                    subjectId = it.subjectId,
+                    subjectName = it.subjectName,
+                    groupId = it.cutedGroup.groupId,
+                    groupName = it.cutedGroup.groupName,
+                    teacherLogin = it.teacherLogin
+                )
+            )
+        },
+        shape = RoundedCornerShape(30),
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation( //if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else
+                2.dp
+            ),
+            contentColor = MaterialTheme.colorScheme.onSurface //if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else
+        )
+    ) {
+        Row(
+            Modifier.fillMaxWidth()
+                .padding(vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append(it.subjectName)
+                    }
+                    append(" ")
+                    append(it.cutedGroup.groupName)
+                }
+            )
+            Icon(Icons.Rounded.ArrowForwardIos, null)
+        }
     }
 }
 

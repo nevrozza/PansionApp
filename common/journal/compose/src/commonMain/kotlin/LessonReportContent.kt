@@ -1865,7 +1865,7 @@ fun LessonTable(
                                                                         x = 27.dp,
                                                                         y = -18.dp
                                                                     ),
-                                                                    title = "Выставил ${mark.deployLogin}\nв ${mark.deployDate} (${mark.deployTime})",
+                                                                    title = if (model.isModer) "Выставил ${mark.deployLogin}\nв ${mark.deployDate} (${mark.deployTime})" else null,
                                                                     isFullHeight = true
                                                                 )
                                                             }

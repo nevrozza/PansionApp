@@ -59,6 +59,7 @@ interface HomeStore : Store<Intent, State, Label> {
         val role: String,
         val isParent: Boolean,
         val isMentor: Boolean,
+        val isModer: Boolean,
         val someHeaders: List<ReportHeader> = emptyList(),
 
         val notifications: List<ClientMainNotification> = emptyList(),

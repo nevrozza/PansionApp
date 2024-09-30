@@ -48,7 +48,8 @@ class HomeStoreFactory(
                 praname = praname,
                 role = role,
                 isParent = isParent,
-                isMentor = moderation in listOf(Moderation.mentor, Moderation.both)
+                isMentor = moderation in listOf(Moderation.mentor, Moderation.both),
+                isModer = moderation in listOf(Moderation.moderator, Moderation.both)
             ),
             executorFactory = { HomeExecutor(
                 authRepository = authRepository,
