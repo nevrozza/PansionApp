@@ -158,7 +158,7 @@ private fun ApplicationEngine.Configuration.envConfig() {
         keyAlias = "sampleAlias",
         keyStorePassword = { "123456".toCharArray() },
         privateKeyPassword = { "foobar".toCharArray() }) {
-        port = 8443
+        port = /*8443*/ System.getenv("SERVER_HTTPS_PORT").toInt()
         keyStorePath = keyStoreFile
     }
 }
