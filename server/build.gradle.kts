@@ -12,7 +12,6 @@ group = "com.nevrozq.pansion"
 version = "0.0.1"
 application {
     mainClass.set("com.nevrozq.pansion.ApplicationKt") //com.nevrozq
-
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
@@ -29,6 +28,7 @@ ktor {
             )
         )
     }
+
 
     fatJar {
         archiveFileName.set("fat.jar")
@@ -59,6 +59,7 @@ kotlin {
 
                 implementation(project(":common:utils"))
                 implementation("io.ktor:ktor-server-cors-jvm:$ktorV")
+                implementation("io.ktor:ktor-network-tls-certificates:$ktorV")
                 implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorV")
                 implementation("io.ktor:ktor-server-core-jvm:$ktorV")
                 implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorV")

@@ -35,6 +35,8 @@ import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.features.achievements.configureAchievementsRouting
 import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import org.jetbrains.exposed.sql.Database
@@ -48,6 +50,9 @@ import com.nevrozq.pansion.features.settings.configureSettingsRouting
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
 import com.nevrozq.pansion.plugins.configureCORS
+import io.ktor.network.tls.certificates.buildKeyStore
+import io.ktor.network.tls.certificates.saveToFile
+import io.ktor.server.config.ApplicationConfig
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -56,7 +61,9 @@ import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 import server.getSixTime
+import java.io.File
 import kotlin.time.Duration
 
 // app: учителя,3333
@@ -67,16 +74,16 @@ var lastTimeRatingUpdate: String = getSixTime()
 
 @OptIn(DelicateCoroutinesApi::class)
 fun main() {
-    Database.connect(
-        "jdbc:postgresql://localhost:5432/pansionApp", driver = "org.postgresql.Driver",
-        user = "postgres", password = "6556"
-    )
 //    Database.connect(
-//        url = System.getenv("DATABASE_CONNECTION_STRING"),
-//        driver = "org.postgresql.Driver",
-//        user = System.getenv("POSTGRES_USER"),
-//        password = System.getenv("POSTGRES_PASSWORD")
+//        "jdbc:postgresql://localhost:5432/pansionApp", driver = "org.postgresql.Driver",
+//        user = "postgres", password = "6556"
 //    )
+    Database.connect(
+        url = System.getenv("DATABASE_CONNECTION_STRING"),
+        driver = "org.postgresql.Driver",
+        user = System.getenv("POSTGRES_USER"),
+        password = System.getenv("POSTGRES_PASSWORD")
+    )
     transaction {
         SchemaUtils.create(
             Users,
@@ -112,124 +119,48 @@ fun main() {
             PickedGIA,
             DeviceBinds
         )
-//        updateRatings()
 
-        GlobalScope.launch(Dispatchers.IO) {
-            while (true) {
-                transaction {
-                    updateRatings()
-                }
-                lastTimeRatingUpdate = getSixTime()
-                delay(1000 * 60 * 5)
-            }
-        }
-
-//        Users.deleteAll()
-//        Users.insert(
-//            UserDTO(
-//                login = "a.matashkov1",
-//                password = null,
-//                name = "Артём",
-//                surname = "Маташков",
-//                praname = "Игоревич",
-//                birthday = "22012008",
-//                role = Roles.teacher,
-//                moderation = Moderation.moderator,
-//                isParent = false,
-//                avatarId = 1,
-//                isActive = true
-//            )
-//        )
-//        RatingWeek0Table.saveRatings(
-//            listOf(
-//                RatingTableDTO(
-//                    login = "a.matashkov1",
-//                    name = "Арсентий",
-//                    surname = "Харлампий",
-//                    praname = "idk",
-//                    avatarId = 0,
-//                    stups = 666,
-//                    avg = "4.69",
-//                    top = 4,
-//                    groupName = "10кл профмат",
-//                    formNum = 10,
-//                    subjectId = 1,
-//                    formShortTitle = "10 инж"
-//                ),
-//                RatingTableDTO(
-//                    login = "a.matashkov2",
-//                    name = "Арсентий",
-//                    surname = "Харлампий",
-//                    praname = "idk",
-//                    avatarId = 0,
-//                    stups = 666,
-//                    avg = "4.69",
-//                    top = 2,
-//                    groupName = "10кл профмат",
-//                    formNum = 10,
-//                    subjectId = 1,
-//                    formShortTitle = "10 инж"
-//                ),
-//                RatingTableDTO(
-//                    login = "a.matashkov3",
-//                    name = "Арсентий",
-//                    surname = "Харлампий",
-//                    praname = "idk",
-//                    avatarId = 0,
-//                    stups = 666,
-//                    avg = "4.69",
-//                    top = 3,
-//                    groupName = "10кл профмат",
-//                    formNum = 10,
-//                    subjectId = 1,
-//                    formShortTitle = "10 инж"
-//                ),
-//                RatingTableDTO(
-//                    login = "m.gubskaya893",
-//                    name = "Мария",
-//                    surname = "Губская",
-//                    praname = "idk",
-//                    avatarId = 0,
-//                    stups = 999,
-//                    avg = "4.69",
-//                    top = 1,
-//                    groupName = "10кл профмат",
-//                    formNum = 10,
-//                    subjectId = 1,
-//                    formShortTitle = "10 инж"
-//                ),
-//            )
-//        )
-
-
-//        val login = createLogin("Артём", "Маташков")
-//        Users.insert(
-//            UserDTO(
-//                login = login,
-//                password = null,
-//                name = "Артём",
-//                surname = "Маташков",
-//                praname = "Игоревич",
-//                birthday = "15111978",
-//                role = Roles.teacher,
-//                moderation = Moderation.moderator,
-//                isParent = false,
-//                avatarId = 0,
-//                isActive = true
-//            )
-//        )
-
-//        println(login)
     }
-//    transaction {
-//        Users.deleteAll()
-//        Tokens.deleteAll()
-//    }
-
-    embeddedServer(Netty,
-        port = 8081,//System.getenv("SERVER_PORT").toInt(),
-        module = Application::module)
+    GlobalScope.launch(Dispatchers.IO) {
+        while (true) {
+            transaction {
+                updateRatings()
+            }
+            lastTimeRatingUpdate = getSixTime()
+            delay(1000 * 60 * 5)
+        }
+    }
+    embeddedServer(
+        Netty,
+        applicationEnvironment { log = LoggerFactory.getLogger("ktor.application") }, {
+            envConfig()
+        }, module = Application::module
+    )
         .start(wait = true)
+}
+
+private fun ApplicationEngine.Configuration.envConfig() {
+
+    val keyStoreFile = File("build/keystore.jks")
+    val keyStore = buildKeyStore {
+        certificate("sampleAlias") {
+            password = "foobar"
+            domains = listOf("127.0.0.1", "0.0.0.0", "localhost")
+        }
+    }
+    keyStore.saveToFile(keyStoreFile, "123456")
+
+    connector {
+        port = /*8080*/System.getenv("SERVER_PORT").toInt()
+    }
+    sslConnector(
+        keyStore = keyStore,
+        keyAlias = "sampleAlias",
+        keyStorePassword = { "123456".toCharArray() },
+        privateKeyPassword = { "foobar".toCharArray() }) {
+        port = 8443
+        keyStorePath = keyStoreFile
+    }
 }
 
 fun Application.module() {
