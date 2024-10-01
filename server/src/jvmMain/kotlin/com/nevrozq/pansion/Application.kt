@@ -50,9 +50,14 @@ import com.nevrozq.pansion.features.settings.configureSettingsRouting
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
 import com.nevrozq.pansion.plugins.configureCORS
+import com.nevrozq.pansion.plugins.configureHttpsRedirect
 import io.ktor.network.tls.certificates.buildKeyStore
 import io.ktor.network.tls.certificates.saveToFile
+import io.ktor.network.tls.certificates.trustStore
+import io.ktor.network.tls.extensions.HashAlgorithm
+import io.ktor.network.tls.extensions.SignatureAlgorithm
 import io.ktor.server.config.ApplicationConfig
+import io.netty.handler.ssl.SslContextBuilder
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -64,6 +69,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import server.getSixTime
 import java.io.File
+import java.io.FileInputStream
+import java.security.KeyStore
+import javax.security.auth.x500.X500Principal
 import kotlin.time.Duration
 
 // app: учителя,3333
@@ -74,15 +82,9 @@ var lastTimeRatingUpdate: String = getSixTime()
 
 @OptIn(DelicateCoroutinesApi::class)
 fun main() {
-//    Database.connect(
-//        "jdbc:postgresql://localhost:5432/pansionApp", driver = "org.postgresql.Driver",
-//        user = "postgres", password = "6556"
-//    )
     Database.connect(
-        url = System.getenv("DATABASE_CONNECTION_STRING"),
-        driver = "org.postgresql.Driver",
-        user = System.getenv("POSTGRES_USER"),
-        password = System.getenv("POSTGRES_PASSWORD")
+        sqlUrl, driver = "org.postgresql.Driver",
+        user = sqlUser, password = sqlPassword
     )
     transaction {
         SchemaUtils.create(
@@ -121,45 +123,55 @@ fun main() {
         )
 
     }
+
     GlobalScope.launch(Dispatchers.IO) {
         while (true) {
             transaction {
                 updateRatings()
             }
             lastTimeRatingUpdate = getSixTime()
-            delay(1000 * 60 * 5)
+            delay((1000 * 60 * ratingDelay).toLong())
         }
     }
+
     embeddedServer(
-        Netty,
-        applicationEnvironment { log = LoggerFactory.getLogger("ktor.application") }, {
+        factory = Netty,
+        environment = applicationEnvironment {
+            log = LoggerFactory.getLogger("ktor.application")
+        },
+        configure = {
             envConfig()
-        }, module = Application::module
+        },
+        module = Application::module
     )
         .start(wait = true)
 }
 
 private fun ApplicationEngine.Configuration.envConfig() {
+    val keyStoreFile = File(this.javaClass.classLoader.getResource("")!!.path.plus("keystore.jks"))
 
-    val keyStoreFile = File("build/keystore.jks")
     val keyStore = buildKeyStore {
-        certificate("sampleAlias") {
-            password = "foobar"
-            domains = listOf("127.0.0.1", "0.0.0.0", "localhost")
+        certificate(sslAlias) {
+            hash = HashAlgorithm.SHA1
+            sign = SignatureAlgorithm.RSA
+            password = sslPass
+            domains = listOf("0.0.0.0", "127.0.0.1", "localhost", "pansionapp-test.ru")
+            daysValid = 365
+//            subject = X500Principal("CN=" + alias + " CA Certificate")
         }
-    }
-    keyStore.saveToFile(keyStoreFile, "123456")
-
+    }.also { it.saveToFile(keyStoreFile, sslPass) }
     connector {
-        port = /*8080*/System.getenv("SERVER_PORT").toInt()
+        port = h_port
     }
+
     sslConnector(
         keyStore = keyStore,
-        keyAlias = "sampleAlias",
-        keyStorePassword = { "123456".toCharArray() },
-        privateKeyPassword = { "foobar".toCharArray() }) {
-        port = /*8443*/ System.getenv("SERVER_HTTPS_PORT").toInt()
+        keyAlias = sslAlias,
+        keyStorePassword = { sslPass.toCharArray() },
+        privateKeyPassword = { sslPass.toCharArray() }) {
+        port = https_port
         keyStorePath = keyStoreFile
+        println(this.keyStore.getCertificate(this.keyAlias))
     }
 }
 
@@ -167,6 +179,7 @@ fun Application.module() {
     configureSerialization()
     configureRouting()
     configureCORS()
+    configureHttpsRedirect()
     configureRegisterRouting()
     configureActivationRouting()
     configureLessonsRouting()

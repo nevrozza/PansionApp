@@ -16,16 +16,6 @@ import kotlinx.serialization.json.JsonBuilder
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
         json()
-//        contentType(ContentType.Application.Json)
-//        accept(ContentType.Application.Json)
-//        this.clearIgnoredTypes() //!
-//        register(ContentType.Any, KotlinxSerializationConverter(
-//            Json {
-//                prettyPrint = true
-//                isLenient = true
-//                ignoreUnknownKeys = true
-//            }
-//        ))
     }
 
     routing {

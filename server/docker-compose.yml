@@ -4,11 +4,16 @@ services:
     build: .
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
+      - "${SERVER_HTTPS_PORT}:${SERVER_HTTPS_PORT}"
     environment:
       - SERVER_PORT=$SERVER_PORT
+      - SERVER_HTTPS_PORT=$SERVER_HTTPS_PORT
       - DATABASE_CONNECTION_STRING=$DATABASE_CONNECTION_STRING
       - POSTGRES_USER=$POSTGRES_USER
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - SSL_ALIAS=$SSL_ALIAS
+      - SSL_PASSWORD=$SSL_PASSWORD
+      - RATING_DELAY=$RATING_DELAY
     depends_on:
       - db
     networks:

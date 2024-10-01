@@ -1,10 +1,10 @@
 import io.ktor.plugin.features.DockerPortMapping
 import io.ktor.plugin.features.DockerPortMappingProtocol
 
-val ktorV = "3.0.0-beta-2-eap-912"
+val ktorV = "3.0.0-rc-1"
 plugins {
     kotlin("multiplatform")
-    id("io.ktor.plugin") version "3.0.0-beta-1"
+    id("io.ktor.plugin") version "3.0.0-rc-1"
     id(libs.plugins.serialization.get().pluginId)
 }
 
@@ -60,6 +60,7 @@ kotlin {
                 implementation(project(":common:utils"))
                 implementation("io.ktor:ktor-server-cors-jvm:$ktorV")
                 implementation("io.ktor:ktor-network-tls-certificates:$ktorV")
+                implementation("io.ktor:ktor-server-http-redirect:$ktorV")
                 implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorV")
                 implementation("io.ktor:ktor-server-core-jvm:$ktorV")
                 implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorV")
