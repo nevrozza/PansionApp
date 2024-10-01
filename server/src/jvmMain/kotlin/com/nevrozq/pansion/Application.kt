@@ -140,38 +140,66 @@ fun main() {
             log = LoggerFactory.getLogger("ktor.application")
         },
         configure = {
-            envConfig()
+            configureSSLConnectors(
+                host = "localHost",
+                sslPort = https_port.toString(),
+                sslKeyStorePath = "build/keystore.jks",
+                sslPrivateKeyPassword = sslPass,
+                sslKeyStorePassword = sslPass,
+                sslKeyAlias = sslAlias
+            )
         },
         module = Application::module
     )
         .start(wait = true)
 }
 
-private fun ApplicationEngine.Configuration.envConfig() {
-    val keyStoreFile = File("build/keystore.jks")
+fun ApplicationEngine.Configuration.configureSSLConnectors(
+    host: String,
+    sslPort: String,
+    sslKeyStorePath: String?,
+    sslKeyStorePassword: String?,
+    sslPrivateKeyPassword: String?,
+    sslKeyAlias: String
+) {
+    if (sslKeyStorePath == null) {
+        throw IllegalArgumentException(
+            "SSL requires keystore: use -sslKeyStore=path or ${ConfigKeys.hostSslKeyStore} config"
+        )
+    }
+    if (sslKeyStorePassword == null) {
+        throw IllegalArgumentException(
+            "SSL requires keystore password: use ${ConfigKeys.hostSslKeyStorePassword} config"
+        )
+    }
+    if (sslPrivateKeyPassword == null) {
+        throw IllegalArgumentException(
+            "SSL requires certificate password: use ${ConfigKeys.hostSslPrivateKeyPassword} config"
+        )
+    }
 
-    val keyStore = buildKeyStore {
-        certificate(sslAlias) {
-            hash = HashAlgorithm.SHA1
-            sign = SignatureAlgorithm.RSA
-            password = sslPass
-            domains = listOf("0.0.0.0", "127.0.0.1", "localhost", "pansionapp-test.ru")
-            daysValid = 365
-//            subject = X500Principal("CN=" + alias + " CA Certificate")
+    val keyStoreFile = File(sslKeyStorePath).let { file ->
+        if (file.exists() || file.isAbsolute) file else File(".", sslKeyStorePath).absoluteFile
+    }
+    val keyStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+        FileInputStream(keyStoreFile).use {
+            load(it, sslKeyStorePassword.toCharArray())
         }
-    }.also { it.saveToFile(keyStoreFile, sslPass) }
-    connector {
-        port = h_port
+
+        requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray())) {
+            "The specified key $sslKeyAlias doesn't exist in the key store $sslKeyStorePath"
+        }
     }
 
     sslConnector(
-        keyStore = keyStore,
-        keyAlias = sslAlias,
-        keyStorePassword = { sslPass.toCharArray() },
-        privateKeyPassword = { sslPass.toCharArray() }) {
-        port = https_port
-        keyStorePath = keyStoreFile
-        println(this.keyStore.getCertificate(this.keyAlias))
+        keyStore,
+        sslKeyAlias,
+        { sslKeyStorePassword.toCharArray() },
+        { sslPrivateKeyPassword.toCharArray() }
+    ) {
+        this.host = host
+        this.port = sslPort.toInt()
+        this.keyStorePath = keyStoreFile
     }
 }
 
