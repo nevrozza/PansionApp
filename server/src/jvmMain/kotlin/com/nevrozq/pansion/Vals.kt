@@ -1,13 +1,13 @@
 package com.nevrozq.pansion
 
-val sqlUrl = "jdbc:postgresql://localhost:5432/pansionApp"//System.getenv("DATABASE_CONNECTION_STRING")
-val sqlUser = "postgres"//System.getenv("POSTGRES_USER")
-val sqlPassword = "6556"//System.getenv("POSTGRES_PASSWORD")
+val sqlUrl =  System.getenv("DATABASE_CONNECTION_STRING") //"jdbc:postgresql://localhost:5432/pansionApp"//
+val sqlUser = System.getenv("POSTGRES_USER")// "postgres"//
+val sqlPassword = System.getenv("POSTGRES_PASSWORD")// "6556"//
 
-val sslAlias = "www.pansion.app" //System.getenv("SSL_ALIAS")
-val sslPass = "123456" //System.getenv("SSL_PASSWORD").toInt()
+val sslAlias = System.getenv("SSL_ALIAS")//"www.pansion.app" //
+val sslPass = System.getenv("SSL_PASSWORD")//"123456" //
 
-val h_port = 8080//System.getenv("SERVER_PORT").toInt()
-val https_port = 8443//System.getenv("SERVER_HTTPS_PORT").toInt()
+val h_port = System.getenv("SERVER_PORT").toInt()// 8080
+val https_port = System.getenv("SERVER_HTTPS_PORT").toInt()//8443//
 
-val ratingDelay = 5//System.getenv("SERVER_HTTPS_PORT").toInt()
+val ratingDelay = System.getenv("SERVER_HTTPS_PORT").toInt()//5//

@@ -1,10 +1,10 @@
 import io.ktor.plugin.features.DockerPortMapping
 import io.ktor.plugin.features.DockerPortMappingProtocol
 
-val ktorV = "3.0.0-rc-1"
+val ktorV = "3.0.0-beta-2-eap-912"
 plugins {
     kotlin("multiplatform")
-    id("io.ktor.plugin") version "3.0.0-rc-1"
+    id("io.ktor.plugin") version "3.0.0-beta-1"
     id(libs.plugins.serialization.get().pluginId)
 }
 
@@ -12,6 +12,7 @@ group = "com.nevrozq.pansion"
 version = "0.0.1"
 application {
     mainClass.set("com.nevrozq.pansion.ApplicationKt") //com.nevrozq
+
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }

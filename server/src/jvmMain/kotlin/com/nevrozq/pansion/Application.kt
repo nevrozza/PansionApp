@@ -148,7 +148,7 @@ fun main() {
 }
 
 private fun ApplicationEngine.Configuration.envConfig() {
-    val keyStoreFile = File(this.javaClass.classLoader.getResource("")!!.path.plus("keystore.jks"))
+    val keyStoreFile = File("build/keystore.jks")
 
     val keyStore = buildKeyStore {
         certificate(sslAlias) {

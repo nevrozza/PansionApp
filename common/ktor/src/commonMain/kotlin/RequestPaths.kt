@@ -1,6 +1,6 @@
 
 object RequestPaths {
-    const val ip = "109.172.88.2:8080"//""//"192.168.0.107:8081"
+    const val ip = "109.172.88.2:8443"//""//"192.168.0.107:8081"
 
     object Parents {
         const val FetchParents = "server/admin/parents/fetch"
