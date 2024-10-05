@@ -33,9 +33,6 @@ class AllGroupMarksExecutor(
             Intent.DeleteReport -> dispatch(Message.FullReportOpened(null))
             is Intent.ChangeTableView -> dispatch(Message.TableViewChanged(intent.isOpened))
             is Intent.ChangeFilterDate -> {
-
-
-
                 dispatch(
                     Message.FilterDateChanged(
                         getDF(

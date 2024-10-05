@@ -117,6 +117,10 @@ class HomeExecutor(
                 fetchGrades()
                 fetchHomeTasksCount()
                 fetchNotifications()
+                fetchSchedule(
+                    dayOfWeek = state().currentDate.first.toString(),
+                    date = state().currentDate.second
+                )
             }
             else if (state().role == Roles.teacher) {
                 fetchTeacherGroups()

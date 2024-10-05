@@ -3,6 +3,7 @@ package components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +28,7 @@ fun DateButton(
     onClick: () -> Unit
 ) {
     FilledTonalButton(
-        modifier = Modifier.size(50.dp).padding(end = 5.dp),
+        modifier = Modifier.height(50.dp).padding(end = 5.dp),
         shape = RoundedCornerShape(30),
         colors = ButtonDefaults.filledTonalButtonColors(
             containerColor = if (date == currentDate) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
@@ -38,7 +39,7 @@ fun DateButton(
         onClick = {
             onClick()
         },
-        contentPadding = PaddingValues(0.dp)
+        contentPadding = PaddingValues(3.dp)
     ) {
         Box(Modifier.fillMaxSize()) {
             Text(

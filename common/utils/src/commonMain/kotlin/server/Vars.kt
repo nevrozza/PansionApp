@@ -33,7 +33,7 @@ object IsParentStatus {
 }
 
 object DataLength {
-    const val passwordLength = 50
+    const val passwordLength = 70
 }
 
 

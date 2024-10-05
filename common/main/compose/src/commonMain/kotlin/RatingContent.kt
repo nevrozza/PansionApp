@@ -198,7 +198,8 @@ fun RatingContent(
                         RatingCard(
                             previousItem.value!!,
                             meLogin = model.login,
-                            isMe = true
+                            isMe = true,
+                            component = component
                         )
 
                         Spacer(Modifier.height(if (viewManager.orientation.value != WindowScreen.Vertical) 15.dp else 80.dp))
@@ -288,7 +289,7 @@ fun RatingContent(
                 if (!items.isNullOrEmpty()) {
 
                     items(items.sortedBy { it.top }) { i ->
-                        RatingCard(i, meLogin = model.login)
+                        RatingCard(i, meLogin = model.login, component = component)
                     }
                 } else {
                     item {
@@ -330,7 +331,7 @@ fun RatingContent(
 }
 
 @Composable
-private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false) {
+private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false, component: RatingComponent) {
     Surface(
         modifier = Modifier
             .then(
@@ -344,7 +345,16 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false)
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
         tonalElevation = if (isMe || meLogin == item.login) 24.dp else 2.dp,
-        shadowElevation = if (isMe) 12.dp else 0.dp
+        shadowElevation = if (isMe) 12.dp else 0.dp,
+        onClick = {
+            if (!(isMe || meLogin == item.login)) {
+                component.onOutput(RatingComponent.Output.NavigateToProfile(
+                    studentLogin = item.login,
+                    fio = item.fio,
+                    avatarId = item.avatarId
+                ))
+            }
+        }
     ) {
         Row(
             modifier = Modifier.padding(end = 16.dp, start = 8.dp).padding(vertical = 5.dp),

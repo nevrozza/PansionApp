@@ -11,6 +11,8 @@ import profile.ProfileStore.State
 
 interface ProfileStore : Store<Intent, State, Label> {
     data class State(
+        val isOwner: Boolean,
+        val isCanEdit: Boolean,
         val studentLogin: String,
         val fio: FIO,
         val avatarId: Int,

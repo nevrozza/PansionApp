@@ -8,6 +8,10 @@ fun Application.configureActivationRouting() {
     routing {
         val authController = AuthController()
 
+        post(RequestPaths.Auth.ChangeLogin) {
+            authController.changeSecondLogin(call)
+        }
+
         post(RequestPaths.Auth.PollQRToken) {
             authController.QRTokenStartPolling(call)
         }

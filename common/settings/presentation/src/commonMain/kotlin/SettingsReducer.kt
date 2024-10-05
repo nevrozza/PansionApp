@@ -7,6 +7,8 @@ object SettingsReducer : Reducer<State, Message> {
         return when (msg) {
             is Message.ColorModeChanged -> copy(newColorMode = msg.colorMode)
             is Message.DevicesFetched -> copy(deviceList = msg.devices)
+            is Message.SecondLoginChanged -> copy(secondLogin = msg.secondLogin, eSecondLogin = msg.secondLogin ?: "")
+            is Message.ESecondLogin -> copy(eSecondLogin = msg.secondLogin)
         }
     }
 }

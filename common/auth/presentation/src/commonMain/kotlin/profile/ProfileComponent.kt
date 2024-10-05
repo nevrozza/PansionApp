@@ -20,6 +20,8 @@ class ProfileComponent(
     studentLogin: String,
     fio: FIO,
     avatarId: Int,
+    isOwner: Boolean,
+    isCanEdit: Boolean,
     val changeAvatarOnMain: (Int) -> Unit,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
@@ -51,7 +53,9 @@ class ProfileComponent(
                 avatarId = avatarId,
                 nAvatarInterface = nAvatarInterface,
                 nAboutMeInterface = nAboutMeInterface,
-                changeAvatarOnMain = { changeAvatarOnMain(it) }
+                changeAvatarOnMain = { changeAvatarOnMain(it) },
+                isOwner = isOwner,
+                isCanEdit = isCanEdit
             ).create()
         }
 

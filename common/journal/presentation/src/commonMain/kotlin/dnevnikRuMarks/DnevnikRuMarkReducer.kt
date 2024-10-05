@@ -17,6 +17,11 @@ object DnevnikRuMarkReducer : Reducer<State, Message> {
             is Message.OnStupsSubjectClicked -> copy(pickedSubjectId = msg.id)
             is Message.TableViewChanged -> copy(isTableView = msg.isTableView)
             Message.WeekOpened -> copy(isWeekDays = true)
+            is Message.MarksTableUpdated -> copy(
+                tableSubjects = msg.tableSubjects,
+                mDateMarks = msg.mDateMarks,
+                mDates = msg.mDates
+            )
         }
     }
 }

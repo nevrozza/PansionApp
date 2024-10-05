@@ -1,3 +1,4 @@
+import auth.RChangeLogin
 import auth.RFetchAllDevicesResponse
 import auth.RTerminateDeviceReceive
 import registration.RegistrationRequest
@@ -9,6 +10,9 @@ interface SettingsRepository {
     suspend fun scanRegistrationQR(formId: Int) : ScanRequestQRResponse
     suspend fun sendRegistrationRequest(
         r: SendRegistrationRequestReceive
+    )
+    suspend fun changeLogin(
+        r: RChangeLogin
     )
 
 

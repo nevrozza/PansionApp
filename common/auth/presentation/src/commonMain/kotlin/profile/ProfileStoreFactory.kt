@@ -15,6 +15,8 @@ class ProfileStoreFactory(
     private val studentLogin: String,
     private val fio: FIO,
     private val avatarId: Int,
+    private val isOwner: Boolean,
+    private val isCanEdit: Boolean,
     private val nAvatarInterface: NetworkInterface,
     private val nAboutMeInterface: NetworkInterface,
     private val changeAvatarOnMain: (Int) -> Unit
@@ -31,7 +33,9 @@ class ProfileStoreFactory(
             initialState = State(
                 studentLogin = studentLogin,
                 fio = fio,
-                avatarId = avatarId
+                avatarId = avatarId,
+                isOwner = isOwner,
+                isCanEdit = isCanEdit
             ),
             executorFactory = { ProfileExecutor(
                 authRepository = authRepository,

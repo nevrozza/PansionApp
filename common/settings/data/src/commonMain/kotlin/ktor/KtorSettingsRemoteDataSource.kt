@@ -1,6 +1,7 @@
 package ktor
 
 import RequestPaths
+import auth.RChangeLogin
 import auth.RFetchAllDevicesResponse
 import auth.RTerminateDeviceReceive
 import checkOnNoOk
@@ -23,6 +24,15 @@ class KtorSettingsRemoteDataSource(
                 path(RequestPaths.Auth.FetchAllDevices)
             }
         }.body()
+    }
+    suspend fun changeLogin(r: RChangeLogin) {
+        httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Auth.ChangeLogin)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
     }
 
     suspend fun terminateDevice(r: RTerminateDeviceReceive) {

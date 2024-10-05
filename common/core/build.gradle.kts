@@ -11,6 +11,7 @@ kotlin {
             dependencies {
 
                 implementation(project(":common:auth:api"))
+                implementation(project(":common:utils"))
 
 
                 api(libs.kotlinx.serialization.core)

@@ -13,6 +13,8 @@ import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import di.Inject
+import home.HomeComponent
+import home.HomeComponent.Output
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
@@ -133,5 +135,6 @@ class RatingComponent(
 
     sealed class Output {
         data object NavigateToSettings : Output()
+        data class NavigateToProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Output()
     }
 }

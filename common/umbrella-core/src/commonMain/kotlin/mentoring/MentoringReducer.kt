@@ -20,6 +20,31 @@ object MentoringReducer : Reducer<State, Message> {
             is Message.CReasonChanged -> copy(cReason = msg.reason)
             is Message.CStartChanged -> copy(cStart = msg.start)
             is Message.FormsUpdated -> copy(forms = msg.forms)
+            is Message.FormsToSummaryUpdated -> copy(formsForSummary = msg.formsToSummary)
+            is Message.ViewChanged -> copy(isTableView = msg.isTableView)
+            is Message.TableLoaded -> copy(
+                allNki = msg.allNki,
+                allDates = msg.allDates,
+                allSubjects = msg.allSubjects,
+                allDateMarks = msg.allDateMarks,
+                allGroups = msg.groups,
+                chosenSubject = msg.chosenSubject,
+                modules = msg.modules,
+                studentToGroups = msg.studentToGroups
+            )
+
+            is Message.UpdateTableAfterPeriod -> copy(
+                filteredSubjects = msg.filteredSubjects,
+                filteredDates = msg.filteredDates
+            )
+            is Message.UpdateTableAfterSubject -> copy(
+                filteredDateMarks = msg.filteredDateMarks,
+                filteredNki = msg.filteredNki,
+                filteredStudents = msg.filteredStudents
+            )
+
+            is Message.FilterDateChanged -> copy(dateFilter = msg.dateFilter)
+            is Message.SubjectChanged -> copy(chosenSubject = msg.subjectId)
         }
     }
 }

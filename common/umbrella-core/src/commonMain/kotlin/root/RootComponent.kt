@@ -224,7 +224,7 @@ interface RootComponent : BackHandlerOwner {
         data class HomeDnevnikRuMarks(val studentLogin: String) : Config
 
         @Serializable
-        data class HomeProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Config
+        data class HomeProfile(val studentLogin: String, val fio: FIO, val avatarId: Int, val isOwner: Boolean, val isCanEdit: Boolean) : Config
         data class HomeAchievements(val studentLogin: String) : Config
         @Serializable
         data class HomeTasks(val studentLogin: String, val avatarId: Int, val name: String) : Config

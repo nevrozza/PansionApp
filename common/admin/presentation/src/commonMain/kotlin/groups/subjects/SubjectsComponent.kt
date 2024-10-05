@@ -36,19 +36,7 @@ class SubjectsComponent(
         name = "NSubjectInsGroupInterface"
     )
 
-    val cSubjectDialog = CAlertDialogComponent(
-        componentContext,
-        storeFactory,
-        name = "createSubjectDialog",
-        onAcceptClick = {
-            onEvent(SubjectsStore.Intent.CreateSubject)
-        },
-        onDeclineClick = { dialogOnDeclineClick() }
 
-//        {
-//            createSubjectDialogOnDeclineClick()
-//        }
-    )
 
     val inactiveSubjectsDialog = CAlertDialogComponent(
         componentContext,
@@ -77,6 +65,15 @@ class SubjectsComponent(
         onEvent(SubjectsStore.Intent.EditSubject(sameCount = groupModel.value.subjects.filter { it.name == model.value.eSubjectText }.size))
     }
 
+    val cSubjectDialog = CAlertDialogComponent(
+        componentContext,
+        storeFactory,
+        name = "createSubjectDialog",
+        onAcceptClick = {
+            onEvent(SubjectsStore.Intent.CreateSubject)
+        },
+        onDeclineClick = { dialogOnDeclineClick() }
+    )
     fun dialogOnDeclineClick() {
         onEvent(SubjectsStore.Intent.ChangeCSubjectText(""))
     }

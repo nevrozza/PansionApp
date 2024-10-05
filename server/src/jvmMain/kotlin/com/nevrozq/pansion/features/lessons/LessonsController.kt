@@ -233,9 +233,9 @@ class LessonsController() {
                     val forms = Forms.fetchMentorForms(call.login)
                     logins.addAll(
                         StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id }).map {
-                            val user = Users.fetchUser(it.login)!!
+                            val user = Users.fetchUser(it)!!
                             Person(
-                                login = it.login,
+                                login = it,
                                 fio = FIO(
                                     name = user.name,
                                     surname = user.surname,
@@ -1174,7 +1174,7 @@ class LessonsController() {
                     val forms = Forms.fetchMentorForms(call.login)
                     StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
                         .flatMap { s ->
-                            StudentGroups.fetchGroupsOfStudent(s.login)
+                            StudentGroups.fetchGroupsOfStudent(s)
                         }.toSet().toList().filter { it.isActive }
                 } else {
                     Groups.getGroupsOfTeacher(call.login).filter { it.isActive }

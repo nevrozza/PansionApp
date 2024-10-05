@@ -77,6 +77,8 @@ kotlin {
                 implementation("org.jetbrains.exposed:exposed-jdbc:0.44.1")
 
                 implementation(libs.kotlinx.datetime)
+
+                implementation("org.mindrot:jbcrypt:0.4")
             }
         }
 //        jvmTest {

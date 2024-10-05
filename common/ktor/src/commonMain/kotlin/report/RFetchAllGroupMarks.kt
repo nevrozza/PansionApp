@@ -27,5 +27,6 @@ data class AllGroupMarksStudent(
 @Serializable
 data class StudentNka(
     val date: String,
-    val isUv: Boolean
+    val isUv: Boolean,
+    val groupId: Int? = null
 )

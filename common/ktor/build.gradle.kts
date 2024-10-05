@@ -9,6 +9,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlinx.serialization.core)
+                implementation(project(":common:utils"))
             }
         }
     }

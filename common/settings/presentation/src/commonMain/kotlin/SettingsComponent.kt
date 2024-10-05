@@ -20,6 +20,17 @@ class SettingsComponent(
 
     private val colorModeListDialogComponentName = "ColorModeSettingsListDialogComponentName"
 
+
+    val changeLoginDialog = CAlertDialogComponent(
+        componentContext,
+        storeFactory,
+        name = "changeSecondLoginDialog",
+        onAcceptClick = {
+            onEvent(SettingsStore.Intent.SaveSecondLogin)
+//            onEvent(SubjectsStore.Intent.CreateSubject)
+        },
+    )
+
     val colorModeListComponent = ListComponent(
         componentContext = childContext(colorModeListDialogComponentName + "CONTEXT"),
         storeFactory = storeFactory,
@@ -65,7 +76,8 @@ class SettingsComponent(
                 settingsRepository = settingsRepository,
                 authRepository = authRepository,
                 colorModeListComponent = colorModeListComponent,
-                nDevicesInterface = nDevicesInterface
+                nDevicesInterface = nDevicesInterface,
+                changeLoginDialog = changeLoginDialog
             ).create()
         }
 

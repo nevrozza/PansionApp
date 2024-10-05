@@ -50,7 +50,8 @@ class DnevnikRuMarksComponent(
                 login = studentLogin,
                 nInterface = nInterface,
                 journalRepository = journalRepository,
-                stupsDialogComponent = stupsDialogComponent
+                stupsDialogComponent = stupsDialogComponent,
+                studentReportDialog = studentReportDialog
             ).create()
         }
 

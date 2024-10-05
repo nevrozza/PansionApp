@@ -1,3 +1,4 @@
+import auth.RChangeLogin
 import auth.RFetchAllDevicesResponse
 import auth.RTerminateDeviceReceive
 import ktor.KtorSettingsRemoteDataSource
@@ -20,6 +21,10 @@ class SettingsRepositoryImpl(
 
     override suspend fun sendRegistrationRequest(r: SendRegistrationRequestReceive) {
         remoteDataSource.sendRegistrationRequest(r)
+    }
+
+    override suspend fun changeLogin(r: RChangeLogin) {
+        remoteDataSource.changeLogin(r)
     }
 
     override suspend fun fetchDevices(): RFetchAllDevicesResponse {

@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -216,23 +217,13 @@ fun DnevnikRuMarkContent(
             when (it) {
                 NetworkState.None -> Crossfade(model.isTableView) { crossfadeState ->
                     if (crossfadeState) {
-                        val subjects: List<DnevnikRuMarksSubject> = if (!model.isWeekDays) {
-                            model.subjects[(model.tabIndex ?: 0)] ?: listOf<DnevnikRuMarksSubject>()
-                        } else model.subjects.flatMap { it.value }
-                        val dates =
-                            subjects.flatMap {
-                                (it.marks + it.stups).filter {
-                                    when (model.isWeekDays) {
-                                        false -> true
-                                        true -> it.date in model.weekDays
-                                    }
-                                }.map { it.date }.toSet()
-                            }.sortedDate()
 
-                        var s = 0
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier.fillMaxSize().padding(padding),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Column {
-                                Row {
+                                Row(Modifier.horizontalScroll(rememberScrollState())) {
                                     FilterChip(
                                         selected = model.isWeekDays,
                                         onClick = {
@@ -245,7 +236,8 @@ fun DnevnikRuMarkContent(
                                     Spacer(Modifier.width(5.dp))
                                     (1..model.tabsCount).forEach { modle ->
                                         FilterChip(
-                                            selected = (model.tabIndex ?: 0) == modle && !model.isWeekDays,
+                                            selected = (model.tabIndex
+                                                ?: 0) == modle && !model.isWeekDays,
                                             onClick = {
                                                 component.onEvent(
                                                     DnevnikRuMarkStore.Intent.ClickOnTab(
@@ -259,33 +251,9 @@ fun DnevnikRuMarkContent(
                                     }
                                 }
                                 MarkTable(
-                                    fields = subjects.associate { it.subjectId.toString() to it.subjectName },
-                                    dateMarks = dates.associate { d ->
-                                        d to subjects.flatMap {
-                                            s =
-                                                it.subjectId; (it.marks + it.stups).filter { it.date == d }
-                                        }
-                                            .map {
-                                                println("xx: $s")
-                                                MarkTableItem(
-                                                    content = it.content,
-                                                    login = s.toString(),
-                                                    reason = it.reason,
-                                                    reportId = it.reportId,
-                                                    module = it.module,
-                                                    date = it.date,
-                                                    onClick = {
-                                                        component.studentReportDialog.onEvent(
-                                                            StudentReportDialogStore.Intent.OpenDialog(
-                                                                login = model.studentLogin,
-                                                                reportId = it
-                                                            )
-                                                        )
-                                                    }
-                                                )
-                                            }
-                                    },
-                                    nki = subjects.associate { it.subjectId.toString() to it.nki }
+                                    fields = model.tableSubjects.associate { it.subjectId.toString() to it.subjectName },
+                                    dms = model.mDateMarks,
+                                    nki = model.tableSubjects.associate { it.subjectId.toString() to it.nki }
                                 )
                             }
                         }

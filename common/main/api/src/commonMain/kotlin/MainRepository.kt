@@ -10,6 +10,8 @@ import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainHomeTasksCountResponse
 import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
+import mentoring.RFetchJournalBySubjectsReceive
+import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
 import mentoring.preAttendance.RFetchPreAttendanceDayResponse
@@ -30,6 +32,9 @@ import schedule.RPersonScheduleList
 import schedule.RScheduleList
 
 interface MainRepository {
+    suspend fun fetchJournalBySubjects(r: RFetchJournalBySubjectsReceive) : RFetchJournalBySubjectsResponse
+
+
     suspend fun openRegistrationQR(r: OpenRequestQRReceive)
     suspend fun closeRegistrationQR(r: CloseRequestQRReceive)
     suspend fun solveRegistrationRequest(r: SolveRequestReceive)

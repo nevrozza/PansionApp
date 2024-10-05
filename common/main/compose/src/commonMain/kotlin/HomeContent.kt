@@ -86,6 +86,7 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -534,7 +535,14 @@ fun TeacherHomeContent(
                                             1,
                                             2
                                         )
-                                    ) "Расписание" else "Главная"
+                                    ) {
+                                        val str = model.currentDate.second.substring(
+                                            0,
+                                            5
+                                        ).split(".")
+                                        val dayOfMonth = str[0]
+                                        "$dayOfMonth ${numToMonth[str[1].toInt()]}, ${weekPairs[model.currentDate.first]}"
+                                    } else "Главная"
                                 ) {
                                     Text(
                                         it,
@@ -543,25 +551,6 @@ fun TeacherHomeContent(
                                         fontWeight = FontWeight.Black,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                AnimatedContent(
-                                    if (isMainView) ""
-                                    else "${
-                                        model.currentDate.second.substring(
-                                            0,
-                                            5
-                                        )
-                                    }, ${weekPairs[model.currentDate.first]}"
-                                ) {
-                                    Text(
-                                        it,
-                                        modifier = Modifier.padding(start = 7.dp).offset(y = 2.dp),
-                                        fontSize = 15.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                        fontWeight = FontWeight.Bold,
-                                        lineHeight = 10.sp,
-                                        maxLines = 2, overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
@@ -918,6 +907,37 @@ private fun RaspisanieTable(
     }
 }
 
+val numToMonth = mapOf<Int, String>(
+    1 to "Января",
+    2 to "Февраля",
+    3 to "Марта",
+    4 to "Апреля",
+    5 to "Мая",
+    6 to "Июня",
+    7 to "Июля",
+    8 to "Августа",
+    9 to "Сентября",
+    10 to "Октября",
+    11 to "Ноября",
+    12 to "Декабря",
+)
+
+//when(str[1].toInt()) {
+//                                            1 -> "Января"
+//                                            2 -> "Февраля"
+//                                            3 -> "Марта"
+//                                            4 -> "Апреля"
+//                                            5 -> "Мая"
+//                                            6 -> "Июня"
+//                                            7 -> "Июля"
+//                                            8 -> "Августа"
+//                                            9 -> "Сентября"
+//                                            10 -> "Октября"
+//                                            11 -> "Ноября"
+//                                            12 -> "Декабря"
+//                                            else -> "???"
+//                                        }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StudentHomeContent(
@@ -987,8 +1007,14 @@ fun StudentHomeContent(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             println(lazyListState.firstVisibleItemIndex)
                             AnimatedContent(
-                                targetState = if (lazyListState.firstVisibleItemIndex !in (0..model.notifications.size)) "Расписание"
-                                else "Главная"
+                                targetState = if (lazyListState.firstVisibleItemIndex !in (0..model.notifications.size)) {
+                                    val str = model.currentDate.second.substring(
+                                        0,
+                                        5
+                                    ).split(".")
+                                    val dayOfMonth = str[0]
+                                    "$dayOfMonth ${numToMonth[str[1].toInt()]}, ${weekPairs[model.currentDate.first]}"
+                                } else "Главная"
                             ) {
                                 Text(
                                     it,
@@ -997,27 +1023,6 @@ fun StudentHomeContent(
                                     fontWeight = FontWeight.Black,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                            AnimatedContent(
-                                if (isMainView && component.onBackButtonPress == null && model.name == "Мария" && model.surname == "Губская" && model.praname == "Дмитриевна") "Всё получится!!!"
-                                else if (isMainView) ""
-                                else "${
-                                    model.currentDate.second.substring(
-                                        0,
-                                        5
-                                    )
-                                }, ${weekPairs[model.currentDate.first]}"
-                            ) {
-                                Text(
-                                    it,
-                                    modifier = Modifier.padding(start = 7.dp)
-                                        .offset(y = 2.dp),
-                                    fontSize = 15.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontWeight = FontWeight.Bold,
-                                    lineHeight = 10.sp,
-                                    maxLines = 2, overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -1498,6 +1503,9 @@ fun Lesson(
     journalModel: JournalStore.State?,
     isSwapped: Boolean
 ) {
+
+    val isSurnameShown = remember { mutableStateOf(false) }
+
     val firstElement =
         model.items[date]?.sortedBy { it.start.toMinutes() }?.first { it.groupId == groupId }
     val isFirst = firstElement?.start == start
@@ -1539,59 +1547,65 @@ fun Lesson(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
-                Text(buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
-                        )
-                    ) {
-                        append(title.capitalize())
-                    }
-                    withStyle(
-                        SpanStyle(
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
-                        )
-                    ) {
-                        append(" $cabinet")
-                    }
+                AnimatedContent(
+                    if (isSurnameShown.value) fio.surname else "",
+                    transitionSpec = { fadeIn().togetherWith(fadeOut()) }
+                ) { surname ->
+                    Text(buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
+                            )
+                        ) {
+                            append(title.capitalize())
+                        }
+                        withStyle(
+                            SpanStyle(
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                            )
+                        ) {
+                            append(" $cabinet")
+                        }
 
-                    withStyle(
-                        SpanStyle(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 17.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
-                        )
-                    ) {
-                        append("\n")
-                        append(group.capitalize())
-                    }
-                    withStyle(
-                        SpanStyle(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 17.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
-                        )
-                    ) {
-                        append(
-                            " ${fio.surname}${if (isSwapped) "*" else ""}"
-                        )
-                    }
-                    withStyle(
-                        SpanStyle(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
-                        )
-                    ) {
-                        append("\n")
-                        append("$start-$end")
-                    }
+                        withStyle(
+                            SpanStyle(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 17.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
+                            )
+                        ) {
+                            append("\n")
+                            append(group.capitalize())
+                        }
+                        withStyle(
+                            SpanStyle(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 17.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                            )
+                        ) {
+                            append(
+                                " ${surname}${if (isSwapped) "*" else ""}"
+                            )
+                        }
+                        withStyle(
+                            SpanStyle(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                            )
+                        ) {
+                            append("\n")
+                            append("$start-$end")
+                        }
 
-                }, lineHeight = 17.sp)
+                    }, lineHeight = 17.sp,
+                        modifier = Modifier.clickable(interactionSource = MutableInteractionSource(), indication = null) { isSurnameShown.value = !isSurnameShown.value })
+                }
             }
 
             if (role == Roles.student) {
@@ -1612,8 +1626,10 @@ fun Lesson(
                             Text(
                                 if (notNow) "$minutesOst мин."
                                 else if (!isEnded) "Начался"
-                                else "Нет оценок",
-                                lineHeight = 5.sp
+                                else "",
+                                lineHeight = 5.sp,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
                             )
                         }
                     } else if (isFirst) {

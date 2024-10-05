@@ -143,7 +143,7 @@ fun ProfileContent(
                     title = {
                         Box(modifier = Modifier.fillMaxWidth().padding(end = 10.dp)) {
                             AnimatedContent(
-                                if (!isFullHeader) model.fio.name else "Профиль",
+                                if (!isFullHeader) model.fio.name else if(model.isOwner) "Профиль" else "Просмотр",
                                 modifier = Modifier.align(Alignment.CenterStart)
                             ) {
                                 Text(
@@ -218,13 +218,14 @@ fun ProfileContent(
 //            HorizontalDivider(Modifier.width(340.dp).height(1.dp).padding(vertical = 15.dp, horizontal = 30.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = .1f))
                     }
                 }
+
                 TabRow( //Scrollable
                     selectedTabIndex = model.tabIndex,
                     containerColor = Color.Transparent
                 ) {
-                    for (i in (0..2)) {
+                    for (i in if(model.isOwner && model.isCanEdit) (0..2) else (0..1)) {
                         val text = when (i) {
-                            0 -> "Обо мне"
+                            0 ->  "Обо мне"
                             1 -> "Статистика"
                             else -> "Аватарки"
                         }
@@ -378,11 +379,14 @@ fun ProfileContent(
                                                     .clip(CardDefaults.elevatedShape)
                                                     .weight(1f)
                                                     .clickable() {
-                                                        component.onOutput(
-                                                            ProfileComponent.Output.OpenAchievements(
-                                                                model.studentLogin
+
+                                                        if (model.isOwner) {
+                                                            component.onOutput(
+                                                                ProfileComponent.Output.OpenAchievements(
+                                                                    model.studentLogin
+                                                                )
                                                             )
-                                                        )
+                                                        }
                                                     }
                                             ) {
                                                 Column(
@@ -497,7 +501,6 @@ fun ProfileContent(
                     isChecked = true,
                     modifier = Modifier.alpha(.5f)
                 ) {
-                    component.onEvent(ProfileStore.Intent.ClickOnGIASubject(subjectId = s.first, it))
                 }
             }
             items(subjects.sortedByDescending { it.first in model.giaSubjects }, key = { it.first }) { s ->
@@ -506,7 +509,15 @@ fun ProfileContent(
                     isChecked = s.first in model.giaSubjects,
                     modifier = Modifier.animateItemPlacement()
                 ) {
-                    component.onEvent(ProfileStore.Intent.ClickOnGIASubject(subjectId = s.first, it))
+
+                    if (model.isOwner && model.isCanEdit) {
+                        component.onEvent(
+                            ProfileStore.Intent.ClickOnGIASubject(
+                                subjectId = s.first,
+                                it
+                            )
+                        )
+                    }
                 }
             }
             item {

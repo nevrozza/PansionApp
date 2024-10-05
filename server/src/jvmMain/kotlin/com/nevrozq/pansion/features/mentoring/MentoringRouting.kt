@@ -47,5 +47,8 @@ fun Application.configureMentoringRouting() {
         post(RequestPaths.Mentoring.FetchMentoringStudents) {
             mentoringController.fetchStudents(call)
         }
+        post(RequestPaths.Mentoring.FetchJournalBySubjects) {
+            mentoringController.fetchJournalBySubjects(call)
+        }
     }
 }

@@ -15,6 +15,7 @@ import auth.LoginReceive
 import auth.LoginResponse
 import auth.RActivateQrTokenResponse
 import auth.RChangeAvatarIdReceive
+import auth.RChangeLogin
 import auth.RCheckConnectionResponse
 import auth.RCheckGIASubjectReceive
 import auth.RFetchAboutMeReceive
@@ -27,6 +28,7 @@ import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.forms.mapToForm
 import com.nevrozq.pansion.database.pickedGIA.PickedGIA
 import com.nevrozq.pansion.database.pickedGIA.PickedGIADTO
+import com.nevrozq.pansion.database.secondLogins.SecondLogins
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
@@ -48,6 +50,7 @@ import com.nevrozq.pansion.utils.nullUUID
 import com.nevrozq.pansion.utils.toId
 import com.nevrozq.pansion.utils.token
 import kotlinx.coroutines.delay
+import org.mindrot.jbcrypt.BCrypt
 import server.DataLength
 import server.Moderation
 import server.Roles
@@ -291,6 +294,32 @@ class AuthController {
         }
     }
 
+    suspend fun changeSecondLogin(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+
+                val r = call.receive<RChangeLogin>()
+                if (r.newLogin !in Users.fetchAll().map { it.login } + SecondLogins.fetchAllNewLogins()) {
+                    SecondLogins.change(
+                        oldLogin = call.login,
+                        newLogin = r.newLogin
+                    )
+                    call.respond(HttpStatusCode.OK)
+                } else {
+                    throw Throwable()
+                }
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't Change Login: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(
+                HttpStatusCode.Forbidden
+            )
+        }
+    }
 
     suspend fun fetchAllDevices(call: ApplicationCall) {
         if (call.isMember) {
@@ -304,7 +333,8 @@ class AuthController {
                         isThisSession = it.token.toString() == call.token
                     )
                 }
-                call.respond(RFetchAllDevicesResponse(devices))
+                val secondLogin = SecondLogins.fetchSecondLogin(call.login)
+                call.respond(RFetchAllDevicesResponse(devices, secondLogin))
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Idk ERROR FETCH DEVICES")
             } catch (e: Throwable) {
@@ -419,8 +449,8 @@ class AuthController {
 
     suspend fun activateUser(call: ApplicationCall) {
         val authReceive = call.receive<ActivationReceive>()
-
-        val loginUser = Users.fetchUser(authReceive.login)
+        val oldLogin = SecondLogins.fetchOldLogin(newLogin = authReceive.login)
+        val loginUser = Users.fetchUser(oldLogin ?: authReceive.login)
         if (authReceive.deviceId.toId() != nullUUID) {
             if (loginUser != null) {
                 if (loginUser.password != null) {
@@ -430,7 +460,7 @@ class AuthController {
 
                     try {
                         Users.activate(
-                            authReceive.login,
+                            loginUser.login,
                             authReceive.password
                         )
                     } catch (e: ExposedSQLException) {
@@ -445,7 +475,7 @@ class AuthController {
                     Tokens.insert(
                         TokenDTO(
                             deviceId = authReceive.deviceId.toId(),
-                            login = authReceive.login,
+                            login = loginUser.login,
                             token = token,
                             deviceName = authReceive.deviceName,
                             deviceType = authReceive.deviceType,
@@ -486,8 +516,8 @@ class AuthController {
 
     suspend fun checkUserActivation(call: ApplicationCall) {
         val authReceive = call.receive<CheckActivationReceive>()
-
-        val loginUser = Users.fetchUser(authReceive.login)
+        val oldLogin = SecondLogins.fetchOldLogin(newLogin = authReceive.login)
+        val loginUser = Users.fetchUser(oldLogin ?: authReceive.login)
 
         if (loginUser != null) {
             if (loginUser.password != null) {
@@ -504,7 +534,8 @@ class AuthController {
 
     suspend fun performLogin(call: ApplicationCall) {
         val receive = call.receive<LoginReceive>()
-        val userDTO = Users.fetchUser(receive.login)
+        val oldLogin = SecondLogins.fetchOldLogin(newLogin = receive.login)
+        val userDTO = Users.fetchUser( oldLogin ?: receive.login)
 
         if (userDTO == null) {
 //            call.respond(HttpStatusCode.BadRequest, "admin.users.User not found")
@@ -513,66 +544,52 @@ class AuthController {
             )
         } else {
             if (receive.deviceId.toId() != nullUUID) {
-                when (userDTO.password ?: "".cut(DataLength.passwordLength)) {
-                    receive.password -> {
-                        val token = UUID.randomUUID()
-                        Tokens.insert(
-                            TokenDTO(
-                                deviceId = receive.deviceId.toId(),
-                                login = userDTO.login,
-                                token = token,
-                                deviceName = receive.deviceName,
-                                deviceType = receive.deviceType,
-                                time = Clock.System.now()
-                                    .toLocalDateTime(TimeZone.of("UTC+3")).toString()
-                                    .cut(16)
-                            )
+                val serverPassword = userDTO.password ?: "".cut(DataLength.passwordLength)
+                val passwordToCheck = receive.password.cut(DataLength.passwordLength)
+                if ( serverPassword.isNotEmpty() && (serverPassword == passwordToCheck || BCrypt.checkpw(
+                        passwordToCheck,
+                        serverPassword
+                    ))
+                ) {
+                    val token = UUID.randomUUID()
+                    Tokens.insert(
+                        TokenDTO(
+                            deviceId = receive.deviceId.toId(),
+                            login = userDTO.login,
+                            token = token,
+                            deviceName = receive.deviceName,
+                            deviceType = receive.deviceType,
+                            time = Clock.System.now()
+                                .toLocalDateTime(TimeZone.of("UTC+3")).toString()
+                                .cut(16)
                         )
-                        //if (userDTO.isActive) {
-                        call.respond(
-                            LoginResponse(
-                                activation = ActivationResponse(
-                                    token = token.toString(),
-                                    user = UserInit(
-                                        fio = FIO(
-                                            name = userDTO.name,
-                                            surname = userDTO.surname,
-                                            praname = userDTO.praname
-                                        ),
-                                        birthday = userDTO.birthday,
-                                        role = userDTO.role,
-                                        moderation = userDTO.moderation,
-                                        isParent = userDTO.isParent
+                    )
+                    //if (userDTO.isActive) {
+                    call.respond(
+                        LoginResponse(
+                            activation = ActivationResponse(
+                                token = token.toString(),
+                                user = UserInit(
+                                    fio = FIO(
+                                        name = userDTO.name,
+                                        surname = userDTO.surname,
+                                        praname = userDTO.praname
                                     ),
-                                    login = userDTO.login
+                                    birthday = userDTO.birthday,
+                                    role = userDTO.role,
+                                    moderation = userDTO.moderation,
+                                    isParent = userDTO.isParent
                                 ),
-                                avatarId = userDTO.avatarId
-                            )
+                                login = userDTO.login
+                            ),
+                            avatarId = userDTO.avatarId
                         )
-                        //} else {
-//                            call.respond(
-//                                HttpStatusCode.Forbidden,
-//                                "Your account has been deactivated"
-//                            )
-                        //    call.respond(
-                        //        errorLogin("deactivated")
-                        //    )
-                        //}
-                    }
-
-//                    null -> {
-//                        call.respond(
-//                            HttpStatusCode.Unauthorized,
-//                            "admin.users.User wasn't authorized"
-//                        )
-//                    }
-
-                    else -> {
+                    )
+                } else {
 //                        call.respond(HttpStatusCode.BadRequest, "Invalid password")
-                        call.respond(
-                            errorLogin("password")
-                        )
-                    }
+                    call.respond(
+                        errorLogin("password")
+                    )
                 }
             } else {
                 call.respond(HttpStatusCode.BadRequest, "NullableUUID")
@@ -580,6 +597,7 @@ class AuthController {
         }
     }
 }
+
 
 private fun errorLogin(reason: String): LoginResponse {
     return LoginResponse(

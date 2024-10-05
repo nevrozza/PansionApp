@@ -282,21 +282,22 @@ fun UsersContent(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     when {
                         model.users != null -> {
+                            val users = model.users!!.filter {
+                                val isInActive =
+                                    if (!model.fInActive) it.user.fio.surname[0] != '.' else true
+                                val moder =
+                                    if (!model.fNoAdmin) it.user.moderation != Roles.nothing else true
+                                val parent =
+                                    if (!model.fParents) !it.user.isParent else true
+                                it.user.role in roles
+                                        && moder
+                                        && isInActive
+                                        && parent
+                            }
                             TableScreen(
                                 columnNames,
                                 widthsInit = widthsInit,
-                                model.users!!.filter {
-                                    val isInActive =
-                                        if (!model.fInActive) it.user.fio.surname[0] != '.' else true
-                                    val moder =
-                                        if (!model.fNoAdmin) it.user.moderation != Roles.nothing else true
-                                    val parent =
-                                        if (!model.fParents) !it.user.isParent else true
-                                    it.user.role in roles
-                                            && moder
-                                            && isInActive
-                                            && parent
-                                }.map {
+                                users.map {
                                     Pair(
                                         "${if (it.isActive) "" else "."}${it.user.fio.surname} ${it.user.fio.name}",
                                         mapOf(
@@ -325,21 +326,21 @@ fun UsersContent(
                                 onEditClick = {
 //password = model.users!![it].password,
                                     val userForEditing = User(
-                                        login = model.users!![it].login,
+                                        login = users[it].login,
                                         user = UserInit(
                                             fio = FIO(
-                                                name = model.users!![it].user.fio.name,
-                                                surname = model.users!![it].user.fio.surname,
-                                                praname = model.users!![it].user.fio.praname
+                                                name = users[it].user.fio.name,
+                                                surname = users[it].user.fio.surname,
+                                                praname = users[it].user.fio.praname
                                             ),
-                                            birthday = model.users!![it].user.birthday,
-                                            role = model.users!![it].user.role,
-                                            moderation = model.users!![it].user.moderation,
-                                            isParent = model.users!![it].user.isParent
+                                            birthday = users[it].user.birthday,
+                                            role = users[it].user.role,
+                                            moderation = users[it].user.moderation,
+                                            isParent = users[it].user.isParent
                                         ),
-                                        avatarId = model.users!![it].avatarId,
-                                        isProtected = model.users!![it].isProtected,
-                                        isActive = model.users!![it].isActive
+                                        avatarId = users[it].avatarId,
+                                        isProtected = users[it].isProtected,
+                                        isActive = users[it].isActive
                                     )
                                     component.onEvent(
                                         UsersStore.Intent.OpenEditingSheet(

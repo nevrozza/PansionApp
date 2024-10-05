@@ -14,6 +14,8 @@ import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainHomeTasksCountResponse
 import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
+import mentoring.RFetchJournalBySubjectsReceive
+import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
 import mentoring.preAttendance.RFetchPreAttendanceDayResponse
@@ -41,6 +43,10 @@ import schedule.RScheduleList
 class MainRepositoryImpl(
     private val remoteDataSource: KtorMainRemoteDataSource
 ) : MainRepository {
+    override suspend fun fetchJournalBySubjects(r: RFetchJournalBySubjectsReceive): RFetchJournalBySubjectsResponse {
+        return remoteDataSource.fetchJournalBySubjects(r)
+    }
+
     override suspend fun openRegistrationQR(r: OpenRequestQRReceive) {
         remoteDataSource.openRegistrationQR(r)
     }

@@ -156,7 +156,7 @@ fun getDeviceName(): String {
         else -> ""
     } + deviceName
 
-    return deviceName
+    return deviceName + " JS"
 }
 
 fun getOrCreateDeviceUUID(): String {

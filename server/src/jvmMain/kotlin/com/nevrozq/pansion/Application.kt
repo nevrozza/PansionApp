@@ -27,6 +27,7 @@ import com.nevrozq.pansion.database.ratingTable.RatingYear2Table
 import com.nevrozq.pansion.database.ratingTable.updateRatings
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.schedule.Schedule
+import com.nevrozq.pansion.database.secondLogins.SecondLogins
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.subjects.Subjects
@@ -71,8 +72,6 @@ import server.getSixTime
 import java.io.File
 import java.io.FileInputStream
 import java.security.KeyStore
-import javax.security.auth.x500.X500Principal
-import kotlin.time.Duration
 
 // app: учителя,3333
 // server: типы уроков(айди, название, какие типы включает другие типы), классы (номер, направление), кабинеты
@@ -119,7 +118,8 @@ fun main() {
             CheckedNotifications,
             Parents,
             PickedGIA,
-            DeviceBinds
+            DeviceBinds,
+            SecondLogins
         )
 
     }
@@ -136,19 +136,20 @@ fun main() {
 
     embeddedServer(
         factory = Netty,
-        environment = applicationEnvironment {
-            log = LoggerFactory.getLogger("ktor.application")
-        },
-        configure = {
-            configureSSLConnectors(
-                host = "localHost",
-                sslPort = https_port.toString(),
-                sslKeyStorePath = "build/keystore.jks",
-                sslPrivateKeyPassword = sslPass,
-                sslKeyStorePassword = sslPass,
-                sslKeyAlias = sslAlias
-            )
-        },
+        port = h_port,
+//        environment = applicationEnvironment {
+//            log = LoggerFactory.getLogger("ktor.application")
+//        },
+//        configure = {
+//            configureSSLConnectors(
+//                host = "0.0.0.0",
+//                sslPort = https_port.toString(),
+//                sslKeyStorePath = "keystore.jks",
+//                sslPrivateKeyPassword = sslPass,
+//                sslKeyStorePassword = sslPass,
+//                sslKeyAlias = sslAlias
+//            )
+//        },
         module = Application::module
     )
         .start(wait = true)
@@ -191,6 +192,10 @@ fun ApplicationEngine.Configuration.configureSSLConnectors(
         }
     }
 
+    connector {
+        this.port = h_port
+    }
+
     sslConnector(
         keyStore,
         sslKeyAlias,
@@ -207,7 +212,7 @@ fun Application.module() {
     configureSerialization()
     configureRouting()
     configureCORS()
-    configureHttpsRedirect()
+    //configureHttpsRedirect()
     configureRegisterRouting()
     configureActivationRouting()
     configureLessonsRouting()

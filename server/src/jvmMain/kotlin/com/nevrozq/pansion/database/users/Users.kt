@@ -8,12 +8,13 @@ import admin.users.UserInit
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.mindrot.jbcrypt.BCrypt
 import server.DataLength
 import server.cut
 
 object Users : Table() {
     val login = Users.varchar("login", 30).uniqueIndex()
-    private val password = Users.varchar("password", 50).nullable()
+    private val password = Users.varchar("password", 70).nullable()
     val name = Users.varchar("name", 30)
     val surname = Users.varchar("surname", 50)
     val praname = Users.varchar("praname", 30).nullable()
@@ -43,12 +44,10 @@ object Users : Table() {
     }
 
     fun activate(login: String, password: String) {
-        println(password)
-        println(password.length)
         try {
             transaction {
                 Users.update({ Users.login eq login }) {
-                    it[Users.password] = password.cut(DataLength.passwordLength)
+                    it[Users.password] = BCrypt.hashpw(password.cut(DataLength.passwordLength), BCrypt.gensalt())
                 }
                 println(Users.selectAll().map { it[Users.password] })
             }

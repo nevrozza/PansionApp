@@ -100,6 +100,20 @@ object StudentGroups : Table() {
             }
         }
     }
+    fun fetchGroupsOfStudents(logins: List<String>): List<GroupDTO> {
+        return transaction {
+            val was = mutableListOf<GroupDTO>()
+            StudentGroups.select { StudentGroups.studentLogin inList logins }.mapNotNull {
+                val groupId =
+                    it[StudentGroups.groupId]
+                val group = Groups.getGroupById(groupId)
+                if (group != null && group !in was) {
+                    was.add(group)
+                    group
+                } else null
+            }
+        }
+    }
 
     fun fetchGroupsOfStudent(studentLogin: String): List<GroupDTO> {
         return transaction {
@@ -134,6 +148,7 @@ object StudentGroups : Table() {
 
     fun fetchStudentsOfGroup(groupId: Int): List<Person> {
         return transaction {
+
             StudentGroups.select { StudentGroups.groupId eq groupId }.map { group ->
                 val user = Users.fetchUser(group[studentLogin])
                 Person(

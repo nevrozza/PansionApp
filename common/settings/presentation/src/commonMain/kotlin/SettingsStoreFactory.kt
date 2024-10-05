@@ -5,6 +5,7 @@ import SettingsStore.Intent
 import SettingsStore.Label
 import SettingsStore.State
 import SettingsStore.Message
+import components.cAlertDialog.CAlertDialogComponent
 import components.listDialog.ListComponent
 import components.networkInterface.NetworkInterface
 
@@ -13,7 +14,8 @@ class SettingsStoreFactory(
     private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository,
     private val colorModeListComponent: ListComponent,
-    private val nDevicesInterface: NetworkInterface
+    private val nDevicesInterface: NetworkInterface,
+    private val changeLoginDialog: CAlertDialogComponent
 ) {
 
     fun create(): SettingsStore {
@@ -31,7 +33,8 @@ class SettingsStoreFactory(
                 settingsRepository = settingsRepository,
                 authRepository = authRepository,
                 colorModeListComponent = colorModeListComponent,
-                nDevicesInterface = nDevicesInterface
+                nDevicesInterface = nDevicesInterface,
+                changeLoginDialog = changeLoginDialog
             ) },
             reducer = SettingsReducer
         )

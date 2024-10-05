@@ -724,41 +724,51 @@ fun MultiPaneMentoring(
     mentoringComponent: MentoringComponent?,
     rootComponent: RootComponent?
 ) {
-    MultiPaneSplit(
-        isExpanded = isExpanded,
-        viewManager = viewManager,
-        currentScreen = {
-            if (rootComponent == null && mentoringComponent != null) MentoringContent(
-                mentoringComponent
+    val model = mentoringComponent?.model?.subscribeAsState()
+    Crossfade (model?.value?.isTableView ?: false) { cfState ->
+        if (cfState) {
+            MentoringContent(
+                mentoringComponent!!
             )
-            else if (rootComponent != null) Box {
-                val model by mentoringComponent!!.model.subscribeAsState()
-                val fio = model.students.firstOrNull { it.login == model.chosenLogin }?.fio
-                Column {
-                    Spacer(Modifier.height(10.dp))
-                    RootContent(rootComponent)
+        } else {
+            MultiPaneSplit(
+                isExpanded = isExpanded,
+                viewManager = viewManager,
+                currentScreen = {
+                    if (rootComponent == null && mentoringComponent != null) MentoringContent(
+                        mentoringComponent
+                    )
+                    else if (rootComponent != null) Box {
+                        val model by mentoringComponent!!.model.subscribeAsState()
+                        val fio = model.students.firstOrNull { it.login == model.chosenLogin }?.fio
+                        Column {
+                            Spacer(Modifier.height(10.dp))
+                            RootContent(rootComponent)
+                        }
+                        Box(
+                            Modifier.fillMaxWidth().padding(top = viewManager.topPadding),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("${fio?.surname} ${fio?.name}")
+                        }
+                    }
+                    else Text("IDK")
+                },
+                firstScreen = {
+                    if (mentoringComponent != null) MentoringContent(mentoringComponent) else Text(
+                        "IDK"
+                    )
+                },
+                secondScreen = {
+                    if (rootComponent == null) Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) { Text("Выберите ученика") } else RootContent(rootComponent)
                 }
-                Box(
-                    Modifier.fillMaxWidth().padding(top = viewManager.topPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("${fio?.surname} ${fio?.name}")
-                }
-            }
-            else Text("IDK")
-        },
-        firstScreen = {
-            if (mentoringComponent != null) MentoringContent(mentoringComponent) else Text(
-                "IDK"
             )
-        },
-        secondScreen = {
-            if (rootComponent == null) Box(
-                Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) { Text("Выберите ученика") } else RootContent(rootComponent)
         }
-    )
+    }
+
 }
 
 

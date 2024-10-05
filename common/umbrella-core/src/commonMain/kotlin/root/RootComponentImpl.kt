@@ -167,7 +167,11 @@ class RootComponentImpl(
     }
 
     private fun getFirstScreen(): Config {
-        return firstScreen
+        // FIX WEB Uncaught (in promise) IllegalStateException: Configurations must be unique: [AuthActivation, AuthActivation]
+        if ( stack != null && stack.value.active.configuration == Config.AuthActivation) {
+            navigation.replaceAll()
+        }
+        return  firstScreen
 //        (
 //            login = secondLogin,
 //            fio = secondFIO!!,
@@ -479,7 +483,9 @@ class RootComponentImpl(
                     output = ::onHomeProfileOutput,
                     changeAvatarOnMain = {
                         mainHomeComponent?.onEvent(HomeStore.Intent.UpdateAvatarId(it))
-                    }
+                    },
+                    isOwner = config.isOwner,
+                    isCanEdit = config.isCanEdit
                 )
             )
 
@@ -736,7 +742,13 @@ class RootComponentImpl(
     private fun onRatingOutput(output: RatingComponent.Output): Unit =
         when (output) {
             RatingComponent.Output.NavigateToSettings -> navigation.bringToFront(Config.HomeSettings)
-
+            is RatingComponent.Output.NavigateToProfile -> navigation.bringToFront(Config.HomeProfile(
+                studentLogin = output.studentLogin,
+                fio = output.fio,
+                avatarId = output.avatarId,
+                isOwner = false,
+                isCanEdit = false
+            ))
         }
 
     private fun onJournalOutput(output: JournalComponent.Output): Unit =
@@ -822,7 +834,9 @@ class RootComponentImpl(
                 Config.HomeProfile(
                     studentLogin = output.studentLogin,
                     fio = output.fio,
-                    avatarId = output.avatarId
+                    avatarId = output.avatarId,
+                    isOwner = true,
+                    isCanEdit = secondLogin == null
                 )
             )
 

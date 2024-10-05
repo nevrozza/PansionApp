@@ -578,7 +578,7 @@ class ReportsController() {
                     StudentLines.fetchStudentLinesByLoginAndGroup(
                         login = s.login,
                         groupId = r.groupId
-                    ).filter { it.attended != null }.map { x ->
+                    ).filter { it.attended != null && it.attended != "0" }.map { x ->
                         nki.add(StudentNka(x.date, x.attended == "2"))
                     }
                     println(nki)
@@ -820,7 +820,7 @@ class ReportsController() {
                             nki = StudentLines.fetchStudentLinesByLoginAndGroup(
                                 login = r.login,
                                 groupId = groupIds[s.id] ?: 0
-                            ).mapNotNull { if(it.attended != null) StudentNka(date = it.date, isUv = it.attended == "2") else null}
+                            ).mapNotNull { if(it.attended !in listOf(null, "0")) StudentNka(date = it.date, isUv = it.attended == "2") else null}
                         )
                     )
                 }
@@ -1079,10 +1079,10 @@ class ReportsController() {
                 if (call.isMentor) {
                     val forms = Forms.fetchMentorForms(call.login)
                     val students = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
-                    groups += StudentGroups.fetchGroupIdsOfStudents(students.map { it.login })
+                    groups += StudentGroups.fetchGroupIdsOfStudents(students.map { it })
                 }
                 if (call.isModer) {
-                    groups += headersNo.map { it.id }
+                    groups += headersNo.map { it.groupId }
                 }
 
                 headers = headers.filter { it.groupId in groups.map { it } }

@@ -6,6 +6,7 @@ import allGroupMarks.AllGroupMarksStore
 import allGroupMarks.DatesFilter
 import allGroupMarks.getDF
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
+import components.MarkTableItem
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
@@ -14,11 +15,16 @@ import dnevnikRuMarks.DnevnikRuMarkStore.Label
 import dnevnikRuMarks.DnevnikRuMarkStore.State
 import dnevnikRuMarks.DnevnikRuMarkStore.Message
 import kotlinx.coroutines.launch
+import report.DnevnikRuMarksSubject
+import server.sortedDate
+import studentReportDialog.StudentReportComponent
+import studentReportDialog.StudentReportDialogStore
 
 class DnevnikRuMarkExecutor(
     private val journalRepository: JournalRepository,
     private val nInterface: NetworkInterface,
-    private val stupsDialogComponent: CAlertDialogComponent
+    private val stupsDialogComponent: CAlertDialogComponent,
+    private val studentReportDialog: StudentReportComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -42,10 +48,57 @@ class DnevnikRuMarkExecutor(
 
             is Intent.ChangeTableView -> dispatch(Message.TableViewChanged(intent.isTableView))
 
-            Intent.OpenWeek -> dispatch(Message.WeekOpened)
+            Intent.OpenWeek -> {
+                dispatch(Message.WeekOpened)
+                updateMarkTable()
+            }
         }
     }
 
+    private fun updateMarkTable() {
+        val subjects: List<DnevnikRuMarksSubject> = if (!state().isWeekDays) {
+            state().subjects[(state().tabIndex ?: 0)] ?: listOf<DnevnikRuMarksSubject>()
+        } else state().subjects.flatMap { it.value }
+        val dates =
+            subjects.flatMap {
+                (it.marks + it.stups).filter {
+                    when (state().isWeekDays) {
+                        false -> true
+                        true -> it.date in state().weekDays
+                    }
+                }.map { it.date }.toSet()
+            }.toSet().toList().sortedDate()
+        val dm: MutableMap<String, MutableList<MarkTableItem>> =  mutableMapOf()
+        dates.forEach { d ->
+            subjects.forEach { s ->
+                val nd = (dm[d] ?: mutableListOf())
+                nd.addAll((s.marks + s.stups).filter { it.date == d }.map {
+                    MarkTableItem(
+                        content = it.content,
+                        login = s.subjectId.toString(),
+                        reason = it.reason,
+                        reportId = it.reportId,
+                        module = it.module,
+                        date = it.date,
+                        onClick = { reportId ->
+                            studentReportDialog.onEvent(
+                                StudentReportDialogStore.Intent.OpenDialog(
+                                    login = state().studentLogin,
+                                    reportId = reportId
+                                )
+                            )
+                        }
+                    )
+                })
+                dm[d] = nd
+            }
+        }
+        dispatch(Message.MarksTableUpdated(
+            tableSubjects = subjects,
+            mDates = dates,
+            mDateMarks = dm
+        ))
+    }
 
     private fun fetchSubjects() {
         scope.launch {
@@ -54,6 +107,8 @@ class DnevnikRuMarkExecutor(
                 val subjects = journalRepository.fetchDnevnikRuMarks(state().studentLogin, quartersNum = state().tabIndex!!.toString(), isQuarters = state().isQuarters!!).subjects
                 dispatch(Message.SubjectsUpdated(subjects))
                 nInterface.nSuccess()
+
+                updateMarkTable()
             } catch (_: Throwable) {
                 nInterface.nError("Не удалось загрузить список оценок") {
                     fetchSubjects()

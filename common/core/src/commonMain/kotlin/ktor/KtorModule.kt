@@ -2,6 +2,7 @@ package ktor
 
 import AuthRepository
 import RequestPaths
+import deviceType
 import di.Inject
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -30,6 +31,7 @@ import kotlinx.serialization.json.JsonBuilder
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.singleton
+import server.DeviceTypex
 
 internal val ktorModule = DI.Module("ktorModule") {
     bind<HttpClient>() with singleton {
@@ -60,7 +62,7 @@ internal val ktorModule = DI.Module("ktorModule") {
 //                accept(ContentType.Application.Json)
 //                header("Access-Control-Allow-Origin", true)
                 url {
-                    protocol = URLProtocol.HTTPS
+                    protocol = if (deviceType != DeviceTypex.web) URLProtocol.HTTP else URLProtocol.HTTPS
                     host = RequestPaths.ip //127.0.0.1:8081 //192.168.137.1
                 }
             }

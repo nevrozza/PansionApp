@@ -71,6 +71,7 @@ import report.UserMarkPlus
 import server.cut
 import server.fetchReason
 import server.getDate
+import server.getLocalDate
 import server.getSixTime
 import server.roundTo
 import server.toMinutes
@@ -78,19 +79,7 @@ import view.blend
 import view.handy
 import kotlin.math.roundToInt
 
-data class MarkTableItem(
-    val content: String,
-    val login: String,
-    val reason: String,
-    val reportId: Int,
-    val module: String,
-    val date: String? = null,
-    val deployDate: String? = null,
-    val deployTime: String? = null,
-    val deployLogin: String? = null,
-    val isTransparent: Boolean = false,
-    val onClick: (reportId: Int) -> Unit
-)
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,9 +121,25 @@ fun MarkTableUnit(m: MarkTableItem, markSize: Dp) {
 @Composable
 fun MarkTable(
     fields: Map<String, String>,
-    dateMarks: Map<String, List<MarkTableItem>>,
+    dms: Map<String, List<MarkTableItem>>,
     nki: Map<String, List<StudentNka>>? = null
 ) {
+    var dateMarks = dms.toMutableMap()
+    nki?.forEach { n ->
+        println("nnik: ${n}")
+        n.value.forEach { d ->
+            println("xxxi: ${d.date}")
+            if (dateMarks[d.date] == null) {
+                println("xxxik: ${d.date}")
+                dateMarks[d.date] = listOf()
+            }
+        }
+    }
+    dateMarks = dateMarks.toList().sortedBy {
+        println("xx: ${it.first}")
+        getLocalDate(it.first).toEpochDays()
+    }.toMap().toMutableMap()
+
     val vScrollState = rememberLazyListState()
     val hScrollState = rememberScrollState()
 
@@ -160,7 +165,7 @@ fun MarkTable(
             Row() {//modifier = Modifier.horizontalScroll(hhScrollState)
 //            Divider(Modifier.height(allHeight.value).width(1.dp))
                 Spacer(Modifier.width(lP))
-                dateMarks.onEachIndexed { i, (date, marks) ->
+                (dateMarks).onEachIndexed { i, (date, marks) ->
                     if (i != dateMarks.size - 1) {
                         val width: Dp = max(marks.size * markSize, minWidth)
                         Spacer(Modifier.width(width))

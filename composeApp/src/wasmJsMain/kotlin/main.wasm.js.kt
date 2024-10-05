@@ -46,6 +46,7 @@ import kotlin.random.Random
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class
 )
 fun main() {
+
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
@@ -72,12 +73,6 @@ fun main() {
     //CanvasBasedWindow
     ComposeViewport(
         viewportContainerId = "composeApp",
-//            applyDefaultStyles = false,
-//        requestResize = {
-//            val width = window.innerWidth + ((371 / 1482.0f) * window.innerWidth).toInt()
-//            val height = window.innerHeight + ((190 / 760.0f) * window.innerHeight).toInt()
-//            IntSize(width, height)
-//        }
     ) {
         val settingsRepository: SettingsRepository = Inject.instance()
         val rgb = settingsRepository.fetchSeedColor().toRGB()
@@ -140,7 +135,7 @@ fun getDeviceName(): String {
         else -> ""
     } + deviceName
 
-    return deviceName
+    return deviceName + " WASM"
 }
 
 fun getOrCreateDeviceUUID(): String {

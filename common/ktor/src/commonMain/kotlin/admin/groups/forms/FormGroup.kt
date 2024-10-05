@@ -15,3 +15,10 @@ data class CutedGroup(
     val groupName: String,
     val isActive: Boolean
 )
+
+@Serializable
+data class CutedGroupViaSubject(
+    val groupId: Int,
+    val groupName: String,
+    val subjectId: Int
+)

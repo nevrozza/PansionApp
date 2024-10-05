@@ -1,4 +1,9 @@
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import forks.splitPane.dSplitter
 import androidx.compose.foundation.layout.Box
@@ -42,6 +47,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,16 +55,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.AnimatedCommonButton
 import components.AppBar
 import components.BottomThemePanel
 import components.CustomTextButton
+import components.CustomTextField
 import components.ThemePreview
 import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListDialogStore
@@ -74,6 +88,7 @@ import qr.QRComponent
 import server.DeviceTypex
 import view.LocalViewManager
 import view.ViewManager
+import view.handy
 
 
 @ExperimentalSplitPaneApi
@@ -110,7 +125,7 @@ fun SettingsContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SettingsView(
     component: SettingsComponent,
@@ -168,14 +183,28 @@ fun SettingsView(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)
                     .imePadding()
             ) {
-                Text(
-                    model.login,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 30.sp,
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    Modifier.fillMaxWidth()
                         .padding(top = (8 * 5).dp, bottom = (8 * 6).dp),
-                    textAlign = TextAlign.Center
-                )
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AnimatedContent(model.secondLogin ?: model.login,
+                        transitionSpec = { fadeIn().togetherWith(fadeOut()) }) {
+                        Text(
+                            it,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 30.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    CustomTextButton(
+                        text = "Сменить логин",
+                        modifier = Modifier.handy()
+                    ) {
+                        component.changeLoginDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                    }
+                }
                 Text("Персонализация", fontSize = 23.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(7.dp))
                 Row(
@@ -232,7 +261,7 @@ fun SettingsView(
                 ) {
                     Text("Устройства", fontSize = 23.sp, fontWeight = FontWeight.Black)
                     IconButton(
-                        onClick = {component.onOutput(SettingsComponent.Output.GoToScanner)}
+                        onClick = { component.onOutput(SettingsComponent.Output.GoToScanner) }
                     ) {
                         Icon(
                             Icons.Rounded.QrCodeScanner, null
@@ -257,8 +286,17 @@ fun SettingsView(
                 AnimatedVisibility(model.deviceList.isNotEmpty()) {
                     Column {
                         model.deviceList.forEach { device ->
-                            Surface(Modifier.fillMaxWidth(), tonalElevation = 4.dp, shape = RoundedCornerShape(15.dp)) {
-                                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Surface(
+                                Modifier.fillMaxWidth(),
+                                tonalElevation = 4.dp,
+                                shape = RoundedCornerShape(15.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .padding(vertical = 4.dp, horizontal = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
                                             when (device.deviceType) {
@@ -292,7 +330,11 @@ fun SettingsView(
                                         text = if (device.isThisSession) "Данное\nустройство" else "Завершить\nсессию"
                                     ) {
                                         if (!device.isThisSession) {
-                                            component.onEvent(SettingsStore.Intent.TerminateDevice(device.deviceId))
+                                            component.onEvent(
+                                                SettingsStore.Intent.TerminateDevice(
+                                                    device.deviceId
+                                                )
+                                            )
                                         }
                                     }
                                 }
@@ -367,6 +409,56 @@ fun SettingsView(
             component = component.colorModeListComponent,
             title = "Цветовой режим"
         )
+
+
+        CAlertDialogContent(
+            component = component.changeLoginDialog
+        ) {
+            val loginNModel by component.changeLoginDialog.nModel.subscribeAsState()
+            val isButtonEnabled =
+                (loginNModel.state == NetworkState.None) && (model.secondLogin != model.eSecondLogin)
+            Column(Modifier.padding(6.dp)) {
+                Text(
+                    "Смена логина", fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp, modifier = Modifier.padding(start = 5.dp)
+                )
+                Spacer(Modifier.height(5.dp))
+                CustomTextField(
+                    value = model.eSecondLogin,
+                    onValueChange = {
+                        component.onEvent(
+                            SettingsStore.Intent.ESecondLogin(
+                                it
+                            )
+                        )
+                    },
+                    text = "Новый логин",
+                    supText = "Кириллицу можно! макс 30",
+                    isEnabled = loginNModel.state == NetworkState.None,
+                    imeAction = ImeAction.Done,
+                    onEnterClicked = {
+                        if (isButtonEnabled) {
+                            component.onEvent(SettingsStore.Intent.SaveSecondLogin)
+                        }
+                    },
+                    isMoveUpLocked = true,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Text
+                )
+
+                Spacer(Modifier.height(7.dp))
+                AnimatedCommonButton(
+                    text = "Сменить",
+                    isEnabled = isButtonEnabled,
+                    modifier = Modifier.width(TextFieldDefaults.MinWidth)
+                ) {
+                    if (isButtonEnabled) {
+                        component.onEvent(SettingsStore.Intent.SaveSecondLogin)
+                    }
+                }
+            }
+
+        }
     }
 }
 

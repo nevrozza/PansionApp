@@ -17,6 +17,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -241,11 +242,11 @@ fun AllGroupMarksContent(
                             Crossfade(model.isTableView) { crossfadeState ->
                                 if (crossfadeState) {
                                     Box(
-                                        Modifier.fillMaxSize(),
+                                        Modifier.fillMaxSize().padding(padding),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Column {
-                                            Row {
+                                            Row(Modifier.horizontalScroll(rememberScrollState())) {
                                                 FilterChip(
                                                     selected = model.dateFilter is DatesFilter.Week,
                                                     onClick = {
@@ -286,7 +287,7 @@ fun AllGroupMarksContent(
                                                 }
                                             MarkTable(
                                                 fields = students.associate { it.login to it.shortFIO },
-                                                dateMarks = filteredDates.associate { y ->
+                                                dms = filteredDates.associate { y ->
                                                     y.date
                                                         .toString() to (students.flatMap { x ->
                                                         (x.marks + x.stups).filter { it.mark.date == y.date }

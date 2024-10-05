@@ -2,6 +2,7 @@ import com.arkivanov.decompose.Cancellation
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.rx.Disposable
 import com.arkivanov.mvikotlin.core.store.Store
+import server.DeviceTypex
 
 fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
     object : Value<T>() {
@@ -22,7 +23,7 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
         }
     }
 
-val applicationVersion = 0
+val applicationVersion = 1
 
 
 var heightVal = 0

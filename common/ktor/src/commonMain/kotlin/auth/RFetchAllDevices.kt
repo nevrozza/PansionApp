@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RFetchAllDevicesResponse(
-    val tokens: List<Device>
+    val tokens: List<Device>,
+    val secondLogin: String?
 )
 
 @Serializable
