@@ -1,8 +1,8 @@
 import server.DeviceTypex
 
 object RequestPaths {
-    val ip = "0.0.0.0:8080"// "pansionapp-test-server.ru:${ if (deviceType != DeviceTypex.web) 8080 else 8443}"//"109.172.88.2:8443"//""//"192.168.0.107:8081"
-
+    val ip = "pansionapp-test-server.ru:${ if (deviceType != DeviceTypex.web) 8080 else 8443}"//"109.172.88.2:8443"//""//"192.168.0.107:8081"
+//"0.0.0.0:8080"
     object Parents {
         const val FetchParents = "server/admin/parents/fetch"
         const val UpdateParent = "server/admin/parents/update"

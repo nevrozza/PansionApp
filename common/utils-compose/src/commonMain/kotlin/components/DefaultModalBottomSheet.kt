@@ -30,7 +30,7 @@ fun DefaultModalBottomSheet(
             onDismissRequest()
         },
         sheetState = modalBottomSheetState,
-        windowInsets = WindowInsets.ime
+        contentWindowInsets = { WindowInsets.ime }
 
     ) {
         Box(

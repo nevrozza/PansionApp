@@ -23,7 +23,7 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
         }
     }
 
-val applicationVersion = 1
+val applicationVersion = 2
 
 
 var heightVal = 0

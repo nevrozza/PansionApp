@@ -263,14 +263,14 @@ android {
         applicationId = "com.nevrozq.pansion.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.02"
     }
     buildFeatures {
         compose = true
     }
     compose {
-        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0"
+        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.20"
     }
 //    composeOptions {
 //        kotlinCompilerExtensionVersion = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0-RC2"
@@ -316,7 +316,7 @@ compose.desktop {
             )
 
             packageName = "PansionApp"
-            packageVersion = "1.0.01"
+            packageVersion = "1.0.02"
             windows {
                 menuGroup = "PansionApp"
                 upgradeUuid = "f11ae455-b203-4ff9-9a63-e28e6d7a4bdf"

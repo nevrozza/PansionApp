@@ -351,7 +351,10 @@ fun ProfileContent(
                                                             Spacer(Modifier.height(2.dp))
                                                             Text(
                                                                 "${model.form!!.form.classNum}${if (model.form!!.form.title.length > 1) " " else "-"}${model.form!!.form.title} ${if (model.form!!.form.shortTitle.length > 1) "(${model.form!!.form.shortTitle})" else ""}",
-                                                                maxLines = 1
+                                                                maxLines = 1,
+                                                                modifier = Modifier.horizontalScroll(
+                                                                    rememberScrollState()
+                                                                )
                                                             )
                                                             Spacer(Modifier.height(2.dp))
                                                             val mentorName =

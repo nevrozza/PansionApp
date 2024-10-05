@@ -12,13 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.SoftKeyboardInterceptionModifierNode
-import androidx.compose.ui.platform.LocalPlatformTextInputMethodOverride
-import androidx.compose.ui.platform.SoftwareKeyboardController
-import androidx.compose.ui.text.input.PlatformTextInputService
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
