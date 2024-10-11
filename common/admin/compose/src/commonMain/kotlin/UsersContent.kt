@@ -838,7 +838,6 @@ private fun editUserSheet(
                     Spacer(Modifier.height(10.dp))
 
                 }
-                item { Spacer(Modifier.height(height = heightVal.dp/2)) }
             }
 
 
@@ -1363,7 +1362,6 @@ private fun createUserSheet(
                         Spacer(Modifier.height(10.dp))
 
                     }
-                    item {Spacer(Modifier.height(height = heightVal.dp/2))}
                 }
             }
         } else {

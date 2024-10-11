@@ -553,7 +553,6 @@ fun LessonReportContent(
                             }
                         }
                     }
-                    Spacer(Modifier.height(height = heightVal.dp/2))
                 }
             }
         }

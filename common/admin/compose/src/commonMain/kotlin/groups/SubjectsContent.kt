@@ -69,7 +69,6 @@ import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import groups.subjects.SubjectsComponent
 import groups.subjects.SubjectsStore
-import heightVal
 import kotlinx.coroutines.CoroutineScope
 import view.LocalViewManager
 
@@ -468,7 +467,6 @@ fun SubjectsContent(
                     }
                 }
                 Spacer(Modifier.height(10.dp))
-                Spacer(Modifier.height(height = heightVal.dp/2))
             }
         }
     }

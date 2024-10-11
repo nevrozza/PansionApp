@@ -263,8 +263,8 @@ android {
         applicationId = "com.nevrozq.pansion.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.0.02"
+        versionCode = 3
+        versionName = "1.0.03"
     }
     buildFeatures {
         compose = true
@@ -316,7 +316,7 @@ compose.desktop {
             )
 
             packageName = "PansionApp"
-            packageVersion = "1.0.02"
+            packageVersion = "1.0.03"
             windows {
                 menuGroup = "PansionApp"
                 upgradeUuid = "f11ae455-b203-4ff9-9a63-e28e6d7a4bdf"
