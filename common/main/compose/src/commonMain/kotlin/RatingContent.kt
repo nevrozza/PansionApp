@@ -1,3 +1,4 @@
+import achievements.HomeAchievementsComponent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.StarOutline
@@ -67,6 +69,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -114,6 +117,8 @@ fun RatingContent(
         nModel.state == NetworkState.Loading,
         { component.onEvent(RatingStore.Intent.Init) })
 
+    val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
+
     Scaffold(
         Modifier.fillMaxSize(),
         topBar = {
@@ -122,7 +127,7 @@ fun RatingContent(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "Рейтинг",
-                            modifier = Modifier.padding(start = 10.dp),
+                            modifier = Modifier.padding(start = if (isExpanded) 10.dp else 0.dp),
                             fontSize = 25.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,
@@ -139,6 +144,17 @@ fun RatingContent(
                         )
                     }
 
+                },
+                navigationRow = {
+                    if (!isExpanded) {
+                        IconButton(
+                            onClick = { component.onOutput(RatingComponent.Output.Back) }
+                        ) {
+                            Icon(
+                                Icons.Rounded.ArrowBackIosNew, null
+                            )
+                        }
+                    }
                 },
                 actionRow = {
                     IconButton(
@@ -378,7 +394,8 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false,
                     Text(
                         text = item.top.toString(),
                         fontSize = 25.sp,
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic
                     )
                 }
             }

@@ -10,6 +10,9 @@ import homework.RFetchReportHomeTasksResponse
 import homework.RFetchTasksInitReceive
 import homework.RFetchTasksInitResponse
 import homework.RSaveReportHomeTasksReceive
+import rating.RFetchFormRatingReceive
+import rating.RFetchFormRatingResponse
+import rating.RFetchFormsForFormResponse
 import report.RFetchAllGroupMarksResponse
 import report.RFetchDetailedStupsResponse
 import report.RFetchDnevnikRuMarksResponse
@@ -24,6 +27,10 @@ import report.RIsQuartersResponse
 import report.RUpdateReportReceive
 
 interface JournalRepository {
+
+    suspend fun fetchFormRating(r: RFetchFormRatingReceive) : RFetchFormRatingResponse
+
+    suspend fun fetchFormsForFormRating() : RFetchFormsForFormResponse
 
     suspend fun fetchAchievementsForStudent(r: RFetchAchievementsForStudentReceive) : RFetchAchievementsResponse
     suspend fun fetchStudentLines(r: RFetchStudentLinesReceive) : RFetchStudentLinesResponse

@@ -21,6 +21,7 @@ import report.StudentNka
 import root.RootComponent
 import server.getCurrentDate
 import server.getDates
+import server.getPreviousWeekDays
 import server.getWeekDays
 
 
@@ -52,6 +53,7 @@ interface MentoringStore : Store<Intent, State, Label> {
         val isTableView: Boolean = false,
         val formsForSummary: List<Int> = emptyList(),
         val weekDays: List<String> = getWeekDays(),
+        val previousWeekDays: List<String> = getPreviousWeekDays(),
         val dateFilter: DatesFilter = DatesFilter.Week,
 
         val allSubjects: Map<Int, String> = emptyMap(),

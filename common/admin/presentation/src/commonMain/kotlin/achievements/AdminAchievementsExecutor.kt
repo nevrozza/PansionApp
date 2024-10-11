@@ -90,6 +90,7 @@ class AdminAchievementsExecutor(
             Intent.CreateAchievement -> createAchievement()
             Intent.EditAchievement -> editAchievement()
             Intent.UpdateGroupAchievement -> updateGroupAchievement()
+            Intent.DeleteAchievement -> deleteAchievement()
         }
     }
     private fun editAchievement() {
@@ -102,6 +103,34 @@ class AdminAchievementsExecutor(
                         studentLogin = state().bsStudentLogin,
                         subjectId = state().bsSubjectId!!,
                         stups = state().bsStups
+                    )
+                )
+                scope.launch {
+                    dispatch(
+                        Message.Inited(
+                            achievements = r.list,
+                            students = state().students,
+                            subjects = state().subjects
+                        )
+                    )
+                    nBSInterface.nSuccess()
+                }
+            } catch (e: Throwable) {
+                nBSInterface.nError(
+                    "Что-то пошло не так",
+                ) {
+                    nBSInterface.goToNone()
+                }
+            }
+        }
+    }
+    private fun deleteAchievement() {
+        scope.launch(CDispatcher) {
+            nBSInterface.nStartLoading()
+            try {
+                val r = adminRepository.deleteAchievement(
+                    RDeleteAchievementReceive(
+                        state().bsId!!
                     )
                 )
                 scope.launch {

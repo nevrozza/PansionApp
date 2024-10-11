@@ -61,6 +61,9 @@ import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
 import com.nevrozq.pansion.database.ratingTable.RatingModule1Table
 import com.nevrozq.pansion.database.ratingTable.RatingModule2Table
+import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek0Table
+import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek1Table
+import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek2Table
 import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
 import com.nevrozq.pansion.database.ratingTable.RatingWeek1Table
 import com.nevrozq.pansion.database.ratingTable.RatingWeek2Table
@@ -366,19 +369,24 @@ class LessonsController() {
             val r = call.receive<RFetchSubjectRatingReceive>()
             try {
                 val table = when (r.period) {
-                    1 -> when (r.forms) {
+                    1 -> when (r.forms) { //Module
                         1 -> RatingModule1Table
                         2 -> RatingModule2Table
                         else -> RatingModule0Table
                     }
 
-                    2 -> when (r.forms) {
+                    2 -> when (r.forms) { //Year
                         1 -> RatingYear1Table
                         2 -> RatingYear2Table
                         else -> RatingYear0Table
                     }
+                    3 -> when (r.forms) { //Year
+                        1 -> RatingPreviousWeek1Table
+                        2 -> RatingPreviousWeek2Table
+                        else -> RatingPreviousWeek0Table
+                    }
 
-                    else -> when (r.forms) {
+                    else -> when (r.forms) { //0
                         1 -> RatingWeek1Table
                         2 -> RatingWeek2Table
                         else -> RatingWeek0Table

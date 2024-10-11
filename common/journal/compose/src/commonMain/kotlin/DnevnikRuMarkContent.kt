@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -234,10 +235,20 @@ fun DnevnikRuMarkContent(
                                         label = { Text("За неделю") }
                                     )
                                     Spacer(Modifier.width(5.dp))
+                                    FilterChip(
+                                        selected = model.isPreviousWeekDays,
+                                        onClick = {
+                                            component.onEvent(
+                                                DnevnikRuMarkStore.Intent.OpenPreviousWeek
+                                            )
+                                        },
+                                        label = { Text("За прошлую неделю") }
+                                    )
+                                    Spacer(Modifier.width(5.dp))
                                     (1..model.tabsCount).forEach { modle ->
                                         FilterChip(
                                             selected = (model.tabIndex
-                                                ?: 0) == modle && !model.isWeekDays,
+                                                ?: 0) == modle && !model.isWeekDays && !model.isPreviousWeekDays,
                                             onClick = {
                                                 component.onEvent(
                                                     DnevnikRuMarkStore.Intent.ClickOnTab(
@@ -253,7 +264,13 @@ fun DnevnikRuMarkContent(
                                 MarkTable(
                                     fields = model.tableSubjects.associate { it.subjectId.toString() to it.subjectName },
                                     dms = model.mDateMarks,
-                                    nki = model.tableSubjects.associate { it.subjectId.toString() to it.nki }
+                                    nki = model.tableSubjects.associate { it.subjectId.toString() to it.nki.filter {
+                                        when {
+                                            model.isWeekDays -> it.date in model.weekDays
+                                            model.isPreviousWeekDays -> it.date in model.previousWeekDays
+                                            else -> it.date in model.mDates
+                                        }
+                                    } }
                                 )
                             }
                         }
@@ -390,19 +407,29 @@ private fun SubjectMarksItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(2f, false)
                 ) {
-                    Text(title, fontWeight = FontWeight.Bold, fontSize = 25.sp)
+                    Text(
+                        text = title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 25.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(2f, false)
+                    )
                     if (stupsCount != 0) {
                         Spacer(Modifier.width(5.dp))
-                        StupsButton(
-                            stupsCount
-                        ) {
-                            component.onEvent(
-                                DnevnikRuMarkStore.Intent.ClickOnStupsSubject(
-                                    subjectId
+                        Box(Modifier.weight(.4f, false)) {
+                            StupsButton(
+                                stupsCount
+                            ) {
+                                component.onEvent(
+                                    DnevnikRuMarkStore.Intent.ClickOnStupsSubject(
+                                        subjectId
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
@@ -411,7 +438,10 @@ private fun SubjectMarksItem(
                         "NaN"
                     } else {
                         value.roundTo(2).toString()
-                    }, fontWeight = FontWeight.Bold, fontSize = 25.sp
+                    }, fontWeight = FontWeight.Bold, fontSize = 25.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(.4f, false)
                 )
             }
             //Pansion – StudentLinesContent.kt [Pansion.common.journal.compose.commonMain]

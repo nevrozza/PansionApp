@@ -26,8 +26,9 @@ interface RootStore : Store<Intent, State, Label> {
 
     sealed interface Message {
         data object GreetingsHided : Message
-        data class PermissionsUpdated(val role: String, val moderation: String, val birthday: String, val version: Int): Message
+        data class PermissionsUpdated(val role: String, val moderation: String, val birthday: String): Message
         data class TokenValidationStatusChanged(val isTokenValid: Boolean): Message
+        data class VersionFetched(val version: Int): Message
     }
 
     sealed interface Label

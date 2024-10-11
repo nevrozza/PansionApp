@@ -22,6 +22,8 @@ import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainHomeTasksCountResponse
 import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
+import main.RFetchSchoolDataReceive
+import main.RFetchSchoolDataResponse
 import mentoring.RFetchJournalBySubjectsReceive
 import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
@@ -51,6 +53,15 @@ import schedule.RScheduleList
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+    suspend fun fetchSchoolData(r: RFetchSchoolDataReceive) : RFetchSchoolDataResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Main.FetchSchoolData)
+            }
+        }.body()
+    }
 
     suspend fun fetchJournalBySubjects(r: RFetchJournalBySubjectsReceive) : RFetchJournalBySubjectsResponse {
         return httpClient.post {

@@ -78,7 +78,7 @@ class ProfileComponent(
 
     sealed class Output {
         data object Back : Output()
-        data class OpenAchievements(val login: String) : Output()
+        data class OpenAchievements(val login: String, val name: String, val avatarId: Int) : Output()
 //        data object BackToActivation : Output()
     }
 }

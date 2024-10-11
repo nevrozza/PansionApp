@@ -131,9 +131,9 @@ private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
 fun main() {
 //
 
-    GlobalScope.launch(Dispatchers.IO) {
-        com.nevrozq.pansion.main()
-    }
+//        GlobalScope.launch(Dispatchers.IO) {
+//            com.nevrozq.pansion.main()
+//        }
 
     PlatformSDK.init(
         configuration = PlatformConfiguration(),

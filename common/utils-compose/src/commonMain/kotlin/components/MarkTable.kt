@@ -77,6 +77,7 @@ import server.roundTo
 import server.toMinutes
 import view.blend
 import view.handy
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 
@@ -150,8 +151,13 @@ fun MarkTable(
 
     val markSize = 30.dp
     val minWidth = 50.dp
-    allWidth.value = dateMarks.map {
-        max(it.value.size * markSize, minWidth)
+    allWidth.value = dateMarks.map { dm ->
+        var maxSize = 0
+        fields.keys.forEach { login ->
+            val size = dm.value.filter { it.login == login }.size
+            maxSize = max(size, maxSize)
+        }
+        max(maxSize * markSize, minWidth)
     }.fastSumBy { it.value.toInt() }.dp + lP
 
     allHeight.value = 25.dp + (fields.size * 55.dp)
@@ -167,7 +173,13 @@ fun MarkTable(
                 Spacer(Modifier.width(lP))
                 (dateMarks).onEachIndexed { i, (date, marks) ->
                     if (i != dateMarks.size - 1) {
-                        val width: Dp = max(marks.size * markSize, minWidth)
+                        var maxSize = 0
+                        fields.keys.forEach { login ->
+                            val size = marks.filter { it.login == login }.size
+                            maxSize = max(size, maxSize)
+                        }
+                        val width: Dp =
+                            max(maxSize * markSize, minWidth)
                         Spacer(Modifier.width(width))
                         VerticalDivider(
                             Modifier.height(allHeight.value).padding(vertical = 1.dp),
@@ -191,11 +203,17 @@ fun MarkTable(
                     dateMarks.forEach { (date, marks) ->
 
 //                        val isChecked = remember { mutableStateOf(false) }
-
+                        var maxSize = 0
+                        fields.keys.forEach { login ->
+                            val size = marks.filter { it.login == login }.size
+                            maxSize = max(size, maxSize)
+                        }
+                        val width: Dp =
+                            max(maxSize * markSize, minWidth)
 
                         Box(
                             modifier = Modifier.width(
-                                max(marks.size * markSize, minWidth)
+                                width
                             ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -250,7 +268,7 @@ fun MarkTable(
                                         "!ds"
                                     )
                                 }
-                                val avg = marks.sumOf { it.content.toInt() } / marks.size.toFloat()
+                                val avg = (marks.sumOf { it.content.toInt() } / marks.size.toFloat()).roundTo(2)
 
                                 val normStupsCount =
                                     allMarks.filter { it.reason.subSequence(0, 3) in listOf("!st") }
@@ -267,7 +285,7 @@ fun MarkTable(
                                 }) {
                                     Spacer(Modifier.width(20.dp))
                                     Text(
-                                        (avg).toString().cut(4),
+                                        (avg).toString(),
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(Modifier.width(7.dp))
@@ -279,9 +297,16 @@ fun MarkTable(
 
                                 Spacer(Modifier.width((lP - underNameWidth.value)))
                                 dateMarks.forEach { (date, marks) ->
+                                    var maxSize = 0
+                                    fields.keys.forEach { login ->
+                                        val size = marks.filter { it.login == login }.size
+                                        maxSize = max(size, maxSize)
+                                    }
+                                    val width: Dp =
+                                        max(maxSize * markSize, minWidth)
                                     Box(
                                         modifier = Modifier.width(
-                                            max(marks.size * markSize, minWidth)
+                                            width
                                         ).height(25.dp),
                                         contentAlignment = Alignment.Center
                                     ) {

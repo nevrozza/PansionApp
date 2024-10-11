@@ -12,7 +12,10 @@ interface DetailedStupsStore : Store<Intent, State, Label> {
         val login: String,
         val reason: String,
         val weekDays: List<String> = getWeekDays(),
-        val subjects: List<DetailedStupsSubject> = emptyList()
+        val subjects: List<DetailedStupsSubject> = emptyList(),
+
+        val name: String,
+        val avatarId: Int,
     )
 
     sealed interface Intent {

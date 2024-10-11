@@ -113,16 +113,20 @@ import root.RootComponent.RootCategories.Admin
 import root.RootComponent.RootCategories.Home
 import root.RootComponent.RootCategories.Journal
 import root.RootComponent.RootCategories.Mentoring
-import root.RootComponent.RootCategories.Rating
 import server.getDate
 import view.WindowCalculator
 import androidx.compose.material.icons.rounded.Cake
+import androidx.compose.material.icons.rounded.Token
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import root.RootComponent.Child.MainSchool
+import root.RootComponent.RootCategories.School
+import school.SchoolComponent
 import server.cut
+import kotlin.reflect.KClass
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -159,21 +163,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 icon = Icons.Rounded.Home,
                 label = "Главная",
                 category = if (isExpanded && getCategory(childStack.active.configuration as Config) == Journal) Journal
-                else if (isExpanded && getCategory(childStack.active.configuration as Config) == Rating && model.role != Roles.teacher && model.moderation !in listOf(
-                        Moderation.both,
-                        Moderation.mentor
-                    )) Rating
                 else Home,
                 onClickOutput = RootComponent.Output.NavigateToHome
             ),
-            if (model.moderation != Moderation.nothing
-                && component.isMentoring == null
-            ) NavigationItem(
-                icon = Icons.Rounded.Diversity1,
-                label = "Ученики",
-                category = Mentoring,
-                onClickOutput = RootComponent.Output.NavigateToMentoring
-            ) else null,
             if (!isExpanded && (model.role == Roles.teacher || model.moderation in listOf(
                     Moderation.moderator,
                     Moderation.mentor,
@@ -185,6 +177,20 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 category = Journal,
                 onClickOutput = RootComponent.Output.NavigateToJournal
             ) else null,
+            NavigationItem(
+                icon = Icons.Rounded.Token,
+                label = "Пансион",
+                category = School,
+                onClickOutput = RootComponent.Output.NavigateToSchool
+            ),
+            if (model.moderation != Moderation.nothing
+                && component.isMentoring == null
+            ) NavigationItem(
+                icon = Icons.Rounded.Diversity1,
+                label = "Ученики",
+                category = Mentoring,
+                onClickOutput = RootComponent.Output.NavigateToMentoring
+            ) else null,
             if (model.moderation in listOf(
                     Moderation.moderator,
                     Moderation.both
@@ -194,16 +200,6 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 label = "Админ",
                 category = Admin,
                 onClickOutput = RootComponent.Output.NavigateToAdmin
-            ) else null,
-            if ((!isExpanded) || (isExpanded && ((model.role == Roles.teacher || model.moderation in listOf(
-                    Moderation.moderator,
-                    Moderation.mentor,
-                    Moderation.both
-                ) )) && component.isMentoring == null)) NavigationItem(
-                icon = Icons.Rounded.Star,
-                label = "Рейтинг",
-                category = Rating,
-                onClickOutput = RootComponent.Output.NavigateToRating
             ) else null,
         )
 //    var bottomBarAnimationScope: AnimatedVisibilityScope? = null
@@ -256,7 +252,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         fallbackAnimation = stackAnimation { child ->
                             when (child.instance) {
                                 is MainJournal -> fade()
-                                is MainRating -> fade()
+                                is MainSchool -> fade()
                                 is MainHome -> fade()
                                 is MainAdmin -> fade()
                                 is MainMentoring -> fade()
@@ -502,15 +498,15 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = { CabinetsContent(child.cabinetsComponent) }
                         )
 
-                        is MainRating -> MultiPaneSplit(
-                            isExpanded = isExpanded,
-                            viewManager = viewManager,
-                            currentScreen = { RatingContent(child.ratingComponent) },
-                            firstScreen = { HomeContent(child.homeComponent) },
-                            secondScreen = {
-                                RatingContent(child.ratingComponent)
-                            }
-                        )
+                        is MainRating ->
+                            MultiPaneSchool(
+                                isExpanded = isExpanded,
+                                schoolComponent = child.schoolComponent,
+                                currentRouting = SchoolRoutings.SchoolRating,
+                                viewManager = viewManager,
+                                secondScreen = { RatingContent(child.ratingComponent) }
+                            )
+
 
                         is Child.HomeTasks -> MultiPaneSplit(
                             isExpanded = isExpanded,
@@ -586,6 +582,38 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentRouting = AdminComponent.Output.NavigateToParents,
                                 secondScreen = { AdminParentsContent(child.parentsComponent) }
                             )
+
+                        is MainSchool -> MultiPaneSplit(
+                            isExpanded = isExpanded,
+                            viewManager = viewManager,
+                            currentScreen = {
+                                SchoolContent(
+                                    child.schoolComponent,
+                                    currentRouting = SchoolRoutings.SchoolRating
+                                )
+                            },
+                            firstScreen = {
+                                SchoolContent(
+                                    child.schoolComponent,
+                                    currentRouting = SchoolRoutings.SchoolRating
+                                )
+                            },
+                            secondScreen = {
+                                RatingContent(child.ratingComponent)
+                            }
+                        )
+
+                        is Child.SchoolFormRating -> MultiPaneSchool(
+                            isExpanded = isExpanded,
+                            schoolComponent = child.schoolComponent,
+                            currentRouting = SchoolRoutings.FormRating,
+                            viewManager = viewManager,
+                            secondScreen = {
+                                FormRatingContent(
+                                    child.formRatingComponent
+                                )
+                            }
+                        )
                     }
                 }
                 if (component.secondLogin == null) {
@@ -699,14 +727,16 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     isNewVersionDialogShowing.value = false
                 }
             },
-            text = { Text(
-                buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
-                        append("Доступна новая версия!\n")
+            text = {
+                Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                            append("Доступна новая версия!\n")
+                        }
+                        append("Игнорирование приведёт к проблемам при загрузке данных")
                     }
-                    append("Игнорирование приведёт к проблемам при загрузке данных")
-                }
-            ) }
+                )
+            }
 
         )
     }
@@ -725,7 +755,7 @@ fun MultiPaneMentoring(
     rootComponent: RootComponent?
 ) {
     val model = mentoringComponent?.model?.subscribeAsState()
-    Crossfade (model?.value?.isTableView ?: false) { cfState ->
+    Crossfade(model?.value?.isTableView ?: false) { cfState ->
         if (cfState) {
             MentoringContent(
                 mentoringComponent!!
@@ -811,6 +841,33 @@ fun MultiPaneJournal(
                 secondScreen()
             }
         }
+    } else {
+        secondScreen()
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun MultiPaneSchool(
+    isExpanded: Boolean,
+    schoolComponent: SchoolComponent,
+    currentRouting: SchoolRoutings,
+    viewManager: ViewManager,
+    secondScreen: @Composable () -> Unit
+) {
+    if (isExpanded) {
+        HorizontalSplitPane(
+            splitPaneState = viewManager.splitPaneState
+        ) {
+            first(minSize = 400.dp) {
+                SchoolContent(schoolComponent, currentRouting = currentRouting)
+            }
+            dSplitter()
+            second(minSize = 400.dp) {
+                secondScreen()
+            }
+        }
+
     } else {
         secondScreen()
     }
@@ -950,7 +1007,7 @@ fun CustomNavigationRail(
 private fun isBottomBarShowing(config: Config): Boolean {
     return config in listOf(
         Config.MainHome,
-        Config.MainRating,
+        Config.MainSchool,
         Config.MainAdmin,
         Config.MainJournal,
         Config.MainMentoring
@@ -982,11 +1039,13 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         Config.MainAdmin -> Admin
         Config.MainHome -> Home
         Config.MainJournal -> Journal
-        Config.MainRating -> Rating
+        Config.MainRating -> School
 
         is Config.LessonReport -> Journal
         Config.MainMentoring -> Mentoring
         is Config.SecondView -> Mentoring
         is Config.QRScanner -> Home
+        Config.MainSchool -> School
+        is Config.SchoolFormRating -> School
     }
 }

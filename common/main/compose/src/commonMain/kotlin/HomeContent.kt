@@ -1169,8 +1169,10 @@ fun StudentHomeContent(
                                                     ) {
                                                         component.onOutput(
                                                             HomeComponent.Output.NavigateToDetailedStups(
-                                                                model.login,
-                                                                model.period.ordinal
+                                                                studentLogin = model.login,
+                                                                reason = model.period.ordinal,
+                                                                name = model.name,
+                                                                avatarId = model.avatarId
                                                             )
                                                         )
                                                     }

@@ -176,7 +176,7 @@ actual fun QRContent(component: QRComponent, snackBarHostState: SnackbarHostStat
                         },
                         isMoveUpLocked = true,
                         autoCorrect = false,
-                        keyboardType = KeyboardType.Number,
+                        keyboardType = KeyboardType.Text,
                         onEnterClicked = {
                             component.onEvent(
                                 QRStore.Intent.SendToServer

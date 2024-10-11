@@ -134,7 +134,9 @@ fun DetailedStupsContent(
                                     onClick = {
                                         component.onOutput(
                                             DetailedStupsComponent.Output.NavigateToAchievements(
-                                                model.login
+                                                login = model.login,
+                                                name = model.name,
+                                                avatarId = model.avatarId
                                             )
                                         )
                                     }

@@ -52,19 +52,26 @@ class DnevnikRuMarkExecutor(
                 dispatch(Message.WeekOpened)
                 updateMarkTable()
             }
+            Intent.OpenPreviousWeek -> {
+                dispatch(Message.PreviousWeekOpened)
+                updateMarkTable()
+            }
         }
     }
 
     private fun updateMarkTable() {
-        val subjects: List<DnevnikRuMarksSubject> = if (!state().isWeekDays) {
+        val subjects: List<DnevnikRuMarksSubject> = if (!(state().isWeekDays || state().isPreviousWeekDays)) {
             state().subjects[(state().tabIndex ?: 0)] ?: listOf<DnevnikRuMarksSubject>()
         } else state().subjects.flatMap { it.value }
         val dates =
             subjects.flatMap {
                 (it.marks + it.stups).filter {
-                    when (state().isWeekDays) {
-                        false -> true
-                        true -> it.date in state().weekDays
+                    if (state().isPreviousWeekDays) {
+                        it.date in state().previousWeekDays
+                    } else if (state().isWeekDays) {
+                        it.date in state().weekDays
+                    } else {
+                        true
                     }
                 }.map { it.date }.toSet()
             }.toSet().toList().sortedDate()

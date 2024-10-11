@@ -259,9 +259,21 @@ fun AllGroupMarksContent(
                                                     label = { Text("За неделю") }
                                                 )
                                                 Spacer(Modifier.width(5.dp))
+                                                FilterChip(
+                                                    selected = model.dateFilter is DatesFilter.PreviousWeek,
+                                                    onClick = {
+                                                        component.onEvent(
+                                                            AllGroupMarksStore.Intent.ChangeFilterDate(
+                                                                DatesFilter.PreviousWeek
+                                                            )
+                                                        )
+                                                    },
+                                                    label = { Text("За прошлую неделю") }
+                                                )
+                                                Spacer(Modifier.width(5.dp))
                                                 model.modules.forEach { module ->
                                                     FilterChip(
-                                                        selected = model.dateFilter is DatesFilter.Module && module in (model.dateFilter as DatesFilter.Module).modules,
+                                                        selected = (model.dateFilter is DatesFilter.Module) && module in (model.dateFilter as DatesFilter.Module).modules,
                                                         onClick = {
                                                             component.onEvent(
                                                                 AllGroupMarksStore.Intent.ChangeFilterDate(
@@ -281,6 +293,7 @@ fun AllGroupMarksContent(
                                                 model.dates.filter {
                                                     when (model.dateFilter) {
                                                         is DatesFilter.Week -> it.date in model.weekDays
+                                                        is DatesFilter.PreviousWeek -> it.date in model.previousWeekDays
                                                         is DatesFilter.Module -> it.module in (model.dateFilter as DatesFilter.Module).modules
                                                         else -> false
                                                     }
@@ -315,7 +328,14 @@ fun AllGroupMarksContent(
                                                     })
                                                 },
                                                 nki = students.associate {
-                                                    it.login to it.nki
+                                                    it.login to it.nki.filter {
+                                                        when (model.dateFilter) {
+                                                            is DatesFilter.Week -> it.date in model.weekDays
+                                                            is DatesFilter.PreviousWeek -> it.date in model.previousWeekDays
+                                                            is DatesFilter.Module -> it.date in filteredDates.map { it.date }
+                                                            else -> false
+                                                        }
+                                                    }
                                                 }
                                             )
                                         }
@@ -489,16 +509,27 @@ private fun AllGroupMarksStudentItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(title, fontWeight = FontWeight.Bold, fontSize = 25.sp)
 
-                    StupsButtons(
-                        stups = stups.map {
-                            Pair(it.mark.content.toInt(), it.mark.reason)
-                        },
-                        { onClick() }, { onClick() }
+                    Text(
+                        title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 25.sp,
+                        modifier = Modifier.weight(2f, false),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+                    Row(Modifier.weight(1.2f, true), horizontalArrangement = Arrangement.End) {
+                        StupsButtons(
+                            stups = stups.map {
+                                Pair(250, it.mark.reason)
+                            },
+                            { onClick() }, { onClick() }
+                        )
+                    }
                 }
             }
 
@@ -660,7 +691,7 @@ fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent, isModer: Bo
         tooltip = {
             PlainTooltip() {
                 Text(
-                    "${ if (isModer) "Выставил ${mark.deployLogin}\nв ${mark.deployDate}-${mark.deployTime}\n" else ""}Об уроке:\n${mark.mark.date} №${mark.mark.reportId}\n${
+                    "${if (isModer) "Выставил ${mark.deployLogin}\nв ${mark.deployDate}-${mark.deployTime}\n" else ""}Об уроке:\n${mark.mark.date} №${mark.mark.reportId}\n${
                         fetchReason(
                             mark.mark.reason
                         )

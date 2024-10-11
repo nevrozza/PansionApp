@@ -33,6 +33,7 @@ interface AdminAchievementsStore : Store<Intent, State, Label> {
 
         data object CreateAchievement : Intent
         data object EditAchievement : Intent
+        data object DeleteAchievement : Intent
         data object UpdateGroupAchievement : Intent
         data class ChangeStudentLogin(val login: String) : Intent
         data class ChangeDate(val date: String) : Intent

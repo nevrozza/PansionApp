@@ -683,7 +683,7 @@ private fun EditBottomSheetContent(
                 OutlinedTextField(
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth(.6f), // menuAnchor modifier must be passed to the text field for correctness.
+                        .fillMaxWidth(.5f), // menuAnchor modifier must be passed to the text field for correctness.
                     readOnly = true,
                     value = studentsMap[model.bsStudentLogin] ?: "",
                     placeholder = { Text("Выберите") },
@@ -733,6 +733,19 @@ private fun EditBottomSheetContent(
 //                    )
 //                }
 //            }
+
+            AnimatedCommonButton(
+                text = "Удалить",
+                modifier = Modifier.padding(top = 6.dp).width(110.dp)
+                    .height(TextFieldDefaults.MinHeight),
+                isEnabled = nBSModel.state != NetworkState.Loading,
+                shape = RoundedCornerShape(15.dp)
+            ) {
+
+                component.onEvent(AdminAchievementsStore.Intent.DeleteAchievement)
+            }
+            Spacer(Modifier.width(5.dp))
+
             AnimatedCommonButton(
                 text =
                 if (nBSModel.state == NetworkState.Error) {

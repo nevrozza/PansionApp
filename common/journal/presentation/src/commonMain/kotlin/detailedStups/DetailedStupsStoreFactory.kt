@@ -13,7 +13,9 @@ class DetailedStupsStoreFactory(
     private val login: String,
     private val reason: String,
     private val nInterface: NetworkInterface,
-    private val journalRepository: JournalRepository
+    private val journalRepository: JournalRepository,
+    private val name: String,
+    private val avatarId: Int,
 ) {
 
     fun create(): DetailedStupsStore {
@@ -26,7 +28,9 @@ class DetailedStupsStoreFactory(
             name = "DetailedStupsStore",
             initialState = DetailedStupsStore.State(
                 login = login,
-                reason = reason
+                reason = reason,
+                name = name,
+                avatarId = avatarId
             ),
             executorFactory = { DetailedStupsExecutor(
                 nInterface = nInterface,

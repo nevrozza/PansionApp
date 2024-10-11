@@ -14,7 +14,9 @@ class HomeAchievementsStoreFactory(
     private val storeFactory: StoreFactory,
     private val nInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
-    private val login: String
+    private val login: String,
+    private val name: String,
+    private val avatarId: Int,
 ) {
 
     fun create(): HomeAchievementsStore {
@@ -26,7 +28,9 @@ class HomeAchievementsStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "HomeAchievementsStore",
             initialState = HomeAchievementsStore.State(
-                login = login
+                login = login,
+                name = name,
+                avatarId = avatarId
             ),
             executorFactory = { HomeAchievementsExecutor(
                 nInterface = nInterface,

@@ -4,6 +4,7 @@ import FIO
 import Person
 import achievements.AchievementsDTO
 import achievements.RCreateAchievementReceive
+import achievements.RDeleteAchievementReceive
 import achievements.REditAchievementReceive
 import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
@@ -19,6 +20,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import org.jetbrains.exposed.sql.deleteWhere
 
 class AchievementsController {
 
@@ -55,6 +57,26 @@ class AchievementsController {
             try {
                 val r = call.receive<REditAchievementReceive>()
                 Achievements.edit(id = r.id, subjectId = r.subjectId, stups = r.stups, studentLogin = r.studentLogin)
+                call.respond(RFetchAchievementsResponse(
+                    list = Achievements.fetchAll(),
+                    students = null,
+                    subjects = emptyMap()
+                ))
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't create achievement: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+    suspend fun deleteAchievement(call: ApplicationCall) {
+        if (call.isMentor || call.isModer) {
+            try {
+                val r = call.receive<RDeleteAchievementReceive>()
+                Achievements.delete(r.id)
                 call.respond(RFetchAchievementsResponse(
                     list = Achievements.fetchAll(),
                     students = null,

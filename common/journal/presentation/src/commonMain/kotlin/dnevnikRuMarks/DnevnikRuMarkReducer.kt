@@ -13,10 +13,11 @@ object DnevnikRuMarkReducer : Reducer<State, Message> {
                 copy(subjects = newSubjects.toMap(HashMap()))
             }
             is Message.IsQuartersInited -> copy(isQuarters = msg.isQuarters, tabIndex = msg.tabIndex, tabsCount = msg.tabsCount)
-            is Message.OnTabClicked -> copy(tabIndex = msg.index, isWeekDays = false)
+            is Message.OnTabClicked -> copy(tabIndex = msg.index, isWeekDays = false, isPreviousWeekDays = false)
             is Message.OnStupsSubjectClicked -> copy(pickedSubjectId = msg.id)
             is Message.TableViewChanged -> copy(isTableView = msg.isTableView)
-            Message.WeekOpened -> copy(isWeekDays = true)
+            Message.WeekOpened -> copy(isWeekDays = true, isPreviousWeekDays = false)
+            Message.PreviousWeekOpened -> copy(isWeekDays = false, isPreviousWeekDays = true)
             is Message.MarksTableUpdated -> copy(
                 tableSubjects = msg.tableSubjects,
                 mDateMarks = msg.mDateMarks,

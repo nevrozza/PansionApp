@@ -17,6 +17,8 @@ class DetailedStupsComponent(
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit,
     private val studentLogin: String,
+    private val name: String,
+    private val avatarId: Int,
     private val reason: String
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
@@ -35,7 +37,9 @@ class DetailedStupsComponent(
                 login = studentLogin,
                 reason = reason,
                 nInterface = nInterface,
-                journalRepository = journalRepository
+                journalRepository = journalRepository,
+                name = name,
+                avatarId = avatarId
             ).create()
         }
 
@@ -61,7 +65,7 @@ class DetailedStupsComponent(
 
     sealed class Output {
         data object Back : Output()
-        data class NavigateToAchievements(val login: String) : Output()
+        data class NavigateToAchievements(val login: String, val name: String, val avatarId: Int) : Output()
 
     }
 }

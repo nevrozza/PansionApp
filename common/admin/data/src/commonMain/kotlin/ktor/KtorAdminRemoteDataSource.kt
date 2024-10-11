@@ -2,6 +2,7 @@ package ktor
 
 import RequestPaths
 import achievements.RCreateAchievementReceive
+import achievements.RDeleteAchievementReceive
 import achievements.REditAchievementReceive
 import achievements.RFetchAchievementsResponse
 import achievements.RUpdateGroupOfAchievementsReceive
@@ -97,6 +98,15 @@ class KtorAdminRemoteDataSource(
             url {
                 bearer()
                 path(RequestPaths.Achievements.UpdateGroup)
+                setBody(r)
+            }
+        }.body()
+    }
+    suspend fun deleteAchievement(r: RDeleteAchievementReceive) : RFetchAchievementsResponse{
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Achievements.Delete)
                 setBody(r)
             }
         }.body()

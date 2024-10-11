@@ -110,7 +110,7 @@ class RatingComponent(
         )
         periodListComponent.onEvent(
             ListDialogStore.Intent.InitList(
-                listOf(Pair(0, "За неделю"), Pair(1, "За модуль"), Pair(2, "За год")).map {
+                listOf(Pair(0, "За неделю"), Pair(3, "За прошлую неделю"), Pair(1, "За модуль"), Pair(2, "За год")).map {
                     ListItem(
                         id = it.first.toString(),
                         text = it.second
@@ -135,6 +135,7 @@ class RatingComponent(
 
     sealed class Output {
         data object NavigateToSettings : Output()
+        data object Back : Output()
         data class NavigateToProfile(val studentLogin: String, val fio: FIO, val avatarId: Int) : Output()
     }
 }

@@ -133,7 +133,7 @@ fun HomeTasksContent(
             Crossfade(nInitModel.state) { state ->
                 when (state) {
                     NetworkState.None -> CLazyColumn(padding = padding, state = lazyListState) {
-                        itemsIndexed(items = model.dates.reversed()) { i, date ->
+                        itemsIndexed(items = model.dates) { i, date ->
                             DateTasksItem(
                                 date = date,
                                 tasks = model.homeTasks.filter { it.date == date },

@@ -15,7 +15,7 @@ plugins {
 //    id("org.jetbrains.kotlin.plugin.compose")
 }
 
-version = "0.0.1"
+version = "0.0.2"
 
 kotlin {
     jvm("jvm")
@@ -197,7 +197,7 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation(project(":server"))
+//            implementation(project(":server"))
 //            implementation(compose.desktop.common)
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)
@@ -270,7 +270,7 @@ android {
         compose = true
     }
     compose {
-        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.20"
+        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.21-RC"
     }
 //    composeOptions {
 //        kotlinCompilerExtensionVersion = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0-RC2"

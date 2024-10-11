@@ -107,18 +107,7 @@ fun AdminContent(
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
-                },
-//                actionRow = {
-//                    if(isActive) {
-//                        IconButton(
-//                            onClick = {
-//
-//                            }
-//                        ) {
-//                            Icon(Icons.Outlined.Info, null)
-//                        }
-//                    }
-//                }
+                }
             )
         }
     ) { padding ->

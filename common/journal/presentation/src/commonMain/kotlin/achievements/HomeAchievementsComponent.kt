@@ -13,6 +13,8 @@ class HomeAchievementsComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val login: String,
+    private val name: String,
+    private val avatarId: Int,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     private val nInterfaceName = "homeAchievementsComponentNInterface"
@@ -33,7 +35,9 @@ class HomeAchievementsComponent(
                 storeFactory = storeFactory,
                 login = login,
                 nInterface = nInterface,
-                journalRepository = journalRepository
+                journalRepository = journalRepository,
+                name = name,
+                avatarId = avatarId
             ).create()
         }
 

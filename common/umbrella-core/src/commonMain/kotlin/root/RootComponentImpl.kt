@@ -9,6 +9,7 @@ import achievements.AdminAchievementsComponent
 import achievements.HomeAchievementsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
+import admin.groups.forms.Form
 import allGroupMarks.AllGroupMarksComponent
 import applicationVersion
 import asValue
@@ -40,6 +41,8 @@ import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
 import di.Inject
 import dnevnikRuMarks.DnevnikRuMarksComponent
+import formRating.FormRatingComponent
+import formRating.FormRatingReducer
 import groups.GroupsComponent
 import home.HomeComponent
 import home.HomeStore
@@ -79,13 +82,10 @@ import root.RootComponent.Companion.WEB_PATH_MAIN_HOME
 import root.RootComponent.Companion.WEB_PATH_MAIN_JOURNAL
 import root.RootComponent.Companion.WEB_PATH_MAIN_RATING
 import root.RootComponent.Config
-import root.RootComponent.RootCategories.Admin
-import root.RootComponent.RootCategories.Home
-import root.RootComponent.RootCategories.Journal
-import root.RootComponent.RootCategories.Rating
 import root.store.RootStore
 import root.store.RootStoreFactory
 import schedule.ScheduleComponent
+import school.SchoolComponent
 import server.Roles
 import studentLines.StudentLinesComponent
 //import students.StudentsComponent
@@ -121,7 +121,7 @@ class RootComponentImpl(
         get() = componentContext.stateKeeper
     override val instanceKeeper: InstanceKeeper
         get() = componentContext.instanceKeeper
-    private val authRepository: AuthRepository = Inject.instance()
+    private var authRepository: AuthRepository = Inject.instance()
 
     override val checkNInterface: NetworkInterface = NetworkInterface(
         componentContext,
@@ -161,17 +161,18 @@ class RootComponentImpl(
         return if (stack != null) stack.value.active.configuration in listOf(
             Config.MainHome,
             Config.MainAdmin,
-            Config.MainRating,
-            Config.MainJournal
+//            Config.MainRating,
+            Config.MainJournal,
+            Config.MainSchool,
         ) else authRepository.isUserLoggedIn()
     }
 
     private fun getFirstScreen(): Config {
         // FIX WEB Uncaught (in promise) IllegalStateException: Configurations must be unique: [AuthActivation, AuthActivation]
-        if ( stack != null && stack.value.active.configuration == Config.AuthActivation) {
+        if (stack != null && stack.value.active.configuration == Config.AuthActivation) {
             navigation.replaceAll()
         }
-        return  firstScreen
+        return firstScreen
 //        (
 //            login = secondLogin,
 //            fio = secondFIO!!,
@@ -196,13 +197,23 @@ class RootComponentImpl(
             is Child.HomeDnevnikRuMarks -> onDnevnikRuMarksOutput(DnevnikRuMarksComponent.Output.Back)
             is Child.HomeProfile -> onHomeProfileOutput(ProfileComponent.Output.Back)
             is Child.HomeTasks -> onHomeTasksOutput(HomeTasksComponent.Output.Back)
-            is Child.LessonReport -> onLessonReportOutput(LessonReportComponent.Output.Back)
+            is Child.LessonReport -> onLessonReportOutput(Output.Back)
 
             is Child.AdminAchievements -> onAdminAchievementsOutput(AdminAchievementsComponent.Output.Back)
             is Child.HomeAchievements -> onHomeAchievementsOutput(HomeAchievementsComponent.Output.Back)
-            else -> {
-                navigation.pop()
-            }
+//            else -> {
+//                navigation.pop()
+//            }
+            is Child.AdminParents -> onAdminParentsOutput(AdminParentsComponent.Output.Back)
+            is Child.MainAdmin -> navigation.pop()
+            is Child.MainHome -> navigation.pop()
+            is Child.MainJournal -> navigation.pop()
+            is Child.MainMentoring -> navigation.pop()
+            is Child.MainRating -> onRatingOutput(RatingComponent.Output.Back)
+            is Child.MainSchool -> navigation.pop()
+            is Child.QRScanner -> onQRScannerOutput(QRComponent.Output.Back)
+            is Child.SchoolFormRating -> onFormRatingOutput(FormRatingComponent.Output.Back)
+            is Child.SecondView -> navigation.pop()
         }
     }
 
@@ -240,6 +251,7 @@ class RootComponentImpl(
     private var mainHomeComponent: HomeComponent? = null
     private var mainJournalComponent: JournalComponent? = null
     private var mainMentoringComponent: MentoringComponent? = null
+    private var mainSchoolComponent: SchoolComponent? = null
     private var mainAdminComponent: AdminComponent? = null
     private var mainRatingComponent: RatingComponent? = null
 
@@ -282,6 +294,23 @@ class RootComponentImpl(
                 output = ::onMainMentoringOutput
             )
             mainMentoringComponent!!
+        }
+    }
+
+    private fun getMainSchoolComponent(
+        componentContext: ComponentContext,
+        getOld: Boolean = true
+    ): SchoolComponent {
+        return if (getOld && mainSchoolComponent != null) mainSchoolComponent!! else {
+            mainSchoolComponent = SchoolComponent(
+                componentContext = componentContext,
+                storeFactory = storeFactory,
+                output = ::onMainSchoolOutput,
+                login = secondLogin ?: authRepository.fetchLogin(),
+                role = authRepository.fetchRole(),
+                moderation = authRepository.fetchModeration()
+            )
+            mainSchoolComponent!!
         }
     }
 
@@ -358,7 +387,7 @@ class RootComponentImpl(
                 Child.MainHome(
                     homeComponent = getMainHomeComponent(childContext, true),
                     journalComponent = mainHomeComponent!!.journalComponent!!,//getMainJournalComponent(componentContext),
-                    ratingComponent = getMainRatingComponent(childContext)
+                    ratingComponent = getMainRatingComponent(childContext, getOld = true)
                 )
             }
 
@@ -451,7 +480,9 @@ class RootComponentImpl(
                         storeFactory = storeFactory,
                         output = ::onDetailedStupsOutput,
                         studentLogin = config.studentLogin,
-                        reason = config.reason
+                        reason = config.reason,
+                        avatarId = config.avatarId,
+                        name = config.name
                     )
                 )
             }
@@ -507,7 +538,7 @@ class RootComponentImpl(
             )
 
             Config.MainRating -> Child.MainRating(
-                homeComponent = getMainHomeComponent(childContext, true),
+                schoolComponent = getMainSchoolComponent(childContext, true),
                 ratingComponent = getMainRatingComponent(childContext, true)
             )
 
@@ -580,7 +611,9 @@ class RootComponentImpl(
                     componentContext = childContext,
                     storeFactory = storeFactory,
                     output = ::onHomeAchievementsOutput,
-                    login = config.studentLogin
+                    login = config.studentLogin,
+                    name = config.name,
+                    avatarId = config.avatarId
                 )
             )
 
@@ -613,13 +646,47 @@ class RootComponentImpl(
                         isRegistration = config.isRegistration
                     )
                 )
+
+            Config.MainSchool -> Child.MainSchool(
+                schoolComponent = getMainSchoolComponent(
+                    childContext, false
+                ),
+                ratingComponent = getMainRatingComponent(childContext, getOld = true)
+            )
+
+            is Config.SchoolFormRating -> Child.SchoolFormRating(
+                schoolComponent = getMainSchoolComponent(childContext, true),
+                formRatingComponent = FormRatingComponent(
+                    componentContext = childContext,
+                    storeFactory = storeFactory,
+                    output = ::onFormRatingOutput,
+                    formId = config.formId,
+                    formName = config.formName,
+                    formNum = config.formNum,
+                    login = config.login
+                )
+            )
         }
 
+
+
+    private fun onMainSchoolOutput(output: SchoolComponent.Output): Unit =
+        when (output) {
+            SchoolComponent.Output.NavigateToRating -> navigation.bringToFront(Config.MainRating)
+            is SchoolComponent.Output.NavigateToFormRating -> navigation.bringToFront(Config.SchoolFormRating(
+                login = output.login,
+                formNum = output.formNum,
+                formName = output.formName,
+                formId = output.formId
+            ))
+        }
 
     private fun onQRScannerOutput(output: QRComponent.Output): Unit =
         when (output) {
             QRComponent.Output.Back -> popOnce(Child.QRScanner::class)
         }
+
+
 
     private fun onHomeAchievementsOutput(output: HomeAchievementsComponent.Output): Unit =
         when (output) {
@@ -699,7 +766,11 @@ class RootComponentImpl(
         when (output) {
             DetailedStupsComponent.Output.Back -> popOnce(Child.HomeDetailedStups::class)
             is DetailedStupsComponent.Output.NavigateToAchievements -> navigation.bringToFront(
-                Config.HomeAchievements(studentLogin = output.login)
+                Config.HomeAchievements(
+                    studentLogin = output.login,
+                    name = output.name,
+                    avatarId = output.avatarId
+                )
             )
         }
 
@@ -724,7 +795,9 @@ class RootComponentImpl(
             ProfileComponent.Output.Back -> popOnce(Child.HomeProfile::class)
             is ProfileComponent.Output.OpenAchievements -> navigation.bringToFront(
                 Config.HomeAchievements(
-                    output.login
+                    studentLogin = output.login,
+                    name = output.name,
+                    avatarId = output.avatarId
                 )
             )
         }
@@ -739,16 +812,34 @@ class RootComponentImpl(
             UsersComponent.Output.Back -> popOnce(Child.AdminUsers::class)
         }
 
+    private fun onFormRatingOutput(output: FormRatingComponent.Output): Unit =
+        when (output) {
+            FormRatingComponent.Output.Back -> popOnce(Child.SchoolFormRating::class)
+            is FormRatingComponent.Output.NavigateToProfile -> navigation.bringToFront(
+                Config.HomeProfile(
+                    studentLogin = output.studentLogin,
+                    fio = output.fio,
+                    avatarId = output.avatarId,
+                    isOwner = false,
+                    isCanEdit = false
+                )
+            )
+        }
+
     private fun onRatingOutput(output: RatingComponent.Output): Unit =
         when (output) {
             RatingComponent.Output.NavigateToSettings -> navigation.bringToFront(Config.HomeSettings)
-            is RatingComponent.Output.NavigateToProfile -> navigation.bringToFront(Config.HomeProfile(
-                studentLogin = output.studentLogin,
-                fio = output.fio,
-                avatarId = output.avatarId,
-                isOwner = false,
-                isCanEdit = false
-            ))
+            is RatingComponent.Output.NavigateToProfile -> navigation.bringToFront(
+                Config.HomeProfile(
+                    studentLogin = output.studentLogin,
+                    fio = output.fio,
+                    avatarId = output.avatarId,
+                    isOwner = false,
+                    isCanEdit = false
+                )
+            )
+
+            RatingComponent.Output.Back -> popOnce(Child.MainRating::class)
         }
 
     private fun onJournalOutput(output: JournalComponent.Output): Unit =
@@ -815,8 +906,10 @@ class RootComponentImpl(
 
             is HomeComponent.Output.NavigateToDetailedStups -> navigation.bringToFront(
                 Config.HomeDetailedStups(
-                    output.studentLogin,
-                    output.reason.toString()
+                    studentLogin = output.studentLogin,
+                    reason = output.reason.toString(),
+                    name = output.name,
+                    avatarId = output.avatarId
                 )
             )
 
@@ -885,7 +978,7 @@ class RootComponentImpl(
 
             RootComponent.Output.NavigateToSchedule -> navigation.bringToFront(Config.AdminSchedule)
 
-            RootComponent.Output.NavigateToRating -> navigation.bringToFront(Config.MainRating)
+            RootComponent.Output.NavigateToSchool -> navigation.bringToFront(Config.MainSchool)
 
             RootComponent.Output.NavigateToAuth ->
                 navigation.replaceAll(Config.AuthActivation)
@@ -895,7 +988,7 @@ class RootComponentImpl(
 
 
     private fun navigateAfterAuth() {
-        val authRepository: AuthRepository = Inject.instance()
+        authRepository = Inject.instance()
         componentContext = childContext(authRepository.fetchLogin())
         rootStore.accept(
             RootStore.Intent.UpdatePermissions(

@@ -1987,7 +1987,7 @@ fun LessonTable(
     val detailedMarksName =
         model.students.firstOrNull { it.login == model.detailedMarksLogin }?.shortFio ?: "null"
 
-    val avg = (model.detailedMarks.sumOf { it.content.toInt() } / max(model.detailedMarks.size, 1).toFloat()).toString().cut(4)
+    val avg = (model.detailedMarks.sumOf { it.content.toInt() } / max(model.detailedMarks.size, 1).toFloat()).roundTo(2).toString()
 
     CAlertDialogContent(
         component = component.marksDialogComponent,

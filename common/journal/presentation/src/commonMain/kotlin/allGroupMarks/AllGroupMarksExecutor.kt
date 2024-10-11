@@ -85,9 +85,11 @@ class AllGroupMarksExecutor(
 }
 
 fun getDF(oldDF: DatesFilter, newDF: DatesFilter) : DatesFilter {
-    return if (newDF is DatesFilter.Week) {
+    return if(newDF is DatesFilter.PreviousWeek) {
+      DatesFilter.PreviousWeek
+    } else if (newDF is DatesFilter.Week) {
         DatesFilter.Week
-    } else if (oldDF is DatesFilter.Week) {
+    } else if (oldDF in listOf(DatesFilter.Week, DatesFilter.PreviousWeek)) {
         newDF
     } else {
         val prevMods = (oldDF as DatesFilter.Module).modules

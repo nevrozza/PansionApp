@@ -20,6 +20,9 @@ import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.path
+import rating.RFetchFormRatingReceive
+import rating.RFetchFormRatingResponse
+import rating.RFetchFormsForFormResponse
 import report.RFetchAllGroupMarksReceive
 import report.RFetchAllGroupMarksResponse
 import report.RFetchDetailedStupsReceive
@@ -43,6 +46,23 @@ class KtorJournalRemoteDataSource(
     private val httpClient: HttpClient
 ) {
 
+    suspend fun fetchFormsForFormRating() : RFetchFormsForFormResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchFormsForFormRating)
+            }
+        }.body()
+    }
+    suspend fun fetchFormRating(r: RFetchFormRatingReceive) : RFetchFormRatingResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchFormRating)
+                setBody(r)
+            }
+        }.body()
+    }
 
 
     suspend fun fetchAchievementsForStudent(r: RFetchAchievementsForStudentReceive): RFetchAchievementsResponse {

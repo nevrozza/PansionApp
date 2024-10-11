@@ -143,7 +143,7 @@ fun ProfileContent(
                     title = {
                         Box(modifier = Modifier.fillMaxWidth().padding(end = 10.dp)) {
                             AnimatedContent(
-                                if (!isFullHeader) model.fio.name else if(model.isOwner) "Профиль" else "Просмотр",
+                                if (!isFullHeader) model.fio.name else if (model.isOwner) "Профиль" else "Просмотр",
                                 modifier = Modifier.align(Alignment.CenterStart)
                             ) {
                                 Text(
@@ -223,10 +223,10 @@ fun ProfileContent(
                     selectedTabIndex = model.tabIndex,
                     containerColor = Color.Transparent
                 ) {
-                    for (i in if(model.isOwner && model.isCanEdit) (0..2) else (0..1)) {
+                    for (i in if (model.isOwner && model.isCanEdit) (0..1) else (0..0)) {
                         val text = when (i) {
-                            0 ->  "Обо мне"
-                            1 -> "Статистика"
+                            0 -> "Обо мне"
+//                            1 -> "Статистика"
                             else -> "Аватарки"
                         }
                         Tab(
@@ -382,14 +382,14 @@ fun ProfileContent(
                                                     .clip(CardDefaults.elevatedShape)
                                                     .weight(1f)
                                                     .clickable() {
-
-                                                        if (model.isOwner) {
-                                                            component.onOutput(
-                                                                ProfileComponent.Output.OpenAchievements(
-                                                                    model.studentLogin
-                                                                )
+                                                        component.onOutput(
+                                                            ProfileComponent.Output.OpenAchievements(
+                                                                login = model.studentLogin,
+                                                                name = model.fio.name,
+                                                                avatarId = model.avatarId
                                                             )
-                                                        }
+                                                        )
+//
                                                     }
                                             ) {
                                                 Column(
@@ -456,16 +456,16 @@ fun ProfileContent(
                         }
                     }
                 }
-
-                1 -> {
-                    item {
-                        Text(
-                            "В разработке",
-                            modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+                //was statistika
+//                1 -> {
+//                    item {
+//                        Text(
+//                            "В разработке",
+//                            modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
+//                            textAlign = TextAlign.Center
+//                        )
+//                    }
+//                }
 
                 else -> {
                     item {
@@ -492,8 +492,10 @@ fun ProfileContent(
     CBottomSheetContent(
         component = component.giaCBottomSheetComponent
     ) {
-        val necessarySubjects = if((model.form?.form?.classNum ?: 0) > 9) egeNecessarySubjects else ogeNecessarySubjects
-        val subjects = if((model.form?.form?.classNum ?: 0) > 9) egeSubjects else ogeSubjects
+        val necessarySubjects = if ((model.form?.form?.classNum
+                ?: 0) > 9
+        ) egeNecessarySubjects else ogeNecessarySubjects
+        val subjects = if ((model.form?.form?.classNum ?: 0) > 9) egeSubjects else ogeSubjects
 
         LazyColumn(
             Modifier.padding(horizontal = 15.dp)
@@ -506,7 +508,9 @@ fun ProfileContent(
                 ) {
                 }
             }
-            items(subjects.sortedByDescending { it.first in model.giaSubjects }, key = { it.first }) { s ->
+            items(
+                subjects.sortedByDescending { it.first in model.giaSubjects },
+                key = { it.first }) { s ->
                 SubjectItem(
                     title = s.second,
                     isChecked = s.first in model.giaSubjects,
@@ -525,7 +529,7 @@ fun ProfileContent(
             }
             item {
                 Spacer(Modifier.height(40.dp))
-                Spacer(Modifier.height(height = heightVal.dp/2))
+                Spacer(Modifier.height(height = heightVal.dp / 2))
             }
         }
     }
@@ -538,7 +542,11 @@ private fun SubjectItem(
     modifier: Modifier = Modifier,
     onClick: (Boolean) -> Unit
 ) {
-    Row(modifier = modifier.fillMaxWidth(.8f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(
+        modifier = modifier.fillMaxWidth(.8f),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Text(title)
         Checkbox(
             checked = isChecked,
@@ -562,12 +570,13 @@ val egeSubjects = mapOf<Int, String>(
     6 to "История",
     7 to "География",
     8 to "Биология",
-    9 to "Литература",
-    10 to "Английский язык",
-    11 to "Французский язык",
-    12 to "Испанский язык",
-    13 to "Немецкий язык",
-    14 to "Китайский язык",
+    9 to "Химия",
+    10 to "Литература",
+    11 to "Английский язык",
+    12 to "Французский язык",
+    13 to "Испанский язык",
+    14 to "Немецкий язык",
+    15 to "Китайский язык",
 ).toList()
 val ogeNecessarySubjects = mapOf<Int, String>(
     0 to "Русский язык",
@@ -581,11 +590,12 @@ val ogeSubjects = mapOf<Int, String>(
     6 to "История",
     7 to "География",
     8 to "Биология",
-    9 to "Литература",
-    10 to "Английский язык",
-    11 to "Французский язык",
-    12 to "Испанский язык",
-    13 to "Немецкий язык",
+    9 to "Химия",
+    10 to "Литература",
+    11 to "Английский язык",
+    12 to "Французский язык",
+    13 to "Испанский язык",
+    14 to "Немецкий язык",
 ).toList()
 
 @Composable
@@ -597,18 +607,22 @@ private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
-            Row(Modifier.padding(start = 3.dp)) {
-                Text(subject, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.width(6.dp))
-                Text(group.group.name)
-            }
+        Column(modifier = Modifier.weight(2f, false)) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(subject)
+                    }
+                    append(" ${group.group.name}")
+                },
+                modifier = Modifier.padding(start = 3.dp)
+            )
             Row {
                 Icon(Icons.Rounded.Person, null)
                 Text(teacher)
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(.5f, false)) {
             Icon(
                 Icons.Rounded.LocalFireDepartment,
                 null,

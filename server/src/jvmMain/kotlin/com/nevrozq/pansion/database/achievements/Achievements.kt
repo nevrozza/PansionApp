@@ -4,6 +4,7 @@ import achievements.AchievementsDTO
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.not
 import org.jetbrains.exposed.sql.or
@@ -50,6 +51,11 @@ object Achievements: Table() {
                 it[subjectId] = dto.subjectId
                 it[stups] = dto.stups
             }
+        }
+    }
+    fun delete(id: Int) {
+        transaction {
+            Achievements.deleteWhere { Achievements.id eq id }
         }
     }
 

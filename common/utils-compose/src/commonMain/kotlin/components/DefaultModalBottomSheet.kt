@@ -31,7 +31,7 @@ fun DefaultModalBottomSheet(
         },
         sheetState = modalBottomSheetState,
         contentWindowInsets = { WindowInsets.ime }
-
+//        windowInsets = WindowInsets.ime
     ) {
         Box(
             modifier.then(additionalModifier)

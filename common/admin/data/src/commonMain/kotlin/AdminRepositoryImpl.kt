@@ -1,4 +1,5 @@
 import achievements.RCreateAchievementReceive
+import achievements.RDeleteAchievementReceive
 import achievements.REditAchievementReceive
 import achievements.RFetchAchievementsResponse
 import achievements.RUpdateGroupOfAchievementsReceive
@@ -68,6 +69,10 @@ class AdminRepositoryImpl(
 
     override suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive): RFetchAchievementsResponse {
         return remoteDataSource.updateGroupAchievement(r)
+    }
+
+    override suspend fun deleteAchievement(r: RDeleteAchievementReceive): RFetchAchievementsResponse {
+        return remoteDataSource.deleteAchievement(r)
     }
 
     override suspend fun fetchAllAchievements(): RFetchAchievementsResponse {

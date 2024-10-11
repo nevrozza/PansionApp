@@ -1,5 +1,5 @@
 package com.nevrozq.pansion
-//
+
 val sqlUrl =  System.getenv("DATABASE_CONNECTION_STRING") //"jdbc:postgresql://localhost:5432/pansionApp"//
 val sqlUser = System.getenv("POSTGRES_USER")// "postgres"//
 val sqlPassword = System.getenv("POSTGRES_PASSWORD")// "6556"//
@@ -11,6 +11,8 @@ val h_port = System.getenv("SERVER_PORT").toInt()// 8080
 val https_port = System.getenv("SERVER_HTTPS_PORT").toInt()//8443//
 
 val ratingDelay = System.getenv("SERVER_HTTPS_PORT").toInt()//5//
+
+
 //val sqlUrl = "jdbc:postgresql://localhost:5432/pansionApp"//  System.getenv("DATABASE_CONNECTION_STRING") //
 //val sqlUser =  "postgres"//System.getenv("POSTGRES_USER")//
 //val sqlPassword = "6556"// System.getenv("POSTGRES_PASSWORD")//

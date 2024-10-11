@@ -67,6 +67,21 @@ fun getWeekDays(): List<String> {
     }
 }
 
+fun getPreviousWeekDays(): List<String> {
+    val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).date
+    val days = mutableListOf<LocalDate>()
+    val firstWeekDay = today.daysShift(-DayOfWeek.entries.indexOf(today.dayOfWeek) - 7) // Calculate the first day of the previous week
+
+    for (i in 0 until 7) { // Iterate for 7 days for the previous week
+        days.add(firstWeekDay.daysShift(i))
+    }
+
+    return days.map { time ->
+        "${time.dayOfMonth.twoNums()}." +
+                "${time.monthNumber.twoNums()}." +
+                "${time.year}"
+    }
+}
 
 fun fetchReason(reasonId: String): String {
     return when(reasonId.subSequence(0, 3)) {
@@ -165,8 +180,12 @@ fun getDate(): String {
 }
 
 fun Float.roundTo(numFractionDigits: Int): Float {
-    val factor = 10.0.pow(numFractionDigits.toDouble())
-    return ((this * factor).roundToInt() / factor).toFloat()
+    if (this.isNaN()) {
+        return Float.NaN
+    } else {
+        val factor = 10.0.pow(numFractionDigits.toDouble())
+        return ((this * factor).roundToInt() / factor).toFloat()
+    }
 }
 
 fun Int.toSixTime(): String {

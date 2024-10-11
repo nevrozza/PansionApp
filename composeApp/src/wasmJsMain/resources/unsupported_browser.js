@@ -9,7 +9,12 @@ const unhandledError = (event, error) => {
         }
 
         document.getElementById("spinner").style.display = "none";
-        document.getElementById("TiamatTarget").style.display = "none";
+        document.getElementById("composeApp").style.display = "none";
+    }
+    else {
+        document.getElementById("unknownError").style.display = "initial";
+        document.getElementById("spinner").style.display = "none";
+        document.getElementById("composeApp").style.display = "none";
     }
 }
 addEventListener("error", (event) => unhandledError(event, event.error));

@@ -8,7 +8,9 @@ import journal.JournalStore.Label
 import journal.JournalStore.State
 import journal.init.TeacherGroup
 import report.ReportHeader
+import server.getPreviousWeekDays
 import server.getSixTime
+import server.getWeekDays
 
 interface JournalStore : Store<Intent, State, Label> {
     data class State(
@@ -27,6 +29,8 @@ interface JournalStore : Store<Intent, State, Label> {
         val filterDate: String? = null,
         val filterStatus: Boolean? = null,
         val filterMyChildren: Boolean = isMentor,
+        val weekDays: List<String> = getWeekDays(),
+        val previousWeekDays: List<String> = getPreviousWeekDays(),
         val login: String
     )
 

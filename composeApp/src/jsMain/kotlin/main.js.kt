@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
@@ -38,6 +39,10 @@ import root.RootComponentImpl
 import server.DeviceTypex
 import view.WindowType
 import kotlinx.browser.window
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import org.jetbrains.skiko.wasm.onWasmReady
 import view.AppTheme
 import view.LocalViewManager
@@ -47,7 +52,6 @@ import view.toTint
 import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.events.EventType
-import web.viewport.visualViewport
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
@@ -74,10 +78,18 @@ fun main() {
         )
 
     lifecycle.attachToDocument()
+
+    val sizeManager = SizeManager().apply {
+        resize()
+    }
+
     onWasmReady {
         CanvasBasedWindow(
             canvasElementId = "composeApp",
-            applyDefaultStyles = false
+            applyDefaultStyles = false,
+            requestResize = {
+                sizeManager.changes.first()
+            }
         ) {
 
 //        ComposeViewport(
@@ -107,26 +119,13 @@ fun main() {
             ) {
                 PageLoadNotify()
                 AppTheme {
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                        Box(
-                            modifier = Modifier.width(window.innerWidth.dp)
-                                .height(window.innerHeight.dp)
-                        ) {
-                            Root(
-                                root = root,
-                                device = WindowType.PC,
-                                isJs = true
-                            )
-                        }
-                        Box(Modifier.background(MaterialTheme.colorScheme.background).height(window.innerHeight.dp/2))
-                    }
-
-
+                    Root(
+                        root = root,
+                        device = WindowType.PC,
+                        isJs = true
+                    )
                 }
-                
             }
-
-            heightVal = window.innerHeight
         }
     }
 }
@@ -157,6 +156,26 @@ fun getDeviceName(): String {
     } + deviceName
 
     return deviceName + " JS"
+}
+
+class SizeManager {
+    private val _changes = Channel<IntSize>(CONFLATED)
+    val changes get() = _changes.receiveAsFlow()
+
+    init {
+        window.asDynamic()
+            .visualViewport
+            .onresize = ::resize
+    }
+
+    fun resize() {
+        _changes.trySend(
+            IntSize(
+                window.innerWidth,
+                window.asDynamic().visualViewport.height as Int
+            )
+        )
+    }
 }
 
 fun getOrCreateDeviceUUID(): String {

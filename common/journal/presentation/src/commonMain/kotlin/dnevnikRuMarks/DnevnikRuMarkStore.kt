@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 import report.DnevnikRuMarksSubject
 import report.ServerRatingUnit
 import report.UserMark
+import server.getPreviousWeekDays
 import server.getWeekDays
 
 interface DnevnikRuMarkStore : Store<Intent, State, Label> {
@@ -24,9 +25,11 @@ interface DnevnikRuMarkStore : Store<Intent, State, Label> {
 
         val pickedSubjectId: Int = 0,
 
-        val isTableView: Boolean = false,
+        val isTableView: Boolean = true,
         val isWeekDays: Boolean = false,
         val weekDays: List<String> = getWeekDays(),
+        val isPreviousWeekDays: Boolean = false,
+        val previousWeekDays: List<String> = getPreviousWeekDays(),
 
         val tableSubjects: List<DnevnikRuMarksSubject> = emptyList(),
         val mDates: List<String> = emptyList(),
@@ -37,6 +40,7 @@ interface DnevnikRuMarkStore : Store<Intent, State, Label> {
         data object Init: Intent
 
         data object OpenWeek : Intent
+        data object OpenPreviousWeek : Intent
 
 
         data class ClickOnTab(val index: Int) : Intent
@@ -60,6 +64,7 @@ interface DnevnikRuMarkStore : Store<Intent, State, Label> {
 
         data class TableViewChanged(val isTableView: Boolean) : Message
         data object WeekOpened : Message
+        data object PreviousWeekOpened : Message
     }
 
     sealed interface Label

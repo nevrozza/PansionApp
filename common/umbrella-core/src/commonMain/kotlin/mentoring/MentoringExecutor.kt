@@ -101,6 +101,7 @@ class MentoringExecutor(
             val filteredDates = state().allDates.filter {
                 when (state().dateFilter) {
                     is DatesFilter.Week -> it.date in state().weekDays
+                    is DatesFilter.PreviousWeek -> it.date in state().previousWeekDays
                     is DatesFilter.Module -> it.module in (state().dateFilter as DatesFilter.Module).modules
                     else -> false
                 }

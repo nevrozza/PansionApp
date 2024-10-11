@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.features.reports
 
+import ForAvg
 import ReportData
 import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.calendar.Calendar
@@ -9,7 +10,6 @@ import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.homework.HomeTasks
 import com.nevrozq.pansion.database.homework.HomeTasksDTO
 import com.nevrozq.pansion.database.preAttendance.PreAttendance
-import com.nevrozq.pansion.database.ratingEntities.ForAvg
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingEntities.mapToServerRatingUnit
@@ -528,9 +528,9 @@ class ReportsController() {
                     println("xxxx2:")
                     println(s.login)
                     val isQuarter = isQuarter(RIsQuartersReceive(s.login))
-                    val marks = Marks.fetchForUserSubject(
+                    val marks = Marks.fetchForUserGroup(
                         login = s.login,
-                        subjectId = r.subjectId
+                        groupId = r.groupId
                     ).sortedBy { it.deployTime.toMinutes() }.map {
                         UserMarkPlus(
                             mark = UserMark(
@@ -548,9 +548,9 @@ class ReportsController() {
                             deployLogin = it.deployLogin
                         )
                     }
-                    val stups = Stups.fetchForUserSubject(
+                    val stups = Stups.fetchForUserGroup(
                         login = s.login,
-                        subjectId = r.subjectId
+                        groupId = r.groupId
                     ).sortedWith(
                         compareBy({ getLocalDate(it.deployDate).toEpochDays() },
                             { it.deployTime.toMinutes() })

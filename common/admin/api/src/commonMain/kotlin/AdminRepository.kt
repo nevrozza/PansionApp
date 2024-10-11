@@ -1,4 +1,5 @@
 import achievements.RCreateAchievementReceive
+import achievements.RDeleteAchievementReceive
 import achievements.REditAchievementReceive
 import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
@@ -34,6 +35,7 @@ interface AdminRepository {
     suspend fun createAchievement(r: RCreateAchievementReceive): RFetchAchievementsResponse
     suspend fun editAchievement(r: REditAchievementReceive): RFetchAchievementsResponse
     suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive): RFetchAchievementsResponse
+    suspend fun deleteAchievement(r: RDeleteAchievementReceive): RFetchAchievementsResponse
     suspend fun fetchAllAchievements(): RFetchAchievementsResponse
 
     suspend fun fetchInitSchedule(): RFetchInitScheduleResponse

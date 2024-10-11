@@ -8,6 +8,7 @@ import allGroupMarks.AllGroupMarksStore.State
 import lessonReport.LessonReportStore
 import report.AllGroupMarksStudent
 import report.UserMark
+import server.getPreviousWeekDays
 import server.getWeekDays
 
 data class DateModule(
@@ -17,6 +18,7 @@ data class DateModule(
 
 sealed interface DatesFilter {
     data object Week: DatesFilter
+    data object PreviousWeek: DatesFilter
     data class Module(val modules: List<String>): DatesFilter
 }
 
@@ -32,13 +34,14 @@ interface AllGroupMarksStore : Store<Intent, State, Label> {
         val detailedStupsLogin: String = "",
         val reportData: ReportData? = null,
         val login: String,
-        val isTableView: Boolean = false,
+        val isTableView: Boolean = true,
         val dates: List<DateModule> = emptyList(),
         val modules: List<String> = emptyList(),
 
         val dateFilter: DatesFilter = DatesFilter.Week,
 
-        val weekDays: List<String> = getWeekDays()
+        val weekDays: List<String> = getWeekDays(),
+        val previousWeekDays: List<String> = getPreviousWeekDays(),
     )
 
     sealed interface Intent {

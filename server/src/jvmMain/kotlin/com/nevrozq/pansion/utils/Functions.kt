@@ -80,11 +80,17 @@ val ApplicationCall.isModer: Boolean get() {
 val ApplicationCall.isTeacher: Boolean get() {
     return Users.getRole(this.login) == Roles.teacher
 }
+val ApplicationCall.isStudent: Boolean get() {
+    return Users.getRole(this.login) == Roles.student
+}
 val ApplicationCall.isParent: Boolean get() {
     return Users.getIsParentStatus(this.login)
 }
 val ApplicationCall.isMentor: Boolean get() {
     return Users.getModeration(this.login) != Moderation.nothing//in listOf(Moderation.both, Moderation.mentor)
+}
+val ApplicationCall.isOnlyMentor: Boolean get() {
+    return Users.getModeration(this.login) == Moderation.mentor//in listOf(Moderation.both, Moderation.mentor)
 }
 
 val ApplicationCall.token: String?

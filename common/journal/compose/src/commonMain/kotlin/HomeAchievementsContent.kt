@@ -60,6 +60,7 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.CustomTextField
+import components.GetAvatar
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
@@ -98,6 +99,15 @@ fun HomeAchievementsContent(
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
+                    )
+                },
+                actionRow = {
+                    GetAvatar(
+                        avatarId = model.avatarId,
+                        name = model.name,
+                        size = 35.dp,
+                        textSize = 13.sp,
+                        modifier = Modifier.padding(end = 10.dp)
                     )
                 },
                 isHaze = true

@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.database.ratingEntities
 
+import ForAvg
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.features.reports.isQuarter
@@ -21,6 +22,15 @@ object Marks : RatingEntity() {
     fun fetchWeekSubjectAVG(login: String, subjectId: Int): ForAvg {
         return transaction {
             val marks = fetchForAWeek(login).filter { it.subjectId == subjectId }
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
+    fun fetchPreviousWeekSubjectAVG(login: String, subjectId: Int): ForAvg {
+        return transaction {
+            val marks = fetchForAPreviousWeek(login).filter { it.subjectId == subjectId }
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }
@@ -57,6 +67,17 @@ object Marks : RatingEntity() {
             )
         }
     }
+    fun fetchPreviousWeekAVG(login: String): ForAvg {
+        return transaction {
+            val marks = fetchForAPreviousWeek(login)
+
+            println("avg: $marks")
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
     fun fetchYearAVG(login: String): ForAvg {
         return transaction {
             val marks = fetchForUser(login)
@@ -84,6 +105,17 @@ object Marks : RatingEntity() {
         return transaction {
             val c = Calendar.getHalfOfModule(module.toInt())
             val x = Calendar.getAllModulesOfHalfAsString(c)
+            val marks = fetchForUser(login).filter { it.part in x.map { it.toString() } }
+
+            ForAvg(
+                count = marks.size,
+                sum = marks.sumOf { it.content.toInt() }
+            )
+        }
+    }
+    fun fetchHalfYearAVG(login: String, halfYear: Int): ForAvg {
+        return transaction {
+            val x = Calendar.getAllModulesOfHalfAsString(halfYear)
             val marks = fetchForUser(login).filter { it.part in x.map { it.toString() } }
 
             ForAvg(

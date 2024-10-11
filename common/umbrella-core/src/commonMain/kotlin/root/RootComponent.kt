@@ -18,6 +18,7 @@ import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
 import dnevnikRuMarks.DnevnikRuMarksComponent
+import formRating.FormRatingComponent
 import groups.GroupsComponent
 import kotlinx.coroutines.flow.StateFlow
 import login.LoginComponent
@@ -32,6 +33,7 @@ import qr.QRComponent
 import rating.RatingComponent
 import root.store.RootStore
 import schedule.ScheduleComponent
+import school.SchoolComponent
 import studentLines.StudentLinesComponent
 import users.UsersComponent
 
@@ -63,6 +65,14 @@ interface RootComponent : BackHandlerOwner {
         class MainMentoring(
             val mentoringComponent: MentoringComponent
         ) : Child()
+        class MainSchool(
+            val schoolComponent: SchoolComponent,
+            val ratingComponent: RatingComponent,
+        ) : Child()
+        class SchoolFormRating(
+            val schoolComponent: SchoolComponent,
+            val formRatingComponent: FormRatingComponent,
+        ) : Child()
 
         class SecondView(
             val mentoringComponent: MentoringComponent?,
@@ -71,7 +81,7 @@ interface RootComponent : BackHandlerOwner {
             val isMentoring: Boolean
         ) : Child()
 
-        class MainRating(val homeComponent: HomeComponent, val ratingComponent: RatingComponent) :
+        class MainRating(val schoolComponent: SchoolComponent, val ratingComponent: RatingComponent) :
             Child()
 
         class MainAdmin(val adminComponent: AdminComponent) : Child()
@@ -169,7 +179,7 @@ interface RootComponent : BackHandlerOwner {
 
         data object NavigateToSchedule : Output()
 
-        data object NavigateToRating : Output()
+        data object NavigateToSchool : Output()
         data object NavigateToAuth : Output()
 
     }
@@ -198,6 +208,15 @@ interface RootComponent : BackHandlerOwner {
 
         @Serializable
         data object MainRating : Config
+        @Serializable
+        data object MainSchool : Config
+        @Serializable
+        data class SchoolFormRating(
+            val login: String,
+            val formNum: Int?,
+            val formId: Int?,
+            val formName: String?
+        ) : Config
 
         //        @Serializable
 //        data object AdminMentors : Config
@@ -225,13 +244,13 @@ interface RootComponent : BackHandlerOwner {
 
         @Serializable
         data class HomeProfile(val studentLogin: String, val fio: FIO, val avatarId: Int, val isOwner: Boolean, val isCanEdit: Boolean) : Config
-        data class HomeAchievements(val studentLogin: String) : Config
+        data class HomeAchievements(val studentLogin: String, val name: String, val avatarId: Int) : Config
         @Serializable
         data class HomeTasks(val studentLogin: String, val avatarId: Int, val name: String) : Config
 
 
         @Serializable
-        data class HomeDetailedStups(val studentLogin: String, val reason: String) : Config
+        data class HomeDetailedStups(val studentLogin: String, val name: String, val avatarId: Int, val reason: String) : Config
 
         @Serializable
         data class HomeAllGroupMarks(
@@ -286,7 +305,7 @@ interface RootComponent : BackHandlerOwner {
         data object Mentoring : RootCategories
         data object Admin : RootCategories
 
-        data object Rating : RootCategories
+        data object School : RootCategories
     }
 
 }

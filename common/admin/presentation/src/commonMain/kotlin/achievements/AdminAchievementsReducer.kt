@@ -7,7 +7,7 @@ import achievements.AdminAchievementsStore.Message
 object AdminAchievementsReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
         return when (msg) {
-            is Message.Inited -> copy(
+            is Message.Inited -> State(
                 achievements = msg.achievements,
                 students = msg.students,
                 subjects = msg.subjects

@@ -18,6 +18,9 @@ import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
 import com.nevrozq.pansion.database.ratingTable.RatingModule1Table
 import com.nevrozq.pansion.database.ratingTable.RatingModule2Table
+import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek0Table
+import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek1Table
+import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek2Table
 import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
 import com.nevrozq.pansion.database.ratingTable.RatingWeek1Table
 import com.nevrozq.pansion.database.ratingTable.RatingWeek2Table
@@ -47,6 +50,7 @@ import com.nevrozq.pansion.features.homeworks.configureHomeworksRouting
 import com.nevrozq.pansion.features.lessons.configureLessonsRouting
 import com.nevrozq.pansion.features.mentoring.configureMentoringRouting
 import com.nevrozq.pansion.features.reports.configureReportsRouting
+import com.nevrozq.pansion.features.school.configureSchoolRouting
 import com.nevrozq.pansion.features.settings.configureSettingsRouting
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
@@ -104,6 +108,9 @@ fun main() {
             RatingWeek0Table,
             RatingWeek1Table,
             RatingWeek2Table,
+            RatingPreviousWeek0Table,
+            RatingPreviousWeek1Table,
+            RatingPreviousWeek2Table,
             RatingModule0Table,
             RatingModule1Table,
             RatingModule2Table,
@@ -124,7 +131,7 @@ fun main() {
 
     }
 
-    GlobalScope.launch(Dispatchers.IO) {
+    GlobalScope.launch {
         while (true) {
             transaction {
                 updateRatings()
@@ -221,4 +228,5 @@ fun Application.module() {
     configureHomeworksRouting()
     configureMentoringRouting()
     configureAchievementsRouting()
+    configureSchoolRouting()
 }

@@ -299,7 +299,9 @@ class AuthController {
             try {
 
                 val r = call.receive<RChangeLogin>()
-                if (r.newLogin !in Users.fetchAll().map { it.login } + SecondLogins.fetchAllNewLogins()) {
+                if (r.newLogin !in Users.fetchAll()
+                        .map { it.login } + SecondLogins.fetchAllNewLogins()
+                ) {
                     SecondLogins.change(
                         oldLogin = call.login,
                         newLogin = r.newLogin
@@ -535,7 +537,7 @@ class AuthController {
     suspend fun performLogin(call: ApplicationCall) {
         val receive = call.receive<LoginReceive>()
         val oldLogin = SecondLogins.fetchOldLogin(newLogin = receive.login)
-        val userDTO = Users.fetchUser( oldLogin ?: receive.login)
+        val userDTO = Users.fetchUser(oldLogin ?: receive.login)
 
         if (userDTO == null) {
 //            call.respond(HttpStatusCode.BadRequest, "admin.users.User not found")
@@ -546,10 +548,10 @@ class AuthController {
             if (receive.deviceId.toId() != nullUUID) {
                 val serverPassword = userDTO.password ?: "".cut(DataLength.passwordLength)
                 val passwordToCheck = receive.password.cut(DataLength.passwordLength)
-                if ( serverPassword.isNotEmpty() && (serverPassword == passwordToCheck || BCrypt.checkpw(
+                if (serverPassword.isNotEmpty() && BCrypt.checkpw(
                         passwordToCheck,
                         serverPassword
-                    ))
+                    )
                 ) {
                     val token = UUID.randomUUID()
                     Tokens.insert(

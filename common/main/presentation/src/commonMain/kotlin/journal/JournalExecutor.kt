@@ -128,7 +128,10 @@ class JournalExecutor(
                 }.mapNotNull {
                     if (it.groupId !in ids) {
                         ids.add(it.groupId)
-                        ListItem(id = it.groupId.toString(), text = it.groupName)
+                        ListItem(
+                            id = it.groupId.toString(),
+                            text = "${it.subjectName} ${it.groupName}"
+                        )
                     } else null
                 }.toSet().toList()
                 fGroupListComponent.onEvent(
@@ -146,7 +149,7 @@ class JournalExecutor(
 
     private fun filterMyChildren(filter: Boolean) {
         dispatch(Message.MyChildrenFiltered(filter))
-        if(filter && state().childrenGroupIds.isEmpty()) {
+        if (filter && state().childrenGroupIds.isEmpty()) {
             fetchChildrenGroupIds()
         }
     }
@@ -156,7 +159,8 @@ class JournalExecutor(
             try {
                 val r = mainRepository.fetchMentorGroupIds()
                 dispatch(Message.MyChildrenGroupsFetched(r.ids))
-            } catch (_: Throwable) {}
+            } catch (_: Throwable) {
+            }
         }
     }
 
@@ -164,7 +168,7 @@ class JournalExecutor(
         scope.launch {
             fetchHeaders() //async { }
             fetchTeacherGroups() //async { }
-            if(state().isMentor) {
+            if (state().isMentor) {
                 fetchChildrenGroupIds()
             }
         }
@@ -204,16 +208,23 @@ class JournalExecutor(
                             text = it.teacherName
                         )
                     }.toSet().toList()
-                    val dateItemList =
-                        headers.reportHeaders.map { ListItem(id = it.date, text = it.date) }.toSet()
-                            .toList().reversed()
-                    
+                    val dateItemList: List<ListItem> = listOf(
+                        ListItem(id = "0", text = "За неделю"),
+                        ListItem(id = "1", text = "За прошлую неделю")
+                    ) +
+                            headers.reportHeaders.map { ListItem(id = it.date, text = it.date) }
+                                .toSet()
+                                .toList().reversed()
+
                     val ids: MutableList<Int> = mutableListOf()
 
                     val groupItemList = headers.reportHeaders.mapNotNull {
                         if (it.groupId !in ids) {
                             ids.add(it.groupId)
-                            ListItem(id = it.groupId.toString(), text = it.groupName)
+                            ListItem(
+                                id = it.groupId.toString(),
+                                text = "${it.subjectName} ${it.groupName}"
+                            )
                         } else null
                     }.toSet().toList()
 
@@ -243,8 +254,6 @@ class JournalExecutor(
                 }
 
 
-
-
             } catch (e: Throwable) {
                 println(e)
                 nInterface.nError("Не удалось загрузить список") {
@@ -262,7 +271,8 @@ class JournalExecutor(
         scope.launch {
             try {
                 groupListComponent.nInterface.nStartLoading()
-                val groups = mainRepository.fetchTeacherGroups().groups.filter { it.teacherLogin == state().login }
+                val groups =
+                    mainRepository.fetchTeacherGroups().groups.filter { it.teacherLogin == state().login }
                 groupListComponent.onEvent(ListDialogStore.Intent.InitList(
                     groups.filter { it.cutedGroup.isActive }.sortedBy { it.subjectId }.map {
                         ListItem(

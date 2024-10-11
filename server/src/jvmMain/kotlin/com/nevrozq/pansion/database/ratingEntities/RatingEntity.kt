@@ -18,6 +18,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import server.daysShift
+import server.getPreviousWeekDays
 import server.getWeekDays
 import server.twoNums
 
@@ -77,6 +78,10 @@ open class RatingEntity : Table() {
 
     fun fetchForAWeek(login: String) : List<RatingEntityDTO> {
         val dayStrings = getWeekDays()
+        return fetchForPeriod(login, dayStrings)
+    }
+    fun fetchForAPreviousWeek(login: String) : List<RatingEntityDTO> {
+        val dayStrings = getPreviousWeekDays()
         return fetchForPeriod(login, dayStrings)
     }
 
@@ -356,6 +361,34 @@ open class RatingEntity : Table() {
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],
+                        reportId = it[this@RatingEntity.reportId],
+                        login = it[this@RatingEntity.login],
+                        content = it[content],
+                        reason = it[reason],
+                        id = it[this@RatingEntity.id],
+                        part = it[part],
+                        isGoToAvg = it[isGoToAvg],
+                        subjectId = it[this@RatingEntity.subjectId],
+                        date = it[date],
+                        deployTime = it[deployTime],
+                        deployLogin = it[deployLogin],
+                        deployDate = it[deployDate]
+                    )
+                }
+            } catch (e: Throwable) {
+                println(e)
+                listOf()
+            }
+        }
+    }
+    fun fetchForUserGroup(login: String, groupId: Int) : List<RatingEntityDTO> {
+        return transaction {
+            try {
+                val ratingEntities =
+                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.groupId eq groupId) }
+                ratingEntities.map {
+                    RatingEntityDTO(
+                        groupId = it[this@RatingEntity.groupId],
                         reportId = it[this@RatingEntity.reportId],
                         login = it[this@RatingEntity.login],
                         content = it[content],

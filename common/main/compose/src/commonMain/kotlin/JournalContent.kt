@@ -100,12 +100,8 @@ fun JournalContent(
     isNotMinimized: Boolean = true,
     onRefresh: () -> Unit
 ) {
-
-
-
     if (moderation != Moderation.nothing || role == Roles.teacher) {
         TrueJournalContent(component, isNotMinimized, onRefresh)
-
     } else {
         AlphaTestZatichka(
             onSettingsClick = {
@@ -299,7 +295,12 @@ private fun TrueJournalContent(
                                                 onClick = { component.fDateListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
                                                 label = {
                                                     AnimatedContent(
-                                                        if (!isPicked) "Дата" else model.filterDate.toString()
+                                                        when {
+                                                            !isPicked -> "Дата"
+                                                            model.filterDate == "0" -> "За неделю"
+                                                            model.filterDate == "1" -> "За прошлую неделю"
+                                                            else ->model.filterDate.toString()
+                                                        }
                                                     ) {
                                                         Text(
                                                             it, maxLines = 1,
@@ -332,7 +333,10 @@ private fun TrueJournalContent(
                                 items(model.headers
                                     .asSequence()
                                     .filter { if(model.filterStatus != null) it.status == model.filterStatus else true }
-                                    .filter { if(model.filterDate != null) it.date == model.filterDate else true }
+                                    .filter {
+                                        if (model.filterDate == "0") it.date in model.weekDays
+                                        else if (model.filterDate == "1") it.date in model.previousWeekDays
+                                        else if(model.filterDate != null) it.date == model.filterDate else true }
                                     .filter { if(model.filterGroupId != null) it.groupId == model.filterGroupId else true }
                                     .filter { if(model.filterTeacherLogin != null) it.teacherLogin == model.filterTeacherLogin else true }
                                     .filter { if(model.filterMyChildren && model.childrenGroupIds.isNotEmpty()) it.groupId in model.childrenGroupIds else true }

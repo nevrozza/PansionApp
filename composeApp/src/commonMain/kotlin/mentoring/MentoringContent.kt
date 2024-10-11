@@ -122,6 +122,7 @@ import root.RootComponent
 import root.RootComponent.Config
 import server.roundTo
 import view.LocalViewManager
+import view.WindowScreen
 import view.rememberImeState
 
 @ExperimentalLayoutApi
@@ -197,10 +198,13 @@ fun MentoringContent(
                     Crossfade(model.isTableView) { cf ->
                         if (cf) {
                             Box(
-                                Modifier.fillMaxSize().padding(padding),
+                                Modifier.fillMaxSize().padding(padding).padding(bottom =
+                                if (viewManager.orientation.value != WindowScreen.Expanded) {
+                                    padding.calculateBottomPadding() + 80.dp - 20.dp
+                                } else 0.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Column {
+                                Column(modifier = Modifier.offset(y = (-10).dp)) {
                                     Row(Modifier.horizontalScroll(rememberScrollState()).offset(y = 10.dp)) {
                                         FilterChip(
                                             selected = model.dateFilter is DatesFilter.Week,
@@ -212,6 +216,19 @@ fun MentoringContent(
                                                 )
                                             },
                                             label = { Text("За неделю") }
+                                        )
+                                        Spacer(Modifier.width(5.dp))
+                                        FilterChip(
+
+                                            selected = model.dateFilter is DatesFilter.PreviousWeek,
+                                            onClick = {
+                                                component.onEvent(
+                                                    MentoringStore.Intent.ChangeFilterDate(
+                                                        DatesFilter.PreviousWeek
+                                                    )
+                                                )
+                                            },
+                                            label = { Text("За прошлую неделю") }
                                         )
                                         Spacer(Modifier.width(5.dp))
                                         model.modules.forEach { module ->
@@ -247,7 +264,6 @@ fun MentoringContent(
                                             Spacer(Modifier.width(5.dp))
                                         }
                                     }
-
                                     MarkTable(
                                         fields = model.filteredStudents.associate { s -> s.login to "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}" },
                                         dms = model.filteredDateMarks,
@@ -546,92 +562,94 @@ private fun FormsItem(
                                         Icons.Rounded.Home, null
                                     )
                                 }
-
-                                IconButton(
-                                    onClick = {
-                                        component.onOutput(
-                                            MentoringComponent.Output.CreateSecondView(
-                                                login = s.login,
-                                                fio = s.fio,
-                                                avatarId = s.avatarId,
-                                                config = Config.HomeStudentLines(
-                                                    login = s.login
-                                                )
-                                            )
-                                        )
-                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-                                    },
-                                    modifier = Modifier.size(30.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.ManageSearch, null
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {
-                                        component.onOutput(
-                                            MentoringComponent.Output.CreateSecondView(
-                                                login = s.login,
-                                                fio = s.fio,
-                                                avatarId = s.avatarId,
-                                                config = Config.HomeDnevnikRuMarks(
-                                                    studentLogin = s.login
-                                                )
-                                            )
-                                        )
-                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-                                    },
-                                    modifier = Modifier.size(30.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.PlaylistAddCheckCircle, null
-                                    )
-                                }
-
-
-                                IconButton(
-                                    onClick = {
-                                        component.onOutput(
-                                            MentoringComponent.Output.CreateSecondView(
-                                                login = s.login,
-                                                fio = s.fio,
-                                                avatarId = s.avatarId,
-                                                config = Config.HomeTasks(
-                                                    studentLogin = s.login,
-                                                    avatarId = s.avatarId,
-                                                    name = s.fio.name
-                                                )
-                                            )
-                                        )
-                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-                                    },
-                                    modifier = Modifier.size(30.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.HistoryEdu, null
-                                    )
-                                }
-                                IconButton(
-                                    onClick = {
-                                        component.onOutput(
-                                            MentoringComponent.Output.CreateSecondView(
-                                                login = s.login,
-                                                fio = s.fio,
-                                                avatarId = s.avatarId,
-                                                config = Config.HomeAchievements(
-                                                    studentLogin = s.login
-                                                )
-                                            )
-                                        )
-                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-                                    },
-                                    modifier = Modifier.size(30.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.EmojiEvents, null
-                                    )
-                                }
+//
+//                                IconButton(
+//                                    onClick = {
+//                                        component.onOutput(
+//                                            MentoringComponent.Output.CreateSecondView(
+//                                                login = s.login,
+//                                                fio = s.fio,
+//                                                avatarId = s.avatarId,
+//                                                config = Config.HomeStudentLines(
+//                                                    login = s.login
+//                                                )
+//                                            )
+//                                        )
+//                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
+//                                    },
+//                                    modifier = Modifier.size(30.dp)
+//                                ) {
+//                                    Icon(
+//                                        Icons.Rounded.ManageSearch, null
+//                                    )
+//                                }
+//
+//                                IconButton(
+//                                    onClick = {
+//                                        component.onOutput(
+//                                            MentoringComponent.Output.CreateSecondView(
+//                                                login = s.login,
+//                                                fio = s.fio,
+//                                                avatarId = s.avatarId,
+//                                                config = Config.HomeDnevnikRuMarks(
+//                                                    studentLogin = s.login
+//                                                )
+//                                            )
+//                                        )
+//                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
+//                                    },
+//                                    modifier = Modifier.size(30.dp)
+//                                ) {
+//                                    Icon(
+//                                        Icons.Outlined.PlaylistAddCheckCircle, null
+//                                    )
+//                                }
+//
+//
+//                                IconButton(
+//                                    onClick = {
+//                                        component.onOutput(
+//                                            MentoringComponent.Output.CreateSecondView(
+//                                                login = s.login,
+//                                                fio = s.fio,
+//                                                avatarId = s.avatarId,
+//                                                config = Config.HomeTasks(
+//                                                    studentLogin = s.login,
+//                                                    avatarId = s.avatarId,
+//                                                    name = s.fio.name
+//                                                )
+//                                            )
+//                                        )
+//                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
+//                                    },
+//                                    modifier = Modifier.size(30.dp)
+//                                ) {
+//                                    Icon(
+//                                        Icons.Rounded.HistoryEdu, null
+//                                    )
+//                                }
+//                                IconButton(
+//                                    onClick = {
+//                                        component.onOutput(
+//                                            MentoringComponent.Output.CreateSecondView(
+//                                                login = s.login,
+//                                                fio = s.fio,
+//                                                avatarId = s.avatarId,
+//                                                config = Config.HomeAchievements(
+//                                                    studentLogin = s.login,
+//                                                    name = s.fio.name,
+//                                                    avatarId = s.avatarId
+//                                                )
+//                                            )
+//                                        )
+//                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
+//                                    },
+//                                    modifier = Modifier.size(30.dp)
+//                                ) {
+//                                    Icon(
+//                                        Icons.Rounded.EmojiEvents, null
+//                                    )
+//                                }
                             }
                         }
 
@@ -722,7 +740,7 @@ private fun FormsItem(
                                                                     isEnabled = true,
                                                                     isMoveUpLocked = true,
                                                                     autoCorrect = false,
-                                                                    keyboardType = KeyboardType.Number,
+                                                                    keyboardType = KeyboardType.Text,
                                                                     modifier = Modifier.fillMaxWidth(
                                                                         .5f
                                                                     ),
@@ -740,11 +758,11 @@ private fun FormsItem(
                                                                             )
                                                                         }
                                                                     },
-                                                                    text = "Конец",
+                                                                    text = "Кон.",
                                                                     isEnabled = true,
                                                                     isMoveUpLocked = true,
                                                                     autoCorrect = false,
-                                                                    keyboardType = KeyboardType.Number,
+                                                                    keyboardType = KeyboardType.Text,
                                                                     modifier = Modifier.fillMaxWidth(),
                                                                     supText = "чч:мм"
                                                                 )
@@ -828,7 +846,7 @@ private fun FormsItem(
                                                             ) {
                                                                 Text("${preAttendance.start}-${preAttendance.end}")
                                                                 Text(preAttendance.reason)
-                                                                Text(if (preAttendance.isGood) "Уважительная" else "Неуважительная")
+                                                                Text(if (preAttendance.isGood) "Уважительная" else "Н-ая")
                                                                 AnimatedElevatedButton(
                                                                     text = "Редактировать",
                                                                     isEnabled = true,

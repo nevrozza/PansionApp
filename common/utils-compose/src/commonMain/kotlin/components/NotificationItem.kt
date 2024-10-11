@@ -110,7 +110,7 @@ fun NotificationItem(
                 else if (type == "N") {
                     val isGood = data[1] == "2"
                     Text(
-                        "Отсутствие по ${if (!isGood) "не" else ""}уважительной причине",
+                        "Отсутствие по ${if (isGood) "уважительной" else "н-ой"} причине",
                         fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
                     )
                 }

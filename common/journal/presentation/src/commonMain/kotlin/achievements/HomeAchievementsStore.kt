@@ -9,7 +9,9 @@ interface HomeAchievementsStore : Store<Intent, State, Label> {
     data class State(
         val achievements: List<AchievementsDTO> = emptyList(),
         val subjects: Map<Int, String> = emptyMap(),
-        val login: String
+        val login: String,
+        val name: String,
+        val avatarId: Int,
     )
 
     sealed interface Intent {
