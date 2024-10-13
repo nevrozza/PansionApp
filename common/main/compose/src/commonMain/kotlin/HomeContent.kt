@@ -756,6 +756,7 @@ fun TeacherHomeContent(
                     modifier = Modifier.align(alignment = Alignment.TopCenter),
                     refreshing = refreshing,
                     state = refreshState,
+                    topPadding = padding.calculateTopPadding()
                 )
                 if (viewManager.orientation.value != WindowScreen.Expanded)
                     StudentsPreviewDialog(
@@ -1390,6 +1391,7 @@ fun StudentHomeContent(
                 modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = refreshing,
                 state = refreshState,
+                topPadding = padding.calculateTopPadding()
             )
         }
 
@@ -1875,7 +1877,7 @@ fun RecentMarkContent(
                 color = textColor
             )
         }
-        if (viewManager.colorMode.value in listOf("0", "1")) {
+        if (viewManager.colorMode.value in listOf("0", "1") && isNotStups) {
             val colors =
                 if (viewManager.colorMode.value == "1") markColorsColored else markColorsMono
             Box(

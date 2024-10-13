@@ -23,4 +23,4 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
         }
     }
 
-val applicationVersion = 3
+const val applicationVersion = 3

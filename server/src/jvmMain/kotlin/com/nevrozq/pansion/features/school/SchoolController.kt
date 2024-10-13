@@ -203,7 +203,7 @@ class SchoolController {
                     } else {
                         formName = "$formNum-${form.title.uppercase()}"
                     }
-                    top = RatingWeek0Table.fetchRatingOf(r.login)?.top
+                    top = RatingWeek0Table.fetchRatingOf(r.login, -1)?.top
                 } else if (call.isMentor) {
                     val form = Forms.fetchMentorForms(r.login).firstOrNull()
                     println("TESTIRUEM: ${r.login} ${form}")

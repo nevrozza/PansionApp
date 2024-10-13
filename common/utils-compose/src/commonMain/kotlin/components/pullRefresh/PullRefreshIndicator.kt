@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.max
@@ -59,6 +61,7 @@ fun PullRefreshIndicator(
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = contentColorFor(backgroundColor),
     scale: Boolean = false,
+    topPadding: Dp
 ) {
     val showElevation by remember(refreshing, state) {
         derivedStateOf { refreshing || state.position > 0.5f }
@@ -66,6 +69,7 @@ fun PullRefreshIndicator(
 
     Surface(
         modifier = modifier
+            .padding(top = topPadding)
             .size(IndicatorSize)
             .pullRefreshIndicatorTransform(state, scale),
         shape = SpinnerShape,

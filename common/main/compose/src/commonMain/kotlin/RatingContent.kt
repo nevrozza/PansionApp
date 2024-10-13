@@ -337,10 +337,10 @@ fun RatingContent(
             ListDialogMobileContent(component.periodListComponent, title = "Период")
             ListDialogMobileContent(component.formsListComponent, title = "Классы")
             PullRefreshIndicator(
-                modifier = Modifier.align(alignment = Alignment.TopCenter)
-                    .padding(top = padding.calculateTopPadding()),
+                modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = nModel.state == NetworkState.Loading && model.items[model.currentSubject].isNullOrEmpty(),
                 state = refreshState,
+                topPadding = padding.calculateTopPadding()
             )
         }
     }

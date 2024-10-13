@@ -365,6 +365,7 @@ fun LessonReportContent(
                 modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = refreshing,
                 state = refreshState,
+                topPadding = padding.calculateTopPadding()
             )
 
             CBottomSheetContent(

@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BorderStup
+import components.CFilterChip
 import components.CLazyColumn
 import components.CustomTextButton
 import components.GetAvatar
@@ -202,31 +203,17 @@ fun FormRatingContent(
                                     Pair(3, "За полугодие"),
                                     Pair(4, "За год")
                                 ).forEach { item ->
-                                    val bringIntoViewRequester =
-                                        remember { BringIntoViewRequester() }
-                                    LaunchedEffect(state) {
-                                        if (model.period == item.first) {
-                                            coroutineScope.launch {
-                                                bringIntoViewRequester.bringIntoView()
-                                            }
-                                        }
-                                    }
-                                    FilterChip(
-                                        selected = model.period == item.first,
-                                        onClick = {
-                                            component.onEvent(
-                                                FormRatingStore.Intent.ChangePeriod(item.first)
-                                            )
-                                            coroutineScope.launch {
-                                                bringIntoViewRequester.bringIntoView()
-                                            }
 
-                                        },
-                                        label = { Text(item.second) },
-                                        modifier = Modifier.bringIntoViewRequester(
-                                            bringIntoViewRequester
+                                    CFilterChip(
+                                        label = item.second,
+                                        isSelected = model.period == item.first,
+                                        state = state,
+                                        coroutineScope = coroutineScope
+                                    ) {
+                                        component.onEvent(
+                                            FormRatingStore.Intent.ChangePeriod(item.first)
                                         )
-                                    )
+                                    }
                                     Spacer(Modifier.width(5.dp))
                                 }
                             }

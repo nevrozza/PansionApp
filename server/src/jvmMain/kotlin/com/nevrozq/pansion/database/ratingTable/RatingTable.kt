@@ -77,9 +77,9 @@ open class RatingTable : Table() {
             }
         }
     }
-    fun fetchRatingOf(login: String): RatingTableDTO? {
+    fun fetchRatingOf(login: String, subjectId: Int): RatingTableDTO? {
         return transaction {
-            this@RatingTable.select{this@RatingTable.login eq login}.map {
+            this@RatingTable.select{(this@RatingTable.login eq login) and (this@RatingTable.subjectId eq subjectId)}.map {
                 RatingTableDTO(
                     login = it[this@RatingTable.login],
                     name = it[name],
@@ -92,7 +92,7 @@ open class RatingTable : Table() {
                     formNum = it[formNum],
                     formShortTitle = it[formShortTitle],
                     avg = it[avg],
-                    subjectId = it[subjectId]
+                    subjectId = it[this@RatingTable.subjectId]
                 )
             }.firstOrNull()
         }

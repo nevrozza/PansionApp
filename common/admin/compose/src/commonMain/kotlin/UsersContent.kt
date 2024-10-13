@@ -385,6 +385,7 @@ fun UsersContent(
                 modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = nModel.state == NetworkState.Loading && model.users != null,
                 state = refreshState,
+                topPadding = padding.calculateTopPadding()
             )
             editUserSheet(
                 component,

@@ -60,6 +60,7 @@ import parents.AdminParentsStore
 import profile.ProfileComponent
 import qr.QRComponent
 import rating.RatingComponent
+import rating.RatingStore
 import report.ReportHeader
 //import mentors.MentorsComponent
 import root.RootComponent.Child
@@ -672,7 +673,10 @@ class RootComponentImpl(
 
     private fun onMainSchoolOutput(output: SchoolComponent.Output): Unit =
         when (output) {
-            SchoolComponent.Output.NavigateToRating -> navigation.bringToFront(Config.MainRating)
+            SchoolComponent.Output.NavigateToRating -> {
+                mainRatingComponent?.onEvent(RatingStore.Intent.Init)
+                navigation.bringToFront(Config.MainRating)
+            }
             is SchoolComponent.Output.NavigateToFormRating -> navigation.bringToFront(Config.SchoolFormRating(
                 login = output.login,
                 formNum = output.formNum,

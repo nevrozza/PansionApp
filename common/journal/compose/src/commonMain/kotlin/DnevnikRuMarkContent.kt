@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BorderStup
+import components.CFilterChip
 import components.CLazyColumn
 import components.CustomTextButton
 import components.MarkTable
@@ -225,39 +226,42 @@ fun DnevnikRuMarkContent(
                         ) {
                             Column {
                                 Row(Modifier.horizontalScroll(rememberScrollState())) {
-                                    FilterChip(
-                                        selected = model.isWeekDays,
-                                        onClick = {
-                                            component.onEvent(
-                                                DnevnikRuMarkStore.Intent.OpenWeek
-                                            )
-                                        },
-                                        label = { Text("За неделю") }
-                                    )
+                                    CFilterChip(
+                                        label = "За неделю",
+                                        isSelected = model.isWeekDays,
+                                        state = nModel.state,
+                                        coroutineScope = coroutineScope
+                                    ) {
+                                        component.onEvent(
+                                            DnevnikRuMarkStore.Intent.OpenWeek
+                                        )
+                                    }
                                     Spacer(Modifier.width(5.dp))
-                                    FilterChip(
-                                        selected = model.isPreviousWeekDays,
-                                        onClick = {
-                                            component.onEvent(
-                                                DnevnikRuMarkStore.Intent.OpenPreviousWeek
-                                            )
-                                        },
-                                        label = { Text("За прошлую неделю") }
-                                    )
+                                    CFilterChip(
+                                        label = "За прошлую неделю",
+                                        isSelected = model.isPreviousWeekDays,
+                                        state = nModel.state,
+                                        coroutineScope = coroutineScope
+                                    ) {
+                                        component.onEvent(
+                                            DnevnikRuMarkStore.Intent.OpenPreviousWeek
+                                        )
+                                    }
                                     Spacer(Modifier.width(5.dp))
                                     (1..model.tabsCount).forEach { modle ->
-                                        FilterChip(
-                                            selected = (model.tabIndex
+                                        CFilterChip(
+                                            label = "За ${modle} ${if (model.isQuarters == true) "модуль" else "полугодие"}",
+                                            isSelected = (model.tabIndex
                                                 ?: 0) == modle && !model.isWeekDays && !model.isPreviousWeekDays,
-                                            onClick = {
-                                                component.onEvent(
-                                                    DnevnikRuMarkStore.Intent.ClickOnTab(
-                                                        modle
-                                                    )
+                                            state = nModel.state,
+                                            coroutineScope = coroutineScope
+                                        ) {
+                                            component.onEvent(
+                                                DnevnikRuMarkStore.Intent.ClickOnTab(
+                                                    modle
                                                 )
-                                            },
-                                            label = { Text("За ${modle} ${if (model.isQuarters == true) "модуль" else "полугодие"}") }
-                                        )
+                                            )
+                                        }
                                         Spacer(Modifier.width(5.dp))
                                     }
                                 }

@@ -77,6 +77,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -93,6 +94,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.AnimatedElevatedButton
 import components.AppBar
+import components.CFilterChip
 import components.CLazyColumn
 import components.CustomTextButton
 import components.CustomTextField
@@ -107,6 +109,7 @@ import components.nSCutedGroup
 import components.nSSubject
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
+import formRating.FormRatingStore
 import groups.DefaultGroupsErrorScreen
 import groups.students.StudentsStore
 import io.github.alexzhirkevich.qrose.options.QrBallShape
@@ -138,6 +141,8 @@ fun MentoringContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
 
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
         Modifier.fillMaxSize(),
         topBar = {
@@ -165,7 +170,7 @@ fun MentoringContent(
                             }
                         ) {
                             Icon(
-                                if(model.isTableView) Icons.Rounded.PermContactCalendar else Icons.Rounded.Summarize,
+                                if (model.isTableView) Icons.Rounded.PermContactCalendar else Icons.Rounded.Summarize,
                                 null
                             )
                         }
@@ -198,69 +203,77 @@ fun MentoringContent(
                     Crossfade(model.isTableView) { cf ->
                         if (cf) {
                             Box(
-                                Modifier.fillMaxSize().padding(padding).padding(bottom =
-                                if (viewManager.orientation.value != WindowScreen.Expanded) {
-                                    padding.calculateBottomPadding() + 80.dp - 20.dp
-                                } else 0.dp),
+                                Modifier.fillMaxSize().padding(padding).padding(
+                                    bottom =
+                                    if (viewManager.orientation.value != WindowScreen.Expanded) {
+                                        padding.calculateBottomPadding() + 80.dp - 20.dp
+                                    } else 0.dp
+                                ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(modifier = Modifier.offset(y = (-10).dp)) {
-                                    Row(Modifier.horizontalScroll(rememberScrollState()).offset(y = 10.dp)) {
-                                        FilterChip(
-                                            selected = model.dateFilter is DatesFilter.Week,
-                                            onClick = {
-                                                component.onEvent(
-                                                    MentoringStore.Intent.ChangeFilterDate(
-                                                        DatesFilter.Week
-                                                    )
+                                    Row(
+                                        Modifier.horizontalScroll(rememberScrollState())
+                                            .offset(y = 10.dp)
+                                    ) {
+                                        CFilterChip(
+                                            label = "За неделю",
+                                            isSelected = model.dateFilter is DatesFilter.Week,
+                                            state = nModel.state,
+                                            coroutineScope = coroutineScope
+                                        ) {
+                                            component.onEvent(
+                                                MentoringStore.Intent.ChangeFilterDate(
+                                                    DatesFilter.Week
                                                 )
-                                            },
-                                            label = { Text("За неделю") }
-                                        )
+                                            )
+                                        }
                                         Spacer(Modifier.width(5.dp))
-                                        FilterChip(
-
-                                            selected = model.dateFilter is DatesFilter.PreviousWeek,
-                                            onClick = {
-                                                component.onEvent(
-                                                    MentoringStore.Intent.ChangeFilterDate(
-                                                        DatesFilter.PreviousWeek
-                                                    )
+                                        CFilterChip(
+                                            label = "За прошлую неделю",
+                                            isSelected = model.dateFilter is DatesFilter.PreviousWeek,
+                                            state = nModel.state,
+                                            coroutineScope = coroutineScope
+                                        ) {
+                                            component.onEvent(
+                                                MentoringStore.Intent.ChangeFilterDate(
+                                                    DatesFilter.PreviousWeek
                                                 )
-                                            },
-                                            label = { Text("За прошлую неделю") }
-                                        )
+                                            )
+                                        }
                                         Spacer(Modifier.width(5.dp))
                                         model.modules.forEach { module ->
-                                            FilterChip(
-                                                selected = model.dateFilter is DatesFilter.Module && module in (model.dateFilter as DatesFilter.Module).modules,
-                                                onClick = {
-                                                    component.onEvent(
-                                                        MentoringStore.Intent.ChangeFilterDate(
-                                                            DatesFilter.Module(
-                                                                listOf(module)
-                                                            )
+                                            CFilterChip(
+                                                label = "За ${module} модуль",
+                                                isSelected = model.dateFilter is DatesFilter.Module && module in (model.dateFilter as DatesFilter.Module).modules,
+                                                state = nModel.state,
+                                                coroutineScope = coroutineScope
+                                            ) {
+                                                component.onEvent(
+                                                    MentoringStore.Intent.ChangeFilterDate(
+                                                        DatesFilter.Module(
+                                                            listOf(module)
                                                         )
                                                     )
-                                                },
-                                                label = { Text("За ${module} модуль") }
-                                            )
+                                                )
+                                            }
                                             Spacer(Modifier.width(5.dp))
                                         }
                                     }
                                     Row(Modifier.horizontalScroll(rememberScrollState())) {
                                         model.filteredSubjects.forEach { s ->
-                                            FilterChip(
-                                                selected = s.key == model.chosenSubject,
-                                                onClick = {
-                                                    component.onEvent(
-                                                        MentoringStore.Intent.ChangeSubject(
-                                                            s.key
-                                                        )
+                                            CFilterChip(
+                                                label = s.value,
+                                                isSelected = s.key == model.chosenSubject,
+                                                state = nModel.state,
+                                                coroutineScope = coroutineScope
+                                            ) {
+                                                component.onEvent(
+                                                    MentoringStore.Intent.ChangeSubject(
+                                                        s.key
                                                     )
-                                                },
-                                                label = { Text("${s.value}") }
-                                            )
+                                                )
+                                            }
                                             Spacer(Modifier.width(5.dp))
                                         }
                                     }

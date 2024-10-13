@@ -383,6 +383,7 @@ private fun TrueJournalContent(
                 modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = nModel.state == NetworkState.Loading && model.headers.isNotEmpty(),
                 state = refreshState,
+                topPadding = padding.calculateTopPadding()
             )
             ListDialogMobileContent(component.groupListComponent)
             ListDialogMobileContent(component.fGroupListComponent)

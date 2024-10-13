@@ -183,8 +183,16 @@ fun Float.roundTo(numFractionDigits: Int): Float {
     if (this.isNaN()) {
         return Float.NaN
     } else {
-        val factor = 10.0.pow(numFractionDigits.toDouble())
-        return ((this * factor).roundToInt() / factor).toFloat()
+        //wasm fix... why(
+        val strFirst = this.toString()
+        val cutLength = strFirst.split(".")[0].length+1+ numFractionDigits
+        var str = strFirst.cut(cutLength)
+        if (strFirst.cut(cutLength+1).last().toString().toInt() >= 5) {
+            str = strFirst.cut(cutLength-1) + (str.last().toString().toInt()+1)
+        }
+        return str.toFloat()
+//        val factor = 10.0.pow(numFractionDigits.toDouble())
+//        return ((this * factor).roundToInt() / factor).toFloat()
     }
 }
 

@@ -127,11 +127,8 @@ fun MarkTable(
 ) {
     var dateMarks = dms.toMutableMap()
     nki?.forEach { n ->
-        println("nnik: ${n}")
         n.value.forEach { d ->
-            println("xxxi: ${d.date}")
             if (dateMarks[d.date] == null) {
-                println("xxxik: ${d.date}")
                 dateMarks[d.date] = listOf()
             }
         }
@@ -148,6 +145,8 @@ fun MarkTable(
     val allHeight = remember { mutableStateOf(0.dp) }
     val allWidth = remember { mutableStateOf(0.dp) }
     val lP = 150.dp
+
+    val dividerWidth = 1.5.dp
 
     val markSize = 30.dp
     val minWidth = 50.dp
@@ -180,10 +179,10 @@ fun MarkTable(
                         }
                         val width: Dp =
                             max(maxSize * markSize, minWidth)
-                        Spacer(Modifier.width(width))
+                        Spacer(Modifier.width(width - dividerWidth))
                         VerticalDivider(
                             Modifier.height(allHeight.value).padding(vertical = 1.dp),
-                            thickness = (1.5).dp,
+                            thickness = dividerWidth,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
                         )
                     }
@@ -214,7 +213,7 @@ fun MarkTable(
                         Box(
                             modifier = Modifier.width(
                                 width
-                            ),
+                            ).padding(end = dividerWidth),
                             contentAlignment = Alignment.Center
                         ) {
                             Row(
@@ -237,7 +236,7 @@ fun MarkTable(
                 HorizontalDivider(
                     Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp)//.height(1.dp)
                     , color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
-                    thickness = 1.5.dp
+                    thickness = dividerWidth
                 )
 
                 LazyColumn(
@@ -307,7 +306,7 @@ fun MarkTable(
                                     Box(
                                         modifier = Modifier.width(
                                             width
-                                        ).height(25.dp),
+                                        ).padding(end = dividerWidth).height(25.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
 

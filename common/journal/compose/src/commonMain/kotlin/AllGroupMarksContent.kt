@@ -78,6 +78,7 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BorderStup
+import components.CFilterChip
 import components.CLazyColumn
 import components.CustomTextButton
 import components.MarkContent
@@ -247,44 +248,47 @@ fun AllGroupMarksContent(
                                     ) {
                                         Column {
                                             Row(Modifier.horizontalScroll(rememberScrollState())) {
-                                                FilterChip(
-                                                    selected = model.dateFilter is DatesFilter.Week,
-                                                    onClick = {
-                                                        component.onEvent(
-                                                            AllGroupMarksStore.Intent.ChangeFilterDate(
-                                                                DatesFilter.Week
-                                                            )
+                                                CFilterChip(
+                                                    label = "За неделю",
+                                                    isSelected = model.dateFilter is DatesFilter.Week,
+                                                    state = nModel.state,
+                                                    coroutineScope = coroutineScope
+                                                ) {
+                                                    component.onEvent(
+                                                        AllGroupMarksStore.Intent.ChangeFilterDate(
+                                                            DatesFilter.Week
                                                         )
-                                                    },
-                                                    label = { Text("За неделю") }
-                                                )
+                                                    )
+                                                }
                                                 Spacer(Modifier.width(5.dp))
-                                                FilterChip(
-                                                    selected = model.dateFilter is DatesFilter.PreviousWeek,
-                                                    onClick = {
-                                                        component.onEvent(
-                                                            AllGroupMarksStore.Intent.ChangeFilterDate(
-                                                                DatesFilter.PreviousWeek
-                                                            )
+                                                CFilterChip(
+                                                    label = "За прошлую неделю",
+                                                    isSelected = model.dateFilter is DatesFilter.PreviousWeek,
+                                                    state = nModel.state,
+                                                    coroutineScope = coroutineScope
+                                                ) {
+                                                    component.onEvent(
+                                                        AllGroupMarksStore.Intent.ChangeFilterDate(
+                                                            DatesFilter.PreviousWeek
                                                         )
-                                                    },
-                                                    label = { Text("За прошлую неделю") }
-                                                )
+                                                    )
+                                                }
                                                 Spacer(Modifier.width(5.dp))
                                                 model.modules.forEach { module ->
-                                                    FilterChip(
-                                                        selected = (model.dateFilter is DatesFilter.Module) && module in (model.dateFilter as DatesFilter.Module).modules,
-                                                        onClick = {
-                                                            component.onEvent(
-                                                                AllGroupMarksStore.Intent.ChangeFilterDate(
-                                                                    DatesFilter.Module(
-                                                                        listOf(module)
-                                                                    )
+                                                    CFilterChip(
+                                                        label = "За ${module} модуль",
+                                                        isSelected = (model.dateFilter is DatesFilter.Module) && module in (model.dateFilter as DatesFilter.Module).modules,
+                                                        state = nModel.state,
+                                                        coroutineScope = coroutineScope
+                                                    ) {
+                                                        component.onEvent(
+                                                            AllGroupMarksStore.Intent.ChangeFilterDate(
+                                                                DatesFilter.Module(
+                                                                    listOf(module)
                                                                 )
                                                             )
-                                                        },
-                                                        label = { Text("За ${module} модуль") }
-                                                    )
+                                                        )
+                                                    }
                                                     Spacer(Modifier.width(5.dp))
                                                 }
                                             }
@@ -525,7 +529,7 @@ private fun AllGroupMarksStudentItem(
                     Row(Modifier.weight(1.2f, true), horizontalArrangement = Arrangement.End) {
                         StupsButtons(
                             stups = stups.map {
-                                Pair(250, it.mark.reason)
+                                Pair(it.mark.content.toInt(), it.mark.reason)
                             },
                             { onClick() }, { onClick() }
                         )
