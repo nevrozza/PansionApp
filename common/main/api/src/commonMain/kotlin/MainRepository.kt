@@ -2,6 +2,7 @@ import admin.schedule.ScheduleSubject
 import journal.init.RFetchMentorGroupIdsResponse
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
+import main.RChangeToUv
 import main.RDeleteMainNotificationsReceive
 import main.RFetchChildrenMainNotificationsResponse
 import main.RFetchChildrenResponse
@@ -50,6 +51,7 @@ interface MainRepository {
     suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive) : RFetchMainNotificationsResponse
     suspend fun fetchChildrenMainNotifications() : RFetchChildrenMainNotificationsResponse
     suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive)
+    suspend fun changeToUv(r: RChangeToUv)
 
     suspend fun fetchChildren() : RFetchChildrenResponse
 

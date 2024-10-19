@@ -26,7 +26,7 @@ fun getItems(): List<AdminItem> {
         AdminItem(title = "Группы", routing = AdminComponent.Output.NavigateToGroups),
         AdminItem(title = "Кабинеты", routing = AdminComponent.Output.NavigateToCabinets),
         AdminItem(title = "Календарь", routing = AdminComponent.Output.NavigateToCalendar),
-        AdminItem(title = "Достижения", routing = AdminComponent.Output.NavigateToAchievements),
+        AdminItem(title = "События", routing = AdminComponent.Output.NavigateToAchievements),
         AdminItem(title = "Родители", routing = AdminComponent.Output.NavigateToParents),
 //        AdminItem(title = "Ученики", routing = AdminComponent.Output.NavigateToUsers),
 //        AdminItem(title = "Наставники", routing = AdminComponent.Output.NavigateToMentors),

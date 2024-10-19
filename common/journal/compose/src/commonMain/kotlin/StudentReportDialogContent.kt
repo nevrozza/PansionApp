@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.AnimatedElevatedButton
 import components.BorderStup
 import components.CustomTextButton
 import components.MarkContent
@@ -76,7 +77,8 @@ import view.handy
 @Composable
 fun StudentReportDialogContent(
     component: StudentReportComponent,
-    openReport: ((Int) -> Unit)? = null
+    openReport: ((Int) -> Unit)? = null,
+    changeToUV: ((Int, String) -> Unit)? = null,
 ) {
 
     val size = 37.dp
@@ -96,7 +98,7 @@ fun StudentReportDialogContent(
                     NetworkState.None ->
                         AnimatedVisibility(model.studentLine != null && model.info != null) {
                             Column(
-                                Modifier.fillMaxWidth().padding(horizontal = 5.dp)
+                                Modifier.fillMaxWidth().padding(horizontal = 10.dp)
                                     .padding(bottom = 25.dp)
                                     .alpha(if (nModel.state == NetworkState.Error) 0.4f else 1f),
                                 horizontalAlignment = Alignment.CenterHorizontally
@@ -192,7 +194,7 @@ fun StudentReportDialogContent(
                                     Row(
                                         Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
+                                        horizontalArrangement = Arrangement.End
                                     ) {
                                         if (model.studentLine!!.lateTime.isNotBlank() && model.studentLine!!.lateTime != "00 мин" && model.studentLine!!.lateTime != "0") {
                                             Icon(Icons.Rounded.HourglassBottom, null)
@@ -215,6 +217,14 @@ fun StudentReportDialogContent(
                                             reason = null,
                                             enabled = false
                                         ) {}
+                                    }
+                                    if (model.studentLine != null && model.studentLine!!.attended == "1" && changeToUV != null) {
+                                        CustomTextButton(
+                                            text = "Изменить на ув",
+                                            modifier = Modifier.align(Alignment.End)
+                                        ) {
+                                            changeToUV(model.studentLine!!.reportId, model.studentLine!!.login)
+                                        }
                                     }
                                 }
                                 if (model.homeTasks.isNotEmpty()) {

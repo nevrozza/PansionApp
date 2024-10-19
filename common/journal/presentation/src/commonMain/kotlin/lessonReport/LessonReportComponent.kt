@@ -180,7 +180,7 @@ class LessonReportComponent(
         }
 
     val setReportColumnsComponent = CBottomSheetComponent(
-        componentContext,
+        childContext("SetReportColumnsCONTEXT"),
         storeFactory,
         "SetReportColumns"
     )

@@ -52,6 +52,7 @@ class DnevnikRuMarkExecutor(
                 dispatch(Message.WeekOpened)
                 updateMarkTable()
             }
+
             Intent.OpenPreviousWeek -> {
                 dispatch(Message.PreviousWeekOpened)
                 updateMarkTable()
@@ -60,12 +61,13 @@ class DnevnikRuMarkExecutor(
     }
 
     private fun updateMarkTable() {
-        val subjects: List<DnevnikRuMarksSubject> = if (!(state().isWeekDays || state().isPreviousWeekDays)) {
-            state().subjects[(state().tabIndex ?: 0)] ?: listOf<DnevnikRuMarksSubject>()
-        } else state().subjects.flatMap { it.value }
+        val subjects: List<DnevnikRuMarksSubject> =
+            if (!(state().isWeekDays || state().isPreviousWeekDays)) {
+                state().subjects[(state().tabIndex ?: 0)] ?: listOf<DnevnikRuMarksSubject>()
+            } else state().subjects.flatMap { it.value }
         val dates =
             subjects.flatMap {
-                (it.marks + it.stups).filter {
+                ((it.marks + it.stups).filter {
                     if (state().isPreviousWeekDays) {
                         it.date in state().previousWeekDays
                     } else if (state().isWeekDays) {
@@ -73,9 +75,19 @@ class DnevnikRuMarkExecutor(
                     } else {
                         true
                     }
-                }.map { it.date }.toSet()
+                }.map { it.date }
+                        + it.nki.filter {
+                    if (state().isPreviousWeekDays) {
+                        it.date in state().previousWeekDays
+                    } else if (state().isWeekDays) {
+                        it.date in state().weekDays
+                    } else {
+                        true
+                    }
+                }.map { it.date }
+                        ).toSet()
             }.toSet().toList().sortedDate()
-        val dm: MutableMap<String, MutableList<MarkTableItem>> =  mutableMapOf()
+        val dm: MutableMap<String, MutableList<MarkTableItem>> = mutableMapOf()
         dates.forEach { d ->
             subjects.forEach { s ->
                 val nd = (dm[d] ?: mutableListOf())
@@ -100,18 +112,24 @@ class DnevnikRuMarkExecutor(
                 dm[d] = nd
             }
         }
-        dispatch(Message.MarksTableUpdated(
-            tableSubjects = subjects,
-            mDates = dates,
-            mDateMarks = dm
-        ))
+        dispatch(
+            Message.MarksTableUpdated(
+                tableSubjects = subjects,
+                mDates = dates,
+                mDateMarks = dm
+            )
+        )
     }
 
     private fun fetchSubjects() {
         scope.launch {
             nInterface.nStartLoading()
             try {
-                val subjects = journalRepository.fetchDnevnikRuMarks(state().studentLogin, quartersNum = state().tabIndex!!.toString(), isQuarters = state().isQuarters!!).subjects
+                val subjects = journalRepository.fetchDnevnikRuMarks(
+                    state().studentLogin,
+                    quartersNum = state().tabIndex!!.toString(),
+                    isQuarters = state().isQuarters!!
+                ).subjects
                 dispatch(Message.SubjectsUpdated(subjects))
                 nInterface.nSuccess()
 

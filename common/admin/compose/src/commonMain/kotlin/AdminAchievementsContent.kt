@@ -99,7 +99,7 @@ fun AdminAchievementsContent(
                 },
                 title = {
                     Text(
-                        "Достижения",
+                        "События",
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
@@ -392,7 +392,7 @@ private fun BottomSheetContent(
             onValueChange = {
                 component.onEvent(AdminAchievementsStore.Intent.ChangeText(it))
             },
-            text = "Достижение",
+            text = "Событие",
             isEnabled = nBSModel.state == NetworkState.None,
             isMoveUpLocked = true,
             autoCorrect = true,
@@ -534,7 +534,7 @@ private fun HugeBottomSheetContent(
             onValueChange = {
                 component.onEvent(AdminAchievementsStore.Intent.ChangeText(it))
             },
-            text = "Достижение",
+            text = "Событие",
             isEnabled = nBSModel.state == NetworkState.None,
             isMoveUpLocked = true,
             autoCorrect = true,

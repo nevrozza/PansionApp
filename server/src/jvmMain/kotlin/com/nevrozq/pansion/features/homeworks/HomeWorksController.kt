@@ -7,7 +7,6 @@ import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.login
-import homework.ClientHomeworkItem
 import homework.CutedDateTimeGroup
 import homework.RCheckHomeTaskReceive
 import homework.RFetchHomeTasksReceive
@@ -22,7 +21,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainHomeTasksCountResponse
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import server.getDate
 import server.getLocalDate
 import server.getSixTime
@@ -80,7 +78,7 @@ class HomeWorksController {
 
                 val r = call.receive<RFetchMainHomeTasksCountReceive>()
                 val groupIDS = StudentGroups.fetchGroupOfStudentIDS(r.studentLogin) //
-                val count = HomeTasks.getCountNOTDoneHomeTasks(groupIds = groupIDS, login = r.studentLogin)
+                val count = HomeTasks.getCountNOTDoneNecHomeTasks(groupIds = groupIDS, login = r.studentLogin)
 
                 call.respond(
                     RFetchMainHomeTasksCountResponse(

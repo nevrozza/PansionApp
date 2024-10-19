@@ -75,6 +75,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
 
         data class AddEmptyHomeTask(val studentLogins: List<String>?) : Intent
         data class ChangeHomeTaskType(val id: Int, val type: String, val isNew: Boolean) : Intent
+        data class ChangeHomeTaskIsNec(val id: Int, val isNec: Boolean, val isNew: Boolean) : Intent
         data class ChangeHomeTaskText(val id: Int, val text: String, val isNew: Boolean) : Intent
         data class ChangeHomeTaskAward(val id: Int, val award: Int, val isNew: Boolean) : Intent
 
@@ -129,6 +130,8 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
     }
 
     sealed interface Message {
+        data object InvisibleStupAdd: Message
+
         data class TabLoginsIdUpdated(val tabLogins: List<String>?) : Message
         data class NewTabsLoginsUpdated(val logins: List<String>) : Message
         data class SaveTabLoginsUpdated(val tabs: List<List<String>>) : Message

@@ -2,6 +2,7 @@ package components.cBottomSheet
 
 import asValue
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.childContext
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
@@ -14,7 +15,7 @@ class CBottomSheetComponent(
     name: String
 ) : ComponentContext by componentContext {
     val nInterface = NetworkInterface(
-        componentContext,
+        childContext(name+"NInterface"+"CONTEXT"),
         storeFactory,
         name+"NInterface"
     )

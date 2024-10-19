@@ -18,7 +18,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -28,7 +27,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,7 +44,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -58,12 +55,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.ManageSearch
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ButtonDefaults
@@ -102,8 +97,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
@@ -127,6 +120,7 @@ import components.NotificationItem
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
 import components.cMark
+import components.dashedBorder
 import components.getMarkColor
 import components.markColorsColored
 import components.markColorsMono
@@ -136,6 +130,11 @@ import decomposeComponents.CAlertDialogContent
 import dev.chrisbanes.haze.hazeChild
 import home.HomeComponent
 import home.HomeStore
+import homeComponents.homeChildrenNotificationsContent
+import homeComponents.homeKidsContent
+import homeComponents.homeStudentBar
+import homeComponents.homeStudentNotifications
+import homeComponents.homeTeacherGroupsContent
 import journal.JournalStore
 import journal.init.TeacherGroup
 import kotlinx.coroutines.CoroutineScope
@@ -208,7 +207,12 @@ fun HomeContent(
                     )
                 )
             }
-        } else null)
+        } else null,
+        changeToUV = if (model.isMentor) { reportId, login ->
+            component.studentReportDialog.dialog.onEvent(CBottomSheetStore.Intent.HideSheet)
+            component.onEvent(HomeStore.Intent.ChangeToUv(reportId = reportId, login = login, isDeep = true))
+        } else null
+        )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -269,193 +273,23 @@ fun OtherHomeContent(
         }
     ) { padding ->
         CLazyColumn(padding, isBottomPaddingNeeded = true) {
-            item {
-                if (model.isParent) {
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            "Дети",
-                            modifier = Modifier.fillMaxWidth(),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Crossfade(
-                            nGradesModel.state,
-                            modifier = Modifier.animateContentSize()
-                        ) { state -> //, modifier = Modifier.padding(top = 10.dp)
-                            when (state) {
-                                NetworkState.None -> {
-                                    FlowRow(
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        (model.children).forEach {
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.clip(
-                                                    RoundedCornerShape(15.dp)
-                                                ).clickable {
-                                                    component.onOutput(
-                                                        HomeComponent.Output.NavigateToChildren(
-                                                            studentLogin = it.login,
-                                                            avatarId = it.avatarId,
-                                                            fio = it.fio
-                                                        )
-                                                    )
-                                                }.handy().background(
-                                                    if (pickedLogin != it.login) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                                        4.dp
-                                                    ), RoundedCornerShape(15.dp)
-                                                ).padding(4.dp)
-                                            ) {
-                                                GetAvatar(
-                                                    avatarId = it.avatarId,
-                                                    name = it.fio.name
-                                                )
-                                                Spacer(Modifier.height(5.dp))
-                                                Text(
-                                                    it.fio.name,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
+            this.homeKidsContent(
+                model = model,
+                nGradesModel = nGradesModel,
+                component = component,
+                pickedLogin = pickedLogin
+            )
+            this.homeTeacherGroupsContent(
+                model = model,
+                component = component
+            )
 
-                                NetworkState.Loading -> {
-                                    Box(
-                                        Modifier.height(100.dp).fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        LoadingAnimation()
-                                    }
-                                }
-
-                                NetworkState.Error -> {
-                                    Column(
-                                        Modifier.fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(nGradesModel.error)
-                                        Spacer(Modifier.height(7.dp))
-                                        CustomTextButton("Попробовать ещё раз") {
-                                            nGradesModel.onFixErrorClick()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(10.dp))
-                }
-            }
-            item {
-                Text(
-                    "Успеваемость учеников",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
-            item {
-                Spacer(Modifier.height(10.dp))
-            }
-            items(model.teacherGroups) {
-                TeacherGroupButton(
-                    component = component,
-                    it = it
-                )
-            }
-            item {
-                Text(
-                    "Уведомления",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
-            item {
-
-                AnimatedVisibility(
-                    nQuickTabModel.state != NetworkState.None || model.childrenNotifications.isEmpty(),
-                    enter = fadeIn() + expandVertically(
-                        expandFrom = Alignment.Top, clip = false
-                    ),
-                    exit = fadeOut() + shrinkVertically(
-                        shrinkTowards = Alignment.Top, clip = false
-                    )
-                ) {
-                    Column {
-                        Spacer(Modifier.height(7.5.dp))
-                        Crossfade(
-                            nQuickTabModel.state,
-                            modifier = Modifier.fillMaxSize()
-                        ) { state ->
-                            when (state) {
-                                NetworkState.None -> {
-                                    if (model.childrenNotifications.isEmpty()) {
-                                        Text("Нет никаких уведомлений")
-                                    }
-                                }
-
-                                NetworkState.Loading -> {
-                                    Box(
-                                        Modifier.fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CircularProgressIndicator()
-                                    }
-                                }
-
-                                NetworkState.Error -> {
-                                    Column(
-                                        Modifier.fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(nQuickTabModel.error)
-                                        Spacer(Modifier.height(7.dp))
-                                        CustomTextButton("Попробовать ещё раз") {
-                                            nQuickTabModel.onFixErrorClick()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            items(model.notChildren) { s ->
-                Spacer(Modifier.height(5.5.dp))
-                Text(
-                    "${s.fio.surname} ${s.fio.name}",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                model.childrenNotifications[s.login]!!.forEach {
-                    NotificationItem(
-                        not = it,
-                        viewManager = viewManager,
-                        onClick = { reportId ->
-                            component.studentReportDialog.onEvent(
-                                StudentReportDialogStore.Intent.OpenDialog(
-                                    login = s.login,
-                                    reportId = reportId
-                                )
-                            )
-                        }
-                    ) { key ->
-                        component.onEvent(HomeStore.Intent.CheckNotification(key))
-                    }
-                }
-            }
+            this.homeChildrenNotificationsContent(
+                model = model,
+                nQuickTabModel = nQuickTabModel,
+                viewManager = viewManager,
+                component = component
+            )
 
         }
     }
@@ -468,6 +302,7 @@ fun TeacherHomeContent(
     pickedLogin: String
 ) {
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
+    val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
 
 
     if (component.journalComponent != null) {
@@ -604,151 +439,36 @@ fun TeacherHomeContent(
                     padding = padding,
                     isBottomPaddingNeeded = true
                 ) {
-                    items(4) { num ->
-                        if (num == 0) {
-                            Text(
-                                "Успеваемость учеников",
-                                modifier = Modifier.fillMaxWidth(),
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(Modifier.height(10.dp))
-                            Crossfade(
-                                nTeacherModel.state,
-                                modifier = Modifier.animateContentSize()
-                            ) { state -> //, modifier = Modifier.padding(top = 10.dp)
-                                when (state) {
-                                    NetworkState.None -> {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            model.teacherGroups.forEach {
-                                                TeacherGroupButton(
-                                                    component = component,
-                                                    it = it
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                    NetworkState.Loading -> {
-                                        Box(
-                                            Modifier.height(100.dp).fillMaxWidth(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            LoadingAnimation()
-                                        }
-                                    }
-
-                                    NetworkState.Error -> {
-                                        Column(
-                                            Modifier.fillMaxWidth(),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text(nTeacherModel.error)
-                                            Spacer(Modifier.height(7.dp))
-                                            CustomTextButton("Попробовать ещё раз") {
-                                                nTeacherModel.onFixErrorClick()
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else if (num == 1) {
-                            AnimatedVisibility(model.children.isNotEmpty()) {
-                                Column(
-                                    Modifier.fillParentMaxWidth(),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        "Дети",
-                                        modifier = Modifier.fillMaxWidth(),
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.Center
-                                    )
-                                    Spacer(Modifier.height(10.dp))
-                                    Crossfade(
-                                        nGradesModel.state,
-                                        modifier = Modifier.animateContentSize()
-                                    ) { state -> //, modifier = Modifier.padding(top = 10.dp)
-                                        when (state) {
-                                            NetworkState.None -> {
-                                                FlowRow(
-                                                    horizontalArrangement = Arrangement.Center,
-                                                    verticalArrangement = Arrangement.Center
-                                                ) {
-                                                    (model.children).forEach {
-                                                        Column(
-                                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                                            modifier = Modifier.clip(
-                                                                RoundedCornerShape(15.dp)
-                                                            ).clickable {
-                                                                component.onOutput(
-                                                                    HomeComponent.Output.NavigateToChildren(
-                                                                        studentLogin = it.login,
-                                                                        avatarId = it.avatarId,
-                                                                        fio = it.fio
-                                                                    )
-                                                                )
-                                                            }.handy().background(
-                                                                if (pickedLogin != it.login) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                                                    4.dp
-                                                                ), RoundedCornerShape(15.dp)
-                                                            ).padding(4.dp)
-                                                        ) {
-                                                            GetAvatar(
-                                                                avatarId = it.avatarId,
-                                                                name = it.fio.name
-                                                            )
-                                                            Spacer(Modifier.height(5.dp))
-                                                            Text(
-                                                                it.fio.name,
-                                                                fontWeight = FontWeight.Bold
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            NetworkState.Loading -> {
-                                                Box(
-                                                    Modifier.height(100.dp).fillMaxWidth(),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    LoadingAnimation()
-                                                }
-                                            }
-
-                                            NetworkState.Error -> {
-                                                Column(
-                                                    Modifier.fillMaxWidth(),
-                                                    horizontalAlignment = Alignment.CenterHorizontally
-                                                ) {
-                                                    Text(nGradesModel.error)
-                                                    Spacer(Modifier.height(7.dp))
-                                                    CustomTextButton("Попробовать ещё раз") {
-                                                        nGradesModel.onFixErrorClick()
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else if (num == 2) {
-                            RaspisanieTitleBox(
-                                isMainView = isMainView,
-                                model = model,
-                                component = component
-                            )
-                        } else {
-                            RaspisanieTable(
-                                model = model,
-                                nScheduleModel = nScheduleModel,
-                                component = component,
-                                journalModel = journalModel
-                            )
-                        }
+                    this.homeTeacherGroupsContent(
+                        model = model,
+                        component = component
+                    )
+                    this.homeKidsContent(
+                        model = model,
+                        nGradesModel = nGradesModel,
+                        component = component,
+                        pickedLogin = pickedLogin
+                    )
+                    this.homeChildrenNotificationsContent(
+                        model = model,
+                        nQuickTabModel = nQuickTabModel,
+                        viewManager = viewManager,
+                        component = component
+                    )
+                    item {
+                        RaspisanieTitleBox(
+                            isMainView = isMainView,
+                            model = model,
+                            component = component
+                        )
+                    }
+                    item {
+                        RaspisanieTable(
+                            model = model,
+                            nScheduleModel = nScheduleModel,
+                            component = component,
+                            journalModel = journalModel
+                        )
                     }
 
                 }
@@ -791,6 +511,8 @@ fun TeacherHomeContent(
                         }
                     }
                 }
+
+                //WTF?
                 CAlertDialogContent(
                     component = component.reportsDialog,
                     title = "Отчёты"
@@ -922,22 +644,6 @@ val numToMonth = mapOf<Int, String>(
     11 to "Ноября",
     12 to "Декабря",
 )
-
-//when(str[1].toInt()) {
-//                                            1 -> "Января"
-//                                            2 -> "Февраля"
-//                                            3 -> "Марта"
-//                                            4 -> "Апреля"
-//                                            5 -> "Мая"
-//                                            6 -> "Июня"
-//                                            7 -> "Июля"
-//                                            8 -> "Августа"
-//                                            9 -> "Сентября"
-//                                            10 -> "Октября"
-//                                            11 -> "Ноября"
-//                                            12 -> "Декабря"
-//                                            else -> "???"
-//                                        }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -1078,297 +784,18 @@ fun StudentHomeContent(
                 padding = padding,
                 isBottomPaddingNeeded = true
             ) {
-                item {
-                    ElevatedCard(Modifier.fillMaxWidth()) {
-                        Box() {
-                            Row(
-                                Modifier.padding(10.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier.clip(CircleShape).clickable {
-                                        component.onOutput(
-                                            HomeComponent.Output.NavigateToProfile(
-                                                studentLogin = model.login,
-                                                fio = FIO(
-                                                    name = model.name,
-                                                    praname = model.praname,
-                                                    surname = model.surname
-                                                ),
-                                                avatarId = model.avatarId
-                                            )
-                                        )
-                                    }
-                                ) {
-                                    GetAvatar(
-                                        avatarId = model.avatarId,
-                                        name = model.name
-                                    )
-                                }
-                                Spacer(Modifier.width(15.dp))
-                                Column {
-                                    Row(
-                                        Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            model.name,
-                                            fontSize = 20.sp,
-                                            fontWeight = FontWeight.Bold,
-                                        )
-                                        AnimatedContent(
-                                            when (model.period) {
-                                                Period.WEEK -> "неделя"
-                                                Period.MODULE -> "модуль"
-                                                Period.HALF_YEAR -> "полугодие"
-                                                Period.YEAR -> "год"
-                                            },
-                                            transitionSpec = {
-                                                fadeIn().togetherWith(fadeOut())
-                                            }
-                                        ) {
-                                            CustomTextButton(
-                                                text = it,
-                                                fontWeight = FontWeight.Bold,
-                                                //color = MaterialTheme.colorScheme.primary//secondary
-                                            ) {
-                                                component.onEvent(HomeStore.Intent.ChangePeriod)
-                                            }
-                                        }
-                                    }
-                                    Crossfade(nQuickTabModel.state) {
-                                        Column {
-                                            when (it) {
-                                                NetworkState.Error -> {
-                                                    Text("Ошибка")
-                                                    CustomTextButton("Попробовать ещё раз") {
-                                                        nQuickTabModel.onFixErrorClick()
-                                                    }
-                                                }
-
-                                                else -> {
-                                                    QuickTabItem(
-                                                        "Средний балл",
-                                                        value = model.averageGradePoint[model.period]
-                                                    ) {
-
-                                                    }
-                                                    val achievementsPairAdd =
-                                                        if (model.achievements[model.period] != null) Pair(
-                                                            model.achievements[model.period]!!.first,
-                                                            model.achievements[model.period]!!.second
-                                                        ) else Pair(0, 0)
-                                                    val ladderPair =
-                                                        if (model.ladderOfSuccess[model.period] != null) Pair(
-                                                            (model.ladderOfSuccess[model.period]!!.first + achievementsPairAdd.first).toFloat(),
-                                                            model.ladderOfSuccess[model.period]!!.second + achievementsPairAdd.second
-                                                        ) else Pair(null, 0)
-
-                                                    QuickTabItem(
-                                                        "Ступени",
-                                                        value = ladderPair.first,
-                                                        dsValue = ladderPair.second
-                                                    ) {
-                                                        component.onOutput(
-                                                            HomeComponent.Output.NavigateToDetailedStups(
-                                                                studentLogin = model.login,
-                                                                reason = model.period.ordinal,
-                                                                name = model.name,
-                                                                avatarId = model.avatarId
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                }
-                            }
-                            IconButton(
-                                onClick = {
-                                    component.onOutput(
-                                        HomeComponent.Output.NavigateToStudentLines(
-                                            model.login
-                                        )
-                                    )
-                                },
-                                modifier = Modifier.align(Alignment.BottomEnd)
-                            ) {
-                                Icon(
-                                    Icons.Rounded.ManageSearch, null
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(15.dp))
-                    Row(Modifier.fillMaxWidth()) {
-                        ElevatedCard(
-                            Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
-                                .weight(1f)
-                                .handy()
-                                .clickable() {
-                                    component.onOutput(
-                                        HomeComponent.Output.NavigateToDnevnikRuMarks(
-                                            model.login
-                                        )
-                                    )
-                                }
-                        ) {
-                            Column(
-                                Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
-                                    .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
-                                verticalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    "Оценки",
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(Modifier.height(5.dp))
-                                Box(
-                                    Modifier.fillMaxWidth()
-                                        .padding(end = 5.dp, bottom = 5.dp),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.PlaylistAddCheckCircle,
-                                        null,
-                                        tint = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(Modifier.width(15.dp))
-                        ElevatedCard(
-                            Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
-                                .weight(1f)
-                                .clickable() {
-                                    component.onOutput(
-                                        HomeComponent.Output.NavigateToTasks(
-                                            studentLogin = model.login,
-                                            avatarId = model.avatarId,
-                                            name = model.name
-                                        )
-                                    )
-                                }
-                        ) {
-                            Column(
-                                Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
-                                    .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
-                                verticalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    "Домашние задания",
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(Modifier.height(5.dp))
-
-                                if (model.homeWorkEmoji != null) {
-                                    Text(
-                                        model.homeWorkEmoji.toString(),
-                                        Modifier.fillMaxWidth()
-                                            .padding(end = 5.dp, bottom = 5.dp),
-                                        fontSize = 20.sp,
-                                        textAlign = TextAlign.End
-                                    )
-                                } else {
-                                    Box(
-                                        Modifier.fillMaxWidth()
-                                            .padding(end = 5.dp, bottom = 5.dp),
-                                        contentAlignment = Alignment.BottomEnd
-                                    ) {
-                                        LoadingAnimation(
-                                            circleColor = MaterialTheme.colorScheme.onSurface,
-                                            circleSize = 8.dp,
-                                            spaceBetween = 5.dp,
-                                            travelDistance = 3.5.dp
-                                        )
-//                                        DotsFlashing(Modifier)
-                                    }
-                                }
-
-
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Crossfade(
-                        nGradesModel.state,
-                        modifier = Modifier.animateContentSize()
-                    ) {
-                        Box(
-                            Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            when (it) {
-                                NetworkState.None ->
-                                    LazyRow(Modifier.fillMaxWidth()) {
-                                        items(model.grades.sortedBy { getLocalDate(it.date).toEpochDays() }
-                                            .reversed()) {
-                                            cGrade(it, coroutineScope) {
-                                                component.studentReportDialog.onEvent(
-                                                    StudentReportDialogStore.Intent.OpenDialog(
-                                                        login = model.login,
-                                                        reportId = it.reportId
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                NetworkState.Loading -> {
-                                    Box(
-                                        Modifier.height(60.dp).offset(y = 5.dp)
-                                            .fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        LoadingAnimation()
-                                    }
-                                }
-
-                                NetworkState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(nGradesModel.error)
-                                    Spacer(Modifier.height(7.dp))
-                                    CustomTextButton("Попробовать ещё раз") {
-                                        nGradesModel.onFixErrorClick()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (model.notifications.isNotEmpty()) {
-                        Spacer(Modifier.height(10.dp))
-                    }
-                }
-                items(model.notifications, key = { it.key }) { not ->
-                    val notificationState = remember {
-                        MutableTransitionState(false).apply {
-                            // Start the animation immediately.
-                            targetState = true
-                        }
-                    }
-                    AnimatedVisibility(
-                        visibleState = notificationState,
-                        enter = fadeIn(initialAlpha = .2f) + scaleIn(initialScale = .9f),
-                        modifier = Modifier.animateItemPlacement()
-                    ) {
-                        NotificationItem(
-                            not,
-                            viewManager = viewManager,
-                            onClick = {
-                                component.studentReportDialog.onEvent(
-                                    StudentReportDialogStore.Intent.OpenDialog(
-                                        login = model.login,
-                                        reportId = it
-                                    )
-                                )
-                            }
-                        ) { key ->
-                            component.onEvent(HomeStore.Intent.CheckNotification(key))
-                        }
-                    }
-                }
+                this.homeStudentBar(
+                    model = model,
+                    nGradesModel = nGradesModel,
+                    nQuickTabModel = nQuickTabModel,
+                    component = component,
+                    coroutineScope = coroutineScope
+                )
+                this.homeStudentNotifications(
+                    model = model,
+                    component = component,
+                    viewManager = viewManager
+                )
                 items(2) { num ->
                     if (num == 0) {
                         RaspisanieTitleBox(
@@ -1760,9 +1187,9 @@ fun CalendarButton(component: HomeComponent) {
 }
 
 @Composable
-fun TeacherGroupButton(component: HomeComponent, it: TeacherGroup) {
+fun TeacherGroupButton(component: HomeComponent, it: TeacherGroup, modifier: Modifier) {
     FilledTonalButton(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
             .padding(bottom = 10.dp)
             .padding(horizontal = 50.dp)
             .handy(),
@@ -1847,15 +1274,16 @@ fun RecentMarkContent(
         Modifier.padding(PaddingValues(start = 5.dp, top = 5.dp))
             .border(
                 width = if (isNotStups) 0.dp else 1.dp,
-                color = if (isNotStups) Color.Transparent else MaterialTheme.colorScheme.outline.copy(
-                    1f
-                ),
+                color = if (isNotStups) Color.Transparent else MaterialTheme.colorScheme.outline.copy(if(cutedReason != "!ds") 1f else 0f),
                 shape = RoundedCornerShape(30)
             )
+
             .clip(RoundedCornerShape(percent = 30))
             .background(
                 markColor
             )
+            .then(if(cutedReason == "!ds") Modifier.dashedBorder(3.dp, color = MaterialTheme.colorScheme.outline, cornerRadiusDp = 16.dp) else Modifier)
+
             .then(addModifier),
         contentAlignment = Alignment.Center
     ) {
@@ -1877,13 +1305,13 @@ fun RecentMarkContent(
                 color = textColor
             )
         }
-        if (viewManager.colorMode.value in listOf("0", "1") && isNotStups) {
+        if (viewManager.colorMode.value in listOf("0", "1") && (isNotStups || mark.toInt() < 0)) {
             val colors =
                 if (viewManager.colorMode.value == "1") markColorsColored else markColorsMono
             Box(
                 Modifier.padding(top = 10.dp, end = 10.dp).align(Alignment.TopEnd).size(5.dp).clip(
                     CircleShape
-                ).background(colors[mark] ?: Color.Transparent) //MaterialTheme.colorScheme.primary
+                ).background(colors[mark] ?: if (viewManager.colorMode.value == "1") Color.Black else Color.Red) //MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -1930,64 +1358,7 @@ fun LoadingCircleAnimation(
     }
 }
 
-@Composable
-private fun QuickTabItem(
-    title: String,
-    value: Float?,
-    dsValue: Int? = null,
-    onClick: () -> Unit
-) {
 
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        val endValue = if (value != null) {
-
-            if (dsValue == null) {
-                if (value.isNaN()) {
-                    "NaN"
-                } else {
-                    value.roundTo(2).toString()
-                }
-                //, fontWeight = FontWeight.Bold, fontSize = 25.sp
-
-            } else {
-                "${
-                    value.toString().split(".")[0]
-                } ${if (dsValue > 0) "+" else ""}${if (dsValue != 0) dsValue else ""}"
-            }
-        } else {
-            ""
-        }
-        QuickTabNotNull(
-            title = title,
-            value = endValue
-        ) {
-            onClick()
-        }
-        if (value == null) {
-            DotsFlashing(Modifier.padding(top = 5.dp))
-        }
-    }
-}
-
-@Composable
-private fun QuickTabNotNull(
-    title: String,
-    value: String,
-    onClick: () -> Unit
-) {
-    CustomTextButton(
-        text = buildAnnotatedString {
-            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                append("$title: ")
-            }
-            append(value)
-        },
-        color = MaterialTheme.colorScheme.onSurface
-    ) {
-        onClick()
-    }
-}
 
 
 val dotSize = 24.dp // made it bigger for demo

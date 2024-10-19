@@ -7,7 +7,6 @@ import homework.ClientHomeworkItem
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.not
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -24,6 +23,7 @@ object HomeTasks : Table() {
     val stups = this.integer("stups")
     val text = this.text("text")
     val filesId = this.text("filesId").nullable()
+    val isNec = this.bool("isNec")
     private val reportId = this.integer("reportId")
 
     fun insert(ht: HomeTasksDTO) {
@@ -41,6 +41,7 @@ object HomeTasks : Table() {
                     it[text] = ht.text
                     it[filesId] = ht.filesId?.map { it.toString() }.toStr()
                     it[reportId] = ht.reportId
+                    it[isNec] = ht.isNecessary
                 }
             }
         } catch (e: Throwable) {
@@ -73,7 +74,8 @@ object HomeTasks : Table() {
                     teacherLogin = it[teacherLogin],
                     stups = it[stups],
                     text = it[text],
-                    filesId = it[HomeTasks.filesId].toList()?.map { it.toInt() }
+                    filesId = it[HomeTasks.filesId].toList()?.map { it.toInt() },
+                    isNecessary = it[isNec]
                 )
             }
         }
@@ -96,7 +98,8 @@ object HomeTasks : Table() {
                         fileIds = it[filesId].toList()?.map { f -> f.toInt() },
                         seconds = htD?.seconds ?: 0,
                         done = htD?.isDone ?: false,
-                        doneId = htD?.id
+                        doneId = htD?.id,
+                        isNec = it[isNec]
                     )
                 } else null
             }
@@ -129,7 +132,8 @@ object HomeTasks : Table() {
                         fileIds = it[filesId].toList()?.map { f -> f.toInt() },
                         seconds = htD?.seconds ?: 0,
                         done = htD?.isDone ?: false,
-                        doneId = htD?.id
+                        doneId = htD?.id,
+                        isNec = it[isNec]
                     )
                 } else null
             }
@@ -137,10 +141,10 @@ object HomeTasks : Table() {
     }
 
 
-    fun getCountNOTDoneHomeTasks(groupIds: List<Int>, login: String): Int {
+    fun getCountNOTDoneNecHomeTasks(groupIds: List<Int>, login: String): Int {
         return transaction {
             val homeTasksDone = HomeTasksDone.getByLogin(login = login)
-            HomeTasks.select {(HomeTasks.groupId inList groupIds)}.count { x ->
+            HomeTasks.select {(HomeTasks.groupId inList groupIds) and (HomeTasks.isNec eq true)}.count { x ->
                 if (x[HomeTasks.studentLogins] == null || login in x[HomeTasks.studentLogins].toList()!!) {
                     val htd = homeTasksDone.firstOrNull { it.homeWorkId == x[HomeTasks.id] }
                     if(htd == null || !htd.isDone) {
@@ -222,7 +226,8 @@ object HomeTasks : Table() {
                     teacherLogin = it[teacherLogin],
                     stups = it[stups],
                     text = it[text],
-                    filesId = it[HomeTasks.filesId].toList()?.map { it.toInt() }
+                    filesId = it[HomeTasks.filesId].toList()?.map { it.toInt() },
+                    isNecessary = it[isNec]
                 )
             }.sortedBy { it.id }
         }
@@ -242,7 +247,8 @@ object HomeTasks : Table() {
                     teacherLogin = it[teacherLogin],
                     stups = it[stups],
                     text = it[text],
-                    filesId = it[HomeTasks.filesId].toList()?.map { it.toInt() }
+                    filesId = it[HomeTasks.filesId].toList()?.map { it.toInt() },
+                    isNecessary = it[isNec]
                 )
             }.sortedBy { it.id }
         }

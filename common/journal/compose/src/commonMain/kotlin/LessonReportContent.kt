@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -66,6 +67,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
@@ -158,6 +160,7 @@ import lessonReport.ColumnTypes
 import lessonReport.LessonReportComponent
 import lessonReport.LessonReportStore
 import lessonReport.MarkColumn
+import lessonReport.StudentLine
 import lessonReport.Stup
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
@@ -636,7 +639,7 @@ fun LessonReportContent(
 private fun HomeWorkTabContent(
     component: LessonReportComponent
 ) {
-    val model by component.model
+    val model by component.model.subscribeAsState()
 
 
     val tabs =
@@ -787,20 +790,21 @@ private fun HomeWorkTabContent(
         ) {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 model.students.forEach { s ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    val isChecked = s.login in model.newTabLogins
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                        if (!isChecked && s.login !in model.newTabLogins) {
+                            component.onEvent(LessonReportStore.Intent.AddLoginToNewTab(s.login))
+                        } else if (isChecked && s.login in model.newTabLogins) {
+                            component.onEvent(
+                                LessonReportStore.Intent.DeleteLoginFromNewTab(
+                                    s.login
+                                )
+                            )
+                        }
+                    }) {
                         Checkbox(
-                            checked = s.login in model.newTabLogins,
-                            onCheckedChange = {
-                                if (it && s.login !in model.newTabLogins) {
-                                    component.onEvent(LessonReportStore.Intent.AddLoginToNewTab(s.login))
-                                } else if (!it && s.login in model.newTabLogins) {
-                                    component.onEvent(
-                                        LessonReportStore.Intent.DeleteLoginFromNewTab(
-                                            s.login
-                                        )
-                                    )
-                                }
-                            }
+                            checked = isChecked,
+                            onCheckedChange = {}
                         )
                         Spacer(Modifier.width(5.dp))
                         Text(s.shortFio)
@@ -934,6 +938,31 @@ private fun ReportHomeTaskItem(
                 if (isStups) {
                     FilesButton()
                 }
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable {
+                    component.onEvent(
+                        LessonReportStore.Intent.ChangeHomeTaskIsNec(
+                            id = task.id,
+                            isNec = !task.isNec,
+                            isNew = task.isNew
+                        )
+                    )
+                }, horizontalArrangement = Arrangement.End) {
+                    Text("Обязательное задание")
+                    Spacer(Modifier.width(6.dp))
+                    Checkbox(
+                        checked = task.isNec,
+                        onCheckedChange = {
+                            component.onEvent(
+                                LessonReportStore.Intent.ChangeHomeTaskIsNec(
+                                    id = task.id,
+                                    isNec = !task.isNec,
+                                    isNew = task.isNew
+                                )
+                            )
+                        }
+                    )
+                }
             }
         } else {
             Column(Modifier.padding(4.dp).padding(start = 4.dp)) {
@@ -949,7 +978,7 @@ private fun ReportHomeTaskItem(
                     }
                 )
 
-                Text(task.text)
+                Text("${if (task.isNec) "*" else ""}${task.text}")
             }
         }
         IconButton(
@@ -986,7 +1015,7 @@ private fun SetupTabContent(
     component: LessonReportComponent,
     isLikeMenuOpened: MutableState<Boolean>
 ) {
-    val model by component.model
+    val model by component.model.subscribeAsState()
 
     val nModel by component.nInterface.networkModel.subscribeAsState()
     Column(
@@ -1046,27 +1075,10 @@ private fun SetupTabContent(
                         ) {
                             Text(student.shortFio, maxLines = 1)
                             Spacer(Modifier.width(2.dp))
-                            IconButton(onClick = {
-                                component.onEvent(LessonReportStore.Intent.LikeStudent(student.login))
-                                println("sad")
-                            }, modifier = Modifier.size(20.dp)) {
-                                Icon(
-                                    Icons.Rounded.ThumbDown, null,
-                                    modifier = Modifier.rotate(180f)
-                                )
-                            }
-                            Spacer(Modifier.width(2.dp))
-                            IconButton(onClick = {
-                                component.onEvent(
-                                    LessonReportStore.Intent.DislikeStudent(
-                                        student.login
-                                    )
-                                )
-                            }, modifier = Modifier.size(20.dp)) {
-                                Icon(
-                                    Icons.Rounded.ThumbDown, null
-                                )
-                            }
+                            LikeDislikeRow(
+                                component = component,
+                                student = student
+                            )
                         }
                     }
                 }
@@ -1095,10 +1107,13 @@ private fun SetupTabContent(
         )
         Spacer(Modifier.height(10.dp))
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            val isChecked = model.isMentorWas
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                component.onEvent(LessonReportStore.Intent.ChangeIsMentorWas)
+            }) {
                 Text("Наставник")
                 Checkbox(
-                    checked = model.isMentorWas,
+                    checked = isChecked,
                     onCheckedChange = {
                         component.onEvent(LessonReportStore.Intent.ChangeIsMentorWas)
                     }
@@ -1333,14 +1348,15 @@ private fun ColumnsSettingsItem(
     currentId: String,
     bringIntoRequest: () -> Unit
 ) {
+    val model by component.model.subscribeAsState()
     val isExpanded =
         (LocalViewManager.current.size?.maxWidth ?: 0.dp) >= BottomSheetDefaults.SheetMaxWidth
     val coroutineScope = rememberCoroutineScope()
     val isOpened = remember { mutableStateOf(isExpanded) }
-    val currentList = component.model.value.columnNames.filter {
+    val currentList = model.columnNames.filter {
         it.type.subSequence(0, 3) == currentId
     }
-    val columnNames = component.model.value.columnNames.map { it.title }
+    val columnNames = model.columnNames.map { it.title }
 
     val sortedColumnList = columnsList.sortedBy {
         if (!isOpened.value) {
@@ -1383,8 +1399,40 @@ private fun ColumnsSettingsItem(
         LazyColumn(Modifier.height((inColumn.size * 30).dp + 1.dp), userScrollEnabled = false) {
             items(items = inColumn, key = { i -> i.reasonId }) { i ->
                 val isInProcess = remember { mutableStateOf(false) }
+                val isChecked = (i.title in currentList.map { it.title })
                 Row(
-                    Modifier.animateItemPlacement().width(170.dp),
+                    Modifier.animateItemPlacement().width(170.dp).clickable {
+                        if (!isChecked) {
+                            isInProcess.value = true
+                            coroutineScope.launch {
+                                component.onEvent(
+                                    LessonReportStore.Intent.CreateColumn(
+                                        i.title,
+                                        i.reasonId
+                                    )
+                                )
+                                while (true) {
+                                    if (i.title in model.columnNames.map { it.title }) {
+                                        isInProcess.value = false
+                                        break
+                                    }
+                                    delay(200)
+                                }
+                            }
+                        } else {
+                            if (currentList.find { it.title == i.title } != null) {
+
+                                component.onEvent(
+                                    LessonReportStore.Intent.DeleteColumnInit(
+                                        reportColumn = currentList.first { it.title == i.title }
+                                    )
+                                )
+                                component.confirmDeletingColumnDialogComponent.onEvent(
+                                    CAlertDialogStore.Intent.ShowDialog
+                                )
+                            }
+                        }
+                    },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -1393,12 +1441,10 @@ private fun ColumnsSettingsItem(
                     )
                     Checkbox(
                         modifier = Modifier.size(30.dp),
-                        checked = (i.title in currentList.map { it.title }),
+                        checked = isChecked,
                         enabled = !isInProcess.value,
-                        onCheckedChange = { isCheck ->
-//                        coroutineScope.launch {
-//                            delay(150)
-                            if (isCheck) {
+                        onCheckedChange = {
+                            if (!isChecked) {
                                 isInProcess.value = true
                                 coroutineScope.launch {
                                     component.onEvent(
@@ -1408,7 +1454,7 @@ private fun ColumnsSettingsItem(
                                         )
                                     )
                                     while (true) {
-                                        if (i.title in component.model.value.columnNames.map { it.title }) {
+                                        if (i.title in model.columnNames.map { it.title }) {
                                             isInProcess.value = false
                                             break
                                         }
@@ -1595,15 +1641,23 @@ fun LessonTable(
                                 )
 
                         Column {
-                            Text(
-                                text = student.shortFio,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = fioColor,
-                                modifier = Modifier
-                                    .padding(start = 10.dp)
-                                    .offset(with(density) { hScrollState.value.toDp() })
-                            )
+                            Row(modifier = Modifier
+                                .padding(start = 10.dp)
+                                .offset(with(density) { hScrollState.value.toDp() }),
+                                verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = student.shortFio,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = fioColor,
+                                    modifier = Modifier
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                LikeDislikeRow(
+                                    component = component,
+                                    student = student
+                                )
+                            }
                             Row(Modifier.padding(start = lP)) {
 
 //                            Box(
@@ -2012,6 +2066,33 @@ fun LessonTable(
 
 }
 
+@Composable
+private fun LikeDislikeRow(
+    component: LessonReportComponent,
+    student: StudentLine
+) {
+    IconButton(onClick = {
+        component.onEvent(LessonReportStore.Intent.LikeStudent(student.login))
+    }, modifier = Modifier.size(20.dp)) {
+        Icon(
+            Icons.Rounded.ThumbDown, null,
+            modifier = Modifier.rotate(180f)
+        )
+    }
+    Spacer(Modifier.width(7.dp))
+    IconButton(onClick = {
+        component.onEvent(
+            LessonReportStore.Intent.DislikeStudent(
+                student.login
+            )
+        )
+    }, modifier = Modifier.size(20.dp)) {
+        Icon(
+            Icons.Rounded.ThumbDown, null
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrisutCheckBox(
@@ -2146,7 +2227,7 @@ fun LessonReportTopBar(
     component: LessonReportComponent,
     isFullView: Boolean
 ) {
-    val model = component.model.value
+    val model by component.model.subscribeAsState()
     AppBar(
         navigationRow = {
             backAB(component)

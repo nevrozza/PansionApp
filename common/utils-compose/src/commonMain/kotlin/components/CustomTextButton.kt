@@ -32,6 +32,7 @@ fun CustomTextButton(
     fontWeight: FontWeight = FontWeight.SemiBold,
     color: Color = MaterialTheme.colorScheme.primary,
     fontSize: TextUnit = TextUnit.Unspecified,
+    textAlign: TextAlign = TextAlign.Center,
     isButtonEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
@@ -43,7 +44,7 @@ fun CustomTextButton(
                 text
             )
         }
-    }, color = color, onClick = onClick, modifier = modifier, fontSize = fontSize, isButtonEnabled = isButtonEnabled)
+    }, color = color, onClick = onClick, modifier = modifier, fontSize = fontSize, isButtonEnabled = isButtonEnabled, textAlign = textAlign)
 }
 
 @Composable
@@ -52,6 +53,7 @@ fun CustomTextButton(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
     fontSize: TextUnit = TextUnit.Unspecified,
+    textAlign: TextAlign = TextAlign.Center,
     isButtonEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
@@ -64,7 +66,7 @@ fun CustomTextButton(
     )
     println("x3: $isButtonEnabled")
     Color(1.0f, 1.0f, 1.0f)
-    Text(text, textAlign = TextAlign.Center, color = color.copy(alpha = if(isButtonEnabled) 1f else .5f), fontSize = fontSize,
+    Text(text, textAlign = textAlign, color = color.copy(alpha = if(isButtonEnabled) 1f else .5f), fontSize = fontSize,
         modifier = modifier.then(Modifier.hoverable(interactionSource)
             .clickable(interactionSource = interactionSource, indication = null, enabled = isButtonEnabled) {
                 onClick()

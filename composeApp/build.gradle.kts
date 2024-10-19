@@ -197,7 +197,7 @@ kotlin {
         }
 
         jvmMain.dependencies {
-//            implementation(project(":server"))
+            implementation(project(":server"))
 //            implementation(compose.desktop.common)
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)

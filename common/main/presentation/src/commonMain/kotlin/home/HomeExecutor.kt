@@ -17,6 +17,7 @@ import journal.JournalStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import main.Period
+import main.RChangeToUv
 import main.RDeleteMainNotificationsReceive
 import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainNotificationsReceive
@@ -54,11 +55,7 @@ class HomeExecutor(
 
             is Intent.UpdateHomeWorkEmoji -> {
                 dispatch(
-                    Message.UpdateHomeWorkEmoji(
-                        emoji = getEmoji(
-                            count = intent.count
-                        )
-                    )
+                    Message.UpdateHomeWorkEmoji(intent.count)
                 )
             }
 
@@ -80,6 +77,49 @@ class HomeExecutor(
 
                 }
             }
+
+            is Intent.ChangeToUv -> changeToUv(intent.reportId, intent.login, intent.isDeep)
+        }
+    }
+
+    private fun changeToUv(reportId: Int, login: String, isDeep: Boolean) {
+        scope.launch(CDispatcher) {
+            try {
+
+                mainRepository.changeToUv(
+                    RChangeToUv(
+                        login = login,
+                        reportId = reportId
+                    )
+                )
+                if (isDeep) {
+                    fetchChildrenNotifications()
+                } else {
+                    val newHots = state().childrenNotifications.toMutableMap()
+                    newHots[login] = state().childrenNotifications[login]?.map {
+                        val data = it.reason.split(".")
+                        val type = data[0]
+                        if (it.reportId == reportId && type == "N" && data[1] == "1") {
+                            it.copy(
+                                reason = "N.2"
+                            )
+                        } else {
+                            it
+                        }
+                    } ?: listOf()
+                    scope.launch {
+                        dispatch(
+                            Message.ChildrenNotificationsInited(
+                                notChildren = state().notChildren,
+                                childrenNotifications = newHots
+                            )
+                        )
+                        quickTabNInterface.nSuccess()
+                    }
+                }
+            } catch (e: Throwable) {
+                println(e)
+            }
         }
     }
 
@@ -89,12 +129,13 @@ class HomeExecutor(
                 quickTabNInterface.nStartLoading()
                 val r =
                     mainRepository.fetchChildrenMainNotifications()
-
                 scope.launch {
-                    dispatch(Message.ChildrenNotificationsInited(
-                        notChildren = r.students,
-                        childrenNotifications = r.notifications
-                    ))
+                    dispatch(
+                        Message.ChildrenNotificationsInited(
+                            notChildren = r.students,
+                            childrenNotifications = r.notifications
+                        )
+                    )
                     quickTabNInterface.nSuccess()
                 }
             } catch (e: Throwable) {
@@ -121,8 +162,7 @@ class HomeExecutor(
                     dayOfWeek = state().currentDate.first.toString(),
                     date = state().currentDate.second
                 )
-            }
-            else if (state().role == Roles.teacher) {
+            } else if (state().role == Roles.teacher) {
                 fetchTeacherGroups()
                 fetchSchedule(
                     dayOfWeek = state().currentDate.first.toString(),
@@ -132,7 +172,7 @@ class HomeExecutor(
             if (state().isParent) {
                 fetchChildren()
             }
-            if(state().isParent || state().isMentor) {
+            if (state().isParent || state().isMentor) {
                 fetchChildrenNotifications()
             }
             if ((state().isMentor || state().isModer) && state().role != Roles.teacher) {
@@ -173,7 +213,7 @@ class HomeExecutor(
                 scope.launch {
                     dispatch(
                         Message.UpdateHomeWorkEmoji(
-                            getEmoji(count)
+                            count
                         )
                     )
                 }
@@ -256,7 +296,8 @@ class HomeExecutor(
         scope.launch(CDispatcher) {
             try {
                 teacherNInterface.nStartLoading()
-                val groups = mainRepository.fetchTeacherGroups().groups.sortedBy { it.subjectId }.sortedBy { it.teacherLogin != state().login }
+                val groups = mainRepository.fetchTeacherGroups().groups.sortedBy { it.subjectId }
+                    .sortedBy { it.teacherLogin != state().login }
                 scope.launch {
                     dispatch(Message.TeacherGroupUpdated(groups))
 
@@ -277,7 +318,11 @@ class HomeExecutor(
             quickTabNInterface.nStartLoading()
             try {
                 val avg =
-                    mainRepository.fetchMainAvg(state().login, reason = period.ordinal.toString(), isFirst = isFirst)
+                    mainRepository.fetchMainAvg(
+                        state().login,
+                        reason = period.ordinal.toString(),
+                        isFirst = isFirst
+                    )
                 val avgMap = state().averageGradePoint.toMutableMap()
                 val stupsMap = state().ladderOfSuccess.toMutableMap()
                 avgMap[period] = avg.avg

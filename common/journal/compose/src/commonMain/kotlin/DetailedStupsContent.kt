@@ -141,7 +141,7 @@ fun DetailedStupsContent(
                                         )
                                     }
                                 ) {
-                                    Text("Открыть достижения")
+                                    Text("Открыть события")
                                 }
                             }
                         }

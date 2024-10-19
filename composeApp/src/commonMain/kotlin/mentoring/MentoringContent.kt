@@ -797,20 +797,23 @@ private fun FormsItem(
                                                                 modifier = Modifier.fillMaxWidth(),
                                                                 isSingleLine = false
                                                             )
-                                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                                                                component.onEvent(
+                                                                    MentoringStore.Intent.ChangeCIsGood(
+                                                                        !(model.cIsGood
+                                                                            ?: false)
+                                                                    )
+                                                                )
+                                                            }) {
                                                                 Checkbox(
                                                                     checked = model.cIsGood
                                                                         ?: false,
                                                                     onCheckedChange = {
-                                                                        component.onEvent(
-                                                                            MentoringStore.Intent.ChangeCIsGood(
-                                                                                it
-                                                                            )
-                                                                        )
+
                                                                     }
                                                                 )
                                                                 Spacer(Modifier.width(5.dp))
-                                                                Text("Уважительная?")
+                                                                Text("Уважительная")
                                                             }
                                                             Spacer(Modifier.width(3.dp))
                                                             Row {

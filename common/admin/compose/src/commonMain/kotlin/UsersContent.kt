@@ -6,6 +6,7 @@ import admin.users.UserInit
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -168,60 +169,90 @@ fun UsersContent(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        Checkbox(
-                            checked = model.fTeachers,
-                            onCheckedChange = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { component.onEvent(
+                                UsersStore.Intent.FTeachers(!model.fTeachers)
+                            ) }
+                        ) {
+                            Checkbox(
+                                checked = model.fTeachers,
+                                onCheckedChange = {}
+                            )
+                            Text("Учителя")
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable {
                                 component.onEvent(
-                                    UsersStore.Intent.FTeachers(it)
+                                    UsersStore.Intent.FStudents(!model.fStudents)
                                 )
                             }
-                        )
-                        Text("Учителя")
-                        Checkbox(
-                            checked = model.fStudents,
-                            onCheckedChange = {
+                        ) {
+                            Checkbox(
+                                checked = model.fStudents,
+                                onCheckedChange = {}
+                            )
+                            Text("Ученики")
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable {
                                 component.onEvent(
-                                    UsersStore.Intent.FStudents(it)
+                                    UsersStore.Intent.FOther(!model.fOther)
                                 )
                             }
-                        )
-                        Text("Ученики")
-                        Checkbox(
-                            checked = model.fOther,
-                            onCheckedChange = {
+                        ) {
+                            Checkbox(
+                                checked = model.fOther,
+                                onCheckedChange = {}
+                            )
+
+                            Text("Другое")
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable {
                                 component.onEvent(
-                                    UsersStore.Intent.FOther(it)
+                                    UsersStore.Intent.FParents(!model.fParents)
                                 )
                             }
-                        )
-                        Text("Другое")
-                        Checkbox(
-                            checked = model.fParents,
-                            onCheckedChange = {
+                        ) {
+                            Checkbox(
+                                checked = model.fParents,
+                                onCheckedChange = {}
+                            )
+                            Text("Родители")
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable {
                                 component.onEvent(
-                                    UsersStore.Intent.FParents(it)
+                                    UsersStore.Intent.FNoAdmin(!model.fNoAdmin)
                                 )
                             }
-                        )
-                        Text("Родители")
-                        Checkbox(
-                            checked = model.fNoAdmin,
-                            onCheckedChange = {
+                        ) {
+                            Checkbox(
+                                checked = model.fNoAdmin,
+                                onCheckedChange = {}
+                            )
+                            Text("Не админ")
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable {
                                 component.onEvent(
-                                    UsersStore.Intent.FNoAdmin(it)
+                                    UsersStore.Intent.FInActive(!model.fInActive)
                                 )
                             }
-                        )
-                        Text("Не админ")
-                        Checkbox(
-                            checked = model.fInActive,
-                            onCheckedChange = {
-                                component.onEvent(
-                                    UsersStore.Intent.FInActive(it)
-                                )
-                            }
-                        )
-                        Text("Inactive")
+                        ) {
+                            Checkbox(
+                                checked = model.fInActive,
+                                onCheckedChange = {}
+                            )
+                            Text("Inactive")
+                        }
                     }
                 },
                 actionRow = {

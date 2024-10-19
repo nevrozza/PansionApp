@@ -906,8 +906,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             Row(
                                                 Modifier.height(40.dp)
                                                     .clickable(
-                                                        interactionSource = remember { MutableInteractionSource() },
-                                                        null
+//                                                        interactionSource = remember { MutableInteractionSource() },
+//                                                        null
                                                     ) {
                                                         component.onEvent(
                                                             ScheduleStore.Intent.ciChangeIsPair
@@ -917,11 +917,7 @@ private fun LazyItemScope.ScheduleColumn(
                                             ) {
                                                 Checkbox(
                                                     checked = model.ciIsPair,
-                                                    onCheckedChange = {
-                                                        component.onEvent(
-                                                            ScheduleStore.Intent.ciChangeIsPair
-                                                        )
-                                                    },
+                                                    onCheckedChange = {},
                                                     modifier = Modifier.size(
                                                         40.dp
                                                     )

@@ -3,6 +3,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Done
@@ -43,6 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,6 +61,7 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.GetAvatar
+import components.dashedBorder
 import components.networkInterface.NetworkState
 import homeTasks.HomeTasksComponent
 import homeTasks.HomeTasksStore
@@ -368,21 +373,21 @@ private fun TaskItem(
     task: ClientHomeworkItem,
     component: HomeTasksComponent
 ) {
-    Row() {
+    Row(Modifier.clickable {
+        component.onEvent(
+            HomeTasksStore.Intent.CheckTask(
+                taskId = task.id,
+                isCheck = !task.done,
+                doneId = task.doneId
+            )
+        )
+    }) {
         CustomCheckBox(
             checked = task.done,
-            onCheckedChange = {
-                component.onEvent(
-                    HomeTasksStore.Intent.CheckTask(
-                        taskId = task.id,
-                        isCheck = !task.done,
-                        doneId = task.doneId
-                    )
-                )
-            },
             modifier = Modifier
                 .padding(horizontal = 5.dp).padding(end = 2.dp)
-                .size(25.dp)
+                .size(25.dp),
+            isDashedBorder = !task.isNec
         )
         Text(
             text = buildAnnotatedString {
@@ -405,29 +410,50 @@ private fun TaskItem(
 @Composable
 private fun CustomCheckBox(
     checked: Boolean,
-    onCheckedChange: () -> Unit,
+    isDashedBorder: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        OutlinedCard(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(if (checked) 1f else .5f),
-            shape = AbsoluteRoundedCornerShape(40),
-            border = BorderStroke(
-                color = MaterialTheme.colorScheme.onSurfaceVariant, //if (checked) MaterialTheme.colorScheme.surface else
-                width = 1.dp
-            ),
-            onClick = {
-                onCheckedChange()
-            }) {
-            AnimatedVisibility(checked) {
-                Icon(
-                    imageVector = Icons.Rounded.Done,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+
+    Box(
+        modifier
+            .alpha(if (checked) 1f else .5f).then(
+                Modifier.size(25.dp).border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(if (!isDashedBorder) 1f else 0f),
+                    shape = RoundedCornerShape(40)
+                ).clip(RoundedCornerShape(40)).then(
+                    if (isDashedBorder) Modifier.dashedBorder(
+                        3.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cornerRadiusDp = 16.dp
+                    ) else Modifier
                 )
-            }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatedVisibility(checked) {
+            Icon(
+                imageVector = Icons.Rounded.Done,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
     }
+//    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+//
+//        OutlinedCard(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .alpha(if (checked) 1f else .5f),
+//            shape = AbsoluteRoundedCornerShape(40),
+//            border = BorderStroke(
+//                color =  MaterialTheme.colorScheme.onSurfaceVariant,// if (isDashedBorder) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant, //if (checked) MaterialTheme.colorScheme.surface else
+//                width = 1.dp//if (isDashedBorder) 0.dp else 1.dp
+//            ),
+//            onClick = {
+//
+//            }) {
+//
+//        }
+//    }
 }

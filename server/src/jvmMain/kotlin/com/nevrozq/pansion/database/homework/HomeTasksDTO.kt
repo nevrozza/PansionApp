@@ -27,6 +27,7 @@ data class HomeTasksDTO(
     val teacherLogin: String,
     val stups: Int,
     val text: String,
-    val filesId: List<Int>?//List<Int>
+    val filesId: List<Int>?,//List<Int>,
+    val isNecessary: Boolean
 )
 

@@ -402,7 +402,7 @@ fun ProfileContent(
                                                     verticalArrangement = Arrangement.SpaceBetween
                                                 ) {
                                                     Text(
-                                                        "Достижения",
+                                                        "События",
                                                         fontSize = 17.sp,
                                                         fontWeight = FontWeight.Bold
                                                     )

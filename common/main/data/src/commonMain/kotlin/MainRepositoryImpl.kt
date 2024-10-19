@@ -5,6 +5,7 @@ import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import ktor.KtorMainRemoteDataSource
+import main.RChangeToUv
 import main.RDeleteMainNotificationsReceive
 import main.RFetchChildrenMainNotificationsResponse
 import main.RFetchChildrenResponse
@@ -80,6 +81,10 @@ class MainRepositoryImpl(
 
     override suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive) {
         remoteDataSource.deleteMainNotification(r)
+    }
+
+    override suspend fun changeToUv(r: RChangeToUv) {
+        remoteDataSource.changeToUv(r)
     }
 
     override suspend fun fetchChildren(): RFetchChildrenResponse {

@@ -69,7 +69,11 @@ class AllGroupMarksExecutor(
                     subjectId = state().subjectId
                 )
                 val dates =
-                    (r.students.flatMap { (it.stups.map { DateModule(it.mark.date, it.mark.module) } + it.marks.map { DateModule(it.mark.date, it.mark.module) }).toSet() })
+                    (r.students.flatMap {
+                        (it.stups.map { DateModule(it.mark.date, it.mark.module) }
+                                + it.marks.map { DateModule(it.mark.date, it.mark.module) }
+                            + it.nki.map { DateModule(it.date, it.module) }
+                        ).toSet() })
 
                 dispatch(Message.StudentsUpdated(r.students, r.firstHalfNums, dates, modules = dates.map { it.module }.toSet().toList()))
                 nInterface.nSuccess()

@@ -319,13 +319,19 @@ private fun TrueJournalContent(
                                         }
                                         Spacer(Modifier.width(15.dp))
                                         if(model.isMentor) {
-                                            Checkbox(
-                                                checked = model.filterMyChildren,
-                                                onCheckedChange = {
-                                                    component.onEvent(JournalStore.Intent.FilterMyChildren(it))
-                                                }
-                                            )
-                                            Text("Только мои классы")
+                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                                                component.onEvent(
+                                                    JournalStore.Intent.FilterMyChildren(
+                                                        !model.filterMyChildren
+                                                    )
+                                                )
+                                            }) {
+                                                Checkbox(
+                                                    checked = model.filterMyChildren,
+                                                    onCheckedChange = {}
+                                                )
+                                                Text("Только мои классы")
+                                            }
                                             Spacer(Modifier.width(15.dp))
                                         }
                                     }

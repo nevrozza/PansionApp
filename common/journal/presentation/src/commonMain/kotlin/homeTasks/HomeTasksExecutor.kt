@@ -115,7 +115,7 @@ class HomeTasksExecutor(
                     )
                 )
                 scope.launch {
-                    updateHTCount(newTasks.count { !it.done })
+                    updateHTCount(newTasks.filter { it.isNec }.count { !it.done })
                 }
             } catch (e: Throwable) {
                 println(e)

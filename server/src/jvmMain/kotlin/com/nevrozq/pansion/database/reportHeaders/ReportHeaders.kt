@@ -106,7 +106,7 @@ object ReportHeaders : Table() {
             val tN =
                 "${teacher.surname} ${teacher.name[0]}.${if (teacher.praname != null) " " + teacher.praname[0] + "." else ""}"
             val cSubjectId = Groups.fetchSubjectIdOfGroup(r.groupId)
-
+            val module = getModuleByDate(r.date)?.num?.toString() ?: "1"
             val subjectN = Subjects.fetchName(cSubjectId)
             val groupN = Groups.getName(r.groupId)
             val reportId = ReportHeaders.insert {
@@ -127,7 +127,7 @@ object ReportHeaders : Table() {
                 it[groupName] = groupN
                 it[ReportHeaders.teacherLogin] = teacherLogin
                 it[teacherName] = tN
-                it[module] = getModuleByDate(r.date)?.num?.toString() ?: "1"
+                it[ReportHeaders.module] = module
             }[ReportHeaders.id]
 
             r.studentLogins.forEach {
@@ -143,7 +143,8 @@ object ReportHeaders : Table() {
                         subjectName = subjectN,
                         groupName = groupN,
                         time = getSixTime(),
-                        date = getDate()
+                        date = getDate(),
+                        module = module
                     ),
                     isDelete = false
                 )

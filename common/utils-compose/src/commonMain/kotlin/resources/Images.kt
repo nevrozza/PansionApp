@@ -39,6 +39,13 @@ import pansion.common.utils_compose.generated.resources.a5
 import pansion.common.utils_compose.generated.resources.a6
 import pansion.common.utils_compose.generated.resources.a7
 import pansion.common.utils_compose.generated.resources.a8
+import pansion.common.utils_compose.generated.resources.emoji0
+import pansion.common.utils_compose.generated.resources.emoji1
+import pansion.common.utils_compose.generated.resources.emoji2
+import pansion.common.utils_compose.generated.resources.emoji3
+import pansion.common.utils_compose.generated.resources.emoji4
+import pansion.common.utils_compose.generated.resources.emoji5
+import pansion.common.utils_compose.generated.resources.emoji6
 
 
 @Composable
@@ -91,6 +98,22 @@ data object Images {
             @Composable get() = imageResource(Res.drawable.a7)
         val a8: ImageBitmap
             @Composable get() = imageResource(Res.drawable.a8)
+    }
+    data object Emoji {
+        val emoji0: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.emoji0)
+        val emoji1: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.emoji1)
+        val emoji2: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.emoji2)
+        val emoji3: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.emoji3)
+        val emoji4: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.emoji4)
+        val emoji5: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.emoji5)
+        val emoji6: ImageBitmap
+            @Composable get() = imageResource(Res.drawable.emoji6)
     }
 }
 val GeologicaFont: FontFamily

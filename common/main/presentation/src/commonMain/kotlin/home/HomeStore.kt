@@ -48,7 +48,7 @@ interface HomeStore : Store<Intent, State, Label> {
             Period.HALF_YEAR to null,
             Period.YEAR to null
         ),
-        val homeWorkEmoji: String? = null,
+        val homeWorkEmojiCount: Int? = null,
 
         val items: HashMap<String, List<PersonScheduleItem>> = hashMapOf(),
         val currentDate: Pair<Int, String> = getCurrentDate(),
@@ -72,6 +72,7 @@ interface HomeStore : Store<Intent, State, Label> {
 
     sealed interface Intent {
         data object Init : Intent
+        data class ChangeToUv(val reportId: Int, val login: String, val isDeep: Boolean) : Intent
         data object ChangeIsDatesShown : Intent
 
         data class ChangeDate(val date: Pair<Int, String>) : Intent
@@ -104,7 +105,7 @@ interface HomeStore : Store<Intent, State, Label> {
         data class TeacherGroupUpdated(val teacherGroups: List<TeacherGroup>): Message
         data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Pair<Int, Int>?>, val achievements: Map<Period, Pair<Int, Int>?>?) : Message
 
-        data class UpdateHomeWorkEmoji(val emoji: String?) : Message
+        data class UpdateHomeWorkEmoji(val emoji: Int?) : Message
 
         data class GradesUpdated(val grades: List<Grade>) : Message
 
@@ -125,32 +126,32 @@ interface HomeStore : Store<Intent, State, Label> {
 
 }
 
-fun getEmoji(count: Int): String {
-    return when(count) {
-        0 -> Emojis.check
-        1 -> Emojis.smileTeeth
-        2 -> Emojis.smile
-        3 -> Emojis.normal
-        4 -> Emojis.scared
-        5 -> Emojis.horror
-        else -> {
-            val deathsCount = ((count - 6) / 2)
-            var d = Emojis.death
-            for (i in 0..<deathsCount) {
-                d += Emojis.death
-            }
-            return d
-        }
-    }
-}
-
-object Emojis {
-    const val check: String = "✅"
-    const val smileTeeth: String = "\uD83D\uDE01"
-    const val smile: String = "\uD83D\uDE42"
-    const val normal: String = "\uD83D\uDE10"
-    const val scared: String = "\uD83D\uDE28"
-    const val horror: String = "\uD83D\uDE31"
-    const val death: String = "☠\uFE0F"
-}
+//fun getEmoji(count: Int): String {
+//    return when(count) {
+//        0 -> Emojis.check
+//        1 -> Emojis.smileTeeth
+//        2 -> Emojis.smile
+//        3 -> Emojis.normal
+//        4 -> Emojis.scared
+//        5 -> Emojis.horror
+//        else -> {
+//            val deathsCount = ((count - 6) / 2)
+//            var d = Emojis.death
+//            for (i in 0..<deathsCount) {
+//                d += Emojis.death
+//            }
+//            return d
+//        }
+//    }
+//}
+//
+//object Emojis {
+//    const val check: String = "✅"
+//    const val smileTeeth: String = "\uD83D\uDE01"
+//    const val smile: String = "\uD83D\uDE42"
+//    const val normal: String = "\uD83D\uDE10"
+//    const val scared: String = "\uD83D\uDE28"
+//    const val horror: String = "\uD83D\uDE31"
+//    const val death: String = "☠\uFE0F"
+//}
 

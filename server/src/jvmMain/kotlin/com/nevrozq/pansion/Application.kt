@@ -143,20 +143,20 @@ fun main() {
 
     embeddedServer(
         factory = Netty,
-//        port = h_port,
-        environment = applicationEnvironment {
-            log = LoggerFactory.getLogger("ktor.application")
-        },
-        configure = {
-            configureSSLConnectors(
-                host = "0.0.0.0",
-                sslPort = https_port.toString(),
-                sslKeyStorePath = "keystore.jks",
-                sslPrivateKeyPassword = sslPass,
-                sslKeyStorePassword = sslPass,
-                sslKeyAlias = sslAlias
-            )
-        },
+        port = h_port,
+//        environment = applicationEnvironment {
+//            log = LoggerFactory.getLogger("ktor.application")
+//        },
+//        configure = {
+//            configureSSLConnectors(
+//                host = "0.0.0.0",
+//                sslPort = https_port.toString(),
+//                sslKeyStorePath = "keystore.jks",
+//                sslPrivateKeyPassword = sslPass,
+//                sslKeyStorePassword = sslPass,
+//                sslKeyAlias = sslAlias
+//            )
+//        },
         module = Application::module
     )
         .start(wait = true)

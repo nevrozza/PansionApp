@@ -117,7 +117,7 @@ fun MarkContent(
                         .clip(
                             CircleShape
                         ).background(
-                        colors[mark] ?: Color.Transparent
+                        colors[mark] ?: if (viewManager.colorMode.value == "1") Color.Black else Color.Red
                     ) //MaterialTheme.colorScheme.primary
                 )
             }

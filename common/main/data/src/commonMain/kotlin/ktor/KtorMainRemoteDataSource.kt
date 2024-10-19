@@ -13,6 +13,7 @@ import journal.init.RFetchMentorGroupIdsResponse
 import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
+import main.RChangeToUv
 import main.RDeleteMainNotificationsReceive
 import main.RFetchChildrenMainNotificationsResponse
 import main.RFetchChildrenResponse
@@ -53,6 +54,17 @@ import schedule.RScheduleList
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun changeToUv(r: RChangeToUv) {
+        httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Main.ChangeToUv)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
     suspend fun fetchSchoolData(r: RFetchSchoolDataReceive) : RFetchSchoolDataResponse {
         return httpClient.post {
             url {

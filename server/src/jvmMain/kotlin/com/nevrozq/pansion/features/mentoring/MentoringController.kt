@@ -124,7 +124,7 @@ class MentoringController {
                                 null,
                                 "0"
                             )
-                        ) StudentNka(date = it.date, isUv = it.attended == "2", groupId = g) else null
+                        ) StudentNka(date = it.date, isUv = it.attended == "2", groupId = g, module = it.module) else null
                     }
                 }
             }

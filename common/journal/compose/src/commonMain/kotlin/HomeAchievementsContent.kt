@@ -94,7 +94,7 @@ fun HomeAchievementsContent(
                 },
                 title = {
                     Text(
-                        "Достижения",
+                        "События",
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,

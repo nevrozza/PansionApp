@@ -8,6 +8,11 @@ fun Application.configureReportsRouting() {
     routing {
         val reportsController = ReportsController()
 
+        post(RequestPaths.Main.ChangeToUv) {
+            reportsController.changeToUv(call)
+        }
+
+
         post(RequestPaths.Reports.FetchStudentReport) {
             reportsController.fetchStudentReport(call)
         }

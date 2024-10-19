@@ -26,6 +26,7 @@ object StudentLines : Table() {
     val login = StudentLines.varchar("login", 30)
     val lateTime = StudentLines.varchar("lateTime", 10)
     val isLiked = StudentLines.varchar("isLiked", 1)
+    val module = this.varchar("module", 1)
 
     val subjectN = this.varchar("SubjectName", 50)
     val groupN = this.varchar("GroupName", 50)
@@ -63,6 +64,7 @@ object StudentLines : Table() {
                     it[groupN] = studentLinesDTO.groupName
                     it[timeN] = studentLinesDTO.time
                     it[dateN] = studentLinesDTO.date
+                    it[module] = studentLinesDTO.module
                 }
             }
         } catch (e: Throwable) {
@@ -97,7 +99,8 @@ object StudentLines : Table() {
                         subjectName = it[subjectN],
                         groupName = it[groupN],
                         time = it[timeN],
-                        date = it[dateN]
+                        date = it[dateN],
+                        module = it[module]
                     )
                 }
             } catch (e: Throwable) {
@@ -124,7 +127,8 @@ object StudentLines : Table() {
                         subjectName = it[subjectN],
                         groupName = it[groupN],
                         time = it[timeN],
-                        date = it[dateN]
+                        date = it[dateN],
+                        module = it[module]
                     )
                 }
             } catch (e: Throwable) {
@@ -151,7 +155,8 @@ object StudentLines : Table() {
                         subjectName = it[subjectN],
                         groupName = it[groupN],
                         time = it[timeN],
-                        date = it[dateN]
+                        date = it[dateN],
+                        module = it[module]
                     )
                 }
             } catch (e: Throwable) {
@@ -190,7 +195,8 @@ object StudentLines : Table() {
                         subjectName = it[subjectN],
                         groupName = it[groupN],
                         time = it[timeN],
-                        date = it[dateN]
+                        date = it[dateN],
+                        login= it[StudentLines.login]
                     )
                 }
             } catch (e: Throwable) {
@@ -225,7 +231,8 @@ object StudentLines : Table() {
                     subjectName = it[subjectN],
                     groupName = it[groupN],
                     time = it[timeN],
-                    date = it[dateN]
+                    date = it[dateN],
+                    login = it[StudentLines.login]
                 )
 
             } catch (e: Throwable) {

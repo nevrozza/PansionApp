@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,15 +44,18 @@ import view.blend
 fun NotificationItem(
     not: ClientMainNotification,
     modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = (2.5).dp).padding(top = 5.dp),
+    changeToUV: ((Int) -> Unit)? = null,
     viewManager: ViewManager,
     onClick: (Int) -> Unit,
     onDismissClick: (String) -> Unit
 ) {
-    val data = not.reason.split(".")
+
     val textColor =
         if (viewManager.colorMode.value == "3") Color.White else MaterialTheme.colorScheme.onBackground
+    val data = not.reason.split(".")
     val type = data[0]
     val backColor = getColor(type, data[1])
+    val isChangeToUvButton = type == "N" && data[1] == "1" && changeToUV != null && not.reportId != null
     Surface(
         modifier.clip(
             RoundedCornerShape(15.dp)).clickable(enabled = not.reportId != null) {
@@ -132,6 +136,16 @@ fun NotificationItem(
                         fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
                     )
                 }
+                if (isChangeToUvButton) {
+                    CustomTextButton(
+                        text = "Изменить на ув",
+                        modifier = Modifier.fillMaxWidth().padding(end = 5.dp),
+                        textAlign = TextAlign.End
+                    ) {
+
+                        changeToUV!!(not.reportId!!)
+                    }
+                }
             }
             Box(
                 Modifier.height(30.dp).width(60.dp).align(Alignment.TopEnd).clickable(
@@ -170,6 +184,7 @@ fun NotificationItem(
                     }
                 }
             }
+
         }
     }
 }

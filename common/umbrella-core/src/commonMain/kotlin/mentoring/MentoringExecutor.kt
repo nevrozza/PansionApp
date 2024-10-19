@@ -173,13 +173,14 @@ class MentoringExecutor(
                 )
 
                 val dates =
-                    r.studentsMarks.flatMap {
+                    (r.studentsMarks.flatMap {
                         (it.value).map { DateModule(it.mark.date, it.mark.module) }.toSet()
-                    }.toSet().toList().sortedBy { getLocalDate(it.date).toEpochDays() }
+                    } + r.studentsNki.flatMap {
+                        it.value.map {
+                            DateModule(it.date, module = it.module)
+                        }
+                    }).toSet().toList().sortedBy { getLocalDate(it.date).toEpochDays() }
                 val dm: MutableMap<String, MutableList<MarkTableItem>> = mutableMapOf()
-
-                println("xxtak: ${r.studentsMarks["s.nikitin9"]?.filter { it.mark.date == "29.09.2024" }}")
-                println("xxtak2: ${dates}")
 
                 dates.map { it.date }.toSet().forEach { d ->
                     r.studentsMarks.forEach { s ->

@@ -40,10 +40,12 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import main.ClientMainNotification
 import main.Period
+import main.RChangeToUv
 import main.RFetchMainAVGReceive
 import main.RFetchMainAVGResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
@@ -296,6 +298,32 @@ class ReportsController() {
                     customColumns = columns
                 )
                 call.respond(response)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't create report: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+
+    suspend fun changeToUv(call: ApplicationCall) {
+        val r = call.receive<RChangeToUv>()
+        if (call.isMentor) {
+            try {
+                transaction {
+                    StudentLines.update({ (StudentLines.login eq r.login) and (StudentLines.reportId eq r.reportId) }) {
+                        it[StudentLines.attended] = "2"
+                    }
+                    Stups.deleteWhere { (Stups.reportId eq r.reportId) and (Stups.login eq r.login) and (Stups.reason eq "!ds3") }
+                }
+
+                call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
             } catch (e: Throwable) {
@@ -579,7 +607,7 @@ class ReportsController() {
                         login = s.login,
                         groupId = r.groupId
                     ).filter { it.attended != null && it.attended != "0" }.map { x ->
-                        nki.add(StudentNka(x.date, x.attended == "2"))
+                        nki.add(StudentNka(x.date, isUv = x.attended == "2", module = x.module))
                     }
                     println(nki)
 
@@ -662,10 +690,18 @@ class ReportsController() {
         if (call.isMember) {
             try {
                 val subjects = Subjects.fetchAllSubjects()
+                val limit = 7
+                val stups = Stups.fetchForUser(r.login).filter {
+                    it.reason.subSequence(0, 3) == "!st" ||
+                            it.content.toInt() < 0
+                }
+                val n = if (limit > stups.size) stups.size else limit
                 val preGrades = (Marks.fetchRecentForUser(
                     login = r.login,
-                    limit = 7
-                ) + Stups.fetchRecentForUser(r.login, 7))
+                    limit = limit
+                ) + //Stups.fetchRecentForUser(r.login, 7))
+                        stups.slice(0..n - 1)
+                        )
                 val grades = preGrades.sortedWith(
                     compareBy({ getLocalDate(it.deployDate).toEpochDays() },
                         { it.deployTime.toMinutes() })
@@ -820,7 +856,17 @@ class ReportsController() {
                             nki = StudentLines.fetchStudentLinesByLoginAndGroup(
                                 login = r.login,
                                 groupId = groupIds[s.id] ?: 0
-                            ).mapNotNull { if(it.attended !in listOf(null, "0")) StudentNka(date = it.date, isUv = it.attended == "2") else null}
+                            ).mapNotNull {
+                                if (it.attended !in listOf(
+                                        null,
+                                        "0"
+                                    )
+                                ) StudentNka(
+                                    date = it.date,
+                                    isUv = it.attended == "2",
+                                    module = it.module
+                                ) else null
+                            }
                         )
                     )
                 }
@@ -887,7 +933,8 @@ class ReportsController() {
                                     ) else null
                                 ),
                                 shortFio = shortFio,
-                                prevSum = forAvg.sum - marks.filter { m -> m.login == it.login }.sumOf { it.content.toInt() },
+                                prevSum = forAvg.sum - marks.filter { m -> m.login == it.login }
+                                    .sumOf { it.content.toInt() },
                                 prevCount = forAvg.count - marks.filter { m -> m.login == it.login }.size
                             )
                         },
@@ -924,7 +971,8 @@ class ReportsController() {
                                 text = it.text,
                                 stups = it.stups,
                                 fileIds = it.filesId,
-                                studentLogins = it.studentLogins
+                                studentLogins = it.studentLogins,
+                                isNec = it.isNecessary
                             )
                         }
                     )
@@ -961,7 +1009,8 @@ class ReportsController() {
                                 subjectId = it.subjectId,
                                 groupId = it.groupId,
                                 date = it.date,
-                                time = it.time
+                                time = it.time,
+                                isNec = it.isNecessary
                             )
                         }
                     )
@@ -998,7 +1047,8 @@ class ReportsController() {
                             teacherLogin = login,
                             stups = t.stups,
                             text = t.text,
-                            filesId = t.fileIds
+                            filesId = t.fileIds,
+                            isNecessary = t.isNec
                         )
                     )
                 }
@@ -1031,7 +1081,8 @@ class ReportsController() {
                                 text = it.text,
                                 stups = it.stups,
                                 fileIds = it.filesId,
-                                studentLogins = it.studentLogins
+                                studentLogins = it.studentLogins,
+                                isNec = it.isNecessary
                             )
                         }
                     )
@@ -1074,7 +1125,7 @@ class ReportsController() {
                 }
                 val groups: MutableList<Int> = mutableListOf()
                 if (call.isTeacher) {
-                    groups += Groups.getGroupsOfTeacher(call.login).map {it.id}
+                    groups += Groups.getGroupsOfTeacher(call.login).map { it.id }
                 }
                 if (call.isMentor) {
                     val forms = Forms.fetchMentorForms(call.login)

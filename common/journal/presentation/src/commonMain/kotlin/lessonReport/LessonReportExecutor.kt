@@ -17,8 +17,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lessonReport.LessonReportStore.Intent
+import report.AddStudentLine
 import report.Attended
 import report.RFetchReportStudentsReceive
+import report.RFetchReportStudentsResponse
 import report.RUpdateReportReceive
 import report.ReportHeader
 import report.ServerRatingUnit
@@ -253,7 +255,68 @@ class LessonReportExecutor(
                 val newStudentList = state().students.toMutableList()
                 val student = state().students.first { it.login == intent.studentLogin }
                 newStudentList.remove(student)
-                newStudentList.add(student.copy(attended = if (student.attended != null) student.attended.copy(attendedType = intent.attendedType) else Attended(attendedType = intent.attendedType, null)))
+                newStudentList.add(
+                    student.copy(
+                        attended = if (student.attended != null) student.attended.copy(
+                            attendedType = intent.attendedType
+                        ) else Attended(attendedType = intent.attendedType, null),
+                        stupsOfCurrentLesson = student.stupsOfCurrentLesson.map {
+                            if (it.reason.subSequence(0,3) in "!ds") {
+                                when (intent.attendedType) {
+                                    "2" -> {
+                                        val value = when(it.reason.last().toString().toInt()) {
+                                            1 -> 0
+                                            2 -> 0
+                                            else -> 0
+                                        }
+                                        Stup(
+                                            value = value,
+                                            reason = it.reason,
+                                            id = it.id,
+                                            deployTime = it.deployTime,
+                                            deployDate = it.deployDate,
+                                            deployLogin = it.deployLogin
+                                        )
+                                    }
+
+                                    "1" -> {
+                                        val value = when(it.reason.last().toString().toInt()) {
+                                            1 -> 0
+                                            2 -> 0
+                                            else -> -10
+                                        }
+                                        Stup(
+                                            value = value,
+                                            reason = it.reason,
+                                            id = it.id,
+                                            deployTime = it.deployTime,
+                                            deployDate = it.deployDate,
+                                            deployLogin = it.deployLogin
+                                        )
+                                    }
+
+                                    else -> {
+                                        val value = when(it.reason.last().toString().toInt()) {
+                                            1 -> 1
+                                            2 -> 1
+                                            else -> 0
+                                        }
+                                        Stup(
+                                            value = value,
+                                            reason = it.reason,
+                                            id = it.id,
+                                            deployTime = it.deployTime,
+                                            deployDate = it.deployDate,
+                                            deployLogin = it.deployLogin
+                                        )
+                                    }
+                                }
+                            } else {
+                                it
+                            }
+                        }
+                    )
+                )
 
                 dispatch(LessonReportStore.Message.StudentsUpdated(newStudentList))
             }
@@ -334,7 +397,8 @@ class LessonReportExecutor(
                         stups = 0,
                         fileIds = null,
                         studentLogins = intent.studentLogins,
-                        isNew = true
+                        isNew = true,
+                        isNec = true
                     )
                 )
             )
@@ -344,18 +408,29 @@ class LessonReportExecutor(
                 val newHomeTasks = state().hometasks.toMutableList()
                 val item = state().hometasks.first { it.id == intent.id }
                 val index = state().hometasks.indexOf(item)
-                newHomeTasks[index] = item.copy(type = intent.type, stups = if (intent.type.contains("!st")) item.stups else 0)
+                newHomeTasks[index] = item.copy(
+                    type = intent.type,
+                    stups = if (intent.type.contains("!st")) item.stups else 0
+                )
                 dispatch(
                     LessonReportStore.Message.HomeTasksUpdated(
                         newHomeTasks
-//                        state().hometasks.map {
-//                            if (it.id == intent.id) it.copy(
-//                                type = intent.type,
-//                                stups = if (intent.type.contains("!st")) it.stups else 0
-//                            )
-//                            else it
-//                        }
-                    ))
+                    )
+                )
+            }
+            is Intent.ChangeHomeTaskIsNec -> scope.launch {
+                updateTasksToEditIds(id = intent.id, isNew = intent.isNew)
+                val newHomeTasks = state().hometasks.toMutableList()
+                val item = state().hometasks.first { it.id == intent.id }
+                val index = state().hometasks.indexOf(item)
+                newHomeTasks[index] = item.copy(
+                    isNec = intent.isNec
+                )
+                dispatch(
+                    LessonReportStore.Message.HomeTasksUpdated(
+                        newHomeTasks
+                    )
+                )
             }
 
             is Intent.ChangeHomeTaskAward -> scope.launch {
@@ -371,20 +446,22 @@ class LessonReportExecutor(
 //                            if (it.id == intent.id) it.copy(stups = intent.award)
 //                            else it
 //                        }
-                    ))
+                    )
+                )
             }
 
-            is Intent.ChangeHomeTaskText -> scope.launch {
+            is Intent.ChangeHomeTaskText ->  { //scope.launch
                 updateTasksToEditIds(id = intent.id, isNew = intent.isNew)
-                println(state().homeTasksToEditIds)
-                val newHomeTasks = state().hometasks.toMutableList()
-                val item = state().hometasks.first { it.id == intent.id }
-                val index = state().hometasks.indexOf(item)
-                newHomeTasks[index] = item.copy(text = intent.text)
+                val homeTasks = state().hometasks
+                val index = homeTasks.indexOfFirst { it.id == intent.id }
+                val newHomeTasks = homeTasks.toMutableList().apply {
+                    this[index] = this[index].copy(text = intent.text)
+                }
                 dispatch(
                     LessonReportStore.Message.HomeTasksUpdated(
                         newHomeTasks
-                    ))
+                    )
+                )
             }
 
             Intent.SaveHomeTasks -> saveHomeTasks()
@@ -411,6 +488,7 @@ class LessonReportExecutor(
                 newNewTabLogins.add(intent.login)
                 dispatch(LessonReportStore.Message.NewTabsLoginsUpdated(newNewTabLogins))
             }
+
             is Intent.DeleteLoginFromNewTab -> scope.launch {
                 val newNewTabLogins = state().newTabLogins.toMutableList()
                 newNewTabLogins.remove(intent.login)
@@ -418,14 +496,14 @@ class LessonReportExecutor(
             }
 
             Intent.OnTasksTabAcceptClick -> scope.launch {
-                if(state().tabLogins == null) {
+                if (state().tabLogins == null) {
                     val newTabs = state().homeTasksNewTabs.toMutableList()
                     newTabs.add(state().newTabLogins)
                     dispatch(LessonReportStore.Message.SaveTabLoginsUpdated(newTabs))
                 } else {
-                    if(state().tabLogins in state().homeTasksNewTabs) {
+                    if (state().tabLogins in state().homeTasksNewTabs) {
                         val a = state().homeTasksNewTabs.map {
-                            if(it == state().tabLogins) state().newTabLogins
+                            if (it == state().tabLogins) state().newTabLogins
                             else it
                         }
                         dispatch(LessonReportStore.Message.SaveTabLoginsUpdated(a))
@@ -443,11 +521,12 @@ class LessonReportExecutor(
     }
 
     private fun updateTasksToEditIds(id: Int, isNew: Boolean) {
-        if(!isNew) {
+        if (!isNew) {
             val ids = state().homeTasksToEditIds
             dispatch(LessonReportStore.Message.HomeTasksToEditIdsUpdated(ids + id))
         }
     }
+
     private fun saveHomeTasks() {
         scope.launch(CDispatcher) {
             nHomeTasksInterface.nStartLoading()
@@ -546,18 +625,15 @@ class LessonReportExecutor(
                                         deployDate = it.deployDate,
                                         deployLogin = it.deployLogin
                                     )
-                                }.sortedWith(compareBy({ getLocalDate(it.deployDate).toEpochDays()}, {it.deployTime.toMinutes()})),
-                            stupsOfCurrentLesson = studentsData.stups.filter { it.login == student.serverStudentLine.login }
-                                .map {
-                                    Stup(
-                                        value = it.content.toInt(),
-                                        reason = it.reason,
-                                        id = it.id,
-                                        deployTime = it.deployTime,
-                                        deployDate = it.deployDate,
-                                        deployLogin = it.deployLogin
-                                    )
-                                }
+                                }.sortedWith(
+                                    compareBy({ getLocalDate(it.deployDate).toEpochDays() },
+                                        { it.deployTime.toMinutes() })
+                                ),
+                            stupsOfCurrentLesson = getInitedStups(
+                                studentsData = studentsData,
+                                student = student,
+                                authRepository = authRepository
+                            )
                         )
                     )
 
@@ -590,6 +666,78 @@ class LessonReportExecutor(
                 }
             }
         }
+    }
+
+    private fun getInitedStups(studentsData: RFetchReportStudentsResponse, student: AddStudentLine, authRepository: AuthRepository): List<Stup> {
+
+        val init = studentsData.stups.filter { it.login == student.serverStudentLine.login }
+            .map {
+                Stup(
+                    value = it.content.toInt(),
+                    reason = it.reason,
+                    id = it.id,
+                    deployTime = it.deployTime,
+                    deployDate = it.deployDate,
+                    deployLogin = it.deployLogin
+                )
+            }
+        val toAdd = mutableListOf<Stup>()
+        if (init.none { it.reason == "!ds1" }) {
+            val value = when(student.serverStudentLine.attended?.attendedType) {
+                "2" -> 0
+                "1" -> 0
+                else -> 1
+            }
+            toAdd.add(
+                Stup(
+                    value = value,
+                    reason = "!ds1",
+                    id = state().ids,
+                    deployTime = getSixTime(),
+                    deployLogin = authRepository.fetchLogin(),
+                    deployDate = getDate()
+                )
+            )
+            dispatch(LessonReportStore.Message.InvisibleStupAdd)
+        }
+        if (init.none { it.reason == "!ds2" }) {
+            val value = when(student.serverStudentLine.attended?.attendedType) {
+                "2" -> 0
+                "1" -> 0
+                else -> 1
+            }
+            toAdd.add(
+                Stup(
+                    value = value,
+                    reason = "!ds2",
+                    id = state().ids,
+                    deployTime = getSixTime(),
+                    deployLogin = authRepository.fetchLogin(),
+                    deployDate = getDate()
+                )
+            )
+            dispatch(LessonReportStore.Message.InvisibleStupAdd)
+        }
+        if (init.none { it.reason == "!ds3" }) {
+            val value = when(student.serverStudentLine.attended?.attendedType) {
+                "2" -> 0
+                "1" -> -10
+                else -> 0
+            }
+            toAdd.add(
+                Stup(
+                    value = value,
+                    reason = "!ds3",
+                    id = state().ids,
+                    deployTime = getSixTime(),
+                    deployLogin = authRepository.fetchLogin(),
+                    deployDate = getDate()
+                )
+            )
+            dispatch(LessonReportStore.Message.InvisibleStupAdd)
+        }
+
+        return (init + toAdd)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -725,5 +873,7 @@ val customOrder = mapOf(
     "!ds2" to 18,
     "!ds3" to 19
 )
+
+
 
 

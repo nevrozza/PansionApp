@@ -31,6 +31,9 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
                 ids = ids + 1,
                 isUpdateNeeded = true
             )
+            is LessonReportStore.Message.InvisibleStupAdd -> copy(
+                ids = ids + 1
+            )
 
             is LessonReportStore.Message.SettingsTabChanged -> copy(settingsTab = msg.settingsTab)
             is LessonReportStore.Message.TopicChanged -> copy(
@@ -74,7 +77,7 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
                 likedList = msg.likedList,
                 dislikedList = msg.dislikedList,
                 isUpdateNeeded = false,
-                columnNames = if(columnNames.none { it.type == "!cl5" }) (columnNames + ReportColumn(title = "clРабота на уроке", type = "!cl5")).sortedBy { customOrder[it.type] } else columnNames
+                columnNames = getColumns(columnNames)
             )
 
             is LessonReportStore.Message.DetailedMarksFetched -> copy(detailedMarks = msg.marks)
@@ -89,9 +92,36 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
             is LessonReportStore.Message.IsHomeTasksErrorAnimation -> copy(isHomeTasksErrorAnimation = msg.isError)
             is LessonReportStore.Message.IsHomeTasksSavedAnimation -> copy(isHomeTasksSavedAnimation = msg.isSaved)
             is LessonReportStore.Message.HomeTasksToEditIdsUpdated -> copy(homeTasksToEditIds = msg.homeTasksToEditIds)
-            is LessonReportStore.Message.TabLoginsIdUpdated -> copy(tabLogins = msg.tabLogins, newTabLogins = msg.tabLogins ?: listOf())
+            is LessonReportStore.Message.TabLoginsIdUpdated -> copy(
+                tabLogins = msg.tabLogins,
+                newTabLogins = msg.tabLogins ?: listOf()
+            )
+
             is LessonReportStore.Message.NewTabsLoginsUpdated -> copy(newTabLogins = msg.logins)
             is LessonReportStore.Message.SaveTabLoginsUpdated -> copy(homeTasksNewTabs = msg.tabs)
         }
     }
+}
+
+private fun getColumns(
+    columnNames: List<ReportColumn>
+): List<ReportColumn> {
+    val newColumnNames = columnNames.toMutableList()
+    if (columnNames.none { it.type == "!cl5" }) newColumnNames += ReportColumn(
+        title = "clРабота на уроке",
+        type = "!cl5"
+    )
+    if (columnNames.none { it.type == "!ds1" }) newColumnNames += ReportColumn(
+        title = "dsГотовность",
+        type = "!ds1"
+    )
+    if (columnNames.none { it.type == "!ds2" }) newColumnNames += ReportColumn(
+        title = "dsПоведение",
+        type = "!ds2"
+    )
+    if (columnNames.none { it.type == "!ds3" }) newColumnNames += ReportColumn(
+        title = "dsНарушение",
+        type = "!ds3"
+    )
+    return newColumnNames.sortedBy { customOrder[it.type] }
 }
