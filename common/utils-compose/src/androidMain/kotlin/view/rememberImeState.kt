@@ -1,6 +1,6 @@
 package view
 
-import KeyboardHeight
+import keyboardHeight
 import android.view.ViewTreeObserver
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect

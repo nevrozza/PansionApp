@@ -30,7 +30,6 @@ import home.HomeComponent
 import home.HomeStore
 import studentReportDialog.StudentReportDialogStore
 import view.ViewManager
-import kotlin.math.log
 
 fun LazyListScope.homeChildrenNotificationsContent(
     model: HomeStore.State,
@@ -39,7 +38,7 @@ fun LazyListScope.homeChildrenNotificationsContent(
     component: HomeComponent
 ) {
     val itShouldBe = (model.isMentor || model.isParent)
-    if (!(model.notChildren.isEmpty() && nQuickTabModel.state == NetworkState.None ) && itShouldBe) {
+    if (!(model.childrenNotifications.flatMap { it.value }.isEmpty() && model.notChildren.isEmpty() && nQuickTabModel.state == NetworkState.None ) && itShouldBe) {
         item {
             Text(
                 "Уведомления",
@@ -100,37 +99,40 @@ fun LazyListScope.homeChildrenNotificationsContent(
             }
         }
         items(items = model.notChildren) { s ->
-            Spacer(Modifier.height(5.5.dp))
-            Text(
-                "${s.fio.surname} ${s.fio.name}",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold
-            )
-            model.childrenNotifications[s.login]!!.forEach {
-                NotificationItem(
-                    not = it,
-                    viewManager = viewManager,
-                    onClick = { reportId ->
-                        component.studentReportDialog.onEvent(
-                            StudentReportDialogStore.Intent.OpenDialog(
-                                login = s.login,
-                                reportId = reportId
+            val list = model.childrenNotifications[s.login] ?: listOf()
+            if(list.isNotEmpty()) {
+                Spacer(Modifier.height(5.5.dp))
+                Text(
+                    "${s.fio.surname} ${s.fio.name}",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                list.forEach {
+                    NotificationItem(
+                        not = it,
+                        viewManager = viewManager,
+                        onClick = { reportId ->
+                            component.studentReportDialog.onEvent(
+                                StudentReportDialogStore.Intent.OpenDialog(
+                                    login = s.login,
+                                    reportId = reportId
+                                )
                             )
-                        )
-                    },
-                    changeToUV = { reportId ->
-                        component.onEvent(
-                            HomeStore.Intent.ChangeToUv(
-                                reportId = reportId,
-                                login = s.login,
-                                isDeep = false
+                        },
+                        changeToUV = { reportId ->
+                            component.onEvent(
+                                HomeStore.Intent.ChangeToUv(
+                                    reportId = reportId,
+                                    login = s.login,
+                                    isDeep = false
+                                )
                             )
-                        )
+                        }
+                    ) { key ->
+                        component.onEvent(HomeStore.Intent.CheckNotification(s.login, key))
                     }
-                ) { key ->
-                    component.onEvent(HomeStore.Intent.CheckNotification(key))
                 }
             }
         }

@@ -95,6 +95,9 @@ fun MarkTable(
     dms: Map<String, List<MarkTableItem>>,
     nki: Map<String, List<StudentNka>>? = null
 ) {
+
+    val isDs1 = remember { mutableStateOf(false) }
+
     var dateMarks = dms.toMutableMap()
     nki?.forEach { n ->
         n.value.forEach { d ->
@@ -104,9 +107,10 @@ fun MarkTable(
         }
     }
     dateMarks = dateMarks.toList().sortedBy {
-        println("xx: ${it.first}")
         getLocalDate(it.first).toEpochDays()
     }.toMap().toMutableMap()
+
+    val filteredDateMarks = dateMarks.map { it.key to it.value.filter { isDs1.value || !(it.reason.subSequence(0, 3) == "!ds" && it.content == "1") }  }
 
     val vScrollState = rememberLazyListState()
     val hScrollState = rememberScrollState()
@@ -123,7 +127,7 @@ fun MarkTable(
     allWidth.value = dateMarks.map { dm ->
         var maxSize = 0
         fields.keys.forEach { login ->
-            val size = dm.value.filter { it.login == login }.size
+            val size = dm.value.filter { (isDs1.value || !(it.reason.subSequence(0, 3) == "!ds" && it.content == "1")) && it.login == login }.size
             maxSize = max(size, maxSize)
         }
         max(maxSize * markSize, minWidth)
@@ -144,7 +148,7 @@ fun MarkTable(
                     if (i != dateMarks.size - 1) {
                         var maxSize = 0
                         fields.keys.forEach { login ->
-                            val size = marks.filter { it.login == login }.size
+                            val size = marks.filter {  (isDs1.value || !(it.reason.subSequence(0, 3) == "!ds" && it.content == "1")) &&  it.login == login }.size
                             maxSize = max(size, maxSize)
                         }
                         val width: Dp =
@@ -169,12 +173,12 @@ fun MarkTable(
                 ) {
                     Spacer(Modifier.width(lP))
 
-                    dateMarks.forEach { (date, marks) ->
+                    filteredDateMarks.forEach { (date, marks) ->
 
 //                        val isChecked = remember { mutableStateOf(false) }
                         var maxSize = 0
                         fields.keys.forEach { login ->
-                            val size = marks.filter { it.login == login }.size
+                            val size = marks.filter {  (isDs1.value || !(it.reason.subSequence(0, 3) == "!ds" && it.content == "1")) &&  it.login == login }.size
                             maxSize = max(size, maxSize)
                         }
                         val width: Dp =
@@ -265,10 +269,10 @@ fun MarkTable(
                                 }
 
                                 Spacer(Modifier.width((lP - underNameWidth.value)))
-                                dateMarks.forEach { (date, marks) ->
+                                filteredDateMarks.forEach { (date, marks) ->
                                     var maxSize = 0
                                     fields.keys.forEach { login ->
-                                        val size = marks.filter { it.login == login }.size
+                                        val size = marks.filter {  (isDs1.value || !(it.reason.subSequence(0, 3) == "!ds" && it.content == "1")) &&  it.login == login }.size
                                         maxSize = max(size, maxSize)
                                     }
                                     val width: Dp =
@@ -321,6 +325,10 @@ fun MarkTable(
                         }
                     }
                 }
+            }
+
+            CustomTextButton("+1 дс - ${if(isDs1.value) "ДА" else "НЕТ"}") {
+                isDs1.value = !isDs1.value
             }
         }
 

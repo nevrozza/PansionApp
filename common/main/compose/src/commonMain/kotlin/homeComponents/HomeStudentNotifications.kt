@@ -45,7 +45,7 @@ fun LazyListScope.homeStudentNotifications(
                     )
                 }
             ) { key ->
-                component.onEvent(HomeStore.Intent.CheckNotification(key))
+                component.onEvent(HomeStore.Intent.CheckNotification(null, key))
             }
         }
     }

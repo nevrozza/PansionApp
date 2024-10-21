@@ -50,13 +50,11 @@ import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
@@ -65,18 +63,13 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -98,7 +91,6 @@ import profile.ProfileComponent
 import profile.ProfileStore
 import resources.Images
 import view.LocalViewManager
-import view.rememberImeState
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -110,23 +102,17 @@ fun ProfileContent(
     val model by component.model.subscribeAsState()
     val nAboutMeModel by component.nAboutMeInterface.networkModel.subscribeAsState()
     val nAvatarModel by component.nAvatarInterface.networkModel.subscribeAsState()
-    val density = LocalDensity.current
-    val coroutineScope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
 
     val isFullHeader = !lazyListState.canScrollBackward || model.tabIndex == 2
-    val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
+    val headerAvatar = if (model.tabIndex == 1) model.newAvatarId else model.avatarId
 
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
         Modifier.fillMaxSize(),
-//                .nestedScroll(scrollBehavior.nestedScrollConnection)
         topBar = {
             Column(
                 Modifier
@@ -351,23 +337,23 @@ fun ProfileContent(
                                                                 fontWeight = FontWeight.Bold
                                                             )
                                                             Spacer(Modifier.height(2.dp))
-                                                            Text(
-                                                                "${model.form!!.form.classNum}${if (model.form!!.form.title.length > 1) " " else "-"}${model.form!!.form.title} ${if (model.form!!.form.shortTitle.length > 1) "(${model.form!!.form.shortTitle})" else ""}",
-                                                                maxLines = 1,
-                                                                modifier = Modifier.horizontalScroll(
+                                                            Column(
+                                                                Modifier.horizontalScroll(
                                                                     rememberScrollState()
                                                                 )
-                                                            )
-                                                            Spacer(Modifier.height(2.dp))
-                                                            val mentorName =
-                                                                model.teachers[model.form!!.form.mentorLogin]
-                                                            if (mentorName != null) {
+                                                            ) {
                                                                 Text(
-                                                                    mentorName,
-                                                                    modifier = Modifier.horizontalScroll(
-                                                                        rememberScrollState()
-                                                                    )
+                                                                    "${model.form!!.form.classNum}${if (model.form!!.form.title.length > 1) " " else "-"}${model.form!!.form.title} ${if (model.form!!.form.shortTitle.length > 1) "(${model.form!!.form.shortTitle})" else ""}",
+                                                                    maxLines = 1
                                                                 )
+                                                                Spacer(Modifier.height(2.dp))
+                                                                val mentorName =
+                                                                    model.teachers[model.form!!.form.mentorLogin]
+                                                                if (mentorName != null) {
+                                                                    Text(
+                                                                        mentorName
+                                                                    )
+                                                                }
                                                             }
                                                         }
                                                         Icon(
@@ -513,6 +499,7 @@ fun ProfileContent(
             items(
                 subjects.sortedByDescending { it.first in model.giaSubjects },
                 key = { it.first }) { s ->
+                Spacer(Modifier.height(15.dp))
                 SubjectItem(
                     title = s.second,
                     isChecked = s.first in model.giaSubjects,
@@ -550,7 +537,8 @@ private fun SubjectItem(
     ) {
         Text(title)
         CustomCheckbox(
-            checked = isChecked
+            checked = isChecked,
+            modifier = Modifier.size(25.dp)
         )
     }
 }

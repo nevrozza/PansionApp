@@ -28,7 +28,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Switch
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Add
@@ -51,6 +51,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.VerticalDivider
@@ -92,10 +93,10 @@ import components.CustomCheckbox
 import components.CustomTextButton
 import components.CustomTextField
 import components.LoadingAnimation
-import components.networkInterface.NetworkState
 import components.ScrollBaredBox
 import components.cBottomSheet.CBottomSheetStore
 import components.cClickable
+import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
@@ -112,9 +113,7 @@ import server.Roles
 import server.twoNums
 import users.UsersComponent
 import users.UsersStore
-import view.LocalViewManager
 import view.LockScreenOrientation
-import view.rememberImeState
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
@@ -1666,18 +1665,36 @@ fun TableScreen(
                                         else Modifier.width(widths[key]!!),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = value,
-                                            modifier = Modifier
-                                                .widthIn(max = 200.dp)
-                                                .onGloballyPositioned {
-                                                    val width =
-                                                        with(density) { it.size.height.toDp() }
-                                                    if (width > widths[key]!!) widths[key] =
-                                                        width
-                                                    else isChecked.value = true
-                                                },
-                                        )
+                                        if (key == "Логин") {
+                                            SelectionContainer {
+                                                Text(
+                                                    text = value,
+                                                    modifier = Modifier
+                                                        .widthIn(max = 200.dp)
+                                                        .onGloballyPositioned {
+                                                            val width =
+                                                                with(density) { it.size.height.toDp() }
+                                                            if (width > widths[key]!!) widths[key] =
+                                                                width
+                                                            else isChecked.value = true
+                                                        },
+                                                )
+                                            }
+                                        } else {
+                                            Text(
+                                                text = value,
+                                                modifier = Modifier
+                                                    .widthIn(max = 200.dp)
+                                                    .onGloballyPositioned {
+                                                        val width =
+                                                            with(density) { it.size.height.toDp() }
+                                                        if (width > widths[key]!!) widths[key] =
+                                                            width
+                                                        else isChecked.value = true
+                                                    },
+                                            )
+                                        }
+
                                     }
                                 }
                             }

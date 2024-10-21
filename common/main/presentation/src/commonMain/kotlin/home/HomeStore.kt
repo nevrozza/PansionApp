@@ -1,9 +1,7 @@
 package home
 
-import FIO
 import Person
 import PersonPlus
-import auth.RCheckConnectionResponse
 import com.arkivanov.mvikotlin.core.store.Store
 import home.HomeStore.Intent
 import home.HomeStore.Label
@@ -14,11 +12,8 @@ import main.Period
 import report.Grade
 import report.ReportHeader
 import schedule.PersonScheduleItem
-import schedule.ScheduleItem
 import server.getCurrentDate
-import server.getDate
 import server.getDates
-import kotlin.time.times
 
 interface HomeStore : Store<Intent, State, Label> {
     data class State(
@@ -83,7 +78,7 @@ interface HomeStore : Store<Intent, State, Label> {
 
 
         data object ChangePeriod: Intent
-        data class CheckNotification(val key: String): Intent
+        data class CheckNotification(val login: String?, val key: String): Intent
 //        data class ChangeDate()
         //val avatarId: Int,
         //                        val login: String,

@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
@@ -300,7 +301,9 @@ private fun FormsItem(
         ) {
             Text(
                 "${form.num} ${form.title}",
-                modifier = Modifier.padding(start = 7.dp),
+                modifier = Modifier.padding(start = 7.dp).cClickable {
+                    isExpanded.value = !isExpanded.value
+                },
                 fontSize = 19.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -476,68 +479,90 @@ private fun FormsItem(
                         Modifier.fillMaxWidth().padding(4.dp).padding(start = 4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Box(Modifier.fillMaxWidth()) {
-                            Column(Modifier.align(Alignment.CenterStart)) {
-                                Text("${s.fio.surname} ${s.fio.name}")
-                                Text("${s.fio.praname}")
-                            }
-                            Row(
-                                Modifier.align(Alignment.CenterEnd),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-
-                                IconButton(
-                                    onClick = {
-                                        if (!isChosenPA) {
-                                            component.onEvent(
-                                                MentoringStore.Intent.SelectPreAttendanceLogin(
-                                                    login = s.login,
-                                                    date = model.currentDate.second
-                                                )
-                                            )
-                                        } else {
-                                            component.onEvent(
-                                                MentoringStore.Intent.SelectPreAttendanceLogin(
-                                                    login = null,
-                                                    date = model.currentDate.second
-                                                )
-                                            )
-                                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            GetAvatar(
+                                avatarId = s.avatarId,
+                                name = s.fio.name,
+                                size = 40.dp,
+                                textSize = 22.sp
+                            )
+                            Spacer(Modifier.width(7.dp))
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                                val isLoginView = remember { mutableStateOf(false) }
+                                if (!isLoginView.value) {
+                                    Column(Modifier.cClickable { isLoginView.value = true }
+                                        .padding(start = 3.dp).align(Alignment.CenterStart)) {
+                                        Text("${s.fio.surname} ${s.fio.name}")
+                                        Text("${s.fio.praname}")
                                     }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Receipt, null,
-                                        tint = if (isChosenPA) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                                    )
-                                }
-                                Box(
-                                    Modifier.size(height = 15.dp, width = 5.dp)
-                                        .clip(RoundedCornerShape(15.dp))
-                                        .background(
-                                            MaterialTheme.colorScheme.primaryContainer.copy(
-                                                alpha = .5f
-                                            )
+                                } else {
+                                    SelectionContainer(modifier = Modifier.align(Alignment.CenterStart)) {
+                                        Text(
+                                            s.login,
+                                            modifier = Modifier.cClickable {
+                                                isLoginView.value = false
+                                            },
+                                            fontSize = MaterialTheme.typography.bodySmall.fontSize * 2
                                         )
-                                )
-                                Spacer(Modifier.width(5.dp))
-                                IconButton(
-                                    onClick = {
-                                        component.onOutput(
-                                            MentoringComponent.Output.CreateSecondView(
-                                                login = s.login,
-                                                fio = s.fio,
-                                                avatarId = s.avatarId,
-                                                config = Config.MainHome
-                                            )
-                                        )
-                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-                                    },
-                                    modifier = Modifier.size(30.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.Home, null
-                                    )
+                                    }
                                 }
+                                Row(
+                                    Modifier.align(Alignment.CenterEnd),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+
+                                    IconButton(
+                                        onClick = {
+                                            if (!isChosenPA) {
+                                                component.onEvent(
+                                                    MentoringStore.Intent.SelectPreAttendanceLogin(
+                                                        login = s.login,
+                                                        date = model.currentDate.second
+                                                    )
+                                                )
+                                            } else {
+                                                component.onEvent(
+                                                    MentoringStore.Intent.SelectPreAttendanceLogin(
+                                                        login = null,
+                                                        date = model.currentDate.second
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Receipt, null,
+                                            tint = if (isChosenPA) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                        )
+                                    }
+                                    Box(
+                                        Modifier.size(height = 15.dp, width = 5.dp)
+                                            .clip(RoundedCornerShape(15.dp))
+                                            .background(
+                                                MaterialTheme.colorScheme.primaryContainer.copy(
+                                                    alpha = .5f
+                                                )
+                                            )
+                                    )
+                                    Spacer(Modifier.width(5.dp))
+                                    IconButton(
+                                        onClick = {
+                                            component.onOutput(
+                                                MentoringComponent.Output.CreateSecondView(
+                                                    login = s.login,
+                                                    fio = s.fio,
+                                                    avatarId = s.avatarId,
+                                                    config = Config.MainHome
+                                                )
+                                            )
+                                            component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
+                                        },
+                                        modifier = Modifier.size(30.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.Home, null
+                                        )
+                                    }
 //
 //                                IconButton(
 //                                    onClick = {
@@ -626,9 +651,10 @@ private fun FormsItem(
 //                                        Icons.Rounded.EmojiEvents, null
 //                                    )
 //                                }
+                                }
                             }
-                        }
 
+                        }
 
                         AnimatedVisibility(
                             model.chosenAttendanceLogin == s.login,
@@ -760,14 +786,16 @@ private fun FormsItem(
                                                                 modifier = Modifier.fillMaxWidth(),
                                                                 isSingleLine = false
                                                             )
-                                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
-                                                                component.onEvent(
-                                                                    MentoringStore.Intent.ChangeCIsGood(
-                                                                        !(model.cIsGood
-                                                                            ?: false)
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                modifier = Modifier.cClickable {
+                                                                    component.onEvent(
+                                                                        MentoringStore.Intent.ChangeCIsGood(
+                                                                            !(model.cIsGood
+                                                                                ?: false)
+                                                                        )
                                                                     )
-                                                                )
-                                                            }) {
+                                                                }) {
                                                                 CustomCheckbox(
                                                                     checked = model.cIsGood
                                                                         ?: false

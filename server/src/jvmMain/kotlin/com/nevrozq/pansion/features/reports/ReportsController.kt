@@ -38,7 +38,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import main.ClientMainNotification
 import main.Period
 import main.RChangeToUv
 import main.RFetchMainAVGReceive
@@ -903,7 +902,7 @@ class ReportsController() {
                         students = students.map {
                             val user = Users.fetchUser(it.login)!!
                             val shortFio =
-                                "${user.surname} ${user.name[0]}.${if (user.praname != null) " " + user.praname[0] + "." else ""}"
+                                "${user.surname} ${user.name}${if (user.praname != null) " " + user.praname[0] + "." else ""}"
                             val forAvg =
                                 Marks.fetchModuleSubjectAVG(
                                     it.login,

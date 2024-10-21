@@ -4,24 +4,19 @@ import AuthRepository
 import CDispatcher
 import MainRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import components.listDialog.ListDialogStore
-import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
-import di.Inject
 import home.HomeStore.Intent
 import home.HomeStore.Label
-import home.HomeStore.State
 import home.HomeStore.Message
+import home.HomeStore.State
 import journal.JournalComponent
 import journal.JournalStore
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import main.Period
 import main.RChangeToUv
 import main.RDeleteMainNotificationsReceive
 import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainNotificationsReceive
-import schedule.PersonScheduleItem
 import server.Roles
 
 class HomeExecutor(
@@ -66,13 +61,29 @@ class HomeExecutor(
                             key = intent.key
                         )
                     )
-                    val newNotifications = state().notifications.toMutableList()
-                    newNotifications.removeAll { it.key == intent.key }
-                    scope.launch {
-                        dispatch(
-                            Message.NotificationsUpdated(newNotifications)
-                        )
+                    if(intent.login != null) {
+
+                        val newChildNotifications = state().childrenNotifications.toMutableMap()
+                        val newNotifications = newChildNotifications[intent.login]?.toMutableList() ?: mutableListOf()
+                        newNotifications.removeAll { it.key == intent.key }
+                        newChildNotifications[intent.login] = newNotifications
+                        scope.launch {
+                            dispatch(Message.ChildrenNotificationsInited(
+                                notChildren = state().notChildren,
+                                childrenNotifications = newChildNotifications
+                            ))
+                        }
+                    } else {
+                        val newNotifications = state().notifications.toMutableList()
+                        newNotifications.removeAll { it.key == intent.key }
+                        scope.launch {
+                            dispatch(
+                                Message.NotificationsUpdated(newNotifications)
+                            )
+                        }
                     }
+
+
                 } catch (_: Throwable) {
 
                 }
