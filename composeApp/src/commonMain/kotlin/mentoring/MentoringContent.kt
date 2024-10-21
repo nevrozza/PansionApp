@@ -1,33 +1,23 @@
 package mentoring
 
-import FIO
 import MentorPerson
-import activation.ActivationStore
-import allGroupMarks.AllGroupMarksStore
 import allGroupMarks.DatesFilter
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,34 +25,23 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
-import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material.icons.rounded.HistoryEdu
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.ManageSearch
 import androidx.compose.material.icons.rounded.PermContactCalendar
 import androidx.compose.material.icons.rounded.Receipt
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.ReportProblem
 import androidx.compose.material.icons.rounded.Summarize
-import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -70,9 +49,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,7 +57,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -89,41 +64,29 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cabinets.CabinetsStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.AnimatedElevatedButton
 import components.AppBar
 import components.CFilterChip
 import components.CLazyColumn
+import components.CustomCheckbox
 import components.CustomTextButton
 import components.CustomTextField
 import components.DatesLine
 import components.GetAvatar
-import components.GroupPicker
 import components.LoadingAnimation
 import components.MarkTable
-import components.MarkTableItem
-import components.listDialog.ListDialogStore
-import components.nSCutedGroup
-import components.nSSubject
+import components.cClickable
 import components.networkInterface.NetworkState
-import decomposeComponents.listDialogComponent.ListDialogDesktopContent
-import formRating.FormRatingStore
-import groups.DefaultGroupsErrorScreen
-import groups.students.StudentsStore
 import io.github.alexzhirkevich.qrose.options.QrBallShape
 import io.github.alexzhirkevich.qrose.options.QrFrameShape
 import io.github.alexzhirkevich.qrose.options.QrPixelShape
 import io.github.alexzhirkevich.qrose.options.QrShapes
 import io.github.alexzhirkevich.qrose.options.roundCorners
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
-import lessonReport.LessonReportStore
 import registration.RegistrationRequest
-import report.UserMarkPlus
-import root.RootComponent
 import root.RootComponent.Config
-import server.roundTo
 import view.LocalViewManager
 import view.WindowScreen
 import view.rememberImeState
@@ -797,7 +760,7 @@ private fun FormsItem(
                                                                 modifier = Modifier.fillMaxWidth(),
                                                                 isSingleLine = false
                                                             )
-                                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
                                                                 component.onEvent(
                                                                     MentoringStore.Intent.ChangeCIsGood(
                                                                         !(model.cIsGood
@@ -805,12 +768,9 @@ private fun FormsItem(
                                                                     )
                                                                 )
                                                             }) {
-                                                                Checkbox(
+                                                                CustomCheckbox(
                                                                     checked = model.cIsGood
-                                                                        ?: false,
-                                                                    onCheckedChange = {
-
-                                                                    }
+                                                                        ?: false
                                                                 )
                                                                 Spacer(Modifier.width(5.dp))
                                                                 Text("Уважительная")

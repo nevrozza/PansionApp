@@ -69,7 +69,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -81,6 +80,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
@@ -136,6 +136,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.value.getValue
 import components.AnimatedElevatedButton
 import components.AppBar
+import components.CustomCheckbox
 import components.CustomTextButton
 import components.CustomTextField
 import components.MarkContent
@@ -146,6 +147,7 @@ import components.ScrollBaredBox
 import components.TeacherTime
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
+import components.cClickable
 import components.listDialog.ListItem
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -232,12 +234,19 @@ fun LessonReportContent(
                             component.onEvent(LessonReportStore.Intent.ChangeStatus(it))
                         }
                     )
-                    AnimatedVisibility(model.isUpdateNeeded) {
+                    val isUpdateNeeded =
+                        model.isUpdateNeeded || model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }
+                    AnimatedVisibility(isUpdateNeeded) {
                         Crossfade(nModel.state) {
                             SmallFloatingActionButton(
                                 onClick = {
-                                    if (it != NetworkState.Loading && model.isUpdateNeeded) {
-                                        component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
+                                    if (it != NetworkState.Loading && isUpdateNeeded) {
+                                        if (model.isUpdateNeeded) {
+                                            component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
+                                        }
+                                        if (model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }) {
+                                            component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
+                                        }
                                     }
                                 }
                             ) {
@@ -295,7 +304,7 @@ fun LessonReportContent(
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     LessonTable(
                                         component,
-                                        currentParentWidth = (this@BoxWithConstraints as BoxWithConstraintsScope).maxWidth
+                                        currentParentWidth = (this@BoxWithConstraints).maxWidth
                                     )
 
                                 }
@@ -449,15 +458,12 @@ fun LessonReportContent(
                                                     }
                                                 }
                                                 if (model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }) {
-                                                    val isReady =
-                                                        false !in model.hometasks.map { it.type.isNotBlank() }
                                                     IconButton(
                                                         onClick = {
-                                                            if (isReady) {
-                                                                component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
-                                                            }
+                                                            component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
+
                                                         },
-                                                        enabled = isReady
+                                                        enabled = true
                                                     ) {
                                                         Icon(
                                                             Icons.Rounded.Save,
@@ -609,7 +615,21 @@ fun LessonReportContent(
 
 
         //SAVE_ANIMATION
-        SaveAnimation(model.isSavedAnimation) {
+        SaveAnimation(model.isHomeTasksSavedAnimation, customText = "Домашние задания сохранены", modifier = Modifier.align(
+            Alignment.BottomCenter).padding(bottom = 30.dp)) {
+            component.onEvent(LessonReportStore.Intent.IsHomeTasksSavedAnimation(false))
+        }
+        ErrorAnimation(
+            textError = "Не удалось загрузить задания\nна сервер",
+            isShowing = model.isHomeTasksErrorAnimation, modifier = Modifier.align(
+                Alignment.BottomCenter).padding(bottom = 30.dp)
+        ) {
+            component.onEvent(LessonReportStore.Intent.IsHomeTasksErrorAnimation(false))
+        }
+
+
+        //SAVE_ANIMATION
+        SaveAnimation(model.isSavedAnimation, "Отчёт успешно сохранён!") {
             component.onEvent(LessonReportStore.Intent.IsSavedAnimation(false))
         }
         ErrorAnimation(
@@ -618,6 +638,8 @@ fun LessonReportContent(
         ) {
             component.onEvent(LessonReportStore.Intent.IsErrorAnimation(false))
         }
+
+
 
 
 
@@ -669,7 +691,11 @@ private fun HomeWorkTabContent(
                 ) {
                     tabs.forEachIndexed { i, tab ->
                         val tabText = if (tab != null) {
-                            (model.students.filter { it.login in tab }).map { it.shortFio.removeSuffix(".") }.toString().removePrefix("[").removeSuffix("]")
+                            (model.students.filter { it.login in tab }).map {
+                                it.shortFio.removeSuffix(
+                                    "."
+                                )
+                            }.toString().removePrefix("[").removeSuffix("]")
                         } else "Все"
                         val tState =
                             rememberTooltipState(
@@ -678,7 +704,7 @@ private fun HomeWorkTabContent(
                         TooltipBox(
                             state = tState,
                             tooltip = {
-                                if(tab != null) {
+                                if (tab != null) {
                                     PlainTooltip() {
                                         Text(
                                             tabText.replace(",", "\n"),
@@ -783,28 +809,30 @@ private fun HomeWorkTabContent(
 
         CAlertDialogContent(
             component.homeTasksTabDialogComponent,
-            acceptText = if(model.tabLogins == null) "Создать" else "Редактировать",
+            acceptText = if (model.tabLogins == null) "Создать" else "Редактировать",
             isCustomButtons = false,
-            title = if(model.tabLogins == null) "Новая группа" else "Обновлённая группу",
-            isSaveButtonEnabled = model.newTabLogins.sorted() !in (model.homeTasksNewTabs.map { it.sorted() } + model.hometasks.map { it.studentLogins }.map { it?.sorted() }) && model.newTabLogins.isNotEmpty(),
+            title = if (model.tabLogins == null) "Новая группа" else "Обновлённая группу",
+            isSaveButtonEnabled = model.newTabLogins.sorted() !in (model.homeTasksNewTabs.map { it.sorted() } + model.hometasks.map { it.studentLogins }
+                .map { it?.sorted() }) && model.newTabLogins.isNotEmpty(),
         ) {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 model.students.forEach { s ->
                     val isChecked = s.login in model.newTabLogins
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
-                        if (!isChecked && s.login !in model.newTabLogins) {
-                            component.onEvent(LessonReportStore.Intent.AddLoginToNewTab(s.login))
-                        } else if (isChecked && s.login in model.newTabLogins) {
-                            component.onEvent(
-                                LessonReportStore.Intent.DeleteLoginFromNewTab(
-                                    s.login
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.cClickable {
+                            if (!isChecked && s.login !in model.newTabLogins) {
+                                component.onEvent(LessonReportStore.Intent.AddLoginToNewTab(s.login))
+                            } else if (isChecked && s.login in model.newTabLogins) {
+                                component.onEvent(
+                                    LessonReportStore.Intent.DeleteLoginFromNewTab(
+                                        s.login
+                                    )
                                 )
-                            )
-                        }
-                    }) {
-                        Checkbox(
-                            checked = isChecked,
-                            onCheckedChange = {}
+                            }
+                        }) {
+                        CustomCheckbox(
+                            checked = isChecked
                         )
                         Spacer(Modifier.width(5.dp))
                         Text(s.shortFio)
@@ -846,7 +874,7 @@ private fun ReportHomeTaskItem(
                     ) {
                         OutlinedTextField(
                             modifier = Modifier.fillMaxWidth(.6f)
-                                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                             readOnly = true,
                             value = typesList[task.type] ?: "Выберите",
                             placeholder = { Text("Выберите") },
@@ -939,7 +967,7 @@ private fun ReportHomeTaskItem(
                     FilesButton()
                 }
                 Spacer(Modifier.height(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
                     component.onEvent(
                         LessonReportStore.Intent.ChangeHomeTaskIsNec(
                             id = task.id,
@@ -947,20 +975,11 @@ private fun ReportHomeTaskItem(
                             isNew = task.isNew
                         )
                     )
-                }, horizontalArrangement = Arrangement.End) {
+                }.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Text("Обязательное задание")
                     Spacer(Modifier.width(6.dp))
-                    Checkbox(
-                        checked = task.isNec,
-                        onCheckedChange = {
-                            component.onEvent(
-                                LessonReportStore.Intent.ChangeHomeTaskIsNec(
-                                    id = task.id,
-                                    isNec = !task.isNec,
-                                    isNew = task.isNew
-                                )
-                            )
-                        }
+                    CustomCheckbox(
+                        checked = task.isNec
                     )
                 }
             }
@@ -1002,7 +1021,7 @@ private fun FilesButton(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(15.dp)
     ) {
-        Text("Файлы")
+        Text("///")
     }
 }
 
@@ -1108,15 +1127,13 @@ private fun SetupTabContent(
         Spacer(Modifier.height(10.dp))
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             val isChecked = model.isMentorWas
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
                 component.onEvent(LessonReportStore.Intent.ChangeIsMentorWas)
             }) {
                 Text("Наставник")
-                Checkbox(
+                CustomCheckbox(
                     checked = isChecked,
-                    onCheckedChange = {
-                        component.onEvent(LessonReportStore.Intent.ChangeIsMentorWas)
-                    }
+                    modifier = Modifier.padding(start = 10.dp).size(25.dp)
                 )
             }
             if (model.editTime.isNotEmpty()) {
@@ -1401,49 +1418,8 @@ private fun ColumnsSettingsItem(
                 val isInProcess = remember { mutableStateOf(false) }
                 val isChecked = (i.title in currentList.map { it.title })
                 Row(
-                    Modifier.animateItemPlacement().width(170.dp).clickable {
-                        if (!isChecked) {
-                            isInProcess.value = true
-                            coroutineScope.launch {
-                                component.onEvent(
-                                    LessonReportStore.Intent.CreateColumn(
-                                        i.title,
-                                        i.reasonId
-                                    )
-                                )
-                                while (true) {
-                                    if (i.title in model.columnNames.map { it.title }) {
-                                        isInProcess.value = false
-                                        break
-                                    }
-                                    delay(200)
-                                }
-                            }
-                        } else {
-                            if (currentList.find { it.title == i.title } != null) {
-
-                                component.onEvent(
-                                    LessonReportStore.Intent.DeleteColumnInit(
-                                        reportColumn = currentList.first { it.title == i.title }
-                                    )
-                                )
-                                component.confirmDeletingColumnDialogComponent.onEvent(
-                                    CAlertDialogStore.Intent.ShowDialog
-                                )
-                            }
-                        }
-                    },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        ("!${i.title}").removePrefix(currentId)
-                    )
-                    Checkbox(
-                        modifier = Modifier.size(30.dp),
-                        checked = isChecked,
-                        enabled = !isInProcess.value,
-                        onCheckedChange = {
+                    Modifier.cClickable {
+                        if (!isInProcess.value) {
                             if (!isChecked) {
                                 isInProcess.value = true
                                 coroutineScope.launch {
@@ -1475,8 +1451,19 @@ private fun ColumnsSettingsItem(
                                 }
                             }
                         }
+                    }.width(170.dp).animateItem(fadeInSpec = null, fadeOutSpec = null),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        ("!${i.title}").removePrefix(currentId)
+                    )
+                    CustomCheckbox(
+                        checked = isChecked,
+                        modifier = Modifier.size(25.dp)
                     )
                 }
+                Spacer(Modifier.height(6.dp))
             }
         }
     }
@@ -1641,10 +1628,12 @@ fun LessonTable(
                                 )
 
                         Column {
-                            Row(modifier = Modifier
-                                .padding(start = 10.dp)
-                                .offset(with(density) { hScrollState.value.toDp() }),
-                                verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .offset(with(density) { hScrollState.value.toDp() }),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Text(
                                     text = student.shortFio,
                                     fontSize = 20.sp,
@@ -1706,13 +1695,17 @@ fun LessonTable(
                                                 when (column.type) {
                                                     ColumnTypes.prisut -> {
                                                         val isDot = student.attended?.reason != null
-                                                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = if (isDot) 6.dp else 0.dp)) {
-                                                            if(isDot) {
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            modifier = Modifier.padding(end = if (isDot) 6.dp else 0.dp)
+                                                        ) {
+                                                            if (isDot) {
                                                                 Box(
                                                                     Modifier
                                                                         .size(5.dp).clip(
                                                                             CircleShape
-                                                                        ).background(MaterialTheme.colorScheme.primary)
+                                                                        )
+                                                                        .background(MaterialTheme.colorScheme.primary)
                                                                 )
                                                             }
                                                             Spacer(Modifier.width(3.dp))
@@ -1723,10 +1716,12 @@ fun LessonTable(
                                                                 reason = student.attended?.reason,
                                                                 enabled = model.isEditable
                                                             ) {
-                                                                component.onEvent(LessonReportStore.Intent.ChangeAttendance(
-                                                                    studentLogin = student.login,
-                                                                    attendedType = it
-                                                                ))
+                                                                component.onEvent(
+                                                                    LessonReportStore.Intent.ChangeAttendance(
+                                                                        studentLogin = student.login,
+                                                                        attendedType = it
+                                                                    )
+                                                                )
                                                             }
                                                         }
                                                     }
@@ -2021,11 +2016,11 @@ fun LessonTable(
                             }
                             Spacer(Modifier.height(5.dp))
                             if (index != model.students.lastIndex) {
-                                Divider(
+                                HorizontalDivider(
                                     Modifier.padding(start = 1.dp)
-                                        .width(allWidth.value - 1.dp)
-                                        .height(1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
+                                        .width(allWidth.value - 1.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+                                    thickness = 1.dp
                                 )
                             }
                         }
@@ -2041,7 +2036,10 @@ fun LessonTable(
     val detailedMarksName =
         model.students.firstOrNull { it.login == model.detailedMarksLogin }?.shortFio ?: "null"
 
-    val avg = (model.detailedMarks.sumOf { it.content.toInt() } / max(model.detailedMarks.size, 1).toFloat()).roundTo(2).toString()
+    val avg = (model.detailedMarks.sumOf { it.content.toInt() } / max(
+        model.detailedMarks.size,
+        1
+    ).toFloat()).roundTo(2).toString()
 
     CAlertDialogContent(
         component = component.marksDialogComponent,
@@ -2106,7 +2104,7 @@ fun PrisutCheckBox(
     TooltipBox(
         state = tState,
         tooltip = {
-            if(reason != null) {
+            if (reason != null) {
                 PlainTooltip() {
                     Text(
                         reason.toString()
@@ -2118,53 +2116,53 @@ fun PrisutCheckBox(
         enableUserInput = true
     ) {
 
-            Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                OutlinedCard(
-                    modifier = Modifier
-                        .fillMaxSize(),//.alpha(if (checked) 1f else .5f),
-                    shape = AbsoluteRoundedCornerShape(40),
-                    border = BorderStroke(
-                        color = if (attendedType == "0") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, //if (checked) MaterialTheme.colorScheme.surface else
-                        width = 1.dp
-                    ),
-                    onClick = {
-                        //0-bil. 1-n. 2-Uv
-                        if (enabled) {
-                            val newValue = when (attendedType) {
-                                "0" -> "1"
-                                "1" -> "2"
-                                else -> "0"
-                            }
-                            onCheckedChange(newValue)
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            OutlinedCard(
+                modifier = Modifier
+                    .fillMaxSize(),//.alpha(if (checked) 1f else .5f),
+                shape = AbsoluteRoundedCornerShape(40),
+                border = BorderStroke(
+                    color = if (attendedType == "0") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, //if (checked) MaterialTheme.colorScheme.surface else
+                    width = 1.dp
+                ),
+                onClick = {
+                    //0-bil. 1-n. 2-Uv
+                    if (enabled) {
+                        val newValue = when (attendedType) {
+                            "0" -> "1"
+                            "1" -> "2"
+                            else -> "0"
                         }
-                    }) {
-                    AnimatedVisibility(attendedType == "0") {
-                        Icon(
-                            imageVector = Icons.Rounded.Done,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.fillMaxSize()
-                                .background(MaterialTheme.colorScheme.primary)
-                        )
+                        onCheckedChange(newValue)
                     }
-                    AnimatedVisibility(attendedType == "1") {
-                        Text(
-                            text = "Н",
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.fillMaxSize(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    AnimatedVisibility(attendedType == "2") {
-                        Text(
-                            text = "УВ",
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.fillMaxSize(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                }) {
+                AnimatedVisibility(attendedType == "0") {
+                    Icon(
+                        imageVector = Icons.Rounded.Done,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.fillMaxSize()
+                            .background(MaterialTheme.colorScheme.primary)
+                    )
+                }
+                AnimatedVisibility(attendedType == "1") {
+                    Text(
+                        text = "Н",
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.fillMaxSize(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                AnimatedVisibility(attendedType == "2") {
+                    Text(
+                        text = "УВ",
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.fillMaxSize(),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
+        }
 
     }
 }
@@ -2289,7 +2287,7 @@ private fun backAB(
 ) {
     IconButton(
         onClick = {
-            if(component.state.value.isUpdateNeeded) {
+            if (component.state.value.isUpdateNeeded || component.state.value.homeTasksToEditIds.isNotEmpty() || true in component.state.value.hometasks.map { it.isNew }) {
                 component.saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
             } else {
                 component.onOutput(LessonReportComponent.Output.Back)

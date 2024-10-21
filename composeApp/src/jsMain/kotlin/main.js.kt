@@ -29,7 +29,6 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
-import com.benasher44.uuid.UUID
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
 import di.Inject

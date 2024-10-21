@@ -42,7 +42,7 @@ class CAlertDialogComponent(
                 onDeclineClick = if (onDeclineClick != null) {
                     {
                         this.onEvent(CAlertDialogStore.Intent.HideDialog)
-                        onDeclineClick!!()
+                        onDeclineClick.invoke()
                     }
 
                 } else {

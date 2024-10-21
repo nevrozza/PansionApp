@@ -1,6 +1,5 @@
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,12 +17,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.HourglassBottom
-import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.ThumbDown
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,27 +40,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedElevatedButton
-import components.BorderStup
 import components.CustomTextButton
 import components.MarkContent
-import components.cMark
-import components.getMarkColor
-import components.markColorsColored
-import components.markColorsMono
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import kotlinx.coroutines.launch
@@ -107,15 +92,13 @@ fun StudentReportDialogContent(
                                     "${model.info!!.date}-${model.info!!.time}",
                                     modifier = Modifier.alpha(.5f)
                                 )
-                                if (model.info!!.theme.isNotBlank()) {
-                                    Text(
-                                        model.info!!.theme,
-                                        fontWeight = FontWeight.Black,
-                                        fontSize = 20.sp,
-                                        //lineHeight = 27.sp,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+                                Text(
+                                    if (model.info!!.theme.isNotBlank()) model.info!!.theme else "Тема не выставлена",
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 20.sp,
+                                    //lineHeight = 27.sp,
+                                    textAlign = TextAlign.Center
+                                )
                                 Text(
                                     "${model.studentLine!!.subjectName} ${model.studentLine!!.groupName}",
                                     fontWeight = FontWeight.SemiBold,
@@ -267,7 +250,7 @@ fun StudentReportDialogContent(
                         modifier = Modifier.align(Alignment.TopEnd)
                     ) {
                         Icon(
-                            Icons.Rounded.Logout, null
+                            Icons.AutoMirrored.Rounded.Logout, null
                         )
                     }
                 }

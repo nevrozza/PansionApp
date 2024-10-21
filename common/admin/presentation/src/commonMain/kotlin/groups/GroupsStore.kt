@@ -1,7 +1,6 @@
 package groups
 
-import Person
-import admin.groups.Group
+import TeacherPerson
 import admin.groups.Subject
 import admin.groups.forms.Form
 import com.arkivanov.mvikotlin.core.store.Store
@@ -19,7 +18,8 @@ interface GroupsStore : Store<Intent, State, Label> {
         val view: Views = Views.Subjects,
         val subjects: List<Subject> = listOf(),
         val forms: List<Form> = listOf(),
-        val teachers: List<Person> = listOf(),
+        val teachers: List<TeacherPerson> = listOf(),
+
 //        val isInited: Boolean = false,
 //        val initError: String = ""
     )
@@ -38,7 +38,7 @@ interface GroupsStore : Store<Intent, State, Label> {
         data class FormsListChanged(val forms: List<Form>) : Message
         data class ListInited(
             val subjects: List<Subject>,
-            val teachers: List<Person>,
+            val teachers: List<TeacherPerson>,
             val forms: List<Form>
         ) : Message
 

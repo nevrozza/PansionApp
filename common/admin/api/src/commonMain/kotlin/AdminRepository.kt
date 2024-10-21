@@ -17,6 +17,7 @@ import admin.groups.forms.RFetchFormGroupsResponse
 import admin.groups.forms.outside.REditFormReceive
 import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormResponse
+import admin.groups.subjects.RAddStudentToGroup
 import admin.groups.subjects.REditGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.parents.RFetchParentsListResponse
@@ -24,10 +25,13 @@ import admin.parents.RUpdateParentsListReceive
 import admin.schedule.RFetchInitScheduleResponse
 import admin.users.RCreateUserResponse
 import admin.users.RFetchAllUsersResponse
+import admin.users.ToBeCreatedStudent
 import admin.users.UserInit
 import schedule.RScheduleList
 
 interface AdminRepository {
+
+    suspend fun addStudentToGroup(r: RAddStudentToGroup)
 
     suspend fun fetchParents(): RFetchParentsListResponse
     suspend fun updateParents(r: RUpdateParentsListReceive): RFetchParentsListResponse
@@ -52,8 +56,13 @@ interface AdminRepository {
     suspend fun registerUser(
         user: UserInit,
         parents: List<String>?,
-        formId: Int
+        formId: Int,
+        subjectId: Int?
     ): RCreateUserResponse
+
+    suspend fun registerExcelStudents(
+        students: List<ToBeCreatedStudent>
+    )
 
     suspend fun fetchAllUsers(): RFetchAllUsersResponse
 

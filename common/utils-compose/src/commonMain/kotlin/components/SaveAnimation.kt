@@ -31,8 +31,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun SaveAnimation(isShowing: Boolean, unShow: () -> Unit) {
-    Box(Modifier.fillMaxSize()) {
+fun SaveAnimation(isShowing: Boolean, customText: String? = null, modifier: Modifier? = null, unShow: () -> Unit) {
+    Box(modifier ?: Modifier.fillMaxSize()) {
         AnimatedVisibility(
             isShowing,
             modifier = Modifier.align(Alignment.Center),
@@ -56,7 +56,7 @@ fun SaveAnimation(isShowing: Boolean, unShow: () -> Unit) {
                         tint = Color.Green,
                         modifier = Modifier.size(70.dp)
                     )
-                    Text("Успешно сохранено!")
+                    Text(customText ?: "Успешно сохранено!")
                 }
             }
             scope.launch {
@@ -67,8 +67,8 @@ fun SaveAnimation(isShowing: Boolean, unShow: () -> Unit) {
     }
 }
 @Composable
-fun ErrorAnimation(isShowing: Boolean, textError: String, unShow: () -> Unit) {
-    Box(Modifier.fillMaxSize()) {
+fun ErrorAnimation(isShowing: Boolean, textError: String, modifier: Modifier? = null, unShow: () -> Unit) {
+    Box(modifier ?: Modifier.fillMaxSize()) {
         AnimatedVisibility(
             isShowing,
             modifier = Modifier.align(Alignment.Center),

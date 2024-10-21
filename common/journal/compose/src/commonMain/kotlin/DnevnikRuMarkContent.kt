@@ -163,7 +163,8 @@ fun DnevnikRuMarkContent(
                                 null
                             )
                         }
-                    }
+                    },
+                    isTransparentHaze = isHaze
                 )
                 AnimatedVisibility(
                     model.isQuarters != null && !model.isTableView,

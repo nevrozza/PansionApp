@@ -345,8 +345,8 @@ val LazyListState.customConnection: NestedScrollConnection
             object : NestedScrollConnection {
                 override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                     return if (source in listOf(
-                            NestedScrollSource.Drag,
-                            NestedScrollSource.Fling
+                            NestedScrollSource.UserInput,
+                            NestedScrollSource.SideEffect
                         ) && (!this@customConnection.canScrollBackward && available.y > 0 || !this@customConnection.canScrollForward && available.y < 0)
                     ) {
                         available

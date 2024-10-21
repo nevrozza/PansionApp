@@ -49,7 +49,7 @@ interface StudentsStore : Store<Intent, State, Label> {
         data object CreateFormGroup : Intent
 
 
-        data class DeleteFormGroup(val subjectId: Int, val groupId: Int) : Intent
+        data class DeleteStudentGroup(val login: String, val subjectId: Int, val groupId: Int, val afterAll: () -> Unit) : Intent
     }
 
     sealed interface Message {

@@ -402,7 +402,7 @@ class ReportsController() {
                             )
 
                         }
-                        if (epoch >= start.toEpochDays() && (end == null || epoch < (end?.toEpochDays()
+                        if (epoch >= start.toEpochDays() && (end == null || epoch < (end.toEpochDays()
                                 ?: 0))
                         ) {
                             val i = achievementsStups[Period.MODULE]!!
@@ -420,10 +420,9 @@ class ReportsController() {
                                 Calendar.getModuleStart(modules.first()) ?: "01.01.2000"
                             val lastModuleStartDate = Calendar.getModuleStart(modules.last() + 1)
 
-                            if (epoch >= getLocalDate(firstModuleStartDate).toEpochDays() && (lastModuleStartDate == null || epoch < (getLocalDate(
+                            if (epoch >= getLocalDate(firstModuleStartDate).toEpochDays() && (lastModuleStartDate == null || epoch < getLocalDate(
                                     lastModuleStartDate
-                                ).toEpochDays()
-                                    ?: 0))
+                                ).toEpochDays())
                             ) {
                                 val i = achievementsStups[Period.HALF_YEAR]!!
                                 achievementsStups[Period.HALF_YEAR] = i.copy(

@@ -7,6 +7,13 @@ data class Person(
     val isActive: Boolean
 )
 @Serializable
+data class TeacherPerson(
+    val login: String,
+    val fio: FIO,
+    val isActive: Boolean,
+    val subjectId: Int?
+)
+@Serializable
 data class PersonParent(
     val login: String,
     val fio: FIO,

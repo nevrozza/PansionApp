@@ -2,7 +2,9 @@ package groups.subjects
 
 import AdminRepository
 import CDispatcher
+import FIO
 import MainRepository
+import admin.groups.subjects.RAddStudentToGroup
 import admin.groups.subjects.REditGroupReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
@@ -13,6 +15,7 @@ import groups.subjects.SubjectsStore.Intent
 import groups.subjects.SubjectsStore.Label
 import groups.subjects.SubjectsStore.State
 import groups.subjects.SubjectsStore.Message
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class SubjectsExecutor(
@@ -36,10 +39,10 @@ class SubjectsExecutor(
             is Intent.ClickOnSubject -> changeSubjectId(intent.subjectId)
             Intent.CreateGroup -> createGroup(state())
             Intent.CreateSubject -> createSubject(state())
-            is Intent.FetchStudents -> fetchStudents(groupId = intent.groupId)
+            is Intent.FetchStudents -> fetchStudents(groupId = intent.groupId, openAfterThis = intent.openAfterThis)
             is Intent.ChangeESubjectText -> dispatch(Message.ESubjectTextChanged(intent.text))
             Intent.DeleteSubject -> deleteSubject()
-            is Intent.EditSubject -> if(intent.sameCount <= 1) editSubject()
+            is Intent.EditSubject -> if (intent.sameCount <= 1) editSubject()
             is Intent.EditSubjectInit -> {
                 dispatch(Message.ESubjectTextChanged(intent.text))
                 dispatch(Message.EditSubjectInit(intent.subjectId))
@@ -52,8 +55,45 @@ class SubjectsExecutor(
             Intent.DeleteGroup -> editGroup(false)
             Intent.EditGroup -> editGroup(true)
             is Intent.GroupEditInit -> dispatch(Message.EditGroupInit(intent.groupId))
+            is Intent.ChangeAddStudentToGroupLogin -> dispatch(
+                Message.AddStudentToGroupLoginChanged(
+                    intent.login
+                )
+            )
+
+            Intent.AddStudentToGroup -> addStudentToGroup()
         }
     }
+
+    private fun addStudentToGroup() {
+        scope.launch(CDispatcher) {
+            try {
+                val x = state().addStudentToGroupLogin.split(" ")
+                val groupId = state().currentGroup
+                adminRepository.addStudentToGroup(
+                    RAddStudentToGroup(
+                        fio = FIO(
+                            name = x[1],
+                            surname = x[0],
+                            praname = x.getOrNull(2)
+                        ),
+                        groupId = groupId,
+                        subjectId = state().chosenSubjectId
+                    )
+                )
+                scope.launch {
+                    fetchStudents(groupId, true)
+                    dispatch(Message.AddStudentToGroupLoginChanged(""))
+                }
+            } catch (e: Throwable) {
+                scope.launch {
+                    dispatch(Message.AddStudentToGroupLoginChanged(""))
+                }
+            }
+
+        }
+    }
+
     private fun editGroup(isActive: Boolean) {
         scope.launch(CDispatcher) {
             if (state().eName.isNotBlank() && state().eDifficult.isNotBlank()) {
@@ -81,8 +121,8 @@ class SubjectsExecutor(
             }
         }
     }
+
     private fun update() {
-        println("SADIK: INTEGER")
         scope.launch {
             try {
                 updateSubjects()
@@ -138,8 +178,8 @@ class SubjectsExecutor(
         }
     }
 
-    private fun fetchStudents(groupId: Int) {
-        if (groupId != state().currentGroup) {
+    private fun fetchStudents(groupId: Int, openAfterThis: Boolean) {
+        if (groupId != state().currentGroup || openAfterThis) {
             dispatch(Message.CurrentGroupChanged(groupId))
             scope.launch(CDispatcher) {
                 nGroupInterface.nStartLoading()
@@ -149,16 +189,23 @@ class SubjectsExecutor(
                     newMap[groupId] = students
                     scope.launch {
                         dispatch(Message.StudentsFetched(newMap.toMap(HashMap())))
-                        nGroupInterface.nStartLoading()
+                        nGroupInterface.nSuccess()
                     }
                 } catch (_: Throwable) {
                     nGroupInterface.nError("Не удалось загрузить список учеников") {
-                        fetchStudents(groupId)
+                        fetchStudents(groupId, openAfterThis)
                     }
                 }
             }
         } else {
             dispatch(Message.CurrentGroupChanged(0))
+        }
+        scope.launch {
+            if (openAfterThis) {
+                dispatch(Message.CurrentGroupChanged(0))
+                delay(500)
+                dispatch(Message.CurrentGroupChanged(groupId))
+            }
         }
     }
 
@@ -171,7 +218,7 @@ class SubjectsExecutor(
                 adminRepository.createSubject(state.cSubjectText)
                 cSubjectDialog.fullySuccess()
                 dispatch(Message.CSubjectTextChanged(""))
-                    update()
+                update()
             } catch (e: Throwable) {
                 with(cSubjectDialog.nInterface) {
                     nError("Что-то пошло не так =/", onFixErrorClick = {

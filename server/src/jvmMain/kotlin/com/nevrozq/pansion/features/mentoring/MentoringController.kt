@@ -2,9 +2,6 @@ package com.nevrozq.pansion.features.mentoring
 
 import FIO
 import MentorPerson
-import admin.groups.Group
-import admin.groups.GroupInit
-import admin.groups.forms.CutedGroup
 import admin.groups.forms.CutedGroupViaSubject
 import com.nevrozq.pansion.database.deviceBinds.DeviceBinds
 import com.nevrozq.pansion.database.forms.Forms
@@ -30,7 +27,6 @@ import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.toId
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.ApplicationPlugin
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import journal.init.RFetchMentorGroupIdsResponse
@@ -61,7 +57,6 @@ import server.Roles
 import server.getLocalDate
 import server.toMinutes
 import java.util.UUID
-import javax.management.relation.Role
 
 val activeRegistrationForms = mutableListOf<Int>()
 private val activeRegistrationRequests = mutableMapOf<
@@ -217,6 +212,7 @@ class MentoringController {
         if (call.isMentor) {
             val r = call.receive<SolveRequestReceive>()
             val parentFios = mutableListOf(r.request.fioFather, r.request.fioMother)
+            val users = Users.fetchAll()
             try {
                 val id =
                     activeRegistrationRequests.filterValues { it == r.request }.keys.first()
@@ -239,42 +235,51 @@ class MentoringController {
                                 moderation = Moderation.nothing,
                                 isParent = false,
                                 avatarId = r.request.avatarId,
-                                isActive = true
+                                isActive = true,
+                                subjectId = null
                             )
                         )
 
 
                         parentFios.filter { it.isNotBlank() }.forEach { p ->
                             val fio = p.split(" ")
-                            val pLogin = createLogin(fio[1], fio[0])
-                            Users.insert(
-                                UserDTO(
-                                    login = pLogin,
-                                    password = null,
-                                    name = fio[1],
-                                    surname = fio[0],
-                                    praname = fio.getOrNull(2),
-                                    birthday = "01012000",
-                                    role = Roles.nothing,
-                                    moderation = Moderation.nothing,
-                                    isParent = true,
-                                    avatarId = 0,
-                                    isActive = true
-                                )
+                            val ff = FIO(
+                                name = fio[1],
+                                surname = fio[0],
+                                praname = fio.getOrNull(2)
                             )
+                            if (ff !in users.map { FIO(name = it.name, surname = it.surname, praname = it.praname) }) {
 
-                            Parents.insert(
-                                ParentsDTO(
-                                    id = 0,
-                                    studentLogin = login,
-                                    parentLogin = pLogin
+                                val pLogin = createLogin(fio[1], fio[0])
+                                Users.insert(
+                                    UserDTO(
+                                        login = pLogin,
+                                        password = null,
+                                        name = fio[1],
+                                        surname = fio[0],
+                                        praname = fio.getOrNull(2),
+                                        birthday = "01012000",
+                                        role = Roles.nothing,
+                                        moderation = Moderation.nothing,
+                                        isParent = true,
+                                        avatarId = 0,
+                                        isActive = true,
+                                        subjectId = null
+                                    )
                                 )
-                            )
-                            DeviceBinds.add(
-                                id = id,
-                                login = pLogin
-                            )
 
+                                Parents.insert(
+                                    ParentsDTO(
+                                        id = 0,
+                                        studentLogin = login,
+                                        parentLogin = pLogin
+                                    )
+                                )
+                                DeviceBinds.add(
+                                    id = id,
+                                    login = pLogin
+                                )
+                            }
                         }
 
                         DeviceBinds.add(

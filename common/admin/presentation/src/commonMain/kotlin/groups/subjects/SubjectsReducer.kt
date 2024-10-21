@@ -21,6 +21,7 @@ object SubjectsReducer : Reducer<State, Message> {
             is Message.ENameChanged -> copy(eName = msg.name)
             is Message.ETeacherLoginChanged -> copy(eTeacherLogin = msg.teacherLogin)
             is Message.EditGroupInit -> copy(eGroupId = msg.groupId)
+            is Message.AddStudentToGroupLoginChanged -> copy(addStudentToGroupLogin = msg.login)
         }
     }
 }

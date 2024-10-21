@@ -140,7 +140,7 @@ class HomeExecutor(
                 }
             } catch (e: Throwable) {
                 quickTabNInterface.nError("Не удалось загрузить уведомления") {
-                    fetchChildren()
+                    fetchChildrenNotifications()
                 }
             }
         }

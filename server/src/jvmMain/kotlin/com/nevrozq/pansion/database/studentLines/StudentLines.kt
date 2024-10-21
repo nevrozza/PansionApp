@@ -1,6 +1,5 @@
 package com.nevrozq.pansion.database.studentLines
 
-import ch.qos.logback.core.net.server.Client
 import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -10,10 +9,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import report.AddStudentLine
-import report.Attended
 import report.ClientStudentLine
-import report.ServerStudentLine
 import server.toMinutes
 
 object StudentLines : Table() {
@@ -72,15 +68,15 @@ object StudentLines : Table() {
         }
     }
 
-    fun deleteAllLinesOfReport(reportId: Int) {
-        transaction {
-            try {
-                StudentLines.deleteWhere { StudentLines.reportId eq reportId }
-            } catch (_: Throwable) {
-
-            }
-        }
-    }
+//    fun deleteAllLinesOfReport(reportId: Int) {
+//        transaction {
+//            try {
+//                StudentLines.deleteWhere { StudentLines.reportId eq reportId }
+//            } catch (_: Throwable) {
+//
+//            }
+//        }
+//    }
 
     fun fetchStudentLinesOfReport(reportId: Int): List<StudentLinesDTO> {
         return transaction {
@@ -117,7 +113,7 @@ object StudentLines : Table() {
                     StudentLines.select(StudentLines.login eq login)
                 studentLines.map {
                     StudentLinesDTO(
-                        reportId = it[StudentLines.reportId],
+                        reportId = it[reportId],
                         groupId = it[groupId],
                         login = it[StudentLines.login],
                         lateTime = it[lateTime],
@@ -145,7 +141,7 @@ object StudentLines : Table() {
                     StudentLines.select{(StudentLines.login eq login) and (StudentLines.groupId eq groupId)}
                 studentLines.map {
                     StudentLinesDTO(
-                        reportId = it[StudentLines.reportId],
+                        reportId = it[reportId],
                         groupId = it[StudentLines.groupId],
                         login = it[StudentLines.login],
                         lateTime = it[lateTime],
@@ -172,7 +168,7 @@ object StudentLines : Table() {
                 val studentLines =
                     StudentLines.select(StudentLines.login eq login)
                 studentLines.map {
-
+                    val reportHeader = ReportHeaders.fetchHeader(it[reportId])
 
                     var preAttendance = PreAttendance.fetchPreAttendanceByDateAndLogin(
                         date = it[dateN],
@@ -185,7 +181,7 @@ object StudentLines : Table() {
                         if (preAttendance != null && preAttendance.start.toMinutes() <= minutes && preAttendance.end.toMinutes() > minutes) preAttendance else null
 
                     ClientStudentLine(
-                        reportId = it[StudentLines.reportId],
+                        reportId = it[reportId],
 //                        groupId = it[groupId],
 //                        login = it[StudentLines.login],
                         lateTime = it[lateTime],
@@ -196,7 +192,8 @@ object StudentLines : Table() {
                         groupName = it[groupN],
                         time = it[timeN],
                         date = it[dateN],
-                        login= it[StudentLines.login]
+                        login= it[StudentLines.login],
+                        topic = reportHeader.topic
                     )
                 }
             } catch (e: Throwable) {
@@ -232,7 +229,8 @@ object StudentLines : Table() {
                     groupName = it[groupN],
                     time = it[timeN],
                     date = it[dateN],
-                    login = it[StudentLines.login]
+                    login = it[StudentLines.login],
+                    topic = "" //U GET IT LATER!!
                 )
 
             } catch (e: Throwable) {

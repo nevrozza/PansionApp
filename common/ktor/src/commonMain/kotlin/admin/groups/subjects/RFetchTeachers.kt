@@ -1,10 +1,10 @@
 package admin.groups.subjects
 
-import Person
+import TeacherPerson
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class RFetchTeachersResponse(
-    val teachers: List<Person>
+    val teachers: List<TeacherPerson>
 )
 

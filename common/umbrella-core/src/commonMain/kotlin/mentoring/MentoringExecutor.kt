@@ -2,7 +2,6 @@ package mentoring
 
 import CDispatcher
 import MainRepository
-import allGroupMarks.AllGroupMarksStore
 import allGroupMarks.DateModule
 import allGroupMarks.DatesFilter
 import allGroupMarks.getDF
@@ -12,8 +11,8 @@ import components.networkInterface.NetworkInterface
 import kotlinx.coroutines.launch
 import mentoring.MentoringStore.Intent
 import mentoring.MentoringStore.Label
-import mentoring.MentoringStore.State
 import mentoring.MentoringStore.Message
+import mentoring.MentoringStore.State
 import mentoring.preAttendance.ClientPreAttendance
 import mentoring.preAttendance.RFetchPreAttendanceDayReceive
 import mentoring.preAttendance.RSavePreAttendanceDayReceive
@@ -21,12 +20,7 @@ import registration.CloseRequestQRReceive
 import registration.OpenRequestQRReceive
 import registration.RegistrationRequest
 import registration.SolveRequestReceive
-import report.DnevnikRuMarksSubject
-import report.UserMark
-import report.UserMarkPlus
 import server.getLocalDate
-import server.sortedDate
-import studentReportDialog.StudentReportDialogStore
 
 class MentoringExecutor(
     private val mainRepository: MainRepository,
@@ -151,14 +145,16 @@ class MentoringExecutor(
 
             val filteredStudents = state().students.filter {
                 val studentGroupIds = state().studentToGroups[it.login]
+                
                 !(studentGroupIds?.filter {
                     it in groupsIds
                 }).isNullOrEmpty()
             }
 
+
             dispatch(Message.UpdateTableAfterSubject(filteredMarks, filteredNki, filteredStudents))
 
-            println("sdsx: ${filteredNki}")
+            println("sdsx: ${filteredStudents}")
         }
     }
 

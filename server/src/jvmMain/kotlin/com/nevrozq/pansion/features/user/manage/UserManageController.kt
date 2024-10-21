@@ -1,33 +1,26 @@
 package com.nevrozq.pansion.features.user.manage
 
 import FIO
-import Person
 import PersonParent
 import admin.groups.forms.CutedForm
-import admin.groups.students.RFetchStudentsInFormReceive
-import admin.groups.students.RFetchStudentsInFormResponse
 import admin.parents.RFetchParentsListResponse
 import admin.parents.RUpdateParentsListReceive
 import admin.users.RClearUserPasswordReceive
-import admin.users.REditUserReceive
-import server.Moderation
-import admin.users.RRegisterUserReceive
+import admin.users.RCreateExcelStudentsReceive
 import admin.users.RCreateUserResponse
 import admin.users.RDeleteUserReceive
+import admin.users.REditUserReceive
 import admin.users.RFetchAllUsersResponse
+import admin.users.RRegisterUserReceive
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.parents.ParentsDTO
 import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
+import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.tokens.FetchTokensResponse
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.tokens.toFetchTokensResponse
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.database.users.mapToUser
@@ -36,11 +29,16 @@ import com.nevrozq.pansion.utils.createLogin
 import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.isModer
 import com.nevrozq.pansion.utils.isParent
-import com.nevrozq.pansion.utils.isTeacher
 import com.nevrozq.pansion.utils.login
 import com.nevrozq.pansion.utils.toId
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
 import main.RFetchChildrenResponse
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.transactions.transaction
+import server.Moderation
 import server.Roles
 
 class UserManageController() {
@@ -134,7 +132,8 @@ class UserManageController() {
                         moderation = r.userInit.moderation,
                         isParent = r.userInit.isParent,
                         avatarId = 0,
-                        isActive = true
+                        isActive = true,
+                        subjectId = r.subjectId
                     )
                 )
 
@@ -155,7 +154,8 @@ class UserManageController() {
                                 moderation = Moderation.nothing,
                                 isParent = true,
                                 avatarId = 0,
-                                isActive = true
+                                isActive = true,
+                                subjectId = null
                             )
                         )
 
@@ -169,7 +169,6 @@ class UserManageController() {
                         pLogins.add(pLogin)
                     }
                 }
-
                 if(r.formId != 0) {
                     StudentsInForm.insert(
                         StudentInFormDTO(
@@ -180,6 +179,80 @@ class UserManageController() {
                 }
 
                 call.respond(RCreateUserResponse(login, pLogins))
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "This User already exists")
+            } catch (e: Throwable) {
+                println(e)
+                call.respond(HttpStatusCode.BadRequest, "Can't create user: ${e.localizedMessage}")
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun createExcelStudents(call: ApplicationCall) {
+        val r = call.receive<RCreateExcelStudentsReceive>()
+        if (call.isModer) {
+            try {
+                transaction {
+                    r.students.forEach { l ->
+                        val login =
+                            createLogin(name = l.user.fio.name, surname = l.user.fio.surname)
+                        val student = UserDTO(
+                            login = login,
+                            password = null,
+                            name = l.user.fio.name,
+                            surname = l.user.fio.surname,
+                            praname = l.user.fio.praname,
+                            birthday = l.user.birthday,
+                            role = l.user.role,
+                            moderation = l.user.moderation,
+                            isParent = l.user.isParent,
+                            avatarId = 1,
+                            isActive = true,
+                            subjectId = null
+                        )
+                        val p = l.parents.first().split(" ")
+                        val pFio = FIO(
+                            name = p[1],
+                            surname = p[0],
+                            praname = p.getOrNull(2)
+                        )
+                        val pLogin = createLogin(pFio.name, pFio.surname, 1)
+                        val parent = UserDTO(
+                            login = pLogin,
+                            password = null,
+                            name = pFio.name,
+                            surname = pFio.surname,
+                            praname = pFio.praname,
+                            birthday = "01012000",
+                            role = Roles.nothing,
+                            moderation = Moderation.nothing,
+                            isParent = true,
+                            avatarId = 1,
+                            isActive = true,
+                            subjectId = null
+                        )
+
+                        Users.insert(listOf(student, parent))
+                        Parents.insert(
+                            ParentsDTO(
+                                id = 0,
+                                studentLogin = login,
+                                parentLogin = pLogin
+                            )
+                        )
+                        if(l.formId != 0) {
+                            StudentsInForm.insert(
+                                StudentInFormDTO(
+                                    formId = l.formId,
+                                    login = login
+                                )
+                            )
+                        }
+                    }
+                }
+                call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "This User already exists")
             } catch (e: Throwable) {
@@ -203,7 +276,13 @@ class UserManageController() {
                         )
                     } else null
                 }
-                call.respond(RFetchAllUsersResponse(users.map { it.mapToUser() }.sortedBy { it.user.fio.surname }, forms))
+                val subjects = Subjects.fetchAllActiveSubjectsAsMap()
+                call.respond(
+                    RFetchAllUsersResponse(
+                        users.map { it.mapToUser() }.sortedBy { it.user.fio.surname },
+                        forms,
+                        subjects = subjects
+                        ))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -292,7 +371,7 @@ class UserManageController() {
                     newBirthday = r.user.birthday,
                     newRole = r.user.role,
                     newModeration = r.user.moderation,
-                    newIsParent = r.user.isParent
+                    newIsParent = r.user.isParent,
                 )
                 call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {

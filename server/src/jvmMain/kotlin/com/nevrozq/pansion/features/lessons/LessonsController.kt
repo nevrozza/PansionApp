@@ -2,6 +2,7 @@ package com.nevrozq.pansion.features.lessons
 
 import FIO
 import Person
+import TeacherPerson
 import admin.cabinets.CabinetItem
 import admin.cabinets.RFetchCabinetsResponse
 import admin.cabinets.RUpdateCabinetsReceive
@@ -22,6 +23,7 @@ import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
 import admin.groups.students.deep.RFetchStudentGroupsReceive
 import admin.groups.students.deep.RFetchStudentGroupsResponse
+import admin.groups.subjects.RAddStudentToGroup
 import admin.groups.subjects.RCreateGroupReceive
 import admin.groups.subjects.REditGroupReceive
 import admin.groups.subjects.topBar.RDeleteSubject
@@ -124,6 +126,30 @@ import kotlin.math.log
 
 class LessonsController() {
 
+    suspend fun addStudentToGroupFromSubject(call: ApplicationCall) {
+        if (call.isModer) {
+            try {
+                val r = call.receive<RAddStudentToGroup>()
+                val login = Users.getLoginWithFIO(r.fio)
+                StudentGroups.insert(
+                    StudentGroupDTO(
+                        groupId = r.groupId,
+                        subjectId = r.subjectId,
+                        studentLogin = login
+                    )
+                )
+                call.respond(
+                    HttpStatusCode.OK
+                )
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't add student to group from subject: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
+
     suspend fun checkMainNotification(call: ApplicationCall) {
         if (call.isMember) {
             try {
@@ -222,6 +248,8 @@ class LessonsController() {
 
                 val logins: MutableList<Person> = mutableListOf()
 
+
+                println("SADd00")
                 if (call.isParent) {
                     logins.addAll(Parents.fetchChildren(parentLogin = call.login).map {
                         Person(
@@ -232,23 +260,28 @@ class LessonsController() {
                     }
                     )
                 }
+
+                println("SADd0")
                 if (call.isMentor) {
                     val forms = Forms.fetchMentorForms(call.login)
                     logins.addAll(
-                        StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id }).map {
-                            val user = Users.fetchUser(it)!!
-                            Person(
-                                login = it,
-                                fio = FIO(
-                                    name = user.name,
-                                    surname = user.surname,
-                                    praname = user.praname
-                                ),
-                                isActive = user.isActive
-                            )
+                        StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id }).mapNotNull {
+                            val user = Users.fetchUser(it)
+                            if (user != null) {
+                                Person(
+                                    login = it,
+                                    fio = FIO(
+                                        name = user.name,
+                                        surname = user.surname,
+                                        praname = user.praname
+                                    ),
+                                    isActive = user.isActive
+                                )
+                            } else null
                         }
                     )
                 }
+                println("SADd1")
                 val endLogins = logins.toSet().toList()
                 val end = endLogins.associate {
                     it.login to fetchMainNotificationsServer(
@@ -259,6 +292,7 @@ class LessonsController() {
                         studentLogin = it.login
                     )
                 }
+                println("SADd2")
 
                 call.respond(
                     RFetchChildrenMainNotificationsResponse(
@@ -267,6 +301,7 @@ class LessonsController() {
                     )
                 )
             } catch (e: Throwable) {
+                println("SADDD: ${e}")
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Can't fetch notifications: ${e.localizedMessage}"
@@ -636,14 +671,15 @@ class LessonsController() {
 
                 call.respond(RFetchTeachersResponse(
                     teachers.filter { it.isActive }.map {
-                        Person(
+                        TeacherPerson(
                             login = it.login,
                             fio = FIO(
                                 name = it.name,
                                 surname = it.surname,
                                 praname = it.praname
                             ),
-                            isActive = true
+                            isActive = true,
+                            subjectId = it.subjectId
                         )
                     }
                 ))

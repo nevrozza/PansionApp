@@ -1,15 +1,19 @@
 package com.nevrozq.pansion.database.users
 
 import FIO
-import server.Moderation
-import server.Roles
-import admin.users.User
-import admin.users.UserInit
-import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.mindrot.jbcrypt.BCrypt
 import server.DataLength
+import server.Moderation
+import server.Roles
 import server.cut
 
 object Users : Table() {
@@ -23,7 +27,36 @@ object Users : Table() {
     private val moderation = Users.varchar("moderation", 1)
     private val isParent = Users.bool("isParent")
     val avatarId = Users.integer("avatarId")
+    val subjectId = Users.integer("subjectId").nullable()
     private val isActive = Users.bool("isActive")
+
+    fun insert(userDTOs: List<UserDTO>) {
+        transaction {
+            userDTOs.forEach { userDTO ->
+                Users.insert {
+                    it[login] = userDTO.login
+                    it[password] = userDTO.password
+                    it[name] = userDTO.name
+                    it[surname] = userDTO.surname
+                    it[praname] = userDTO.praname
+                    it[birthday] = userDTO.birthday
+                    it[role] = userDTO.role
+                    it[moderation] = userDTO.moderation
+                    it[isParent] = userDTO.isParent
+                    it[avatarId] = userDTO.avatarId
+                    it[isActive] = userDTO.isActive
+                    it[subjectId] = userDTO.subjectId
+                }
+            }
+        }
+    }
+
+    fun getLoginWithFIO(fio: FIO): String {
+        return transaction {
+            val u = Users.select((Users.surname eq fio.surname) and (Users.name eq fio.name) and (Users.praname eq fio.praname)).first()
+            u[login]
+        }
+    }
 
     fun insert(userDTO: UserDTO) {
         transaction {
@@ -39,6 +72,7 @@ object Users : Table() {
                 it[isParent] = userDTO.isParent
                 it[avatarId] = userDTO.avatarId
                 it[isActive] = userDTO.isActive
+                it[subjectId] = userDTO.subjectId
             }
         }
     }
@@ -137,7 +171,8 @@ object Users : Table() {
         newRole: String,
         newModeration: String,
         newIsParent: Boolean,
-        newIsActive: Boolean = true
+        newIsActive: Boolean = true,
+        //newSubjectId: Int?
     ) {
         try {
             transaction {
@@ -150,6 +185,7 @@ object Users : Table() {
                     it[moderation] = newModeration
                     it[isParent] = newIsParent
                     it[isActive] = newIsActive
+                   // it[subjectId] = newSubjectId
                 }
             }
         } catch (e: Throwable) {
@@ -198,7 +234,8 @@ object Users : Table() {
                         moderation = it[moderation],
                         isParent = it[isParent],
                         avatarId = it[avatarId],
-                        isActive = it[isActive]
+                        isActive = it[isActive],
+                        subjectId = it[subjectId]
                     )
                 }.first()
             }
@@ -221,7 +258,8 @@ object Users : Table() {
                     moderation = it[moderation],
                     isParent = it[isParent],
                     avatarId = it[avatarId],
-                    isActive = true//it[isActive]
+                    isActive = true,
+                    subjectId = it[subjectId]//it[isActive]
                 )
                 else null
             }
@@ -243,7 +281,8 @@ object Users : Table() {
                         moderation = it[moderation],
                         isParent = it[isParent],
                         avatarId = it[avatarId],
-                        isActive = it[isActive]
+                        isActive = it[isActive],
+                        subjectId = it[subjectId]
                     )
 //                    User(
 //                        login = it[login],
@@ -305,7 +344,8 @@ object Users : Table() {
                         moderation = it[moderation],
                         isParent = it[isParent],
                         avatarId = it[avatarId],
-                        isActive = it[isActive]
+                        isActive = it[isActive],
+                        subjectId = it[subjectId]
                     )
                 }
             }
@@ -340,7 +380,8 @@ object Users : Table() {
                         moderation = it[moderation],
                         isParent = it[isParent],
                         avatarId = it[avatarId],
-                        isActive = it[isActive]
+                        isActive = it[isActive],
+                        subjectId = it[subjectId]
                     )
                 }
             }
@@ -368,7 +409,8 @@ object Users : Table() {
                         moderation = it[moderation],
                         isParent = it[isParent],
                         avatarId = it[avatarId],
-                        isActive = it[isActive]
+                        isActive = it[isActive],
+                        subjectId = it[subjectId]
                     )
                 }
             }

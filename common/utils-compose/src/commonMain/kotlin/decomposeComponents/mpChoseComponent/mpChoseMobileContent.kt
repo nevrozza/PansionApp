@@ -1,14 +1,7 @@
 package decomposeComponents.mpChoseComponent
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.hoverable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +12,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
@@ -53,9 +45,8 @@ import components.CustomTextButton
 import components.DefaultModalBottomSheet
 import components.LoadingAnimation
 import components.listDialog.ListComponent
-import components.listDialog.ListDialogStore
-import components.mpChose.mpChoseComponent
-import components.mpChose.mpChoseStore
+import components.mpChose.MpChoseComponent
+import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.BottomSheetVariant
@@ -118,8 +109,8 @@ fun mpChoseMobileContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetVariant(
-    component: mpChoseComponent,
-    model: mpChoseStore.State,
+    component: MpChoseComponent,
+    model: MpChoseStore.State,
     nModel: NetworkInterface.NetworkModel,
     isShowingCostil: MutableState<Boolean>,
     coroutineScope: CoroutineScope,
@@ -136,7 +127,7 @@ fun BottomSheetVariant(
             additionalModifier = Modifier.sizeIn(maxHeight = 500.dp),
             modalBottomSheetState = modalBottomSheetState,
             onDismissRequest = {
-                component.onEvent(mpChoseStore.Intent.HideDialog)
+                component.onEvent(MpChoseStore.Intent.HideDialog)
             }
         ) {
             Crossfade(
@@ -191,7 +182,7 @@ fun BottomSheetVariant(
                                             coroutineScope.launch {
                                                 modalBottomSheetState.hide()
                                             }.invokeOnCompletion {
-                                                component.onEvent(mpChoseStore.Intent.HideDialog)
+                                                component.onEvent(MpChoseStore.Intent.HideDialog)
                                             }
                                         },
                                         shape = RoundedCornerShape(15.dp),

@@ -162,7 +162,7 @@ fun NotificationItem(
                             Modifier.size(5.dp).clip(
                                 CircleShape
                             ).background(
-                                backColor ?: Color.Transparent
+                                backColor
                             ) //MaterialTheme.colorScheme.primary
                         )
                         Spacer(Modifier.width(2.5.dp))

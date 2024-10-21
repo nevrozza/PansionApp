@@ -8,7 +8,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RFetchAllUsersResponse(
     val users: List<User>,
-    val forms: List<CutedForm>
+    val forms: List<CutedForm>,
+    val subjects: Map<Int, String>,
 )
 
 

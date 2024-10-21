@@ -23,5 +23,11 @@ kotlin {
                 implementation(libs.kotlinx.serialization.core)
             }
         }
+
+        jvmMain {
+            dependencies {
+                implementation(libs.excelkt)
+            }
+        }
     }
 }

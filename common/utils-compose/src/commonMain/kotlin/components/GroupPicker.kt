@@ -16,6 +16,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,16 +27,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import components.networkInterface.NetworkState
-import kotlinx.serialization.Serializable
 
-data class nSCutedGroup(
+data class NSCutedGroup(
     val groupId: Int,
     val groupName: String,
     val isActive: Boolean
 )
 
-data class nSSubject(
+data class NSSubject(
     val id: Int,
     val name: String,
     val isActive: Boolean
@@ -45,10 +44,10 @@ data class nSSubject(
 @Composable
 fun GroupPicker(
     isLoading: Boolean,
-    subjects: List<nSSubject>,
+    subjects: List<NSSubject>,
     chosenSubjectId: Int,
     chosenGroupId: Int,
-    cutedGroups: List<nSCutedGroup>,
+    cutedGroups: List<NSCutedGroup>,
     sortedList: List<Int>,
     onSubjectClick: (Int) -> Unit,
     onGroupClick: (Int) -> Unit,
@@ -80,7 +79,7 @@ fun GroupPicker(
 
                 OutlinedTextField(
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                         .defaultMinSize(
                             minWidth = 5.dp
                         ), // menuAnchor modifier must be passed to the text field for correctness.
@@ -156,7 +155,7 @@ fun GroupPicker(
 
                 OutlinedTextField(
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                         .defaultMinSize(
                             minWidth = 5.dp
                         ),

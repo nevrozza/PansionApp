@@ -7,11 +7,11 @@
 //
 
 import SwiftUI
-import KotlinF
+import SharedSDK
 
 struct MainComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> some UIViewController {
-        Main_iosKt().MainViewController()
+        Main_iosKt.MainViewController()
     }
     
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {

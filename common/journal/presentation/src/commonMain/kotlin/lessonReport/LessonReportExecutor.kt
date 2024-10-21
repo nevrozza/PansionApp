@@ -261,10 +261,10 @@ class LessonReportExecutor(
                             attendedType = intent.attendedType
                         ) else Attended(attendedType = intent.attendedType, null),
                         stupsOfCurrentLesson = student.stupsOfCurrentLesson.map {
-                            if (it.reason.subSequence(0,3) in "!ds") {
+                            if (it.reason.subSequence(0, 3) in "!ds") {
                                 when (intent.attendedType) {
                                     "2" -> {
-                                        val value = when(it.reason.last().toString().toInt()) {
+                                        val value = when (it.reason.last().toString().toInt()) {
                                             1 -> 0
                                             2 -> 0
                                             else -> 0
@@ -280,7 +280,7 @@ class LessonReportExecutor(
                                     }
 
                                     "1" -> {
-                                        val value = when(it.reason.last().toString().toInt()) {
+                                        val value = when (it.reason.last().toString().toInt()) {
                                             1 -> 0
                                             2 -> 0
                                             else -> -10
@@ -296,7 +296,7 @@ class LessonReportExecutor(
                                     }
 
                                     else -> {
-                                        val value = when(it.reason.last().toString().toInt()) {
+                                        val value = when (it.reason.last().toString().toInt()) {
                                             1 -> 1
                                             2 -> 1
                                             else -> 0
@@ -418,6 +418,7 @@ class LessonReportExecutor(
                     )
                 )
             }
+
             is Intent.ChangeHomeTaskIsNec -> scope.launch {
                 updateTasksToEditIds(id = intent.id, isNew = intent.isNew)
                 val newHomeTasks = state().hometasks.toMutableList()
@@ -450,7 +451,7 @@ class LessonReportExecutor(
                 )
             }
 
-            is Intent.ChangeHomeTaskText ->  { //scope.launch
+            is Intent.ChangeHomeTaskText -> { //scope.launch
                 updateTasksToEditIds(id = intent.id, isNew = intent.isNew)
                 val homeTasks = state().hometasks
                 val index = homeTasks.indexOfFirst { it.id == intent.id }
@@ -527,8 +528,9 @@ class LessonReportExecutor(
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun saveHomeTasks() {
-        scope.launch(CDispatcher) {
+        GlobalScope.launch(CDispatcher) {
             nHomeTasksInterface.nStartLoading()
             try {
                 val r = journalRepository.saveReportHomeTasks(
@@ -668,7 +670,11 @@ class LessonReportExecutor(
         }
     }
 
-    private fun getInitedStups(studentsData: RFetchReportStudentsResponse, student: AddStudentLine, authRepository: AuthRepository): List<Stup> {
+    private fun getInitedStups(
+        studentsData: RFetchReportStudentsResponse,
+        student: AddStudentLine,
+        authRepository: AuthRepository
+    ): List<Stup> {
 
         val init = studentsData.stups.filter { it.login == student.serverStudentLine.login }
             .map {
@@ -683,7 +689,7 @@ class LessonReportExecutor(
             }
         val toAdd = mutableListOf<Stup>()
         if (init.none { it.reason == "!ds1" }) {
-            val value = when(student.serverStudentLine.attended?.attendedType) {
+            val value = when (student.serverStudentLine.attended?.attendedType) {
                 "2" -> 0
                 "1" -> 0
                 else -> 1
@@ -701,7 +707,7 @@ class LessonReportExecutor(
             dispatch(LessonReportStore.Message.InvisibleStupAdd)
         }
         if (init.none { it.reason == "!ds2" }) {
-            val value = when(student.serverStudentLine.attended?.attendedType) {
+            val value = when (student.serverStudentLine.attended?.attendedType) {
                 "2" -> 0
                 "1" -> 0
                 else -> 1
@@ -719,7 +725,7 @@ class LessonReportExecutor(
             dispatch(LessonReportStore.Message.InvisibleStupAdd)
         }
         if (init.none { it.reason == "!ds3" }) {
-            val value = when(student.serverStudentLine.attended?.attendedType) {
+            val value = when (student.serverStudentLine.attended?.attendedType) {
                 "2" -> 0
                 "1" -> -10
                 else -> 0

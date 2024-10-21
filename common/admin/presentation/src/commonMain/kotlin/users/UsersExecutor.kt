@@ -2,6 +2,7 @@ package users
 
 import AdminRepository
 import FIO
+import admin.users.ToBeCreatedStudent
 import admin.users.User
 import admin.users.UserInit
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -72,6 +73,26 @@ class UsersExecutor(
             is Intent.FTeachers -> dispatch(Message.FTeachers(intent.isOn))
             is Intent.FInActive -> dispatch(Message.FInactive(intent.isOn))
             is Intent.FParents -> dispatch(Message.FParents(intent.isOn))
+            is Intent.ChangeCSubjectId -> dispatch(Message.CSubjectIdChanged(intent.subjectId))
+            is Intent.CreateUsers -> createUsersFromExcel(intent.users)
+        }
+    }
+
+    private fun createUsersFromExcel(students: List<ToBeCreatedStudent>) {
+        scope.launch {
+            cUserBottomSheet.nInterface.nStartLoading()
+            try {
+                val r = adminRepository.registerExcelStudents(students)
+                cUserBottomSheet.nInterface.nSuccess()
+            } catch (_: Throwable) {
+                with(cUserBottomSheet.nInterface) {
+                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                        goToNone()
+                    })
+                }
+            }
+        }.invokeOnCompletion {
+            fetchUsers()
         }
     }
 
@@ -207,7 +228,12 @@ class UsersExecutor(
                     state().cParentFirstFIO,
                     state.cParentSecondFIO
                 ).filter { it.isNotBlank() }
-                val r = adminRepository.registerUser(user, parents = parents.ifEmpty { null }, formId = state.cFormId)
+                val r = adminRepository.registerUser(
+                    user,
+                    parents = parents.ifEmpty { null },
+                    formId = state.cFormId,
+                    subjectId = state.cSubjectId
+                    )
                 dispatch(Message.UserCreated(r.login, r.parents))
             } catch (_: Throwable) {
                 with(cUserBottomSheet.nInterface) {
@@ -226,7 +252,7 @@ class UsersExecutor(
             nUsersInterface.nStartLoading()
             try {
                 val r = adminRepository.fetchAllUsers()
-                dispatch(Message.UsersChanged(r.users, r.forms))
+                dispatch(Message.UsersChanged(r.users, r.forms, r.subjects))
                 nUsersInterface.nSuccess()
             } catch (e: Throwable) {
                 if (isInit) {
@@ -240,7 +266,7 @@ class UsersExecutor(
                         }
                     )
 
-                    dispatch(Message.UsersChanged(null, emptyList()))
+                    dispatch(Message.UsersChanged(null, emptyList(), emptyMap()))
                 }
             }
         }

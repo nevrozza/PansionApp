@@ -30,6 +30,7 @@ import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
+import admin.groups.subjects.RAddStudentToGroup
 import admin.groups.subjects.REditGroupReceive
 import admin.groups.subjects.topBar.RDeleteSubject
 import admin.groups.subjects.topBar.REditSubjectReceive
@@ -38,6 +39,7 @@ import admin.groups.subjects.topBar.RCreateSubjectReceive
 import admin.parents.RFetchParentsListResponse
 import admin.parents.RUpdateParentsListReceive
 import admin.schedule.RFetchInitScheduleResponse
+import admin.users.RCreateExcelStudentsReceive
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
 import admin.users.RDeleteUserReceive
@@ -56,6 +58,26 @@ import schedule.RScheduleList
 class KtorAdminRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun addStudentToGroup(r: RAddStudentToGroup) {
+        httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Lessons.AddStudentToGroupFromSubject)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
+    suspend fun createExcelStudents(r: RCreateExcelStudentsReceive) {
+       httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.UserManage.CreateStudentsFromExcel)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
 
     suspend fun fetchParents(): RFetchParentsListResponse {
         return httpClient.post {

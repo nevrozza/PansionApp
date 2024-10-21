@@ -8,6 +8,11 @@ fun Application.configureRegisterRouting() {
     routing {
         val userManageController = UserManageController()
 
+
+        post (RequestPaths.UserManage.CreateStudentsFromExcel) {
+            userManageController.createExcelStudents(call)
+        }
+
         post(RequestPaths.Parents.FetchParents) {
             userManageController.fetchAllParents(call)
         }

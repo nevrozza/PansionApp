@@ -1,7 +1,7 @@
 package users
 
 import admin.groups.forms.CutedForm
-import admin.groups.forms.Form
+import admin.users.ToBeCreatedStudent
 import admin.users.User
 import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.mvikotlin.core.store.Store
@@ -9,7 +9,6 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import users.UsersStore.Intent
 import users.UsersStore.Label
 import users.UsersStore.State
@@ -19,6 +18,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
     data class State(
         val users: List<User>? = null,
         val forms: List<CutedForm> = emptyList(),
+        val subjects: Map<Int, String> = emptyMap(),
         val isDateDialogShowing: Boolean = false,
         val currentYear: Int = Clock.System.now()
             .toLocalDateTime(TimeZone.of("UTC+3")).year,
@@ -36,6 +36,9 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val cIsParent: Boolean = false,
         val cParentFirstFIO: String = "",
         val cParentSecondFIO: String = "",
+        val cSubjectId: Int? = null,
+
+
         val eLogin: String = "",
         val eIsPassword: Boolean = false,
         val eName: String = "",
@@ -84,6 +87,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class ChangeCBirthday(val birthday: String) : Intent
         data class ChangeCRole(val role: String) : Intent
         data class ChangeCFormId(val formId: Int) : Intent
+        data class ChangeCSubjectId(val subjectId: Int) : Intent
         data class ChangeCIsModerator(val isModerator: Boolean) : Intent
         data class ChangeCIsMentor(val isMentor: Boolean) : Intent
         data class ChangeCIsParent(val isParent: Boolean) : Intent
@@ -105,6 +109,8 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class OpenEditingSheet(val user: User) : Intent
         data object ClearPassword: Intent
         data object EditUser: Intent
+
+        data class CreateUsers(val users: List<ToBeCreatedStudent>) : Intent
     }
 
     sealed interface Message {
@@ -118,7 +124,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
 
         data class DeletingAccountInit(val login: String?) : Message
 
-        data class UsersChanged(val users: List<User>?, val forms: List<CutedForm>) : Message
+        data class UsersChanged(val users: List<User>?, val forms: List<CutedForm>, val subjects: Map<Int, String>) : Message
 
         data class DateDialogShowingChanged(val isShowing: Boolean) : Message
 
@@ -128,6 +134,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class CBirthdayChanged(val birthday: String) : Message
         data class CRoleChanged(val role: String) : Message
         data class CFormIdChanged(val formId: Int) : Message
+        data class CSubjectIdChanged(val subjectId: Int) : Message
         data class CIsModeratorChanged(val isModerator: Boolean) : Message
         data class CIsMentorChanged(val isMentor: Boolean) : Message
         data class CIsParentChanged(val isParent: Boolean) : Message

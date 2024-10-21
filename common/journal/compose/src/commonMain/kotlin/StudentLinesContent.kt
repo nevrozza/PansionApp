@@ -1,4 +1,3 @@
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -13,24 +12,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.HourglassBottom
+import androidx.compose.material.icons.rounded.ThumbDown
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,9 +45,6 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.networkInterface.NetworkState
-import detailedStups.DetailedStupsComponent
-import detailedStups.DetailedStupsStore
-import lessonReport.LessonReportStore
 import report.ClientStudentLine
 import studentLines.StudentLinesComponent
 import studentReportDialog.StudentReportDialogStore
@@ -104,7 +98,14 @@ fun StudentLinesContent(
             Crossfade(nModel.state) { state ->
                 when (state) {
                     NetworkState.None -> CLazyColumn(padding) {
-                        items(items = model.studentLines) { sl ->
+                        itemsIndexed(items = model.studentLines, key = { i, sl -> i  }) { i, sl ->
+
+                            if (i == model.studentLines.indexOfFirst { it.date == sl.date }) {
+                                if (i != 0) {
+                                    Spacer(Modifier.height(15.dp))
+                                }
+                                Text(sl.date, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 10.dp))
+                            }
                             ClientStudentLineContent(sl = sl) {
                                 component.studentReportDialog.onEvent(
                                     StudentReportDialogStore.Intent.OpenDialog(
@@ -162,26 +163,18 @@ private fun ClientStudentLineContent(
             Text(
                 buildAnnotatedString {
                     append(sl.subjectName)
-                    withStyle(
-                        SpanStyle(
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = .5f),
-                            fontSize = 17.sp
-                        )
-                    ) {
-                        append(" ${sl.date}")
+                    append(" ")
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                        append(sl.groupName)
+                        withStyle(SpanStyle()) {
+                            append(" в ${sl.time}")
+                        }
                     }
                 },
                 fontWeight = FontWeight.Black, fontSize = 20.sp
             )
             Text(
-                buildAnnotatedString {
-                    append(sl.groupName)
-                    withStyle(SpanStyle()) {
-                        append(" в ${sl.time}")
-                    }
-
-                },
-                fontWeight = FontWeight.Bold, fontSize = 18.sp
+                text = if (sl.topic.isNotBlank()) sl.topic else "Тема не выставлена"
             )
             Spacer(Modifier.height(2.dp))
             Row(

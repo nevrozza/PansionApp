@@ -1,8 +1,8 @@
 import server.DeviceTypex
 
 object RequestPaths {
-//    val ip = "pansionapp-test-server.ru:${ if (deviceType != DeviceTypex.web) 8080 else 8443}"//"109.172.88.2:8443"//""//"192.168.0.107:8081"
-    val ip = "0.0.0.0:8080"
+    val ip = "pansionapp-test-server.ru:${ if (deviceType != DeviceTypex.web) 8080 else 8443}"//"109.172.88.2:8443"//""//"192.168.0.107:8081"
+//    val ip = "0.0.0.0:8080"
     object Parents {
         const val FetchParents = "server/admin/parents/fetch"
         const val UpdateParent = "server/admin/parents/update"
@@ -35,6 +35,8 @@ object RequestPaths {
         const val ClearPasswordAdmin = "server/user/clearPassword"
         const val EditUser = "server/user/edit"
         const val DeleteUser = "server/user/delete"
+
+        const val CreateStudentsFromExcel = "server/user/createExcelStudents"
     }
 
     object Main {
@@ -154,5 +156,7 @@ object RequestPaths {
         const val DeleteFormGroup = "server/lessons/deleteFormGroup"
 
         const val FetchInitSchedule = "server/lessons/fetchInitSchedule"
+
+        const val AddStudentToGroupFromSubject = "server/admin/addStudentToGroupFromSubject"
     }
 }

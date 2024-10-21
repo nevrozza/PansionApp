@@ -1,8 +1,6 @@
 @file:Suppress("OPT_IN_USAGE")
 
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackCssMode
 
 plugins {
 //    id("compose-setup")
@@ -20,25 +18,27 @@ version = "0.0.2"
 kotlin {
     jvm("jvm")
 
+    applyDefaultHierarchyTemplate()
+
     androidTarget()
-    ios() {
-        this.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = false
-            linkerOpts.add("-lsqlite3")
-        }
-    }
-//    listOf(
-//        iosArm64(),
-//        iosX64(),
-//        iosSimulatorArm64()
-//    ).forEach {
-//        it.binaries.framework {
+//    ios() {
+//        this.binaries.framework {
 //            baseName = "ComposeApp"
 //            isStatic = false
 //            linkerOpts.add("-lsqlite3")
 //        }
 //    }
+    listOf(
+        iosArm64(),
+        iosX64(),
+        iosSimulatorArm64()
+    ).forEach {
+        it.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = false
+            linkerOpts.add("-lsqlite3")
+        }
+    }
 
     cocoapods {
         summary = "PansionApp iOS SDK"

@@ -1,10 +1,12 @@
 [versions]
 # Plugins
+excelkt = "1.0.2"
+mpfilepicker = "3.1.0"
 plugin-android = "8.3.0"
 plugin-compose = "1.7.0"#"1.7.0-rc01"
 
 # Multiplatform
-kotlin = "2.0.21-RC"
+kotlin = "2.0.21"
 coroutines = "1.8.0"
 serialization = "1.6.3"
 datetime = "0.6.0"
@@ -34,6 +36,8 @@ androidx-appCompat = "1.7.0"
 coreI18n = "1.0.0-alpha01"
 
 [libraries]
+excelkt = { module = "io.github.evanrupert:excelkt", version.ref = "excelkt" }
+mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "mpfilepicker" }
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 plugin-android = { module = "com.android.tools.build:gradle", version.ref = "plugin-android" }
 plugin-compose = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "plugin-compose" }

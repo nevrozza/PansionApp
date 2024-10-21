@@ -1,6 +1,6 @@
 package groups
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -21,20 +21,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -45,12 +42,12 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,7 +56,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -75,15 +71,14 @@ import components.CLazyColumn
 import components.CustomTextButton
 import components.CustomTextField
 import components.GroupPicker
-import components.LoadingAnimation
 import components.cBottomSheet.CBottomSheetStore
-import components.nSCutedGroup
-import components.nSSubject
+import components.NSCutedGroup
+import components.NSSubject
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
+import excel.exportForms
 import groups.forms.FormsComponent
 import groups.forms.FormsStore
-import groups.students.StudentsStore
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -93,10 +88,10 @@ fun FormsContent(
     topPadding: Dp,
     padding: PaddingValues
 ) {
-    val gModel = component.groupModel.subscribeAsState().value
-    val model = component.model.subscribeAsState().value
-    val nFModel = component.nFormsModel.subscribeAsState().value
-    val nFGModel = component.nFormGroupsModel.subscribeAsState().value
+    val gModel by component.groupModel.subscribeAsState()
+    val model by component.model.subscribeAsState()
+    val nFModel by component.nFormsModel.subscribeAsState()
+    val nFGModel by component.nFormGroupsModel.subscribeAsState()
     Crossfade(nFModel.state) {
         Column(Modifier.fillMaxSize()) {
             when {
@@ -115,7 +110,7 @@ fun FormsContent(
                             Column(
                                 Modifier
                                     //.padding(horizontal = 10.dp)
-                                    .padding(bottom = if (form.id != gModel.forms.last().id) 7.dp else 80.dp + padding.calculateBottomPadding())
+                                    .padding(bottom = 7.dp + padding.calculateBottomPadding()) //if (form.id != gModel.forms.last().id) 7.dp else 80.dp
                                     .clip(CardDefaults.elevatedShape)
                                     .animateContentSize()
                                     .background(
@@ -276,7 +271,7 @@ fun FormsContent(
                                                             GroupPicker(
                                                                 isLoading = (nFGModel.state == NetworkState.Loading),
                                                                 subjects = gModel.subjects.map {
-                                                                    nSSubject(
+                                                                    NSSubject(
                                                                         id = it.id,
                                                                         name = it.name,
                                                                         isActive = it.isActive
@@ -285,7 +280,7 @@ fun FormsContent(
                                                                 chosenSubjectId = model.cFormGroupSubjectId,
                                                                 chosenGroupId = model.cFormGroupGroupId,
                                                                 cutedGroups = model.cutedGroups.map {
-                                                                    nSCutedGroup(
+                                                                    NSCutedGroup(
                                                                         groupId = it.groupId,
                                                                         groupName = it.groupName,
                                                                         isActive = it.isActive
@@ -329,7 +324,17 @@ fun FormsContent(
                                 }
                             }
                         }
-
+                        item {
+                            Spacer(Modifier.height(16.dp))
+                            val exported = remember { mutableStateOf(false) }
+                            AnimatedContent(if (exported.value) "Успешно экспортировано!" else "Экспортировать в excel") {
+                                CustomTextButton(it, modifier = Modifier.fillMaxWidth()) {
+                                    exportForms(gModel.forms)
+                                    exported.value = true
+                                }
+                            }
+                            Spacer(Modifier.height(80.dp))
+                        }
                     }
                 }
 
@@ -371,7 +376,7 @@ fun FormsContent(
                 model.eFormMentorLogin,
                 model.eFormClassNum
             )
-            num = properties.count { (it ?: "").isNotBlank() }
+            num = properties.count { (it).isNotBlank() }
             Text(
                 buildAnnotatedString {
                     withStyle(
@@ -489,7 +494,7 @@ fun FormsContent(
                         }
                     OutlinedTextField(
                         modifier = Modifier
-                            .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                         readOnly = true,
                         value = mentorName,
                         placeholder = { Text("Выберите") },

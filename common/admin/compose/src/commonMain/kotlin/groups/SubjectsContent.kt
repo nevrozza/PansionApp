@@ -18,12 +18,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Person
@@ -35,6 +39,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -63,13 +68,18 @@ import components.CustomTextField
 import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
+import components.cClickable
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
+import groups.students.StudentsComponent
+import groups.students.StudentsStore
 import groups.subjects.SubjectsComponent
 import groups.subjects.SubjectsStore
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import users.UsersStore
 import view.LocalViewManager
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -77,12 +87,13 @@ import view.LocalViewManager
 @Composable
 fun SubjectsContent(
     component: SubjectsComponent,
+    sComponent: StudentsComponent,
     coroutineScope: CoroutineScope,
     topPadding: Dp
 ) {
-    val gModel = component.groupModel.subscribeAsState().value
-    val model = component.model.subscribeAsState().value
-    val nSModel = component.nSubjectsInterface.networkModel.subscribeAsState().value
+    val gModel by component.groupModel.subscribeAsState()
+    val model by component.model.subscribeAsState()
+    val nSModel by component.nSubjectsInterface.networkModel.subscribeAsState()
     val viewManager = LocalViewManager.current
     Box() {
 //    Spacer(Modifier.height(10.dp))
@@ -136,7 +147,8 @@ fun SubjectsContent(
                                         onClick = {
                                             component.onEvent(
                                                 SubjectsStore.Intent.FetchStudents(
-                                                    group.id
+                                                    group.id,
+                                                    false
                                                 )
                                             )
                                         }
@@ -208,8 +220,64 @@ fun SubjectsContent(
                                         if (model.currentGroup == group.id) {
                                             val list = model.students[group.id]
                                             list?.forEach { student ->
-                                                Text("${student.fio.surname} ${student.fio.name}${if (list.last() != student) ", " else ""}")
+                                                val isGoingToDelete = remember { mutableStateOf(false) }
+                                                Text("${student.fio.surname} ${student.fio.name}${if (list.last() != student) ", " else ""}", modifier = Modifier.cClickable {
+                                                    isGoingToDelete.value = !isGoingToDelete.value
+                                                })
+                                                if (isGoingToDelete.value) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            sComponent.onEvent(StudentsStore.Intent.DeleteStudentGroup(
+                                                                login = student.login,
+                                                                subjectId = group.group.subjectId,
+                                                                groupId = group.id,
+                                                                afterAll = { component.onEvent(SubjectsStore.Intent.FetchStudents(group.id, true)) }
+                                                            ))
+                                                        },
+                                                        modifier = Modifier.size(25.dp)
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Rounded.Close, null
+                                                        )
+                                                    }
+                                                }
                                             }
+                                            val isWannaCreate = remember { mutableStateOf(false) }
+                                            Column {
+                                                if (isWannaCreate.value) {
+                                                    CustomTextField(
+                                                        value = model.addStudentToGroupLogin,
+                                                        onValueChange = {
+                                                            component.onEvent(SubjectsStore.Intent.ChangeAddStudentToGroupLogin(it))
+//                                                            component.onEvent(UsersStore.Intent.ChangeESurname(it))
+                                                        },
+                                                        text = "ФИО",
+                                                        isEnabled = true,
+                                                        onEnterClicked = {
+                                                            if (model.addStudentToGroupLogin.isNotBlank() && model.addStudentToGroupLogin !in (model.students[model.currentGroup]?.map { it.fio.surname + " " + it.fio.name + " " + it.fio.praname } ?: listOf())) {
+                                                                component.onEvent(SubjectsStore.Intent.AddStudentToGroup)
+                                                            } else {
+                                                                component.onEvent(SubjectsStore.Intent.ChangeAddStudentToGroupLogin(""))
+                                                            }
+//                                                            focusManager.moveFocus(FocusDirection.Next)
+                                                        },
+//                                                        focusManager = focusManager,
+                                                        isMoveUpLocked = true,
+                                                        autoCorrect = false,
+                                                        keyboardType = KeyboardType.Text
+                                                    )
+                                                } else {
+                                                    IconButton(
+                                                        onClick = { isWannaCreate.value = true },
+                                                        modifier = Modifier.size(25.dp)
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Rounded.Add, null
+                                                        )
+                                                    }
+                                                }
+                                            }
+
                                         }
                                     }
                                 }
@@ -296,7 +364,7 @@ fun SubjectsContent(
                 model.eTeacherLogin,
                 model.eDifficult
             )
-            num = properties.count { (it ?: "").isNotBlank() }
+            num = properties.count { it.isNotBlank() }
 //                        if (model.cBirthday.length == 8) num++
             Text(
                 buildAnnotatedString {
@@ -371,7 +439,7 @@ fun SubjectsContent(
                         }
                     OutlinedTextField(
                         modifier = Modifier
-                            .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                         readOnly = true,
                         value = mentorName,
                         placeholder = { Text("Выберите") },

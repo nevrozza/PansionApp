@@ -34,6 +34,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -331,7 +332,7 @@ private fun BottomSheetContent(
             ) {
                 OutlinedTextField(
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth(.6f), // menuAnchor modifier must be passed to the text field for correctness.
                     readOnly = true,
                     value = studentsMap[model.bsStudentLogin] ?: "",
@@ -410,7 +411,7 @@ private fun BottomSheetContent(
             ) {
                 OutlinedTextField(
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth(.7f), // menuAnchor modifier must be passed to the text field for correctness.
                     readOnly = true,
                     value = model.subjects[model.bsSubjectId] ?: "",
@@ -612,7 +613,7 @@ private fun EditBottomSheetContent(
             ) {
                 OutlinedTextField(
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth(.7f), // menuAnchor modifier must be passed to the text field for correctness.
                     readOnly = true,
                     value = model.subjects[model.bsSubjectId] ?: "",
@@ -680,7 +681,7 @@ private fun EditBottomSheetContent(
             ) {
                 OutlinedTextField(
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth(.5f), // menuAnchor modifier must be passed to the text field for correctness.
                     readOnly = true,
                     value = studentsMap[model.bsStudentLogin] ?: "",

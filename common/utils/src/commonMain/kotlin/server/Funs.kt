@@ -143,10 +143,10 @@ fun fetchTitle(reasonId: String): String {
 
 fun LocalDate.daysShift(days: Int): LocalDate = when {
     days < 0 -> {
-        minus(DateTimeUnit.DayBased(-days))
+        minus(1, DateTimeUnit.DayBased(-days))
     }
     days > 0 -> {
-        plus(DateTimeUnit.DayBased(days))
+        plus(1, DateTimeUnit.DayBased(days))
     }
     else -> this
 }

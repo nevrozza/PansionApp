@@ -1,9 +1,5 @@
 package com.nevrozq.pansion.database.homework
 
-import com.nevrozq.pansion.database.homework.HomeTasksDone.autoIncrement
-import com.nevrozq.pansion.database.homework.HomeTasksDone.uniqueIndex
-import org.jetbrains.exposed.sql.Query
-
 //val id = HomeTasks.integer("id").autoIncrement().uniqueIndex()
 //private val date = this.varchar("date", 10)
 //private val time = this.varchar("time", 5)

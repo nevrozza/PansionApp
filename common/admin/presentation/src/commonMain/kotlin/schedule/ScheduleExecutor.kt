@@ -6,15 +6,12 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
-import components.mpChose.mpChoseComponent
-import components.mpChose.mpChoseStore
+import components.mpChose.MpChoseComponent
+import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.datetime.DayOfWeek
 import schedule.ScheduleStore.Intent
 import schedule.ScheduleStore.Label
 import schedule.ScheduleStore.State
@@ -24,8 +21,8 @@ import server.toMinutes
 class ScheduleExecutor(
     private val adminRepository: AdminRepository,
     private val nInterface: NetworkInterface,
-    private val mpCreateItem: mpChoseComponent,
-    private val mpEditItem: mpChoseComponent,
+    private val mpCreateItem: MpChoseComponent,
+    private val mpEditItem: MpChoseComponent,
     private val listCreateTeacher: ListComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
@@ -88,7 +85,7 @@ class ScheduleExecutor(
             }
 
             is Intent.StartEdit -> scope.launch {
-                mpEditItem.onEvent(mpChoseStore.Intent.ShowDialog)
+                mpEditItem.onEvent(MpChoseStore.Intent.ShowDialog)
                 dispatch(Message.EditStarted(index = intent.index, formId = intent.formId))
             }
 
@@ -132,7 +129,7 @@ class ScheduleExecutor(
                                 newItems
                             )
                         )
-                        mpEditItem.onEvent(mpChoseStore.Intent.HideDialog)
+                        mpEditItem.onEvent(MpChoseStore.Intent.HideDialog)
                     }
                 }
             }
@@ -144,7 +141,7 @@ class ScheduleExecutor(
                     list.removeAt(intent.index)
                     scope.launch {
                         dispatch(Message.ItemsUpdated(list))
-                        mpEditItem.onEvent(mpChoseStore.Intent.HideDialog)
+                        mpEditItem.onEvent(MpChoseStore.Intent.HideDialog)
                     }
                 }
             }

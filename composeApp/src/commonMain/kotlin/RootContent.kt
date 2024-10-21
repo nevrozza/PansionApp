@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalSplitPaneApi::class)
 
+//import root.RootComponent.Child.AdminMentors
 import admin.AdminComponent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -25,19 +26,20 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
+import androidx.compose.material.icons.rounded.Cake
 import androidx.compose.material.icons.rounded.Diversity1
 import androidx.compose.material.icons.rounded.EditCalendar
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.LibraryBooks
-import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Token
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -59,7 +61,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,53 +85,43 @@ import dev.chrisbanes.haze.hazeChild
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
-import forks.splitPane.rememberSplitPaneState
+import groups.GroupsContent
+import home.HomeStore
 import journal.JournalComponent
+import journal.JournalStore
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import mentoring.MentoringComponent
+import mentoring.MentoringContent
 import root.RootComponent
 import root.RootComponent.Child
 import root.RootComponent.Child.AdminGroups
-//import root.RootComponent.Child.AdminMentors
 import root.RootComponent.Child.AdminUsers
+import root.RootComponent.Child.HomeSettings
 import root.RootComponent.Child.LessonReport
 import root.RootComponent.Child.MainAdmin
 import root.RootComponent.Child.MainHome
 import root.RootComponent.Child.MainJournal
-import root.store.RootStore
-import server.Moderation
-import server.Roles
-import view.LocalViewManager
-import view.ViewManager
-import view.WindowScreen
-import groups.GroupsContent
-import home.HomeStore
-import journal.JournalStore
-import mentoring.MentoringComponent
-import mentoring.MentoringContent
-import root.RootComponent.Child.HomeSettings
 import root.RootComponent.Child.MainMentoring
 import root.RootComponent.Child.MainRating
+import root.RootComponent.Child.MainSchool
 import root.RootComponent.Config
 import root.RootComponent.RootCategories.Admin
 import root.RootComponent.RootCategories.Home
 import root.RootComponent.RootCategories.Journal
 import root.RootComponent.RootCategories.Mentoring
-import server.getDate
-import view.WindowCalculator
-import androidx.compose.material.icons.rounded.Cake
-import androidx.compose.material.icons.rounded.Token
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
-import root.RootComponent.Child.MainSchool
 import root.RootComponent.RootCategories.School
+import root.store.RootStore
 import school.SchoolComponent
+import server.Moderation
+import server.Roles
 import server.cut
-import kotlin.reflect.KClass
+import server.getDate
+import view.LocalViewManager
+import view.ViewManager
+import view.WindowCalculator
+import view.WindowScreen
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -172,7 +167,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     Moderation.both
                 )) && component.isMentoring == null
             ) NavigationItem(
-                icon = Icons.Rounded.LibraryBooks,
+                icon = Icons.AutoMirrored.Rounded.LibraryBooks,
                 label = "Журнал",
                 category = Journal,
                 onClickOutput = RootComponent.Output.NavigateToJournal
@@ -235,10 +230,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 )
             ) {
                 val aniPadding by animateDpAsState(
-                    if ((!isVertical) && childStack.active.configuration !in listOf(
-                            Config.AuthActivation,
-                            Config.AuthLogin
-                        )
+                    if ((!isVertical) && childStack.active.configuration !is Config.AuthLogin && childStack.active.configuration !is Config.AuthActivation
                     ) 80.dp else 0.dp
                 )
 
@@ -976,10 +968,7 @@ fun CustomNavigationRail(
     items: List<NavigationItem?>
 ) {
     AnimatedVisibility(
-        visible = !isVertical && childStack.active.configuration !in listOf(
-            Config.AuthActivation,
-            Config.AuthLogin
-        ),
+        visible = !isVertical && childStack.active.configuration !is Config.AuthActivation && childStack.active.configuration !is Config.AuthLogin,
         enter = fadeIn(animationSpec = tween(300)) +
                 slideInHorizontally { -it },
         exit = fadeOut(animationSpec = tween(300)) + slideOutHorizontally { -it },
@@ -1025,7 +1014,7 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         Config.AdminParents -> Admin
 
         Config.AuthActivation -> Home
-        Config.AuthLogin -> Home
+        is Config.AuthLogin -> Home
 
         is Config.HomeAllGroupMarks -> Home
         is Config.HomeDetailedStups -> Home

@@ -3,9 +3,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.unit.Dp
 
 @Composable
-expect fun KeyboardHeight(): Dp
+expect fun keyboardHeight(): Dp
 
 @Composable
-expect fun MutableKeyboardHeight(): MutableState<Dp>
+expect fun mutableKeyboardHeight(): MutableState<Dp>
 
 //val mguComposeImage = mguImage.image.toPainter()

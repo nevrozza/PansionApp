@@ -1,15 +1,14 @@
 package root
 
+//import mentors.MentorsComponent
+//import students.StudentsComponent
 import AuthRepository
 import FIO
-import lessonReport.LessonReportComponent
-import ReportData
 import SettingsComponent
 import achievements.AdminAchievementsComponent
 import achievements.HomeAchievementsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
-import admin.groups.forms.Form
 import allGroupMarks.AllGroupMarksComponent
 import applicationVersion
 import asValue
@@ -22,66 +21,38 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.bringToFront
-import com.arkivanov.decompose.value.Value
-
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.popToFirst
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.webhistory.WebHistoryController
+import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.essenty.statekeeper.StateKeeper
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
-import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
 import di.Inject
 import dnevnikRuMarks.DnevnikRuMarksComponent
 import formRating.FormRatingComponent
-import formRating.FormRatingReducer
 import groups.GroupsComponent
 import home.HomeComponent
 import home.HomeStore
 import homeTasks.HomeTasksComponent
 import journal.JournalComponent
 import journal.JournalStore
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
+import lessonReport.LessonReportComponent
 import lessonReport.LessonReportComponent.Output
 import login.LoginComponent
 import mentoring.MentoringComponent
 import mentoring.MentoringStore
 import parents.AdminParentsComponent
-import parents.AdminParentsStore
 import profile.ProfileComponent
 import qr.QRComponent
 import rating.RatingComponent
 import rating.RatingStore
-import report.ReportHeader
-//import mentors.MentorsComponent
 import root.RootComponent.Child
-import root.RootComponent.Companion.WEB_PATH_ADMIN_CABINETS
-import root.RootComponent.Companion.WEB_PATH_ADMIN_CALENDAR
-import root.RootComponent.Companion.WEB_PATH_ADMIN_GROUPS
-import root.RootComponent.Companion.WEB_PATH_ADMIN_SCHEDULE
-import root.RootComponent.Companion.WEB_PATH_ADMIN_USERS
-import root.RootComponent.Companion.WEB_PATH_AUTH_ACTIVATION
-import root.RootComponent.Companion.WEB_PATH_AUTH_LOGIN
-import root.RootComponent.Companion.WEB_PATH_HOME_ALL_GROUP_MARKS
-import root.RootComponent.Companion.WEB_PATH_HOME_DETAILED_STUPS
-import root.RootComponent.Companion.WEB_PATH_HOME_DNEVNIK_RU_MARKS
-import root.RootComponent.Companion.WEB_PATH_HOME_PROFILE
-import root.RootComponent.Companion.WEB_PATH_HOME_SETTINGS
-import root.RootComponent.Companion.WEB_PATH_HOME_TASKS
-import root.RootComponent.Companion.WEB_PATH_JOURNAL_LESSON_REPORT
-import root.RootComponent.Companion.WEB_PATH_MAIN_ADMIN
-import root.RootComponent.Companion.WEB_PATH_MAIN_HOME
-import root.RootComponent.Companion.WEB_PATH_MAIN_JOURNAL
-import root.RootComponent.Companion.WEB_PATH_MAIN_RATING
 import root.RootComponent.Config
 import root.store.RootStore
 import root.store.RootStoreFactory
@@ -89,7 +60,6 @@ import schedule.ScheduleComponent
 import school.SchoolComponent
 import server.Roles
 import studentLines.StudentLinesComponent
-//import students.StudentsComponent
 import users.UsersComponent
 import kotlin.reflect.KClass
 
@@ -369,7 +339,8 @@ class RootComponentImpl(
                     LoginComponent(
                         componentContext = childContext,
                         storeFactory = storeFactory,
-                        output = ::onLoginOutput
+                        output = ::onLoginOutput,
+                        login = config.login
                     )
                 )
             }
@@ -889,7 +860,7 @@ class RootComponentImpl(
 
     private fun onActivationOutput(output: ActivationComponent.Output): Unit =
         when (output) {
-            ActivationComponent.Output.NavigateToLogin -> navigation.bringToFront(Config.AuthLogin)
+            is ActivationComponent.Output.NavigateToLogin -> navigation.bringToFront(Config.AuthLogin(login = output.login))
             ActivationComponent.Output.NavigateToMain -> navigateAfterAuth()
             ActivationComponent.Output.GoToScanner -> navigation.bringToFront(
                 Config.QRScanner(

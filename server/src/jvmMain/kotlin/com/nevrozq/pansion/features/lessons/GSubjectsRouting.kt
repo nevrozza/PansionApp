@@ -8,6 +8,10 @@ fun Application.configureLessonsRouting() {
     routing {
         val lessonsController = LessonsController()
 
+        post(RequestPaths.Lessons.AddStudentToGroupFromSubject) {
+            lessonsController.addStudentToGroupFromSubject(call)
+        }
+
         post(RequestPaths.Main.FetchChildrenNotifications) {
             lessonsController.fetchMainChildrenNotifications(call)
         }

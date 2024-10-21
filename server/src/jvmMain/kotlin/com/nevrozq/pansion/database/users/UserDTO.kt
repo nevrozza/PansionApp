@@ -17,7 +17,8 @@ data class UserDTO(
     val moderation: String,
     val isParent: Boolean,
     val avatarId: Int,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val subjectId: Int?
 )
 
 fun UserDTO.mapToUser() =
@@ -36,5 +37,6 @@ fun UserDTO.mapToUser() =
             isParent = this.isParent
         ),
         avatarId = this.avatarId,
-        isActive = this.isActive
+        isActive = this.isActive,
+        subjectId = this.subjectId
     )

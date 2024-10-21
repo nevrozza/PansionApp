@@ -187,7 +187,7 @@ interface RootComponent : BackHandlerOwner {
     @Serializable
     sealed interface Config {
         @Serializable
-        data object AuthLogin : Config
+        data class AuthLogin(val login: String) : Config
 
         @Serializable
         data object AuthActivation : Config

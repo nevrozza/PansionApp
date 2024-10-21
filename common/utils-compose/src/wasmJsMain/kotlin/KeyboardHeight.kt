@@ -5,7 +5,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-actual fun KeyboardHeight(): Dp = 0.dp
+actual fun keyboardHeight(): Dp = 0.dp
 
 @Composable
-actual fun MutableKeyboardHeight(): MutableState<Dp> = mutableStateOf(0.dp)
+actual fun mutableKeyboardHeight(): MutableState<Dp> = mutableStateOf(0.dp)

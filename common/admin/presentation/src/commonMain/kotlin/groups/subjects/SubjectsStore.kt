@@ -37,6 +37,8 @@ interface SubjectsStore : Store<Intent, State, Label> {
         val eName: String = "",
         val eTeacherLogin: String = "",
         val eDifficult: String = "",
+
+        val addStudentToGroupLogin: String = ""
     )
 
     sealed interface Intent {
@@ -46,7 +48,7 @@ interface SubjectsStore : Store<Intent, State, Label> {
         data class EditSubject(val sameCount: Int) : Intent
         data class EditSubjectInit(val subjectId: Int, val text: String) : Intent
 
-        data class FetchStudents(val groupId: Int) : Intent
+        data class FetchStudents(val groupId: Int, val openAfterThis: Boolean) : Intent
         data class ClickOnSubject(val subjectId: Int) : Intent
 
         data class ChangeCSubjectText(val text: String) : Intent
@@ -67,6 +69,10 @@ interface SubjectsStore : Store<Intent, State, Label> {
 
         data object DeleteGroup : Intent
         data object EditGroup : Intent
+
+        data class ChangeAddStudentToGroupLogin(val login: String) : Intent
+
+        data object AddStudentToGroup : Intent
 
 
 //        data class ChangeCreatingSheetShowing(val isShowing: Boolean) : Intent
@@ -95,6 +101,8 @@ interface SubjectsStore : Store<Intent, State, Label> {
         data class ENameChanged(val name: String) : Message
         data class ETeacherLoginChanged(val teacherLogin: String) : Message
         data class EDifficultChanged(val difficult: String) : Message
+
+        data class AddStudentToGroupLoginChanged(val login: String) : Message
     }
 
     sealed interface Label

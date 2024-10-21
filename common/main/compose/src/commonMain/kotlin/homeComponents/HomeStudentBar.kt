@@ -28,8 +28,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ManageSearch
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
-import androidx.compose.material.icons.rounded.ManageSearch
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -192,7 +192,7 @@ fun LazyListScope.homeStudentBar(
                     modifier = Modifier.align(Alignment.BottomEnd)
                 ) {
                     Icon(
-                        Icons.Rounded.ManageSearch, null
+                        Icons.AutoMirrored.Rounded.ManageSearch, null
                     )
                 }
             }

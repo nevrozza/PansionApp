@@ -5,7 +5,6 @@ import SettingsRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.backhandler.BackCallback
-import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
@@ -80,7 +79,7 @@ class ActivationComponent(
 
     sealed class Output {
         data object NavigateToMain : Output()
-        data object NavigateToLogin : Output()
+        data class NavigateToLogin(val login: String) : Output()
         data object GoToScanner : Output()
     }
 }

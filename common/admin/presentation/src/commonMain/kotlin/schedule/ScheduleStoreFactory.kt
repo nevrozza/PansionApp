@@ -2,22 +2,20 @@ package schedule
 
 import AdminRepository
 import com.arkivanov.mvikotlin.core.store.Store
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.listDialog.ListComponent
-import components.mpChose.mpChoseComponent
+import components.mpChose.MpChoseComponent
 import components.networkInterface.NetworkInterface
 import schedule.ScheduleStore.Intent
 import schedule.ScheduleStore.Label
 import schedule.ScheduleStore.State
-import schedule.ScheduleStore.Message
 
 class ScheduleStoreFactory(
     private val storeFactory: StoreFactory,
     private val adminRepository: AdminRepository,
     private val nInterface: NetworkInterface,
-    private val mpCreateItem: mpChoseComponent,
-    private val mpEditItem: mpChoseComponent,
+    private val mpCreateItem: MpChoseComponent,
+    private val mpEditItem: MpChoseComponent,
     private val listCreateTeacher: ListComponent
 ) {
 

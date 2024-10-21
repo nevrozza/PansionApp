@@ -1,6 +1,5 @@
 package components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOutExpo
@@ -9,18 +8,14 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -135,10 +130,10 @@ fun LoadingAnimation(
                 animationSpec = infiniteRepeatable(
                     animation = keyframes {
                         durationMillis = 1200
-                        0.0f at 0 with LinearOutSlowInEasing
-                        1.0f at 300 with LinearOutSlowInEasing
-                        0.0f at 600 with LinearOutSlowInEasing
-                        0.0f at 1200 with LinearOutSlowInEasing
+                        0.0f at 0 using LinearOutSlowInEasing
+                        1.0f at 300 using LinearOutSlowInEasing
+                        0.0f at 600 using LinearOutSlowInEasing
+                        0.0f at 1200 using LinearOutSlowInEasing
                     },
                     repeatMode = RepeatMode.Restart
                 )

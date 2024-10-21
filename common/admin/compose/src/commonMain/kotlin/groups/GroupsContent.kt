@@ -53,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
@@ -236,7 +237,8 @@ fun GroupsContent(
 //                            }
 //                        }
 
-                    }
+                    },
+                    isTransparentHaze = isHaze
                 )
                 AnimatedVisibility(
                     model.view == GroupsStore.Views.Students
@@ -492,6 +494,7 @@ fun GroupsContent(
                                     }
                                     SubjectsContent(
                                         component = component.subjectsComponent,
+                                        sComponent = component.studentsComponent,
                                         coroutineScope = coroutineScope,
                                         topPadding = padding.calculateTopPadding()
                                     )
@@ -646,7 +649,7 @@ fun GroupsContent(
                     formsModel.cFormMentorLogin,
                     formsModel.cFormClassNum
                 )
-                num = properties.count { (it ?: "").isNotBlank() }
+                num = properties.count { (it).isNotBlank() }
                 Text(
                     buildAnnotatedString {
                         withStyle(
@@ -763,7 +766,7 @@ fun GroupsContent(
                             }
                         OutlinedTextField(
                             modifier = Modifier
-                                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                             readOnly = true,
                             value = mentorName,
                             placeholder = { Text("Выберите") },
@@ -847,7 +850,7 @@ fun GroupsContent(
                     subjectsModel.cTeacherLogin,
                     subjectsModel.cDifficult
                 )
-                num = properties.count { (it ?: "").isNotBlank() }
+                num = properties.count { (it).isNotBlank() }
 //                        if (model.cBirthday.length == 8) num++
                 Text(
                     buildAnnotatedString {
@@ -902,7 +905,7 @@ fun GroupsContent(
                     Spacer(Modifier.height(7.dp))
 
                     val teachersMap =
-                        model.teachers.associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}." }
+                        model.teachers.sortedWith(compareBy({ it.subjectId != subjectsModel.chosenSubjectId }, {it.fio.surname})) .associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}." }
 
                     ExposedDropdownMenuBox(
                         expanded = expandedTeachers,
@@ -921,7 +924,7 @@ fun GroupsContent(
                             }
                         OutlinedTextField(
                             modifier = Modifier
-                                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                             readOnly = true,
                             value = mentorName,
                             placeholder = { Text("Выберите") },

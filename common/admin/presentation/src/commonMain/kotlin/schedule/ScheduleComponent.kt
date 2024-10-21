@@ -3,12 +3,11 @@ package schedule
 import AdminRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
-import components.mpChose.mpChoseComponent
+import components.mpChose.MpChoseComponent
 import components.networkInterface.NetworkInterface
 import di.Inject
 
@@ -22,12 +21,12 @@ class ScheduleComponent(
         storeFactory,
         "scheduleComponentNInterface"
     )
-    val mpCreateItem = mpChoseComponent(
+    val mpCreateItem = MpChoseComponent(
         componentContext,
         storeFactory,
         name = "mpChoseCreateScheduleItem"
     )
-    val mpEditItem = mpChoseComponent(
+    val mpEditItem = MpChoseComponent(
         componentContext,
         storeFactory,
         name = "mpChoseEditScheduleItem"

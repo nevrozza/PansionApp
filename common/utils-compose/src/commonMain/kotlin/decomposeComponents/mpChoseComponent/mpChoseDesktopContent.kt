@@ -10,39 +10,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
 import components.LoadingAnimation
-import components.listDialog.ListComponent
-import components.listDialog.ListDialogStore
-import components.mpChose.mpChoseComponent
-import components.mpChose.mpChoseStore
+import components.mpChose.MpChoseComponent
+import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import view.LocalViewManager
@@ -51,7 +39,7 @@ import view.WindowScreen
 
 @Composable
 fun mpChoseDesktopContent(
-    component: mpChoseComponent,
+    component: MpChoseComponent,
     offset: DpOffset = DpOffset(x = 40.dp, y = -25.dp),
     backButton: (() -> Unit)? = null,
     content: @Composable () -> Unit
@@ -80,9 +68,9 @@ fun mpChoseDesktopContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropdownVariant(
-    component: mpChoseComponent,
+    component: MpChoseComponent,
     viewManager: ViewManager,
-    model: mpChoseStore.State,
+    model: MpChoseStore.State,
     nModel: NetworkInterface.NetworkModel,
     isTooltip: Boolean,
     offset: DpOffset,
@@ -95,7 +83,7 @@ fun DropdownVariant(
         DropdownMenu(
             expanded = model.isDialogShowing && isTooltip,
             onDismissRequest = {
-                component.onEvent(mpChoseStore.Intent.HideDialog)
+                component.onEvent(MpChoseStore.Intent.HideDialog)
             },
             modifier = Modifier.animateContentSize(), //.sizeIn(maxHeight = 200.dp)
             offset = offset

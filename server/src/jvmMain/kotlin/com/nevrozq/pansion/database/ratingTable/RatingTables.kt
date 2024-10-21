@@ -88,7 +88,7 @@ private fun initItems(login: String, r: RTables): MutableList<AddItem> {
         } else if (date in getPreviousWeekDays()) {
             previousWeekAchievements.add(it)
         }
-        if (epoch >= start.toEpochDays() && (end == null || epoch < (end?.toEpochDays() ?: 0))) {
+        if (epoch >= start.toEpochDays() && (end == null || epoch < (end.toEpochDays() ?: 0))) {
             moduleAchievements.add(it)
         }
     }
@@ -164,7 +164,7 @@ private fun initItems(login: String, r: RTables): MutableList<AddItem> {
         } else if (date in getPreviousWeekDays()) {
             subjectsPreviousWeekAchievements.add(it)
         }
-        if (epoch >= start.toEpochDays() && (end == null || epoch < (end?.toEpochDays() ?: 0))) {
+        if (epoch >= start.toEpochDays() && (end == null || epoch < (end.toEpochDays() ?: 0))) {
             subjectsModuleAchievements.add(it)
         }
     }
@@ -431,7 +431,7 @@ fun updateRatings() {
                     } else if (date in getPreviousWeekDays()) {
                         previousWeekAchievements.add(it)
                     }
-                    if (epoch >= start.toEpochDays() && (end == null || epoch < (end?.toEpochDays()
+                    if (epoch >= start.toEpochDays() && (end == null || epoch < (end.toEpochDays()
                             ?: 0))
                     ) {
                         moduleAchievements.add(it)

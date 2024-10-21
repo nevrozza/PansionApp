@@ -53,6 +53,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
@@ -210,9 +211,15 @@ fun HomeContent(
         } else null,
         changeToUV = if (model.isMentor) { reportId, login ->
             component.studentReportDialog.dialog.onEvent(CBottomSheetStore.Intent.HideSheet)
-            component.onEvent(HomeStore.Intent.ChangeToUv(reportId = reportId, login = login, isDeep = true))
+            component.onEvent(
+                HomeStore.Intent.ChangeToUv(
+                    reportId = reportId,
+                    login = login,
+                    isDeep = true
+                )
+            )
         } else null
-        )
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -225,6 +232,7 @@ fun OtherHomeContent(
     val model by component.model.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
+    val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
     Scaffold(
         Modifier.fillMaxSize()
             .onKeyEvent {
@@ -281,7 +289,8 @@ fun OtherHomeContent(
             )
             this.homeTeacherGroupsContent(
                 model = model,
-                component = component
+                component = component,
+                teacherNInterface = nTeacherModel
             )
 
             this.homeChildrenNotificationsContent(
@@ -319,7 +328,13 @@ fun TeacherHomeContent(
         val lazyListState = rememberLazyListState()
         val coroutineScope = rememberCoroutineScope()
 
-        val isMainView = lazyListState.firstVisibleItemIndex in listOf(0, 1)
+        val itHotsShouldBe = (model.isMentor || model.isParent)
+
+        val groupsItems = if(!(model.teacherGroups.isEmpty() && nTeacherModel.state == NetworkState.None)) 2 + model.teacherGroups.size else 0
+        val childrenNotsItems = 2 + if(!(model.notChildren.isEmpty() && nQuickTabModel.state == NetworkState.None ) && itHotsShouldBe) model.notChildren.size else 0
+
+        val isMainView =
+            lazyListState.firstVisibleItemIndex in (0..(groupsItems + childrenNotsItems + 1)).toList()
 
         val refreshing =
             (nTeacherModel.state == NetworkState.Loading || nScheduleModel.state == NetworkState.Loading)
@@ -365,11 +380,7 @@ fun TeacherHomeContent(
                         title = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 AnimatedContent(
-                                    targetState = if (lazyListState.firstVisibleItemIndex !in listOf(
-                                            0,
-                                            1,
-                                            2
-                                        )
+                                    targetState = if (!isMainView
                                     ) {
                                         val str = model.currentDate.second.substring(
                                             0,
@@ -417,7 +428,8 @@ fun TeacherHomeContent(
                                 }
                             }
 
-                        }
+                        },
+                        isTransparentHaze = isHaze
                     )
                     AnimatedVisibility(model.isDatesShown && !isMainView) {
                         DatesLine(
@@ -441,7 +453,8 @@ fun TeacherHomeContent(
                 ) {
                     this.homeTeacherGroupsContent(
                         model = model,
-                        component = component
+                        component = component,
+                        teacherNInterface = nTeacherModel
                     )
                     this.homeKidsContent(
                         model = model,
@@ -760,8 +773,7 @@ fun StudentHomeContent(
                         }
 
                     },
-                    isTransparentHaze = isHaze,
-                    isHaze = isHaze
+                    isTransparentHaze = isHaze
                 )
                 AnimatedVisibility(model.isDatesShown && !isMainView) {
                     DatesLine(
@@ -990,7 +1002,7 @@ fun Lesson(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                             )
                         ) {
-                            append(title.capitalize())
+                            append(title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
                         }
                         withStyle(
                             SpanStyle(
@@ -1010,7 +1022,7 @@ fun Lesson(
                             )
                         ) {
                             append("\n")
-                            append(group.capitalize())
+                            append(group.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
                         }
                         withStyle(
                             SpanStyle(
@@ -1035,7 +1047,10 @@ fun Lesson(
                         }
 
                     }, lineHeight = 17.sp,
-                        modifier = Modifier.clickable(interactionSource = MutableInteractionSource(), indication = null) { isSurnameShown.value = !isSurnameShown.value })
+                        modifier = Modifier.clickable(
+                            interactionSource = MutableInteractionSource(),
+                            indication = null
+                        ) { isSurnameShown.value = !isSurnameShown.value })
                 }
             }
 
@@ -1231,7 +1246,7 @@ fun TeacherGroupButton(component: HomeComponent, it: TeacherGroup, modifier: Mod
                     append(it.cutedGroup.groupName)
                 }
             )
-            Icon(Icons.Rounded.ArrowForwardIos, null)
+            Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null)
         }
     }
 }
@@ -1274,7 +1289,9 @@ fun RecentMarkContent(
         Modifier.padding(PaddingValues(start = 5.dp, top = 5.dp))
             .border(
                 width = if (isNotStups) 0.dp else 1.dp,
-                color = if (isNotStups) Color.Transparent else MaterialTheme.colorScheme.outline.copy(if(cutedReason != "!ds") 1f else 0f),
+                color = if (isNotStups) Color.Transparent else MaterialTheme.colorScheme.outline.copy(
+                    if (cutedReason != "!ds") 1f else 0f
+                ),
                 shape = RoundedCornerShape(30)
             )
 
@@ -1282,7 +1299,13 @@ fun RecentMarkContent(
             .background(
                 markColor
             )
-            .then(if(cutedReason == "!ds") Modifier.dashedBorder(3.dp, color = MaterialTheme.colorScheme.outline, cornerRadiusDp = 16.dp) else Modifier)
+            .then(
+                if (cutedReason == "!ds") Modifier.dashedBorder(
+                    3.dp,
+                    color = MaterialTheme.colorScheme.outline,
+                    cornerRadiusDp = 16.dp
+                ) else Modifier
+            )
 
             .then(addModifier),
         contentAlignment = Alignment.Center
@@ -1311,7 +1334,10 @@ fun RecentMarkContent(
             Box(
                 Modifier.padding(top = 10.dp, end = 10.dp).align(Alignment.TopEnd).size(5.dp).clip(
                     CircleShape
-                ).background(colors[mark] ?: if (viewManager.colorMode.value == "1") Color.Black else Color.Red) //MaterialTheme.colorScheme.primary
+                ).background(
+                    colors[mark]
+                        ?: if (viewManager.colorMode.value == "1") Color.Black else Color.Red
+                ) //MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -1359,8 +1385,6 @@ fun LoadingCircleAnimation(
 }
 
 
-
-
 val dotSize = 24.dp // made it bigger for demo
 val delayUnit = 300 // you can change delay to change animation speed
 
@@ -1389,8 +1413,8 @@ fun DotsPulsing() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = delayUnit * 4
-                0f at delay with LinearEasing
-                1f at delay + delayUnit with LinearEasing
+                0f at delay using LinearEasing
+                1f at delay + delayUnit using LinearEasing
                 0f at delay + delayUnit * 2
             }
         )
@@ -1440,8 +1464,8 @@ fun DotsElastic() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = delayUnit * 4
-                minScale at delay with LinearEasing
-                1f at delay + delayUnit with LinearEasing
+                minScale at delay using LinearEasing
+                1f at delay + delayUnit using LinearEasing
                 minScale at delay + delayUnit * 2
             }
         )
@@ -1491,8 +1515,8 @@ fun DotsFlashing(modifier: Modifier = Modifier) {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = delayUnit * 4
-                minAlpha at delay with LinearEasing
-                1f at delay + delayUnit with LinearEasing
+                minAlpha at delay using LinearEasing
+                1f at delay + delayUnit using LinearEasing
                 minAlpha at delay + delayUnit * 2
             }
         )
@@ -1543,8 +1567,8 @@ fun DotsTyping() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = delayUnit * 4
-                0f at delay with LinearEasing
-                maxOffset at delay + delayUnit with LinearEasing
+                0f at delay using LinearEasing
+                maxOffset at delay + delayUnit using LinearEasing
                 0f at delay + delayUnit * 2
             }
         )
@@ -1595,8 +1619,8 @@ fun DotsCollision() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = delayUnit * 3
-                0f at 0 with LinearEasing
-                -maxOffset at delayUnit / 2 with LinearEasing
+                0f at 0 using LinearEasing
+                -maxOffset at delayUnit / 2 using LinearEasing
                 0f at delayUnit
             }
         )
@@ -1607,8 +1631,8 @@ fun DotsCollision() {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = delayUnit * 3
-                0f at delayUnit with LinearEasing
-                maxOffset at delayUnit + delayUnit / 2 with LinearEasing
+                0f at delayUnit using LinearEasing
+                maxOffset at delayUnit + delayUnit / 2 using LinearEasing
                 0f at delayUnit * 2
             }
         )

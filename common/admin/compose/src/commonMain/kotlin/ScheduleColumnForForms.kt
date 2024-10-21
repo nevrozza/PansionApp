@@ -6,54 +6,28 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.DeleteOutline
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
@@ -62,18 +36,11 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import components.CustomTextButton
-import components.CustomTextField
-import components.mpChose.mpChoseStore
+import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
-import components.networkInterface.NetworkState
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
 import schedule.ScheduleComponent
 import schedule.ScheduleStore
-import schedule.ScheduleStore.EditState
-import schedule.ScheduleTiming
-import schedule.timingsPairs
-import server.isTimeFormat
 import server.toMinutes
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -82,7 +49,7 @@ fun LazyItemScope.ScheduleColumnForForms(
     component: ScheduleComponent,
     model: ScheduleStore.State,
     nModel: NetworkInterface.NetworkModel,
-    mpModel: mpChoseStore.State,
+    mpModel: MpChoseStore.State,
     scrollState: ScrollState,
     minuteHeight: Dp,
     dayStartTime: String,
@@ -96,9 +63,9 @@ fun LazyItemScope.ScheduleColumnForForms(
         it.id in model.students.filter { s -> s.login in form.logins }.flatMap { s -> s.groups.map { it.first } }
     }
 
+    Modifier.width(200.dp).padding(end = 5.dp)
     Box(
-        Modifier.width(200.dp).padding(end = 5.dp)
-            .animateItemPlacement()
+        Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
     ) {
         val headerState = remember {
             MutableTransitionState(false).apply {
@@ -132,7 +99,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                     )
                     Text(
                         text = "${form.logins.size}",
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 5.dp, bottom = 2.dp)
+                        modifier = Modifier.align(Alignment.BottomEnd)
+                            .padding(end = 5.dp, bottom = 2.dp)
                     )
                 }
 //                }

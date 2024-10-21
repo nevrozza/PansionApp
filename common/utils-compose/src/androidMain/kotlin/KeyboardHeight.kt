@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.Dp
 import kotlin.math.absoluteValue
 
 @Composable
-actual fun KeyboardHeight(): Dp {
+actual fun keyboardHeight(): Dp {
     val density = LocalDensity.current
     val pxValue = WindowInsets.ime.getBottom(LocalDensity.current)
     return with(density) { pxValue.toDp() }
 }
 
 @Composable
-actual fun MutableKeyboardHeight(): MutableState<Dp> {
+actual fun mutableKeyboardHeight(): MutableState<Dp> {
     val density = LocalDensity.current
     val pxValue = WindowInsets.ime.getBottom(LocalDensity.current)
     val keyboardHeight = remember { mutableStateOf(with(density) { pxValue.toDp() }) }

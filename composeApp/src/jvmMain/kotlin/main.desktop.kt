@@ -44,6 +44,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.loadImageBitmap
@@ -98,6 +100,7 @@ import org.jetbrains.jewel.window.styling.TitleBarStyle
 import resources.Images
 import root.RootComponentImpl
 import server.DeviceTypex
+import server.cut
 import view.AppTheme
 import view.LocalViewManager
 import view.ThemeTint
@@ -425,17 +428,14 @@ fun Button(
             modifier = Modifier
                 .clickable(onClick = onClick)
                 .size(size.dp, size.dp)
-                .pointerMoveFilter(
-                    onEnter = {
-                        buttonHover.value = true
-                        false
-                    },
-                    onExit = {
-                        buttonHover.value = false
-                        false
-                    },
-                    onMove = { false }
-                )
+                .onPointerEvent(PointerEventType.Move) {
+                }
+                .onPointerEvent(PointerEventType.Enter) {
+                    buttonHover.value = true
+                }
+                .onPointerEvent(PointerEventType.Exit) {
+                    buttonHover.value = false
+                }
         ) {
             Text(text = text)
         }
@@ -449,7 +449,7 @@ fun ComposeWindow.setMinSize(width: Int, height: Int) =
 fun getDeviceName(): String? {
     try {
         val localhost = InetAddress.getLocalHost()
-        return localhost.hostName
+        return localhost.hostName.cut(20)
     } catch (e: Throwable) {
         e.printStackTrace()
     }

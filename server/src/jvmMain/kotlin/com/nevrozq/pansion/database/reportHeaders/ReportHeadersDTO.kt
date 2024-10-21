@@ -1,11 +1,5 @@
 package com.nevrozq.pansion.database.reportHeaders
 
-import admin.groups.Group
-import admin.groups.GroupInit
-import admin.groups.forms.CutedGroup
-import com.nevrozq.pansion.database.subjects.Subjects
-import journal.init.TeacherGroup
-
 
 data class ReportHeadersDTO(
     val id: Int = -1,

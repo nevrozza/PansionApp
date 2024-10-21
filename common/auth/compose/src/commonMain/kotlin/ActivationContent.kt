@@ -5,9 +5,6 @@ import activation.ActivationStore
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.EaseInQuad
-import androidx.compose.animation.core.EaseOutQuad
-import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
@@ -16,13 +13,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
-import components.AnimatedCommonButton
-import components.AnimatedElevatedButton
-import components.CustomTextButton
-import components.CustomTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,27 +29,16 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.ArrowBackIos
-import androidx.compose.material.icons.rounded.AutoMode
-import androidx.compose.material.icons.rounded.Cake
-import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
 import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.QrCodeScanner
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
@@ -67,14 +46,11 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -83,8 +59,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onPlaced
@@ -95,30 +69,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.AnimatedCommonButton
+import components.AnimatedElevatedButton
 import components.BottomThemePanel
+import components.CustomTextButton
+import components.CustomTextField
 import components.LoadingAnimation
-import components.MarkContent
 import forks.colorPicker.toHex
 import kotlinx.coroutines.launch
-import login.LoginComponent
-import login.LoginStore
 import resources.Images
-import server.fetchReason
-import view.defaultDarkPalette
-import view.defaultLightPalette
-import view.greenDarkPalette
-import view.greenLightPalette
-import view.redDarkPalette
-import view.redLightPalette
-import view.yellowDarkPalette
-import view.yellowLightPalette
-import view.AppTheme
 import view.LocalViewManager
-import view.ThemeTint
 import view.bringIntoView
-import view.dynamicDarkScheme
-import view.dynamicLightScheme
-import view.handy
 import view.rememberImeState
 
 
@@ -164,6 +125,9 @@ fun ActivationContent(
                 onDispose {
                     if (model.isErrorShown) {
                         coroutineScope.launch {
+                            if(model.error == "Данный аккаунт уже активирован") {
+                                component.onOutput(ActivationComponent.Output.NavigateToLogin(login = model.login))
+                            }
                             hostState.value.showSnackbar(message = model.error)
                         }
                     } else {
@@ -274,7 +238,7 @@ fun ActivationContent(
                                         modifier = Modifier.padding(start = 35.dp)
                                     ) {
                                         CustomTextButton("Уже активирован") {
-                                            component.onOutput(ActivationComponent.Output.NavigateToLogin)
+                                            component.onOutput(ActivationComponent.Output.NavigateToLogin(""))
                                         }
                                         Spacer(Modifier.width(5.dp))
 
@@ -405,7 +369,7 @@ fun ActivationContent(
                                     OutlinedButton(
                                         contentPadding = PaddingValues(horizontal = 15.dp),
                                         onClick = {
-                                            component.onOutput(ActivationComponent.Output.NavigateToLogin)
+                                            component.onOutput(ActivationComponent.Output.NavigateToLogin(""))
                                         }) {
                                         Text("Уже активирован")
                                     }
@@ -449,7 +413,7 @@ fun ActivationContent(
                                         }
                                     ) {
                                         Icon(
-                                            Icons.Rounded.ArrowBackIos,
+                                            Icons.AutoMirrored.Rounded.ArrowBackIos,
                                             null
                                         )
                                     }

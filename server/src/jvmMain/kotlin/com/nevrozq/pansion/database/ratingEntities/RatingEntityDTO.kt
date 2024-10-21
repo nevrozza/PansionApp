@@ -1,10 +1,5 @@
 package com.nevrozq.pansion.database.ratingEntities
 
-import admin.groups.Group
-import admin.groups.GroupInit
-import admin.groups.forms.CutedGroup
-import com.nevrozq.pansion.database.subjects.Subjects
-import journal.init.TeacherGroup
 //val groupId = this.integer("groupId")
 //    val reportId = this.integer("reportId")
 //    val login = this.varchar("login", 30)

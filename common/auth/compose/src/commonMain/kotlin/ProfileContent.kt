@@ -86,9 +86,11 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
+import components.CustomCheckbox
 import components.CustomTextButton
 import components.GetAvatar
 import components.cBottomSheet.CBottomSheetStore
+import components.cClickable
 import components.hazeHeader
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
@@ -514,7 +516,7 @@ fun ProfileContent(
                 SubjectItem(
                     title = s.second,
                     isChecked = s.first in model.giaSubjects,
-                    modifier = Modifier.animateItemPlacement()
+                    modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                 ) {
 
                     if (model.isOwner && model.isCanEdit) {
@@ -542,16 +544,13 @@ private fun SubjectItem(
     onClick: (Boolean) -> Unit
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(.8f),
+        modifier = modifier.cClickable { onClick(!isChecked) }.fillMaxWidth(.8f),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(title)
-        Checkbox(
-            checked = isChecked,
-            onCheckedChange = {
-                onClick(it)
-            }
+        CustomCheckbox(
+            checked = isChecked
         )
     }
 }

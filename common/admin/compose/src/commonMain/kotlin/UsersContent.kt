@@ -6,7 +6,6 @@ import admin.users.UserInit
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +28,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -37,23 +35,25 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -86,17 +86,21 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import components.AnimatedCommonButton
 import components.AppBar
+import components.CustomCheckbox
 import components.CustomTextButton
 import components.CustomTextField
 import components.LoadingAnimation
 import components.networkInterface.NetworkState
 import components.ScrollBaredBox
 import components.cBottomSheet.CBottomSheetStore
+import components.cClickable
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
+import excel.importStudents
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -105,7 +109,6 @@ import kotlinx.datetime.toLocalDateTime
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
-import server.Moderation
 import server.Roles
 import server.twoNums
 import users.UsersComponent
@@ -162,7 +165,7 @@ fun UsersContent(
                         )
                     ) {
                         Text(
-                            "Пользователи",
+                            "Пользователи  ",
 
                             fontSize = 25.sp,
                             fontWeight = FontWeight.Black,
@@ -171,87 +174,101 @@ fun UsersContent(
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { component.onEvent(
+                            modifier = Modifier.cClickable { component.onEvent(
                                 UsersStore.Intent.FTeachers(!model.fTeachers)
                             ) }
                         ) {
-                            Checkbox(
-                                checked = model.fTeachers,
-                                onCheckedChange = {}
+                            CustomCheckbox(
+                                checked = model.fTeachers
                             )
                             Text("Учителя")
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable {
+                            modifier = Modifier.cClickable {
                                 component.onEvent(
                                     UsersStore.Intent.FStudents(!model.fStudents)
                                 )
-                            }
+                            }.padding(start = 7.dp)
                         ) {
-                            Checkbox(
-                                checked = model.fStudents,
-                                onCheckedChange = {}
+                            CustomCheckbox(
+                                checked = model.fStudents
                             )
                             Text("Ученики")
                         }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable {
+                            modifier = Modifier.cClickable {
                                 component.onEvent(
                                     UsersStore.Intent.FOther(!model.fOther)
                                 )
-                            }
+                            }.padding(start = 7.dp)
                         ) {
-                            Checkbox(
-                                checked = model.fOther,
-                                onCheckedChange = {}
+                            CustomCheckbox(
+                                checked = model.fOther
                             )
 
                             Text("Другое")
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable {
+                            modifier = Modifier.cClickable {
                                 component.onEvent(
                                     UsersStore.Intent.FParents(!model.fParents)
                                 )
-                            }
+                            }.padding(start = 7.dp)
                         ) {
-                            Checkbox(
-                                checked = model.fParents,
-                                onCheckedChange = {}
+                            CustomCheckbox(
+                                checked = model.fParents
                             )
                             Text("Родители")
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable {
+                            modifier = Modifier.cClickable {
                                 component.onEvent(
                                     UsersStore.Intent.FNoAdmin(!model.fNoAdmin)
                                 )
-                            }
+                            }.padding(start = 7.dp)
                         ) {
-                            Checkbox(
-                                checked = model.fNoAdmin,
-                                onCheckedChange = {}
+                            CustomCheckbox(
+                                checked = model.fNoAdmin
                             )
                             Text("Не админ")
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable {
+                            modifier = Modifier.cClickable {
                                 component.onEvent(
                                     UsersStore.Intent.FInActive(!model.fInActive)
                                 )
-                            }
+                            }.padding(start = 7.dp)
                         ) {
-                            Checkbox(
-                                checked = model.fInActive,
-                                onCheckedChange = {}
+                            CustomCheckbox(
+                                checked = model.fInActive
                             )
                             Text("Inactive")
+                        }
+
+                        var showFilePicker by remember { mutableStateOf(false) }
+
+
+                        FilePicker(show = showFilePicker) { platformFile ->
+                            showFilePicker = false
+                            if (platformFile != null) {
+                                importStudents(platformFile.path, component)
+                            }
+                        }
+
+                        IconButton(
+                            onClick = {
+                                showFilePicker = !showFilePicker
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.UploadFile, null
+                            )
                         }
                     }
                 },
@@ -315,7 +332,7 @@ fun UsersContent(
                         model.users != null -> {
                             val users = model.users!!.filter {
                                 val isInActive =
-                                    if (!model.fInActive) it.user.fio.surname[0] != '.' else true
+                                    if (!model.fInActive) it.isActive else true
                                 val moder =
                                     if (!model.fNoAdmin) it.user.moderation != Roles.nothing else true
                                 val parent =
@@ -324,7 +341,7 @@ fun UsersContent(
                                         && moder
                                         && isInActive
                                         && parent
-                            }
+                            }.sortedWith(compareBy({!it.isActive}, {it.user.fio.surname}))
                             TableScreen(
                                 columnNames,
                                 widthsInit = widthsInit,
@@ -336,9 +353,9 @@ fun UsersContent(
                                             columnNames[1] to it.login,
                                             columnNames[2] to if (it.isProtected) "есть" else "нет",
                                             columnNames[3] to try {
-                                                it.user.birthday!!.substring(0, 2) +
-                                                        "." + it.user.birthday!!.substring(2, 4) +
-                                                        "." + it.user.birthday!!.substring(4)
+                                                it.user.birthday.substring(0, 2) +
+                                                        "." + it.user.birthday.substring(2, 4) +
+                                                        "." + it.user.birthday.substring(4)
                                             } catch (_: Throwable) {
                                                 "null"
                                             },
@@ -371,7 +388,8 @@ fun UsersContent(
                                         ),
                                         avatarId = users[it].avatarId,
                                         isProtected = users[it].isProtected,
-                                        isActive = users[it].isActive
+                                        isActive = users[it].isActive,
+                                        subjectId = users[it].subjectId
                                     )
                                     component.onEvent(
                                         UsersStore.Intent.OpenEditingSheet(
@@ -702,7 +720,7 @@ private fun editUserSheet(
                         // textfield
                         OutlinedTextField(
                             modifier = Modifier
-                                .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                             readOnly = true,
                             value = when (model.eRole) {
                                 Roles.teacher -> "Учитель"
@@ -824,7 +842,7 @@ private fun editUserSheet(
 
                     if (isActive) {
                         AnimatedVisibility(
-                            !model.eIsMentor && !model.eIsParent && !model.eIsModerator
+                            !model.eIsMentor && !model.eIsModerator
                         ) {
                             CustomTextButton(if (model.eRole == Roles.student) "Отчислить" else "Удалить") {
                                 component.onEvent(UsersStore.Intent.DeleteAccountInit(model.eLogin))
@@ -1171,7 +1189,7 @@ private fun createUserSheet(
                             // textfield
                             OutlinedTextField(
                                 modifier = Modifier
-                                    .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                                 readOnly = true,
                                 value = when (model.cRole) {
                                     Roles.teacher -> "Учитель"
@@ -1215,6 +1233,58 @@ private fun createUserSheet(
                             }
                         }
                         Spacer(Modifier.height(7.dp))
+                        if (model.cRole == Roles.teacher) {
+                            var expandedSubjects by remember { mutableStateOf(false) }
+
+                            ExposedDropdownMenuBox(
+                                expanded = expandedSubjects,
+                                onExpandedChange = {
+                                    expandedSubjects = !expandedSubjects
+                                }
+                            ) {
+
+                                // textfield
+                                OutlinedTextField(
+                                    modifier = Modifier
+                                        .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
+                                    readOnly = true,
+                                    value = model.subjects[model.cSubjectId] ?: "",
+                                    placeholder = { Text("Выберите") },
+                                    onValueChange = {},
+                                    label = { Text("Предмет") },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(
+                                            expanded = expandedSubjects
+                                        )
+                                    },
+                                    shape = RoundedCornerShape(15.dp),
+                                    enabled = !isCreatingInProcess
+                                )
+                                // menu
+                                ExposedDropdownMenu(
+                                    expanded = expandedSubjects,
+                                    onDismissRequest = {
+                                        expandedSubjects = false
+                                    },
+                                ) {
+                                    // menu items
+                                    (model.subjects).forEach { selectionOption ->
+                                        DropdownMenuItem(
+                                            text = { Text("${selectionOption.key} ${selectionOption.value}" ) },
+                                            onClick = {
+                                                component.onEvent(
+                                                    UsersStore.Intent.ChangeCSubjectId(
+                                                        selectionOption.key
+                                                    )
+                                                )
+                                                expandedSubjects = false
+                                            },
+                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                        )
+                                    }
+                                }
+                            }
+                        }
                         if (model.cRole != Roles.student) {
                             Row(
                                 Modifier.width(TextFieldDefaults.MinWidth)
@@ -1304,7 +1374,7 @@ private fun createUserSheet(
                                 // textfield
                                 OutlinedTextField(
                                     modifier = Modifier
-                                        .menuAnchor(), // menuAnchor modifier must be passed to the text field for correctness.
+                                        .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                                     readOnly = true,
                                     value = if (form != null) "${form.classNum} ${form.title}" else "",
                                     placeholder = { Text("Выберите") },
@@ -1499,9 +1569,10 @@ fun TableScreen(
                 columnNames.onEachIndexed { index, i ->
                     if (index != widths.size - 1) {
                         Spacer(Modifier.width(widths[i]!! - 0.5.dp))
-                        Divider(
-                            Modifier.height(allHeight.value).width(1.dp),
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
+                        VerticalDivider(
+                            Modifier.height(allHeight.value),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+                            thickness = 1.dp
                         )
                     }
                 }
@@ -1560,9 +1631,10 @@ fun TableScreen(
                 }
 
 
-                Divider(
-                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp).height(1.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
+                HorizontalDivider(
+                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+                    thickness = 1.dp
                 )
                 LazyColumn(
                     modifier = Modifier,
@@ -1617,10 +1689,10 @@ fun TableScreen(
                             }
                             Spacer(Modifier.height(5.dp))
                             if (index != rows.lastIndex) {
-                                Divider(
-                                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp)
-                                        .height(1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
+                                HorizontalDivider(
+                                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+                                    thickness = 1.dp
                                 )
                             }
                         }

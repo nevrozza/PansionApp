@@ -10,7 +10,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -55,7 +54,6 @@ import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -99,12 +97,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
+import components.CustomCheckbox
 import components.CustomTextButton
 import components.CustomTextField
 import components.DateButton
 import components.SaveAnimation
+import components.cClickable
 import components.listDialog.ListDialogStore
-import components.mpChose.mpChoseStore
+import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
@@ -438,7 +438,7 @@ fun ScheduleContent(
                                 items(
                                     items = model.forms.toList().sortedWith(
                                         compareBy({ it.second.num }, { it.second.shortTitle })
-                                    ).reversed() ?: emptyList(),
+                                    ).reversed(),
                                     key = { it.first }) { form ->
                                     ScheduleColumnForForms(
                                         component = component,
@@ -508,7 +508,7 @@ private fun LazyItemScope.ScheduleColumn(
     component: ScheduleComponent,
     model: ScheduleStore.State,
     nModel: NetworkInterface.NetworkModel,
-    mpModel: mpChoseStore.State,
+    mpModel: MpChoseStore.State,
     scrollState: ScrollState,
     minuteHeight: Dp,
     dayStartTime: String,
@@ -520,9 +520,9 @@ private fun LazyItemScope.ScheduleColumn(
     val c = model.teachers.first { it.login == login }
     val cabinet = model.cabinets.firstOrNull { it.login == login }
 
+    Modifier.width(200.dp).padding(end = 5.dp)
     Box(
-        Modifier.width(200.dp).padding(end = 5.dp)
-            .animateItemPlacement()
+        Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
     ) {
         val headerState = remember {
             MutableTransitionState(false).apply {
@@ -564,7 +564,7 @@ private fun LazyItemScope.ScheduleColumn(
                     IconButton(
                         onClick = {
                             with(component) {
-                                mpCreateItem.onEvent(mpChoseStore.Intent.ShowDialog)
+                                mpCreateItem.onEvent(MpChoseStore.Intent.ShowDialog)
                                 onEvent(
                                     ScheduleStore.Intent.ciStart(
                                         c.login
@@ -593,26 +593,26 @@ private fun LazyItemScope.ScheduleColumn(
                                 model.ciId == null -> {
                                     (model.teachers.first { it.login == c.login }.groups.filter { it.second }
                                         .sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
-                                        val group =
-                                            model.groups.firstOrNull { it.id == s.first }
-                                        if (group != null) {
-                                            val subject =
-                                                model.subjects.firstOrNull { it.id == group.subjectId }
-                                            if (subject != null) {
-                                                DropdownMenuItem(
-                                                    text = { Text("${subject.name}  ${group.name}") },
-                                                    onClick = {
-                                                        component.onEvent(
-                                                            ScheduleStore.Intent.ciChooseGroup(
-                                                                s.first
+                                            val group =
+                                                model.groups.firstOrNull { it.id == s.first }
+                                            if (group != null) {
+                                                val subject =
+                                                    model.subjects.firstOrNull { it.id == group.subjectId }
+                                                if (subject != null) {
+                                                    DropdownMenuItem(
+                                                        text = { Text("${subject.name}  ${group.name}") },
+                                                        onClick = {
+                                                            component.onEvent(
+                                                                ScheduleStore.Intent.ciChooseGroup(
+                                                                    s.first
+                                                                )
                                                             )
-                                                        )
-                                                    },
-                                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                                )
+                                                        },
+                                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                                    )
+                                                }
                                             }
                                         }
-                                    }
                                 }
 
                                 !model.ciPreview -> {
@@ -633,8 +633,7 @@ private fun LazyItemScope.ScheduleColumn(
                                         Text("Загрузка..")
                                     } else {
                                         CustomTextField(
-                                            value = model.ciCabinet.toString()
-                                                ?: "",
+                                            value = model.ciCabinet.toString(),
                                             onValueChange = {
                                                 if (it == "") {
                                                     component.onEvent(
@@ -905,7 +904,7 @@ private fun LazyItemScope.ScheduleColumn(
                                             Text(model.ciCabinet.toString())
                                             Row(
                                                 Modifier.height(40.dp)
-                                                    .clickable(
+                                                    .cClickable(
 //                                                        interactionSource = remember { MutableInteractionSource() },
 //                                                        null
                                                     ) {
@@ -915,12 +914,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                     },
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Checkbox(
-                                                    checked = model.ciIsPair,
-                                                    onCheckedChange = {},
-                                                    modifier = Modifier.size(
-                                                        40.dp
-                                                    )
+                                                CustomCheckbox(
+                                                    checked = model.ciIsPair
                                                 )
                                                 Text("Ещё урок")
                                             }
@@ -947,7 +942,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                         ) {
                                                             if (!model.ciIsPair) {
                                                                 mpCreateItem.onEvent(
-                                                                    mpChoseStore.Intent.HideDialog
+                                                                    MpChoseStore.Intent.HideDialog
                                                                 )
                                                             }
                                                             onEvent(
@@ -1369,38 +1364,38 @@ private fun LazyItemScope.ScheduleColumn(
 
                                                 EditState.Groups -> (model.teachers.first { it.login == c.login }.groups.filter { it.second }
                                                     .sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
-                                                    val egroup =
-                                                        model.groups.firstOrNull { it.id == s.first }
-                                                    if (egroup != null) {
-                                                        val esubject =
-                                                            model.subjects.firstOrNull { it.id == egroup.subjectId }
-                                                        if (esubject != null) {
-                                                            DropdownMenuItem(
-                                                                text = {
-                                                                    Text(
-                                                                        "${esubject.name}  ${egroup.name}"
-                                                                    )
-                                                                },
-                                                                onClick = {
-                                                                    component.onEvent(
-                                                                        ScheduleStore.Intent.eiCheck(
-                                                                            cabinet = cabinetik,
-                                                                            login = login,
-                                                                            id = s.first,
-                                                                            s = t
+                                                        val egroup =
+                                                            model.groups.firstOrNull { it.id == s.first }
+                                                        if (egroup != null) {
+                                                            val esubject =
+                                                                model.subjects.firstOrNull { it.id == egroup.subjectId }
+                                                            if (esubject != null) {
+                                                                DropdownMenuItem(
+                                                                    text = {
+                                                                        Text(
+                                                                            "${esubject.name}  ${egroup.name}"
                                                                         )
-                                                                    )
-                                                                    component.onEvent(
-                                                                        ScheduleStore.Intent.eiChooseGroup(
-                                                                            s.first
+                                                                    },
+                                                                    onClick = {
+                                                                        component.onEvent(
+                                                                            ScheduleStore.Intent.eiCheck(
+                                                                                cabinet = cabinetik,
+                                                                                login = login,
+                                                                                id = s.first,
+                                                                                s = t
+                                                                            )
                                                                         )
-                                                                    )
-                                                                },
-                                                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                                            )
+                                                                        component.onEvent(
+                                                                            ScheduleStore.Intent.eiChooseGroup(
+                                                                                s.first
+                                                                            )
+                                                                        )
+                                                                    },
+                                                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                                                )
+                                                            }
                                                         }
                                                     }
-                                                }
 
                                                 EditState.Timings -> {
                                                     var isCustomTime by remember {

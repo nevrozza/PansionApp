@@ -10,9 +10,7 @@ struct iOSApp: App {
         WindowGroup {
     //            ContentView()
             ZStack {
-//                Color.init(hex: 0xFF050B18)
-//                    .ignoresSafeArea()
-                MainComposeView()
+                MainComposeView().ignoresSafeArea()
             }
         }
     }

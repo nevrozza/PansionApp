@@ -31,6 +31,7 @@ import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
+import admin.groups.subjects.RAddStudentToGroup
 import admin.groups.subjects.REditGroupReceive
 import admin.groups.subjects.topBar.RDeleteSubject
 import admin.groups.subjects.topBar.REditSubjectReceive
@@ -39,10 +40,12 @@ import admin.groups.subjects.topBar.RCreateSubjectReceive
 import admin.parents.RFetchParentsListResponse
 import admin.parents.RUpdateParentsListReceive
 import admin.schedule.RFetchInitScheduleResponse
+import admin.users.RCreateExcelStudentsReceive
 import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
 import admin.users.RDeleteUserReceive
 import admin.users.RFetchAllUsersResponse
+import admin.users.ToBeCreatedStudent
 import admin.users.UserInit
 import ktor.KtorAdminRemoteDataSource
 import schedule.RFetchScheduleDateReceive
@@ -51,6 +54,10 @@ import schedule.RScheduleList
 class AdminRepositoryImpl(
     private val remoteDataSource: KtorAdminRemoteDataSource
 ) : AdminRepository {
+    override suspend fun addStudentToGroup(r: RAddStudentToGroup) {
+        return remoteDataSource.addStudentToGroup(r)
+    }
+
     override suspend fun fetchParents(): RFetchParentsListResponse {
         return remoteDataSource.fetchParents()
     }
@@ -103,7 +110,7 @@ class AdminRepositoryImpl(
         )
     }
 
-    override suspend fun registerUser(user: UserInit, parents: List<String>?, formId: Int): RCreateUserResponse {
+    override suspend fun registerUser(user: UserInit, parents: List<String>?, formId: Int, subjectId: Int?): RCreateUserResponse {
         return remoteDataSource.performRegistrationUser(
             RRegisterUserReceive(
                 userInit = UserInit(
@@ -118,8 +125,15 @@ class AdminRepositoryImpl(
                     isParent = user.isParent
                 ),
                 parentFIOs = parents,
-                formId = formId
+                formId = formId,
+                subjectId = subjectId
             )
+        )
+    }
+
+    override suspend fun registerExcelStudents(students: List<ToBeCreatedStudent>) {
+        remoteDataSource.createExcelStudents(
+            RCreateExcelStudentsReceive(students)
         )
     }
 

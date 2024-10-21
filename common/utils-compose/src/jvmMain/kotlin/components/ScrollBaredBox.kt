@@ -40,8 +40,8 @@ actual fun ScrollBaredBox(
         thickness = l.thickness,
         shape = l.shape,
         hoverDurationMillis = l.hoverDurationMillis,
-        unhoverColor = MaterialTheme.colorScheme.surfaceColorAtElevation((0.5).dp),
-        hoverColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+        unhoverColor = MaterialTheme.colorScheme.surfaceColorAtElevation((10).dp),
+        hoverColor = MaterialTheme.colorScheme.surfaceColorAtElevation(40.dp)
     )
     Box(modifier) {
         Box(

@@ -1,9 +1,5 @@
 package com.nevrozq.pansion.database.subjects
 
-import admin.groups.Subject
-import com.nevrozq.pansion.database.groups.GroupDTO
-import com.nevrozq.pansion.database.groups.Groups
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -65,6 +61,13 @@ object Subjects : Table() {
             }
         }
     }
+    fun fetchAllActiveSubjectsAsMap(): Map<Int, String> {
+        return transaction {
+            Subjects.selectAll().filter { it[isActive] }.associate {
+                it[Subjects.id] to it[name]
+            }
+        }
+    }
 
 
     fun fetchAllSubjects(): List<SubjectDTO> {
@@ -79,7 +82,7 @@ object Subjects : Table() {
         return transaction {
             try {
 
-                Subjects.select { Subjects.id eq id }.first()[Subjects.name]
+                Subjects.select { Subjects.id eq id }.first()[name]
             } catch (_: Throwable) {
                 "null"
             }

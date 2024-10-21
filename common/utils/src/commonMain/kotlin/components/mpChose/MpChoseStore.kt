@@ -1,7 +1,7 @@
 package components.mpChose
 
 import com.arkivanov.mvikotlin.core.store.Store
-interface mpChoseStore : Store<mpChoseStore.Intent, mpChoseStore.State, mpChoseStore.Label> {
+interface MpChoseStore : Store<MpChoseStore.Intent, MpChoseStore.State, MpChoseStore.Label> {
 
     data class State(
         val isDialogShowing: Boolean = false

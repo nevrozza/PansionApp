@@ -53,6 +53,7 @@ import view.toTint
 class MainActivity : AppCompatActivity() {
     //@SuppressLint("SourceLockedOrientationActivity")
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class,
         ExperimentalDecomposeApi::class, ExperimentalSplitPaneApi::class
     )

@@ -136,7 +136,7 @@ fun CustomTextField(
         visualTransformation = if (isDateEntry) DateTransformation() else if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(
             keyboardType = if (passwordVisibleInit != null) KeyboardType.Password else keyboardType,
-            autoCorrect = (passwordVisibleInit == null && autoCorrect) || (autoCorrect),
+            autoCorrectEnabled = (passwordVisibleInit == null && autoCorrect) || (autoCorrect),
             imeAction = if (imeAction != ImeAction.None) {
                 imeAction
             } else {

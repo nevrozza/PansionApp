@@ -23,9 +23,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.AssistChip
@@ -69,8 +69,10 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AlphaTestZatichka
 import components.AppBar
 import components.CLazyColumn
+import components.CustomCheckbox
 import components.CustomTextButton
 import components.ReportTitle
+import components.cClickable
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -319,16 +321,15 @@ private fun TrueJournalContent(
                                         }
                                         Spacer(Modifier.width(15.dp))
                                         if(model.isMentor) {
-                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
                                                 component.onEvent(
                                                     JournalStore.Intent.FilterMyChildren(
                                                         !model.filterMyChildren
                                                     )
                                                 )
                                             }) {
-                                                Checkbox(
-                                                    checked = model.filterMyChildren,
-                                                    onCheckedChange = {}
+                                                CustomCheckbox(
+                                                    checked = model.filterMyChildren
                                                 )
                                                 Text("Только мои классы")
                                             }
@@ -526,7 +527,7 @@ fun JournalItemCompose(
                     isEnded = isEnded,
                     module = module.toIntOrNull() ?: 1
                 )
-                Icon(Icons.Rounded.ArrowForwardIos, null)
+                Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null)
             }
         }
     }

@@ -28,5 +28,6 @@ data class User(
     @Serializable
     val avatarId: Int,
     @Serializable
-    val isActive: Boolean
+    val isActive: Boolean,
+    val subjectId: Int?
 )

@@ -31,18 +31,18 @@ class StudentsExecutor(
             is Intent.ChangeCFormGroupSubjectId -> changeCFormGroupSubjectId(intent.subjectId)
             Intent.CreateFormGroup -> createFormGroup(state())
 
-            is Intent.DeleteFormGroup -> deleteFormGroup(subjectId = intent.subjectId, groupId = intent.groupId)
+            is Intent.DeleteStudentGroup -> deleteStudentGroup(login = intent.login, subjectId = intent.subjectId, groupId = intent.groupId, afterAll = intent.afterAll)
         }
     }
 
 
-    private fun deleteFormGroup(subjectId: Int, groupId: Int) {
+    private fun deleteStudentGroup(subjectId: Int, groupId: Int, login: String, afterAll: () -> Unit) {
         scope.launch {
 //            dispatch(Message.CreatingProcessStarted)
             nStudentGroupsInterface.nStartLoading()
             try {
                 adminRepository.deleteStudentGroup(
-                    studentLogin = state().chosenStudentLogin,
+                    studentLogin = login,
                     subjectId = subjectId,
                     groupId = groupId
                 )
@@ -52,6 +52,7 @@ class StudentsExecutor(
 //                    eiGroupId = state.cFormGroupGroupId
 //                )
                 dispatch(Message.FormGroupCreated)
+                afterAll()
 
             } catch (_: Throwable) {
                 with(nStudentGroupsInterface) {

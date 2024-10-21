@@ -1,8 +1,5 @@
 @file:Suppress("OPT_IN_USAGE")
 
-import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyTemplate
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-
 plugins {
     id("com.android.library")
     kotlin("multiplatform")
@@ -18,7 +15,12 @@ kotlin {
     //Targets
     jvm()
     androidTarget()
-    ios()
+
+    applyDefaultHierarchyTemplate()
+
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
 
     js(IR) {

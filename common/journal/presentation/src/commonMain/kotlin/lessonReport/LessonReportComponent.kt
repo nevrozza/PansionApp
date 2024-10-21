@@ -74,7 +74,13 @@ class LessonReportComponent(
         homeTasksTabDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
     }
     private fun onSaveQuitAcceptClick() {
-        onEvent(LessonReportStore.Intent.UpdateWholeReport)
+        if (state.value.isUpdateNeeded) {
+            onEvent(LessonReportStore.Intent.UpdateWholeReport)
+        }
+
+        if (state.value.homeTasksToEditIds.isNotEmpty() || true in state.value.hometasks.map { it.isNew }) {
+            onEvent(LessonReportStore.Intent.SaveHomeTasks)
+        }
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
         onOutput(Output.Back)
     }

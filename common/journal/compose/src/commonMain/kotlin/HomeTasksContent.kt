@@ -1,6 +1,8 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
@@ -56,11 +58,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.GetAvatar
+import components.cClickable
 import components.dashedBorder
 import components.networkInterface.NetworkState
 import homeTasks.HomeTasksComponent
@@ -359,10 +363,12 @@ private fun GroupTaskItems(
             textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
             maxLines = 1
         )
+        Spacer(Modifier.height(5.dp))
         groupTasks.sortedBy { it.id }.forEachIndexed { i, t ->
             TaskItem(task = t, component = component)
+            Spacer(Modifier.height(5.dp))
             if (i != groupTasks.size - 1) {
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(10.dp))
             }
         }
     }
@@ -373,7 +379,7 @@ private fun TaskItem(
     task: ClientHomeworkItem,
     component: HomeTasksComponent
 ) {
-    Row(Modifier.clickable {
+    Row(Modifier.cClickable {
         component.onEvent(
             HomeTasksStore.Intent.CheckTask(
                 taskId = task.id,
@@ -405,6 +411,8 @@ private fun TaskItem(
             textDecoration = if (task.done) TextDecoration.LineThrough else TextDecoration.None,
         )
     }
+
+
 }
 
 @Composable
@@ -431,7 +439,9 @@ private fun CustomCheckBox(
             ),
         contentAlignment = Alignment.Center
     ) {
-        AnimatedVisibility(checked) {
+        AnimatedVisibility(checked,
+            enter = fadeIn(),
+            exit = fadeOut()) {
             Icon(
                 imageVector = Icons.Rounded.Done,
                 contentDescription = null,

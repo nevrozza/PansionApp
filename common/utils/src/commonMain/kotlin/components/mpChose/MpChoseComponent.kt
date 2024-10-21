@@ -12,7 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 
 
-class mpChoseComponent(
+class MpChoseComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     name: String,
@@ -26,7 +26,7 @@ class mpChoseComponent(
     val nModel = nInterface.networkModel
     private val listStore =
         instanceKeeper.getStore(key = name) {
-            mpChoseStoreFactory(
+            MpChoseStoreFactory(
                 storeFactory = storeFactory,
                 name = name,
                 networkInterface = nInterface,
@@ -35,10 +35,10 @@ class mpChoseComponent(
         }
 
 
-    val model: Value<mpChoseStore.State> = listStore.asValue()
+    val model: Value<MpChoseStore.State> = listStore.asValue()
 
     private val backCallback = BackCallback {
-        onEvent(mpChoseStore.Intent.HideDialog)
+        onEvent(MpChoseStore.Intent.HideDialog)
     }
 
 
@@ -47,9 +47,9 @@ class mpChoseComponent(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<mpChoseStore.State> = listStore.stateFlow
+    val state: StateFlow<MpChoseStore.State> = listStore.stateFlow
 
-    fun onEvent(event: mpChoseStore.Intent) {
+    fun onEvent(event: MpChoseStore.Intent) {
         listStore.accept(event)
     }
 

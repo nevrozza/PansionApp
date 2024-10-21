@@ -22,5 +22,6 @@ data class ClientStudentLine(
     val groupName: String,
     val time: String,
     val date: String,
-    val login: String
+    val login: String,
+    val topic: String
 )
