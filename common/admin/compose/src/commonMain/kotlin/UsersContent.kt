@@ -86,7 +86,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import components.AnimatedCommonButton
 import components.AppBar
 import components.CustomCheckbox
@@ -129,10 +128,6 @@ fun UsersContent(
     LockScreenOrientation(-1)
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
-    val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
 
     val refreshState = rememberPullRefreshState(
         (nModel.state == NetworkState.Loading) && model.users != null,
@@ -251,19 +246,18 @@ fun UsersContent(
                             Text("Inactive")
                         }
 
-                        var showFilePicker by remember { mutableStateOf(false) }
+                        val showFilePicker = remember { mutableStateOf(false) }
 
 
-                        FilePicker(show = showFilePicker) { platformFile ->
-                            showFilePicker = false
-                            if (platformFile != null) {
-                                importStudents(platformFile.path, component)
-                            }
+                        CFilePicker(
+                            showFilePicker = showFilePicker
+                        ) {
+                            importStudents(it, component)
                         }
 
                         IconButton(
                             onClick = {
-                                showFilePicker = !showFilePicker
+                                showFilePicker.value = !showFilePicker.value
                             }
                         ) {
                             Icon(

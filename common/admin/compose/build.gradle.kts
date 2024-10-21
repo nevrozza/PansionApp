@@ -16,9 +16,11 @@ kotlin {
 
                 implementation(libs.decompose.core)
                 implementation(libs.decompose.compose)
-
-                implementation(libs.mpfilepicker)
             }
+        }
+
+        jvmMain.dependencies {
+            implementation(libs.mpfilepicker)
         }
     }
 }

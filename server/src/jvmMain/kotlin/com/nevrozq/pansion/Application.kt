@@ -33,18 +33,11 @@ import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.secondLogins.SecondLogins
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.tokens.Tokens
-import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.features.achievements.configureAchievementsRouting
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import org.jetbrains.exposed.sql.Database
-import com.nevrozq.pansion.plugins.configureSerialization
 import com.nevrozq.pansion.features.auth.configureActivationRouting
 import com.nevrozq.pansion.features.homeworks.configureHomeworksRouting
 import com.nevrozq.pansion.features.lessons.configureLessonsRouting
@@ -52,24 +45,24 @@ import com.nevrozq.pansion.features.mentoring.configureMentoringRouting
 import com.nevrozq.pansion.features.reports.configureReportsRouting
 import com.nevrozq.pansion.features.school.configureSchoolRouting
 import com.nevrozq.pansion.features.settings.configureSettingsRouting
-import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
 import com.nevrozq.pansion.plugins.configureCORS
-import com.nevrozq.pansion.plugins.configureHttpsRedirect
-import io.ktor.network.tls.certificates.buildKeyStore
-import io.ktor.network.tls.certificates.saveToFile
-import io.ktor.network.tls.certificates.trustStore
-import io.ktor.network.tls.extensions.HashAlgorithm
-import io.ktor.network.tls.extensions.SignatureAlgorithm
-import io.ktor.server.config.ApplicationConfig
-import io.netty.handler.ssl.SslContextBuilder
+import com.nevrozq.pansion.plugins.configureRouting
+import com.nevrozq.pansion.plugins.configureSerialization
+import io.ktor.server.application.Application
+import io.ktor.server.engine.ApplicationEngine
+import io.ktor.server.engine.ConfigKeys
+import io.ktor.server.engine.applicationEnvironment
+import io.ktor.server.engine.connector
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.engine.sslConnector
+import io.ktor.server.netty.Netty
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import server.getSixTime
@@ -143,20 +136,20 @@ fun main() {
 
     embeddedServer(
         factory = Netty,
-        port = h_port,
-//        environment = applicationEnvironment {
-//            log = LoggerFactory.getLogger("ktor.application")
-//        },
-//        configure = {
-//            configureSSLConnectors(
-//                host = "0.0.0.0",
-//                sslPort = https_port.toString(),
-//                sslKeyStorePath = "keystore.jks",
-//                sslPrivateKeyPassword = sslPass,
-//                sslKeyStorePassword = sslPass,
-//                sslKeyAlias = sslAlias
-//            )
-//        },
+//        port = h_port,
+        environment = applicationEnvironment {
+            log = LoggerFactory.getLogger("ktor.application")
+        },
+        configure = {
+            configureSSLConnectors(
+                host = "0.0.0.0",
+                sslPort = https_port.toString(),
+                sslKeyStorePath = "keystore.jks",
+                sslPrivateKeyPassword = sslPass,
+                sslKeyStorePassword = sslPass,
+                sslKeyAlias = sslAlias
+            )
+        },
         module = Application::module
     )
         .start(wait = true)
