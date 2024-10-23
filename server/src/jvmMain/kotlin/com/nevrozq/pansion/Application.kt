@@ -52,7 +52,6 @@ import com.nevrozq.pansion.plugins.configureSerialization
 import io.ktor.server.application.Application
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.ConfigKeys
-import io.ktor.server.engine.applicationEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.engine.sslConnector
@@ -64,7 +63,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.slf4j.LoggerFactory
 import server.getSixTime
 import java.io.File
 import java.io.FileInputStream
@@ -136,20 +134,20 @@ fun main() {
 
     embeddedServer(
         factory = Netty,
-//        port = h_port,
-        environment = applicationEnvironment {
-            log = LoggerFactory.getLogger("ktor.application")
-        },
-        configure = {
-            configureSSLConnectors(
-                host = "0.0.0.0",
-                sslPort = https_port.toString(),
-                sslKeyStorePath = "keystore.jks",
-                sslPrivateKeyPassword = sslPass,
-                sslKeyStorePassword = sslPass,
-                sslKeyAlias = sslAlias
-            )
-        },
+        port = h_port,
+//        environment = applicationEnvironment {
+//            log = LoggerFactory.getLogger("ktor.application")
+//        },
+//        configure = {
+//            configureSSLConnectors(
+//                host = "0.0.0.0",
+//                sslPort = https_port.toString(),
+//                sslKeyStorePath = "keystore.jks",
+//                sslPrivateKeyPassword = sslPass,
+//                sslKeyStorePassword = sslPass,
+//                sslKeyAlias = sslAlias
+//            )
+//        },
         module = Application::module
     )
         .start(wait = true)

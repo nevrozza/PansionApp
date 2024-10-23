@@ -1,8 +1,9 @@
 package users
 
 import com.arkivanov.mvikotlin.core.store.Reducer
-import users.UsersStore.State
+import server.Roles
 import users.UsersStore.Message
+import users.UsersStore.State
 
 object UsersReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
@@ -16,7 +17,12 @@ object UsersReducer : Reducer<State, Message> {
             is Message.CSurnameChanged -> copy(cSurname = msg.surname)
             is Message.CPranameChanged -> copy(cPraname = msg.praname)
             is Message.CBirthdayChanged -> copy(cBirthday = msg.birthday)
-            is Message.CRoleChanged -> copy(cRole = msg.role)
+            is Message.CRoleChanged -> copy(
+                cRole = msg.role,
+                cIsModerator = if (msg.role == Roles.student) false else cIsModerator,
+                cIsMentor = if (msg.role == Roles.student) false else cIsMentor,
+                cIsParent = if (msg.role == Roles.student) false else cIsParent
+            )
             is Message.CIsModeratorChanged -> copy(cIsModerator = msg.isModerator)
             is Message.CIsMentorChanged -> copy(cIsMentor = msg.isMentor)
             is Message.CIsParentChanged -> copy(cIsParent = msg.isParent)
@@ -43,7 +49,12 @@ object UsersReducer : Reducer<State, Message> {
             is Message.ESurnameChanged -> copy(eSurname = msg.surname)
             is Message.EPranameChanged -> copy(ePraname = msg.praname)
             is Message.EBirthdayChanged -> copy(eBirthday = msg.birthday)
-            is Message.ERoleChanged -> copy(eRole = msg.role)
+            is Message.ERoleChanged -> copy(
+                eRole = msg.role,
+                eIsModerator = if (msg.role == Roles.student) false else eIsModerator,
+                eIsMentor = if (msg.role == Roles.student) false else eIsMentor,
+                eIsParent = if (msg.role == Roles.student) false else eIsParent
+            )
             is Message.EIsModeratorChanged -> copy(eIsModerator = msg.isModerator)
             is Message.EIsMentorChanged -> copy(eIsMentor = msg.isMentor)
             is Message.EIsParentChanged -> copy(eIsParent = msg.isParent)
@@ -57,7 +68,8 @@ object UsersReducer : Reducer<State, Message> {
                 eRole = msg.role,
                 eIsModerator = msg.isModerator,
                 eIsMentor = msg.isMentor,
-                eIsParent = msg.isParent
+                eIsParent = msg.isParent,
+                eSubjectId = msg.subjectId
             )
 
             is Message.CParentFirstFIOChanged -> copy(cParentFirstFIO = msg.fio)
@@ -72,6 +84,14 @@ object UsersReducer : Reducer<State, Message> {
             is Message.FParents -> copy(fParents = msg.isOn, fOther = if (msg.isOn) true else fOther)
             is Message.CSubjectIdChanged -> copy(
                 cSubjectId = msg.subjectId
+            )
+
+            is Message.UserFindUpdate -> copy(
+                userFindField = msg.data
+            )
+
+            is Message.ESubjectIdChange -> copy(
+                eSubjectId = msg.subjectId
             )
         }
     }

@@ -1,25 +1,28 @@
 package activation
 
-import com.arkivanov.mvikotlin.core.store.Store
 import activation.ActivationStore.Intent
 import activation.ActivationStore.State
-import view.Language
-import view.ThemeTint
+import com.arkivanov.mvikotlin.core.store.Store
 
 interface ActivationStore : Store<Intent, State, Nothing> {
     data class State(
         val login: String = "",
         val name: String? = null,
         val password: String = "",
+        val verifyPassword: String = "",
         val step: Step = Step.Login,
         val isInProcess: Boolean = false,
         val error: String = "",
         val isErrorShown: Boolean = false,
         val activated: Boolean = false,
+        val isVerifyingPassword: Boolean = false,
         val logins: List<String> = emptyList()
     )
 
     sealed interface Intent {
+
+        data object ChangeVerify : Intent
+
         data object ResetAll: Intent
         data class InputLogin(val login: String) : Intent
         data class InputPassword(val password: String) : Intent
@@ -30,9 +33,16 @@ interface ActivationStore : Store<Intent, State, Nothing> {
         data object HideError : Intent
 
         data object Init : Intent
+
+        data class ChangeVerifyPassword(val password: String) : Intent
     }
 
     sealed interface Message {
+        data object VerifyChanged : Message
+
+        data class VerifyPasswordChanged(val password: String) : Message
+
+
         data class Inited(val logins: List<String>) : Message
         data object AllReseted: Message
         data class LoginChanged(val login: String) : Message

@@ -1,7 +1,7 @@
+
 import achievements.RCreateAchievementReceive
 import achievements.RDeleteAchievementReceive
 import achievements.REditAchievementReceive
-import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
 import achievements.RUpdateGroupOfAchievementsReceive
 import admin.cabinets.CabinetItem
@@ -9,17 +9,17 @@ import admin.cabinets.RFetchCabinetsResponse
 import admin.calendar.CalendarModuleItem
 import admin.calendar.RFetchCalendarResponse
 import admin.groups.forms.RFetchCutedGroupsResponse
-import admin.groups.forms.outside.RFetchFormsResponse
-import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
-import admin.groups.forms.outside.RFetchMentorsResponse
-import admin.groups.subjects.RFetchTeachersResponse
 import admin.groups.forms.RFetchFormGroupsResponse
 import admin.groups.forms.outside.REditFormReceive
-import admin.groups.students.deep.RFetchStudentGroupsResponse
+import admin.groups.forms.outside.RFetchFormsResponse
+import admin.groups.forms.outside.RFetchMentorsResponse
 import admin.groups.students.RFetchStudentsInFormResponse
+import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.subjects.RAddStudentToGroup
 import admin.groups.subjects.REditGroupReceive
 import admin.groups.subjects.RFetchGroupsResponse
+import admin.groups.subjects.RFetchTeachersResponse
+import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
 import admin.parents.RFetchParentsListResponse
 import admin.parents.RUpdateParentsListReceive
 import admin.schedule.RFetchInitScheduleResponse
@@ -67,7 +67,7 @@ interface AdminRepository {
     suspend fun fetchAllUsers(): RFetchAllUsersResponse
 
     suspend fun clearUserPassword(login: String)//: RClearUserPasswordReceive
-    suspend fun editUser(login: String, user: UserInit)//: REditUserReceive
+    suspend fun editUser(login: String, user: UserInit, subjectId: Int?)//: REditUserReceive
     suspend fun deleteUser(login: String, user: UserInit)//: REditUserReceive
 
     suspend fun fetchAllSubjects(): RFetchAllSubjectsResponse

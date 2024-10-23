@@ -4,16 +4,15 @@ import TeacherGroupButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import home.HomeComponent
@@ -29,18 +28,25 @@ fun LazyListScope.homeTeacherGroupsContent(
                 Text(
                     "Группы",
                     modifier = Modifier.fillMaxWidth(),
-                    fontSize = 20.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
             }
             item {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(2.dp))
             }
-            items(model.teacherGroups, key = {it.cutedGroup.groupId}) {
+            itemsIndexed(model.teacherGroups, key = {i, item -> item.cutedGroup.groupId}) { i, item ->
+                if (i == model.teacherGroups.indexOfFirst { it.subjectId == item.subjectId }) {
+                    Text(item.subjectName,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 12.dp))
+                    Spacer(Modifier.height(4.dp))
+                }
                 TeacherGroupButton(
                     component = component,
-                    it = it,
+                    it = item,
                     modifier = Modifier.animateItem()
                 )
             }

@@ -35,6 +35,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -67,6 +68,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -74,6 +76,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
@@ -128,6 +131,9 @@ fun UsersContent(
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
 
+
+    val isTextFieldShown = remember { mutableStateOf(false) }
+
     val refreshState = rememberPullRefreshState(
         (nModel.state == NetworkState.Loading) && model.users != null,
         { component.onEvent(UsersStore.Intent.FetchUsers) })
@@ -152,6 +158,7 @@ fun UsersContent(
                     }
                 },
                 title = {
+                    val searchBarFocusRequester = remember { FocusRequester() }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.horizontalScroll(
@@ -159,13 +166,53 @@ fun UsersContent(
                         )
                     ) {
                         Text(
-                            "Пользователи  ",
-
+                            "Пользователи",
                             fontSize = 25.sp,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        IconButton(
+                            onClick = {
+                                isTextFieldShown.value = !isTextFieldShown.value
+                                if (!isTextFieldShown.value) {
+                                    component.onEvent(UsersStore.Intent.UpdateUserFind(""))
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.Search, null
+                            )
+                        }
+                        AnimatedVisibility(
+                            isTextFieldShown.value
+                        ) {
+                            Row {
+                                CustomTextField(
+                                    value = model.userFindField,
+                                    onValueChange = {
+                                        component.onEvent(UsersStore.Intent.UpdateUserFind(it))
+//                                component.onEvent(AdminAchievementsStore.Intent.ChangeDate(it))
+                                    },
+                                    text = "Поиск",
+                                    isEnabled = true,
+                                    isMoveUpLocked = true,
+                                    autoCorrect = false,
+                                    keyboardType = KeyboardType.Text,
+                                    focusRequester = searchBarFocusRequester,
+//                            supText = "ФИОЛогин",
+//                            supTextSize = 10.sp,
+//                            textStyle = TextStyle.Default.copy(fontSize = 10.sp),
+                                    width = TextFieldDefaults.MinWidth - 30.dp,
+                                    minHeight = 40.dp,
+                                    modifier = Modifier.onPlaced {
+                                        searchBarFocusRequester.requestFocus()
+                                    }
+                                )
+                                Spacer(Modifier.width(15.dp))
+                            }
+                        }
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.cClickable { component.onEvent(
@@ -330,10 +377,13 @@ fun UsersContent(
                                     if (!model.fNoAdmin) it.user.moderation != Roles.nothing else true
                                 val parent =
                                     if (!model.fParents) !it.user.isParent else true
-                                it.user.role in roles
+                                val fio = with(it.user.fio) {
+                                    "$surname $name $praname"
+                                }
+                                ((it.login.lowercase().contains(model.userFindField.lowercase()) || fio.lowercase().contains(model.userFindField.lowercase())) || model.userFindField.isBlank())  && (it.user.role in roles
                                         && moder
                                         && isInActive
-                                        && parent
+                                        && parent)
                             }.sortedWith(compareBy({!it.isActive}, {it.user.fio.surname}))
                             TableScreen(
                                 columnNames,
@@ -753,6 +803,59 @@ private fun editUserSheet(
                                     },
                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                                 )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(7.dp))
+                    if (model.eRole == Roles.teacher) {
+                        var expandedSubjects by remember { mutableStateOf(false) }
+
+                        ExposedDropdownMenuBox(
+                            expanded = expandedSubjects,
+                            onExpandedChange = {
+                                expandedSubjects = !expandedSubjects
+                            }
+                        ) {
+
+                            // textfield
+                            OutlinedTextField(
+                                modifier = Modifier
+                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
+                                readOnly = true,
+                                value = model.subjects[model.eSubjectId] ?: "",
+                                placeholder = { Text("Выберите") },
+                                onValueChange = {},
+                                label = { Text("Предмет") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(
+                                        expanded = expandedSubjects
+                                    )
+                                },
+                                shape = RoundedCornerShape(15.dp),
+                                enabled = !isEditingInProcess
+                            )
+                            // menu
+                            ExposedDropdownMenu(
+                                expanded = expandedSubjects,
+                                onDismissRequest = {
+                                    expandedSubjects = false
+                                },
+                            ) {
+                                // menu items
+                                (model.subjects).forEach { selectionOption ->
+                                    DropdownMenuItem(
+                                        text = { Text("${selectionOption.key} ${selectionOption.value}" ) },
+                                        onClick = {
+                                            component.onEvent(
+                                                UsersStore.Intent.ChangeESubjectId(
+                                                    selectionOption.key
+                                                )
+                                            )
+                                            expandedSubjects = false
+                                        },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                    )
+                                }
                             }
                         }
                     }

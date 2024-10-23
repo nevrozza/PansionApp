@@ -22,12 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -165,7 +165,8 @@ fun ReportTitle(
 }
 
 @Composable
-fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true) {
+fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true, separator: String = " ", yTextOffset: Dp = 0.dp
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -193,17 +194,19 @@ fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true) {
                             )
                         )
                     ) {
-                        append(" в ${time}")
+                        append("${separator}в ${time}")
                     }
                 }
             },
             fontSize = 14.sp,
+            lineHeight = 14.sp,
             style = androidx.compose.material3.LocalTextStyle.current.copy(
                 lineHeightStyle = LineHeightStyle(
                     alignment = LineHeightStyle.Alignment.Top,
                     trim = LineHeightStyle.Trim.FirstLineTop
                 )
-            )
+            ),
+            modifier = Modifier.offset(y = yTextOffset)
         )
     }
 }

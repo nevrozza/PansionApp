@@ -172,7 +172,7 @@ object Users : Table() {
         newModeration: String,
         newIsParent: Boolean,
         newIsActive: Boolean = true,
-        //newSubjectId: Int?
+        newSubjectId: Int?
     ) {
         try {
             transaction {
@@ -185,7 +185,7 @@ object Users : Table() {
                     it[moderation] = newModeration
                     it[isParent] = newIsParent
                     it[isActive] = newIsActive
-                   // it[subjectId] = newSubjectId
+                    it[subjectId] = newSubjectId
                 }
             }
         } catch (e: Throwable) {

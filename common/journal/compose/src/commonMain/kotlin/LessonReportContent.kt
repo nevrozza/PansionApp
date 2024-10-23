@@ -287,7 +287,7 @@ fun LessonReportContent(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Text(
-                                            text = if (model.topic.isNotEmpty()) model.topic else "Тема не задана",
+                                            text = if (model.topic.isNotEmpty()) model.topic else "Тема не выставлена",
                                             modifier = Modifier.fillMaxWidth()
                                                 .padding(start = 3.dp),
                                             textAlign = TextAlign.Center,
@@ -2248,7 +2248,7 @@ fun LessonReportTopBar(
                 }
                 if (isFullView) {
                     Text(
-                        text = model.topic.ifEmpty { "Тема не задана" },
+                        text = model.topic.ifEmpty { "Тема не выставлена" },
                         modifier = Modifier.fillMaxWidth().padding(start = 3.dp),
                         textAlign = TextAlign.Center,
                         overflow = TextOverflow.Ellipsis,

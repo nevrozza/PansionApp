@@ -23,8 +23,11 @@ import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.benasher44.uuid.uuid4
 import di.Inject
+import forks.colorPicker.toHex
 import forks.splitPane.SplitPaneState
+import kotlinx.browser.document
 import kotlinx.browser.window
+import org.w3c.dom.HTMLMetaElement
 import root.RootComponentImpl
 import view.WindowType
 import server.DeviceTypex
@@ -97,10 +100,20 @@ fun main() {
                     device = WindowType.PC,
                     isJs = true
                 )
+                val hex = MaterialTheme.colorScheme.background.toHex()
+                changeThemeColor(hex)
             }
         }
 
 
+    }
+}
+fun changeThemeColor(newColor: String) {
+    val metaTags = document.head.querySelectorAll("meta[name=theme-color]").asList()
+    val themeColorMetaTag = metaTags.get(0) as HTMLMetaElement?
+
+    if (themeColorMetaTag != null) {
+        themeColorMetaTag.content = newColor
     }
 }
 

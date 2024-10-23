@@ -147,7 +147,8 @@ fun MentoringContent(
                         Icon(Icons.Rounded.Refresh, null)
                     }
 
-                }
+                },
+                isHaze = true
             )
         }
     ) { padding ->

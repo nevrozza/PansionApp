@@ -24,7 +24,7 @@ class SettingsDataSource(
     }
 
     fun fetchTint(): String {
-        return settings[tintKey, ThemeTint.Dark.name]
+        return settings[tintKey, ThemeTint.Auto.name]
     }
 
     fun saveSeedColor(color: String) {

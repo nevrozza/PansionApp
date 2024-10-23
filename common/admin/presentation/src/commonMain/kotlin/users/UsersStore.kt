@@ -49,6 +49,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val eIsModerator: Boolean = false,
         val eIsMentor: Boolean = false,
         val eIsParent: Boolean = false,
+        val eSubjectId: Int? = null,
 
         val eDeletingLogin: String? = null,
 
@@ -59,9 +60,14 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val fParents: Boolean = true,
         val fNoAdmin: Boolean = true,
         val fInActive: Boolean = true,
+
+        val userFindField: String = ""
         )
 
     sealed interface Intent {
+        data class UpdateUserFind(val data: String) : Intent
+
+
         data class FTeachers(val isOn: Boolean) : Intent
         data class FStudents(val isOn: Boolean) : Intent
         data class FOther(val isOn: Boolean) : Intent
@@ -105,6 +111,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class ChangeEIsModerator(val isModerator: Boolean) : Intent
         data class ChangeEIsMentor(val isMentor: Boolean) : Intent
         data class ChangeEIsParent(val isParent: Boolean) : Intent
+        data class ChangeESubjectId(val subjectId: Int) : Intent
 
         data class OpenEditingSheet(val user: User) : Intent
         data object ClearPassword: Intent
@@ -114,6 +121,9 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
     }
 
     sealed interface Message {
+
+        data class UserFindUpdate(val data: String) : Message
+
         data class FTeachers(val isOn: Boolean) : Message
         data class FStudents(val isOn: Boolean) : Message
         data class FOther(val isOn: Boolean) : Message
@@ -152,6 +162,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class EIsModeratorChanged(val isModerator: Boolean) : Message
         data class EIsMentorChanged(val isMentor: Boolean) : Message
         data class EIsParentChanged(val isParent: Boolean) : Message
+        data class ESubjectIdChange(val subjectId: Int) : Message
 
         data class InitEditingUser(
             val name: String,
@@ -163,7 +174,8 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
             val role: String,
             val isMentor: Boolean,
             val isModerator: Boolean,
-            val isParent: Boolean
+            val isParent: Boolean,
+            val subjectId: Int?
         ) : Message
     }
 

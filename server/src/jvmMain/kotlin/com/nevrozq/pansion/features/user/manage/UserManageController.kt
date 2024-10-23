@@ -372,6 +372,7 @@ class UserManageController() {
                     newRole = r.user.role,
                     newModeration = r.user.moderation,
                     newIsParent = r.user.isParent,
+                    newSubjectId = r.subjectId
                 )
                 call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
@@ -396,7 +397,8 @@ class UserManageController() {
                     newRole = r.user.role,
                     newModeration = r.user.moderation,
                     newIsParent = r.user.isParent,
-                    newIsActive = false
+                    newIsActive = false,
+                    newSubjectId = null
                 )
                 call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {

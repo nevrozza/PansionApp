@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,10 +44,11 @@ fun LazyListScope.homeChildrenNotificationsContent(
             Text(
                 "Уведомления",
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 20.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
+            Spacer(Modifier.height(2.dp))
         }
         item {
 
@@ -101,12 +103,10 @@ fun LazyListScope.homeChildrenNotificationsContent(
         items(items = model.notChildren) { s ->
             val list = model.childrenNotifications[s.login] ?: listOf()
             if(list.isNotEmpty()) {
-                Spacer(Modifier.height(5.5.dp))
                 Text(
                     "${s.fio.surname} ${s.fio.name}",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    fontSize = 17.sp,
+                    modifier = Modifier.padding(start = 12.dp),
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 list.forEach {
@@ -134,6 +134,8 @@ fun LazyListScope.homeChildrenNotificationsContent(
                         component.onEvent(HomeStore.Intent.CheckNotification(s.login, key))
                     }
                 }
+
+                Spacer(Modifier.height(5.5.dp))
             }
         }
     }

@@ -99,7 +99,7 @@ fun ActivationContent(
     val isLoginButtonEnabled =
         !model.isInProcess && model.login.isNotBlank()
     val isActivationButtonEnabled =
-        !model.isInProcess && model.password.isNotBlank()
+        (!model.isInProcess && model.password.isNotBlank() && !model.isVerifyingPassword) || (!model.isInProcess && model.verifyPassword == model.password && model.isVerifyingPassword)
     val focusRequester1 = remember { FocusRequester() }
     val focusRequester2 = remember { FocusRequester() }
 
@@ -302,11 +302,15 @@ fun ActivationContent(
 
                                 ActivationStore.Step.Activation -> {
 //                            Spacer(Modifier.height(5.dp))
-                                    Text(
-                                        "Придумайте пароль",
-                                        textAlign = TextAlign.Center,
-                                        fontSize = 20.sp
-                                    )
+                                    AnimatedContent(
+                                        if(model.isVerifyingPassword) "Подтвердите пароль" else "Придумайте пароль"
+                                    ) { text ->
+                                        Text(
+                                            text,
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 20.sp
+                                        )
+                                    }
                                     Spacer(Modifier.height(10.dp))
                                     CustomTextField(
                                         modifier = Modifier.focusRequester(focusRequester2)
@@ -315,13 +319,21 @@ fun ActivationContent(
                                                     focusRequester2.requestFocus()
                                                 }
                                             },
-                                        value = model.password,
+                                        value = if(model.isVerifyingPassword) model.verifyPassword else model.password,
                                         onValueChange = {
-                                            component.onEvent(
-                                                ActivationStore.Intent.InputPassword(
-                                                    it
+                                            if (model.isVerifyingPassword) {
+                                                component.onEvent(
+                                                    ActivationStore.Intent.ChangeVerifyPassword(
+                                                        it
+                                                    )
                                                 )
-                                            )
+                                            } else {
+                                                component.onEvent(
+                                                    ActivationStore.Intent.InputPassword(
+                                                        it
+                                                    )
+                                                )
+                                            }
                                         },
                                         supText = "Пароль",
                                         isEnabled = !model.isInProcess,
@@ -330,9 +342,15 @@ fun ActivationContent(
                                         focusManager = focusManager,
                                         onEnterClicked = {
                                             if (isActivationButtonEnabled) {
-                                                component.onEvent(
-                                                    ActivationStore.Intent.CheckToGoMain
-                                                )
+                                                if (model.isVerifyingPassword) {
+                                                    component.onEvent(
+                                                        ActivationStore.Intent.CheckToGoMain
+                                                    )
+                                                } else {
+                                                    component.onEvent(
+                                                        ActivationStore.Intent.ChangeVerify
+                                                    )
+                                                }
                                             }
                                         },
                                         keyboardType = KeyboardType.Password,
@@ -406,9 +424,13 @@ fun ActivationContent(
                                     IconButton(
                                         onClick = {
                                             component.onEvent(
-                                                ActivationStore.Intent.ChangeStep(
-                                                    ActivationStore.Step.Login
-                                                )
+                                                if (model.isVerifyingPassword) {
+                                                    ActivationStore.Intent.ChangeVerify
+                                                } else {
+                                                    ActivationStore.Intent.ChangeStep(
+                                                        ActivationStore.Step.Login
+                                                    )
+                                                }
                                             )
                                         }
                                     ) {
@@ -418,13 +440,25 @@ fun ActivationContent(
                                         )
                                     }
                                     Spacer(Modifier.width(5.dp))
-                                    AnimatedCommonButton(
-                                        text = "Активировать",
-                                        isEnabled = isActivationButtonEnabled
-                                    ) {
-                                        component.onEvent(
-                                            ActivationStore.Intent.CheckToGoMain
-                                        )
+                                    AnimatedContent(
+                                        if (model.isVerifyingPassword && model.password == model.verifyPassword) "Подтвердить"
+                                        else if (model.isVerifyingPassword && model.password != model.verifyPassword) "Пароли не совпадают"
+                                            else "Активировать"
+                                    ) { text ->
+                                        AnimatedCommonButton(
+                                            text = text,
+                                            isEnabled = isActivationButtonEnabled
+                                        ) {
+                                            if (model.isVerifyingPassword) {
+                                                component.onEvent(
+                                                    ActivationStore.Intent.CheckToGoMain
+                                                )
+                                            } else {
+                                                component.onEvent(
+                                                    ActivationStore.Intent.ChangeVerify
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }

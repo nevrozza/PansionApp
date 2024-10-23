@@ -2,18 +2,12 @@ package activation
 
 import AuthRepository
 import SettingsRepository
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import activation.ActivationStore.Intent
-import activation.ActivationStore.State
 import activation.ActivationStore.Message
+import activation.ActivationStore.State
+import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.network.sockets.SocketTimeoutException
 import kotlinx.coroutines.launch
-import login.LoginStore
-import registration.FetchLoginsReceive
-import view.Language
-import view.ThemeTint
-import view.isCanInDynamic
 
 class ActivationExecutor(private val settingsRepository: SettingsRepository, private val authRepository: AuthRepository) :
     CoroutineExecutor<Intent, Unit, State, Message, Nothing>() {
@@ -27,6 +21,8 @@ class ActivationExecutor(private val settingsRepository: SettingsRepository, pri
             Intent.HideError -> dispatch(Message.ErrorHided)
             Intent.ResetAll -> dispatch(Message.AllReseted)
             Intent.Init -> init()
+            Intent.ChangeVerify -> dispatch(Message.VerifyChanged)
+            is Intent.ChangeVerifyPassword -> dispatch(Message.VerifyPasswordChanged(intent.password))
         }
     }
     private fun init() {

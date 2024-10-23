@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class REditUserReceive(
     val login: String,
-    val user: UserInit
+    val user: UserInit,
+    val subjectId: Int?
 )
 
 //

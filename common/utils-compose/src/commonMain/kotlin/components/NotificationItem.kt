@@ -35,8 +35,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import main.ClientMainNotification
-import view.LocalViewManager
-import view.ThemeTint
 import view.ViewManager
 import view.blend
 
@@ -82,7 +80,7 @@ fun NotificationItem(
                             append(" ${not.date}")
                         }
                     },
-                    fontWeight = FontWeight.Black, fontSize = 20.sp, color = textColor
+                    fontWeight = FontWeight.Bold, fontSize = 20.sp, color = textColor
                 )
                 if (type != "A") { //groupName + time
                     Text(

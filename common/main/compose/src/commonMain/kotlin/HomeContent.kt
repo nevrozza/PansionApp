@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateValue
@@ -13,12 +12,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -32,11 +29,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,17 +50,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.CalendarToday
-import androidx.compose.material.icons.rounded.ManageSearch
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -115,9 +105,6 @@ import components.BorderStup
 import components.CLazyColumn
 import components.CustomTextButton
 import components.DatesLine
-import components.GetAvatar
-import components.LoadingAnimation
-import components.NotificationItem
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
 import components.cMark
@@ -142,7 +129,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import main.Period
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
@@ -151,11 +137,8 @@ import report.UserMark
 import server.Roles
 import server.fetchReason
 import server.getCurrentDayTime
-import server.getLocalDate
-import server.roundTo
 import server.toMinutes
 import server.weekPairs
-import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
 import view.WindowScreen
 import view.blend
@@ -1161,32 +1144,38 @@ fun Lesson(
 @Composable
 fun cGrade(mark: Grade, coroutineScope: CoroutineScope, onClick: () -> Unit) {
     val tState = rememberTooltipState(isPersistent = false)
-    TooltipBox(
-        state = tState,
-        tooltip = {
-            PlainTooltip(modifier = Modifier.clickable {}) {
-                println(mark.reason)
-                Text(
-                    "${mark.date} №${mark.reportId}\n${fetchReason(mark.reason)}",
-                    textAlign = TextAlign.Center
-                )
-            }
-        },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
-    ) {
-        RecentMarkContent(
-            mark.content,
-            cutedReason = mark.reason.subSequence(0, 3).toString(),
-            subjectName = mark.subjectName,
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(PaddingValues(start = 5.dp))) {
+        Text(mark.date.subSequence(0, 5).toString(), fontSize = 10.sp, lineHeight = 10.sp)
+        Spacer(Modifier.height(2.dp))
+        TooltipBox(
+            state = tState,
+            tooltip = {
+                PlainTooltip(modifier = Modifier.clickable {}) {
+                    Text(
+                        "${fetchReason(mark.reason)}",
+                        textAlign = TextAlign.Center
+                    )
+                }
+            },
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+        ) {
+            RecentMarkContent(
+                mark.content,
+                cutedReason = mark.reason.subSequence(0, 3).toString(),
+                subjectName = mark.subjectName,
+                date = mark.date,
 //            size = markSize,
 //            textYOffset = yOffset,
-            addModifier = Modifier.clickable {
-                coroutineScope.launch {
-                    tState.show()
-                }
-                onClick()
-            }.handy()
-        )
+                addModifier = Modifier.clickable {
+                    coroutineScope.launch {
+                        tState.show()
+                    }
+                    onClick()
+                }.handy()
+            )
+        }
+
+
     }
 }
 
@@ -1206,7 +1195,6 @@ fun TeacherGroupButton(component: HomeComponent, it: TeacherGroup, modifier: Mod
     FilledTonalButton(
         modifier = modifier.fillMaxWidth()
             .padding(bottom = 10.dp)
-            .padding(horizontal = 50.dp)
             .handy(),
         onClick = {
             component.onOutput(
@@ -1240,10 +1228,10 @@ fun TeacherGroupButton(component: HomeComponent, it: TeacherGroup, modifier: Mod
                             fontWeight = FontWeight.Bold
                         )
                     ) {
-                        append(it.subjectName)
+                        append(it.cutedGroup.groupName)
                     }
                     append(" ")
-                    append(it.cutedGroup.groupName)
+                    append("(${it.teacherLogin})")
                 }
             )
             Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null)
@@ -1258,6 +1246,7 @@ fun RecentMarkContent(
     cutedReason: String,
     subjectName: String,
     addModifier: Modifier = Modifier,
+    date: String
 //    offset: DpOffset = DpOffset(0.dp, 0.dp),
 //    paddingValues: PaddingValues = ,
 ////    size: Dp = 25.dp,
@@ -1286,7 +1275,7 @@ fun RecentMarkContent(
     else MaterialTheme.colorScheme.onSurface
 
     Box(
-        Modifier.padding(PaddingValues(start = 5.dp, top = 5.dp))
+        Modifier
             .border(
                 width = if (isNotStups) 0.dp else 1.dp,
                 color = if (isNotStups) Color.Transparent else MaterialTheme.colorScheme.outline.copy(

@@ -8,15 +8,15 @@ import admin.users.UserInit
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
-import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
+import components.networkInterface.NetworkInterface
 import kotlinx.coroutines.launch
 import server.Moderation
 import users.UsersStore.Intent
 import users.UsersStore.Label
-import users.UsersStore.State
 import users.UsersStore.Message
+import users.UsersStore.State
 
 class UsersExecutor(
     private val adminRepository: AdminRepository,
@@ -75,6 +75,8 @@ class UsersExecutor(
             is Intent.FParents -> dispatch(Message.FParents(intent.isOn))
             is Intent.ChangeCSubjectId -> dispatch(Message.CSubjectIdChanged(intent.subjectId))
             is Intent.CreateUsers -> createUsersFromExcel(intent.users)
+            is Intent.UpdateUserFind -> dispatch(Message.UserFindUpdate(intent.data))
+            is Intent.ChangeESubjectId -> dispatch(Message.ESubjectIdChange(intent.subjectId))
         }
     }
 
@@ -167,7 +169,8 @@ class UsersExecutor(
                         else if (state.eIsModerator) Moderation.moderator
                         else Moderation.nothing,
                         isParent = state.eIsParent
-                    )
+                    ),
+                    subjectId = state.eSubjectId
                 )
                 eUserBottomSheet.fullySuccess()
             } catch (_: Throwable) {
@@ -200,7 +203,8 @@ class UsersExecutor(
                     Moderation.moderator,
                     Moderation.both
                 ),
-                isParent = user.user.isParent
+                isParent = user.user.isParent,
+                subjectId = user.subjectId
             )
         )
         eUserBottomSheet.onEvent(CBottomSheetStore.Intent.ShowSheet)

@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
@@ -32,7 +33,9 @@ import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
 import di.Inject
+import forks.colorPicker.toHex
 import forks.splitPane.SplitPaneState
+import js.core.asList
 import org.jetbrains.skiko.wasm.onWasmReady
 import root.RootComponentImpl
 import server.DeviceTypex
@@ -43,6 +46,9 @@ import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import org.jetbrains.skiko.wasm.onWasmReady
+import org.w3c.dom.CanvasRenderingContext2D
+import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.HTMLMetaElement
 import view.AppTheme
 import view.LocalViewManager
 import view.ViewManager
@@ -123,11 +129,29 @@ fun main() {
                         device = WindowType.PC,
                         isJs = true
                     )
+                    val hex = MaterialTheme.colorScheme.background.toHex()
+                    changeThemeColor(hex)
+//                    println("2")
+//                    // Change canvas background color
+//                    ctx.fillStyle = "lightblue"
+//                    println("3")
+//                    ctx.fillRect(0.0, 0.0, canvas.width.toDouble(), canvas.height.toDouble())
+//                    println("4")
                 }
             }
         }
     }
 }
+
+fun changeThemeColor(newColor: String) {
+    val metaTags = document.head.querySelectorAll("meta[name=theme-color]").asList()
+    val themeColorMetaTag = metaTags.get(0) as HTMLMetaElement?
+
+    if (themeColorMetaTag != null) {
+        themeColorMetaTag.content = newColor
+    }
+}
+
 
 fun getDeviceName(): String {
     val userAgent = window.navigator.userAgent

@@ -1,8 +1,8 @@
 package activation
 
-import com.arkivanov.mvikotlin.core.store.Reducer
-import activation.ActivationStore.State
 import activation.ActivationStore.Message
+import activation.ActivationStore.State
+import com.arkivanov.mvikotlin.core.store.Reducer
 
 object ActivationReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
@@ -35,6 +35,8 @@ object ActivationReducer : Reducer<State, Message> {
             )
 
             is Message.Inited -> copy(logins = msg.logins)
+            Message.VerifyChanged -> copy(isVerifyingPassword = !isVerifyingPassword)
+            is Message.VerifyPasswordChanged -> copy(verifyPassword = msg.password)
         }
     }
 }

@@ -20,6 +20,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,7 +63,11 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -104,9 +109,13 @@ fun ProfileContent(
     val nAvatarModel by component.nAvatarInterface.networkModel.subscribeAsState()
     val viewManager = LocalViewManager.current
     val lazyListState = rememberLazyListState()
+    var isFullHeader by remember { mutableStateOf(true) } //!lazyListState.canScrollBackward || model.tabIndex == 2
 
-    val isFullHeader = !lazyListState.canScrollBackward || model.tabIndex == 2
-    val headerAvatar = if (model.tabIndex == 1) model.newAvatarId else model.avatarId
+    LaunchedEffect(lazyListState.firstVisibleItemScrollOffset) {
+        isFullHeader = (!lazyListState.lastScrolledForward) && lazyListState.firstVisibleItemScrollOffset == 0 || model.tabIndex == 2
+    }
+
+    val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
 
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -117,6 +126,9 @@ fun ProfileContent(
             Column(
                 Modifier
                     .hazeHeader(viewManager)
+                    .clickable(interactionSource = MutableInteractionSource(), indication = null) {
+                        isFullHeader = true
+                    }
             ) {
                 AppBar(
                     navigationRow = {
@@ -158,6 +170,29 @@ fun ProfileContent(
                                     name = model.fio.name,
                                     size = 40.dp,
                                     textSize = 15.sp
+                                )
+                            }
+                            this@Column.AnimatedVisibility(
+                                !isFullHeader,
+                                enter = fadeIn() + expandVertically(
+                                    expandFrom = Alignment.Top, clip = false
+                                ),
+                                exit = fadeOut() + shrinkVertically(
+                                    shrinkTowards = Alignment.Top, clip = false
+                                ),
+                            modifier = Modifier.align(Alignment.CenterEnd)
+                                .offset(x = -17.5.dp, y = 2.dp)
+                            ) {
+                                Text(
+                                    buildAnnotatedString {
+                                        withStyle(SpanStyle(Color.Green)) {
+                                            append("+${model.likes}")
+                                        }
+                                        append("/")
+                                        withStyle(SpanStyle(Color.Red)) {
+                                            append("-${model.dislikes}")
+                                        }
+                                    }
                                 )
                             }
 
@@ -211,16 +246,19 @@ fun ProfileContent(
                     selectedTabIndex = model.tabIndex,
                     containerColor = Color.Transparent
                 ) {
-                    for (i in if (model.isOwner && model.isCanEdit) (0..1) else (0..0)) {
+                    for (i in if (model.isOwner && model.isCanEdit) (0..2) else (0..1)) {
                         val text = when (i) {
                             0 -> "Обо мне"
-//                            1 -> "Статистика"
+                            1 -> "Статистика"
                             else -> "Аватарки"
                         }
                         Tab(
                             selected = model.tabIndex == i,
                             onClick = {
                                 component.onEvent(ProfileStore.Intent.ChangeTab(i))
+                                if (i == 2) {
+                                    isFullHeader = true
+                                }
                             },
                             text = {
                                 Text(
@@ -445,15 +483,15 @@ fun ProfileContent(
                     }
                 }
                 //was statistika
-//                1 -> {
-//                    item {
-//                        Text(
-//                            "В разработке",
-//                            modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
-//                            textAlign = TextAlign.Center
-//                        )
-//                    }
-//                }
+                1 -> {
+                    item {
+                        Text(
+                            "В разработке",
+                            modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
 
                 else -> {
                     item {

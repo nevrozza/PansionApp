@@ -1,3 +1,4 @@
+
 import achievements.RCreateAchievementReceive
 import achievements.RDeleteAchievementReceive
 import achievements.REditAchievementReceive
@@ -12,39 +13,39 @@ import admin.calendar.RUpdateCalendarReceive
 import admin.groups.GroupInit
 import admin.groups.forms.FormInit
 import admin.groups.forms.RCreateFormGroupReceive
-import admin.users.RClearUserPasswordReceive
-import admin.groups.forms.outside.CreateFormReceive
-import admin.groups.subjects.RCreateGroupReceive
-import admin.groups.students.RBindStudentToFormReceive
 import admin.groups.forms.RFetchCutedGroupsResponse
-import admin.users.REditUserReceive
-import admin.groups.forms.outside.RFetchFormsResponse
-import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
-import admin.groups.forms.outside.RFetchMentorsResponse
-import admin.groups.subjects.RFetchTeachersResponse
-import admin.groups.subjects.RFetchGroupsReceive
 import admin.groups.forms.RFetchFormGroupsReceive
 import admin.groups.forms.RFetchFormGroupsResponse
+import admin.groups.forms.outside.CreateFormReceive
 import admin.groups.forms.outside.REditFormReceive
-import admin.groups.students.deep.RFetchStudentGroupsReceive
-import admin.groups.students.deep.RFetchStudentGroupsResponse
+import admin.groups.forms.outside.RFetchFormsResponse
+import admin.groups.forms.outside.RFetchMentorsResponse
+import admin.groups.students.RBindStudentToFormReceive
 import admin.groups.students.RFetchStudentsInFormReceive
 import admin.groups.students.RFetchStudentsInFormResponse
 import admin.groups.students.deep.RCreateStudentGroupReceive
+import admin.groups.students.deep.RFetchStudentGroupsReceive
+import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.subjects.RAddStudentToGroup
+import admin.groups.subjects.RCreateGroupReceive
 import admin.groups.subjects.REditGroupReceive
+import admin.groups.subjects.RFetchGroupsReceive
+import admin.groups.subjects.RFetchGroupsResponse
+import admin.groups.subjects.RFetchTeachersResponse
+import admin.groups.subjects.topBar.RCreateSubjectReceive
 import admin.groups.subjects.topBar.RDeleteSubject
 import admin.groups.subjects.topBar.REditSubjectReceive
-import admin.groups.subjects.RFetchGroupsResponse
-import admin.groups.subjects.topBar.RCreateSubjectReceive
+import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
 import admin.parents.RFetchParentsListResponse
 import admin.parents.RUpdateParentsListReceive
 import admin.schedule.RFetchInitScheduleResponse
+import admin.users.RClearUserPasswordReceive
 import admin.users.RCreateExcelStudentsReceive
-import admin.users.RRegisterUserReceive
 import admin.users.RCreateUserResponse
 import admin.users.RDeleteUserReceive
+import admin.users.REditUserReceive
 import admin.users.RFetchAllUsersResponse
+import admin.users.RRegisterUserReceive
 import admin.users.ToBeCreatedStudent
 import admin.users.UserInit
 import ktor.KtorAdminRemoteDataSource
@@ -145,7 +146,7 @@ class AdminRepositoryImpl(
         remoteDataSource.clearUserPassword(RClearUserPasswordReceive(login))
     }
 
-    override suspend fun editUser(login: String, user: UserInit) {
+    override suspend fun editUser(login: String, user: UserInit, subjectId: Int?) {
         remoteDataSource.performEditUser(
             REditUserReceive(
                 login = login,
@@ -159,7 +160,8 @@ class AdminRepositoryImpl(
                     role = user.role,
                     moderation = user.moderation,
                     isParent = user.isParent
-                )
+                ),
+                subjectId = subjectId
             )
         )
     }

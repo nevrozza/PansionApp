@@ -1,8 +1,9 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,11 +20,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
@@ -32,7 +34,6 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,18 +42,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -60,9 +57,13 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -71,7 +72,7 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomCheckbox
 import components.CustomTextButton
-import components.ReportTitle
+import components.TeacherTime
 import components.cClickable
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
@@ -86,7 +87,6 @@ import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import server.Moderation
 import server.Roles
-import server.fetchReason
 import view.LocalViewManager
 import view.WindowScreen
 import view.handy
@@ -190,7 +190,7 @@ private fun TrueJournalContent(
                         )
                     }
                     IconButton(
-                        onClick = { if(isExpanded) onRefresh() else component.onEvent(JournalStore.Intent.Refresh) }
+                        onClick = { if (isExpanded) onRefresh() else component.onEvent(JournalStore.Intent.Refresh) }
                     ) {
                         Icon(
                             Icons.Filled.Refresh, null
@@ -216,7 +216,7 @@ private fun TrueJournalContent(
     ) { padding ->
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             val newState = when {
-                NetworkState.Error in listOf(nModel.state, nORModel.state)  -> "Error"
+                NetworkState.Error in listOf(nModel.state, nORModel.state) -> "Error"
                 nModel.state == NetworkState.Loading && model.headers.isNotEmpty() -> "None"
                 nModel.state == NetworkState.None -> "None"
                 nModel.state == NetworkState.Loading -> "Loading"
@@ -232,14 +232,19 @@ private fun TrueJournalContent(
                                 isBottomPaddingNeeded = true
                             ) {
                                 item {
-                                    Row(modifier = Modifier.offset(y = (-6).dp).horizontalScroll(
-                                        rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
+                                    Row(
+                                        modifier = Modifier.offset(y = (-6).dp).horizontalScroll(
+                                            rememberScrollState()
+                                        ), verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Spacer(Modifier.width(7.dp))
                                         Box() {
                                             val isPicked = model.filterTeacherLogin != null
                                             ElevatedAssistChip(
                                                 onClick = {
-                                                    component.fTeachersListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                                                    component.fTeachersListComponent.onEvent(
+                                                        ListDialogStore.Intent.ShowDialog
+                                                    )
                                                 },
                                                 label = {
                                                     AnimatedContent(
@@ -259,7 +264,11 @@ private fun TrueJournalContent(
                                                 modifier = Modifier.animateContentSize(),
                                                 trailingIcon = {
                                                     CloseButton(isShown = isPicked) {
-                                                        component.onEvent(JournalStore.Intent.FilterTeacher(null))
+                                                        component.onEvent(
+                                                            JournalStore.Intent.FilterTeacher(
+                                                                null
+                                                            )
+                                                        )
                                                     }
                                                 }
                                             )
@@ -270,7 +279,11 @@ private fun TrueJournalContent(
                                             val isPicked = model.filterGroupId != null
                                             InputChip(
                                                 selected = true,
-                                                onClick = { component.fGroupListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
+                                                onClick = {
+                                                    component.fGroupListComponent.onEvent(
+                                                        ListDialogStore.Intent.ShowDialog
+                                                    )
+                                                },
                                                 label = {
                                                     AnimatedContent(
                                                         if (!isPicked) "Группа" else component.fGroupListComponent.state.value.list.first { it.id == model.filterGroupId.toString() }.text
@@ -284,7 +297,11 @@ private fun TrueJournalContent(
                                                 modifier = Modifier.animateContentSize(),
                                                 trailingIcon = {
                                                     CloseButton(isShown = isPicked) {
-                                                        component.onEvent(JournalStore.Intent.FilterGroup(null))
+                                                        component.onEvent(
+                                                            JournalStore.Intent.FilterGroup(
+                                                                null
+                                                            )
+                                                        )
                                                     }
                                                 }
                                             )
@@ -294,14 +311,18 @@ private fun TrueJournalContent(
                                         Box() {
                                             val isPicked = model.filterDate != null
                                             AssistChip(
-                                                onClick = { component.fDateListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
+                                                onClick = {
+                                                    component.fDateListComponent.onEvent(
+                                                        ListDialogStore.Intent.ShowDialog
+                                                    )
+                                                },
                                                 label = {
                                                     AnimatedContent(
                                                         when {
                                                             !isPicked -> "Дата"
                                                             model.filterDate == "0" -> "За неделю"
                                                             model.filterDate == "1" -> "За прошлую неделю"
-                                                            else ->model.filterDate.toString()
+                                                            else -> model.filterDate.toString()
                                                         }
                                                     ) {
                                                         Text(
@@ -313,21 +334,27 @@ private fun TrueJournalContent(
                                                 modifier = Modifier.animateContentSize(),
                                                 trailingIcon = {
                                                     CloseButton(isShown = isPicked) {
-                                                        component.onEvent(JournalStore.Intent.FilterDate(null))
+                                                        component.onEvent(
+                                                            JournalStore.Intent.FilterDate(
+                                                                null
+                                                            )
+                                                        )
                                                     }
                                                 }
                                             )
                                             ListDialogDesktopContent(component.fDateListComponent)
                                         }
                                         Spacer(Modifier.width(15.dp))
-                                        if(model.isMentor) {
-                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
-                                                component.onEvent(
-                                                    JournalStore.Intent.FilterMyChildren(
-                                                        !model.filterMyChildren
+                                        if (model.isMentor) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.cClickable {
+                                                    component.onEvent(
+                                                        JournalStore.Intent.FilterMyChildren(
+                                                            !model.filterMyChildren
+                                                        )
                                                     )
-                                                )
-                                            }) {
+                                                }) {
                                                 CustomCheckbox(
                                                     checked = model.filterMyChildren
                                                 )
@@ -337,18 +364,28 @@ private fun TrueJournalContent(
                                         }
                                     }
                                 }
-                                items(model.headers
+                                val headers = model.headers
                                     .asSequence()
-                                    .filter { if(model.filterStatus != null) it.status == model.filterStatus else true }
+                                    .filter { if (model.filterStatus != null) it.status == model.filterStatus else true }
                                     .filter {
                                         if (model.filterDate == "0") it.date in model.weekDays
                                         else if (model.filterDate == "1") it.date in model.previousWeekDays
-                                        else if(model.filterDate != null) it.date == model.filterDate else true }
-                                    .filter { if(model.filterGroupId != null) it.groupId == model.filterGroupId else true }
-                                    .filter { if(model.filterTeacherLogin != null) it.teacherLogin == model.filterTeacherLogin else true }
-                                    .filter { if(model.filterMyChildren && model.childrenGroupIds.isNotEmpty()) it.groupId in model.childrenGroupIds else true }
+                                        else if (model.filterDate != null) it.date == model.filterDate else true
+                                    }
+                                    .filter { if (model.filterGroupId != null) it.groupId == model.filterGroupId else true }
+                                    .filter { if (model.filterTeacherLogin != null) it.teacherLogin == model.filterTeacherLogin else true }
+                                    .filter { if (model.filterMyChildren && model.childrenGroupIds.isNotEmpty()) it.groupId in model.childrenGroupIds else true }
                                     .sortedBy { it.reportId }
-                                    .toList().reversed()) { item ->
+                                    .toList().reversed()
+                                itemsIndexed(headers,
+                                    key = { i, item -> item.reportId }) { i, item ->
+                                    if(i == headers.indexOfFirst { it.date == item.date }) {
+                                        if (i != 0) {
+                                            Spacer(Modifier.height(5.dp))
+                                        }
+                                        Text(item.date, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 10.dp))
+                                        Spacer(Modifier.height(5.dp))
+                                    }
                                     JournalItemCompose(
                                         subjectName = item.subjectName,
                                         groupName = item.groupName,
@@ -374,10 +411,10 @@ private fun TrueJournalContent(
 
                         "Error" -> {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text( if(nModel.state == NetworkState.Error) nModel.error else nORModel.error)
+                                Text(if (nModel.state == NetworkState.Error) nModel.error else nORModel.error)
                                 Spacer(Modifier.height(7.dp))
                                 CustomTextButton("Печально") {
-                                    if(nModel.state == NetworkState.Error) nModel.onFixErrorClick() else nORModel.onFixErrorClick()
+                                    if (nModel.state == NetworkState.Error) nModel.onFixErrorClick() else nORModel.onFixErrorClick()
                                 }
                             }
                         }
@@ -481,21 +518,21 @@ fun JournalItemCompose(
     module: String,
     onClick: () -> Unit
 ) {
-    val tState = rememberTooltipState(isPersistent = false)
-    TooltipBox(
-        state = tState,
-        tooltip = {
-            if(theme != "") {
-                PlainTooltip(modifier = Modifier.clickable {}) {
-                    Text(
-                        theme,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
-    ) {
+//    val tState = rememberTooltipState(isPersistent = false)
+//    TooltipBox(
+//        state = tState,
+//        tooltip = {
+//            if (theme != "") {
+//                PlainTooltip(modifier = Modifier.clickable {}) {
+//                    Text(
+//                        theme,
+//                        textAlign = TextAlign.Center
+//                    )
+//                }
+//            }
+//        },
+//        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+//    ) {
         FilledTonalButton(
             modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).handy(),
             onClick = {
@@ -509,26 +546,82 @@ fun JournalItemCompose(
                 contentColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
             )
         ) {
-            Row(
-                Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                ReportTitle(
-                    subjectName = subjectName,
-                    groupName = groupName,
-                    lessonReportId = lessonReportId,
-                    date = date,
-                    teacher = teacher,
-                    time = time,
-                    isFullView = true,
-                    isStartPadding = false,
-                    onClick = null,
-                    isEnded = isEnded,
-                    module = module.toIntOrNull() ?: 1
-                )
-                Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null)
+            Column(Modifier.padding(horizontal = 2.dp).padding(top = 5.dp, bottom = 2.5.dp)) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val bigTextSize = 20.sp// if (!isLarge) else 40.sp
+                    val smallTextSize = 14.sp//if (!isLarge)  else 28.sp
+                    val startPadding = 0.dp//if (!isLarge)  else 5.dp
+                    val isFullView = true
+                    Box() {
+                        if (isEnded) {
+                            Box(
+                                Modifier.offset(x = (-8).dp, y = (-10).dp)
+                                    .align(Alignment.CenterStart).size(5.dp).clip(
+                                    CircleShape
+                                ).background(MaterialTheme.colorScheme.primary)
+                            )
+                        }
+                        Text(
+                            text = module.toString(),
+                            modifier = Modifier.offset(x = (-8).dp).align(Alignment.CenterStart)
+                        )
+                        Box(
+                            Modifier.padding(start = startPadding).clip(RoundedCornerShape(15.dp))
+                        ) {
+                            Column(
+                                Modifier.padding(horizontal = 3.dp)
+                            ) {
+                                Row {
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            withStyle(
+                                                SpanStyle(
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            ) {
+                                                append(subjectName)
+                                            }
+                                            withStyle(
+                                                SpanStyle(
+                                                    fontWeight = FontWeight.Black,
+                                                    fontSize = smallTextSize,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(
+                                                        alpha = .5f
+                                                    )
+                                                )
+                                            ) {
+                                                append(" $groupName")
+                                            }
+                                        },
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = bigTextSize,
+                                        maxLines = 1,
+                                        style = androidx.compose.material3.LocalTextStyle.current.copy(
+                                            lineHeightStyle = LineHeightStyle(
+                                                alignment = LineHeightStyle.Alignment.Bottom,
+                                                trim = LineHeightStyle.Trim.LastLineBottom
+                                            )
+                                        )
+                                    )
+                                }
+                                TeacherTime(
+                                    teacher,
+                                    time,
+                                    true,
+                                    separator = "  ",
+                                    yTextOffset = 1.dp
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(2.5.dp))
+                Text(text = theme.ifBlank { "Тема не выставлена" }, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
             }
-        }
+//        }
     }
 }
