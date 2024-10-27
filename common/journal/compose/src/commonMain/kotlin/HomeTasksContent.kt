@@ -1,9 +1,9 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
@@ -34,7 +33,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,8 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -58,7 +54,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -67,6 +62,7 @@ import components.GetAvatar
 import components.cClickable
 import components.dashedBorder
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import homeTasks.HomeTasksComponent
 import homeTasks.HomeTasksStore
 import homework.ClientHomeworkItem
@@ -82,7 +78,8 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun HomeTasksContent(
-    component: HomeTasksComponent
+    component: HomeTasksComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nInitModel by component.nInitInterface.networkModel.subscribeAsState()
@@ -92,6 +89,7 @@ fun HomeTasksContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
 
     LaunchedEffect(model.dates.size >= 1) {
         if (model.dates.size >= 1) {
@@ -133,7 +131,8 @@ fun HomeTasksContent(
                         modifier = Modifier.padding(end = 10.dp)
                     )
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
             //LessonReportTopBar(component, isFullView) //, scrollBehavior
         }
@@ -141,7 +140,7 @@ fun HomeTasksContent(
         Column(Modifier.fillMaxSize()) {
             Crossfade(nInitModel.state) { state ->
                 when (state) {
-                    NetworkState.None -> CLazyColumn(padding = padding, state = lazyListState) {
+                    NetworkState.None -> CLazyColumn(padding = padding, state = lazyListState, hazeState = hazeState) {
                         itemsIndexed(items = model.dates) { i, date ->
                             DateTasksItem(
                                 date = date,

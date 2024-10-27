@@ -1,3 +1,4 @@
+
 import admin.schedule.ScheduleGroup
 import admin.schedule.ScheduleSubject
 import androidx.compose.animation.AnimatedContent
@@ -13,23 +14,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -137,6 +122,7 @@ fun ScheduleContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val density = LocalDensity.current
+//    val hazeState = remember { HazeState() }
 
     val isStatic = remember { mutableStateOf(true) }
 
@@ -275,7 +261,8 @@ fun ScheduleContent(
                         )
                     }
                 },
-                isHaze = true
+                hazeState = null//hazeState
+                , isHazeActivated = false
             )
         },
         floatingActionButton = {
@@ -322,7 +309,7 @@ fun ScheduleContent(
                     val headerP = 55.dp //55
                     val maxHeight = this.maxHeight - headerP
                     val minuteHeight =
-                        if (isStatic.value) maxHeight / ("20:00".toMinutes() - dayStartTime.toMinutes()) else 1.dp
+                        if (isStatic.value) maxHeight / ("20:00".toMinutes() - dayStartTime.toMinutes()) else (1.35f).dp
 
                     val timings = listOf(
                         "08:45",
@@ -520,9 +507,9 @@ private fun LazyItemScope.ScheduleColumn(
     val c = model.teachers.first { it.login == login }
     val cabinet = model.cabinets.firstOrNull { it.login == login }
 
-    Modifier.width(200.dp).padding(end = 5.dp)
+
     Box(
-        Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+        Modifier.width(200.dp).padding(end = 5.dp).animateItem(fadeInSpec = null, fadeOutSpec = null)
     ) {
         val headerState = remember {
             MutableTransitionState(false).apply {
@@ -1208,8 +1195,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                         )
                                                     }
                                                     Spacer(Modifier.height(5.dp))
-                                                    if (newLogin != null && e.teacherLoginBefore != newLogin) {
-                                                        Text("${e.teacherLoginBefore} -> ${newLogin}")
+                                                    if ((newLogin != null && e.teacherLoginBefore != newLogin) || e.teacherLogin != e.teacherLoginBefore) {
+                                                        Text("${e.teacherLoginBefore} -> ${newLogin ?: e.teacherLogin}")
                                                     }
                                                     Spacer(
                                                         Modifier.height(
@@ -1304,17 +1291,17 @@ private fun LazyItemScope.ScheduleColumn(
                                                                 null,
                                                                 e.cabinet
                                                             ) ||
-                                                                    model.eiGroupId !in listOf(
-                                                                null,
-                                                                e.groupId
-                                                            ) ||
-                                                                    model.eiTiming !in listOf(
-                                                                null,
-                                                                Pair(
-                                                                    e.t.start,
-                                                                    e.t.end
-                                                                )
-                                                            ) || (newLogin != null && e.teacherLoginBefore != newLogin))
+                                                             model.eiGroupId !in listOf(
+                                                                 null,
+                                                                 e.groupId
+                                                             ) ||
+                                                             model.eiTiming !in listOf(
+                                                                 null,
+                                                                 Pair(
+                                                                     e.t.start,
+                                                                     e.t.end
+                                                                 )
+                                                             ) || (newLogin != null))
                                                         ) {
                                                             if (model.eiCabinetErrorGroupId == 0 && model.eiStudentErrors.isEmpty()) {
                                                                 IconButton(
@@ -1530,23 +1517,36 @@ private fun LazyItemScope.ScheduleColumn(
                                                     }
                                                 }
 
-                                                EditState.Swap -> (model.teachers).forEach { t ->
+                                                EditState.Swap -> (model.teachers.filter { it.login != e.teacherLogin }).forEach { t ->
+                                                    val coItems =
+                                                        (trueItems - e).filter {
+                                                            // ! (закончилось раньше чем началось наше) или (началось позже чем началось наше)
+                                                            ((!((it.t.end.toMinutes() < e.t.start.toMinutes() ||
+                                                                    it.t.start.toMinutes() > e.t.end.toMinutes())) && it.groupId != -11) ||
+                                                                    (!((it.t.end.toMinutes() <= e.t.start.toMinutes() ||
+                                                                            it.t.start.toMinutes() >= e.t.end.toMinutes())) && it.groupId == -11))
+                                                        }
+                                                    println("CHECK: ${coItems}")
                                                     if (t.login in (model.activeTeachers[model.currentDate.second]
                                                             ?: listOf())
                                                     ) {
                                                         DropdownMenuItem(
                                                             text = {
                                                                 Text(
-                                                                    "${t.fio.surname} ${t.fio.name}"
+                                                                    "${t.fio.surname} ${t.fio.name}",
+                                                                    color = if (coItems.map { it.teacherLogin == t.login}.isEmpty() || t.login == e.teacherLogin) MaterialTheme.colorScheme.onBackground
+                                                                    else MaterialTheme.colorScheme.error
                                                                 )
                                                             },
                                                             onClick = {
-                                                                component.onEvent(
-                                                                    ScheduleStore.Intent.eiChangeLogin(
-                                                                        t.login
+
+                                                                if (coItems.map { it.teacherLogin == t.login}.isEmpty() || t.login == e.teacherLogin) {
+                                                                    component.onEvent(
+                                                                        ScheduleStore.Intent.eiChangeLogin(
+                                                                            t.login
+                                                                        )
                                                                     )
-                                                                )
-                                                                println("MANIKEN")
+                                                                }
                                                             },
                                                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                                                         )

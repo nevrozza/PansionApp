@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
 import view.LocalViewManager
 import view.WindowScreen
@@ -25,7 +26,7 @@ fun CLazyColumn(
     isCustomExpanded: Boolean? = null,
     isBottomPaddingNeeded: Boolean = false,
     state: LazyListState = rememberLazyListState(),
-    isHaze: Boolean = true,
+    hazeState: HazeState?,
     content: LazyListScope.() -> Unit
 ) {
     val viewManager = LocalViewManager.current
@@ -36,7 +37,7 @@ fun CLazyColumn(
             .fillMaxSize()
             .consumeWindowInsets(padding)
             .imePadding()
-            .hazeUnder(viewManager).then(modifier),
+            .hazeUnder(viewManager, hazeState).then(modifier),
         state = state
     ) {
         item {

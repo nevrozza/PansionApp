@@ -4,6 +4,8 @@ import DotsFlashing
 import FIO
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -60,17 +62,24 @@ import main.Period
 import resources.Images
 import server.roundTo
 import studentReportDialog.StudentReportDialogStore
+import view.LocalViewManager
+import view.WindowScreen
 import view.handy
 
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 fun LazyListScope.homeStudentBar(
     model: HomeStore.State,
     nGradesModel: NetworkInterface.NetworkModel,
     nQuickTabModel: NetworkInterface.NetworkModel,
     component: HomeComponent,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    sharedTransitionScope: SharedTransitionScope,
+    isSharedVisible: Boolean,
+//    isExpanded: Boolean
 ) {
     item {
+        val viewManager = LocalViewManager.current
         ElevatedCard(Modifier.fillMaxWidth()) {
             Box() {
                 Row(
@@ -91,10 +100,19 @@ fun LazyListScope.homeStudentBar(
                             )
                         }
                     ) {
-                        GetAvatar(
-                            avatarId = model.avatarId,
-                            name = model.name
-                        )
+                        with(sharedTransitionScope) {
+                            GetAvatar(
+                                avatarId = model.avatarId,
+                                name = model.name,
+                                modifier = Modifier.then(
+                                    if (viewManager.orientation.value != WindowScreen.Expanded) Modifier.sharedElementWithCallerManagedVisibility(
+                                        sharedContentState = rememberSharedContentState(key = model.login + "avatar"),
+                                        visible = isSharedVisible
+                                    )
+                                    else Modifier
+                            )
+                            )
+                        }
                     }
                     Spacer(Modifier.width(15.dp))
                     Column {

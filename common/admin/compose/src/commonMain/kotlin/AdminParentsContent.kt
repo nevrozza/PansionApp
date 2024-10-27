@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -41,6 +42,7 @@ import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import dev.chrisbanes.haze.HazeState
 import parents.AdminParentsComponent
 import parents.AdminParentsStore
 import view.LocalViewManager
@@ -52,10 +54,14 @@ import view.rememberImeState
 )
 @Composable
 fun AdminParentsContent(
-    component: AdminParentsComponent
+    component: AdminParentsComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+
+    val hazeState = remember { HazeState() }
+
     val viewManager = LocalViewManager.current
     val scrollState = rememberScrollState()
     val imeState = rememberImeState()
@@ -108,14 +114,15 @@ fun AdminParentsContent(
                         )
                     }
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
         }
     ) { padding ->
         Crossfade(nModel.state, modifier = Modifier.fillMaxSize()) { state ->
             when (state) {
                 NetworkState.None -> CLazyColumn(padding = padding, modifier = Modifier.horizontalScroll(
-                    rememberScrollState())) {
+                    rememberScrollState()), hazeState = hazeState) {
                     items(model.kids) { s ->
 
                         val p = model.users.firstOrNull { it.login == s}
@@ -209,11 +216,13 @@ fun AdminParentsContent(
 
 
         ListDialogMobileContent(
-            component = component.parentEditPicker
+            component = component.parentEditPicker,
+            hazeState = hazeState
         )
 
         ListDialogMobileContent(
-            component = component.childCreatePicker
+            component = component.childCreatePicker,
+            hazeState = hazeState
         )
     }
 }

@@ -29,6 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import view.GlobalHazeState
+import view.LocalViewManager
 
 @Composable
 fun SaveAnimation(isShowing: Boolean, customText: String? = null, modifier: Modifier? = null, unShow: () -> Unit) {

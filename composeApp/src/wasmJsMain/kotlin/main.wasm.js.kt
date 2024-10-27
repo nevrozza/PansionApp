@@ -3,6 +3,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
@@ -22,20 +23,17 @@ import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.benasher44.uuid.uuid4
+import dev.chrisbanes.haze.HazeState
 import di.Inject
 import forks.colorPicker.toHex
 import forks.splitPane.SplitPaneState
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.HTMLMetaElement
+import org.w3c.dom.asList
 import root.RootComponentImpl
-import view.WindowType
 import server.DeviceTypex
-import view.AppTheme
-import view.LocalViewManager
-import view.ViewManager
-import view.toRGB
-import view.toTint
+import view.*
 import kotlin.random.Random
 
 @ExperimentalAnimationApi
@@ -91,7 +89,8 @@ fun main() {
             )
         }
         CompositionLocalProvider(
-            LocalViewManager provides viewManager
+            LocalViewManager provides viewManager,
+            GlobalHazeState provides remember { HazeState() }
         ) {
             PageLoadNotify()
             AppTheme {
@@ -109,8 +108,8 @@ fun main() {
     }
 }
 fun changeThemeColor(newColor: String) {
-    val metaTags = document.head.querySelectorAll("meta[name=theme-color]").asList()
-    val themeColorMetaTag = metaTags.get(0) as HTMLMetaElement?
+    val metaTags = document.head?.querySelectorAll("meta[name=theme-color]")?.asList()
+    val themeColorMetaTag = metaTags?.get(0) as HTMLMetaElement?
 
     if (themeColorMetaTag != null) {
         themeColorMetaTag.content = newColor

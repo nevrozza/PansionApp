@@ -1,5 +1,6 @@
 package view
 
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.runtime.Composable
@@ -20,19 +21,15 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.materials.HazeMaterials
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
-import forks.splitPane.rememberSplitPaneState
 
 class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
     val seedColor: MutableState<Color>,
     val tint: MutableState<ThemeTint> = mutableStateOf(ThemeTint.Auto),
     var isDark: MutableState<Boolean> = mutableStateOf(false),
     var topPadding: Dp = 0.dp,
-    var hazeState: HazeState = HazeState(),
-    var hazeStyle: MutableState<HazeStyle>? = null,
+    var hazeHardware: MutableState<Boolean> = mutableStateOf(false),
     var size: BoxWithConstraintsScope? = null,
     var orientation: MutableState<WindowScreen> = mutableStateOf(WindowScreen.Vertical),
     var colorMode: MutableState<String>,
@@ -42,6 +39,14 @@ class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
 val LocalViewManager: ProvidableCompositionLocal<ViewManager> = compositionLocalOf {
     error("No ViewManager provided")
 }
+
+val GlobalHazeState: ProvidableCompositionLocal<HazeState> = compositionLocalOf {
+    error("No HazeState provided")
+}
+
+
+
+val hazeProgressive = dev.chrisbanes.haze.HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0.0f, easing = FastOutLinearInEasing)
 
 @Composable
 expect fun rememberImeState(): State<Boolean>

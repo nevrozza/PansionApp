@@ -51,6 +51,7 @@ import components.CustomTextButton
 import components.MarkContent
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
+import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.launch
 import server.fetchReason
 import server.getLocalDate
@@ -62,6 +63,7 @@ import view.handy
 @Composable
 fun StudentReportDialogContent(
     component: StudentReportComponent,
+    hazeState: HazeState?,
     openReport: ((Int) -> Unit)? = null,
     changeToUV: ((Int, String) -> Unit)? = null,
 ) {
@@ -150,7 +152,7 @@ fun StudentReportDialogContent(
                                                 MarkContent(
                                                     m.content,
                                                     size = size,
-                                                    textYOffset = offset,
+//                                                    textYOffset = offset,
                                                     addModifier = Modifier.clickable {
                                                         onClickMark()
                                                     }.handy()

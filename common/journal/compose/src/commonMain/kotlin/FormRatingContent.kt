@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -21,8 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,7 +33,6 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,7 +40,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,14 +60,15 @@ import components.CFilterChip
 import components.CLazyColumn
 import components.CustomTextButton
 import components.GetAvatar
+import components.cClickable
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import dev.chrisbanes.haze.HazeState
 import formRating.FormRatingComponent
 import formRating.FormRatingStore
-import kotlinx.coroutines.launch
 import rating.FormRatingStudent
 import server.Roles
 import server.fetchReason
@@ -83,7 +81,8 @@ import view.toColor
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun FormRatingContent(
-    component: FormRatingComponent
+    component: FormRatingComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -92,6 +91,7 @@ fun FormRatingContent(
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
     val coroutineScope = rememberCoroutineScope()
+    val hazeState = remember { HazeState() }
 
     val page =
         model.formRatingPages.firstOrNull { it.formId == model.formId && it.period == model.period }
@@ -102,8 +102,11 @@ fun FormRatingContent(
             AppBar(
                 title = {
                     AnimatedContent(
-                        (model.formName ?: "Выберите") + " класс",
-                        transitionSpec = { fadeIn().togetherWith(fadeOut()) }
+                        (model.formName ?: "Выберите") + " класс ",
+                        transitionSpec = { fadeIn().togetherWith(fadeOut()) },
+                        modifier = Modifier.cClickable { component.formPickerDialog.onEvent(
+                            ListDialogStore.Intent.ShowDialog
+                        ) }
                     ) { text ->
                         Text(
                             text,
@@ -180,7 +183,8 @@ fun FormRatingContent(
                         }
                     }
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
         }
     ) { padding ->
@@ -188,7 +192,8 @@ fun FormRatingContent(
             when (state) {
                 NetworkState.None -> {
                     CLazyColumn(
-                        padding = padding
+                        padding = padding,
+                        hazeState = hazeState
                     ) {
                         item {
                             Row(
@@ -275,7 +280,8 @@ fun FormRatingContent(
     }
     ListDialogMobileContent(
         component = component.formPickerDialog,
-        title = "Классы"
+        title = "Классы",
+        hazeState = hazeState
     )
 
     val detailedStupsStudent =

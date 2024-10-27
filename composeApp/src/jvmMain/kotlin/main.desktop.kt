@@ -4,30 +4,19 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import kotlinx.serialization.json.decodeFromStream
-import kotlinx.serialization.json.encodeToStream
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoMode
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -38,16 +27,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.input.pointer.pointerMoveFilter
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.useResource
@@ -55,38 +42,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
-import com.arkivanov.decompose.extensions.compose.lifecycle.LifecycleController
-import com.arkivanov.essenty.instancekeeper.InstanceKeeperDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.statekeeper.SerializableContainer
 import com.arkivanov.essenty.statekeeper.StateKeeperDispatcher
 import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import components.CustomTextButton
+import components.hazeHeader
+import dev.chrisbanes.haze.HazeState
 import di.Inject
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
-import forks.splitPane.rememberSplitPaneState
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
-import org.jetbrains.jewel.intui.window.styling.dark
 import org.jetbrains.jewel.intui.window.styling.light
 import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.window.DecoratedWindow
@@ -97,24 +80,15 @@ import org.jetbrains.jewel.window.styling.LocalTitleBarStyle
 import org.jetbrains.jewel.window.styling.TitleBarColors
 import org.jetbrains.jewel.window.styling.TitleBarMetrics
 import org.jetbrains.jewel.window.styling.TitleBarStyle
-import resources.Images
 import root.RootComponentImpl
 import server.DeviceTypex
 import server.cut
-import view.AppTheme
-import view.LocalViewManager
-import view.ThemeTint
-import view.ViewManager
-import view.WindowType
-import view.toRGB
-import view.toTint
+import view.*
 import java.awt.Dimension
-import java.awt.Robot
 import java.io.File
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.SwingUtilities
 
 private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
@@ -219,7 +193,8 @@ fun main() {
                 )
             }
             CompositionLocalProvider(
-                LocalViewManager provides viewManager
+                LocalViewManager provides viewManager,
+                GlobalHazeState provides remember { HazeState() }
             ) {
                 IntUiTheme(
                     themeDefinition,
@@ -277,7 +252,13 @@ fun main() {
                                                 Spacer(Modifier.height(4.dp))
                                                 Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)")
                                             }
-                                        }
+                                        },
+                                        modifier = Modifier.clip(MaterialTheme.shapes.large).hazeHeader(
+                                                   viewManager = viewManager,
+                                                   hazeState = GlobalHazeState.current,
+                                                   isProgressive = false
+                                               ),
+                                        containerColor = if(viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor,
 
                                     )
                                 }
@@ -311,14 +292,14 @@ private fun DecoratedWindowScope.MainTitleBar(viewManager: ViewManager, l: Title
         Modifier.newFullscreenControls(),
         style = TitleBarStyle(
             colors = TitleBarColors(
-                background = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                background = if (viewManager.hazeHardware.value) MaterialTheme.colorScheme.background.copy(
                     alpha = 0.0f
                 ) else MaterialTheme.colorScheme.background,
-                inactiveBackground = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                inactiveBackground = if (viewManager.hazeHardware.value) MaterialTheme.colorScheme.background.copy(
                     alpha = 0.0f
                 ) else MaterialTheme.colorScheme.background,
                 content = MaterialTheme.colorScheme.onBackground,
-                border = if (viewManager.hazeStyle != null) MaterialTheme.colorScheme.background.copy(
+                border = if (viewManager.hazeHardware.value) MaterialTheme.colorScheme.background.copy(
                     alpha = 0.0f
                 ) else MaterialTheme.colorScheme.background,
                 fullscreenControlButtonsBackground = l.colors.fullscreenControlButtonsBackground,

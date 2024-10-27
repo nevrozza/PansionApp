@@ -120,7 +120,8 @@ fun main() {
                 )
             }
             CompositionLocalProvider(
-                LocalViewManager provides viewManager
+                LocalViewManager provides viewManager,
+                GlobalHazeState provides remember { HazeState() }
             ) {
                 PageLoadNotify()
                 AppTheme {

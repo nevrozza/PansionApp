@@ -95,11 +95,13 @@ import components.AppBar
 import components.CustomTextField
 import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
-import components.networkInterface.NetworkState
 import components.cBottomSheet.CBottomSheetStore
+import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogContent
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import groups.forms.FormsStore
 import groups.students.StudentsStore
@@ -107,6 +109,7 @@ import groups.subjects.SubjectsStore
 import kotlinx.coroutines.launch
 import view.LocalViewManager
 import view.WindowScreen
+import view.hazeProgressive
 import view.rememberImeState
 
 @OptIn(
@@ -116,7 +119,8 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun GroupsContent(
-    component: GroupsComponent
+    component: GroupsComponent,
+    isVisible: Boolean
 ) {
 
     val model by component.model.subscribeAsState()
@@ -130,6 +134,7 @@ fun GroupsContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val hazeState = remember { HazeState() }
 
     val isInited =
         model.forms.isNotEmpty() || model.teachers.isNotEmpty() || model.subjects.isNotEmpty()
@@ -150,13 +155,15 @@ fun GroupsContent(
         },
         topBar = {
             val isBigView = viewManager.orientation.value in listOf(WindowScreen.Expanded, WindowScreen.Horizontal)
-            val isHaze = viewManager.hazeStyle != null
+            val isHaze = viewManager.hazeHardware.value
             Column(
                 Modifier.then(
                     if (isHaze) Modifier.hazeChild(
-                        state = viewManager.hazeState,
-                        style = viewManager.hazeStyle!!.value
-                    )
+                        state = hazeState,
+                        style = LocalHazeStyle.current
+                    )   {
+                        progressive = hazeProgressive
+                    }
                     else Modifier
                 )
             ) {
@@ -238,7 +245,9 @@ fun GroupsContent(
 //                        }
 
                     },
-                    isTransparentHaze = isHaze
+                    isTransparentHaze = isHaze,
+                    isHazeActivated = isVisible,
+                    hazeState = hazeState
                 )
                 AnimatedVisibility(
                     model.view == GroupsStore.Views.Students
@@ -496,19 +505,22 @@ fun GroupsContent(
                                         component = component.subjectsComponent,
                                         sComponent = component.studentsComponent,
                                         coroutineScope = coroutineScope,
-                                        topPadding = padding.calculateTopPadding()
+                                        topPadding = padding.calculateTopPadding(),
+                                        hazeState = hazeState
                                     )
                                 }
 
                                 GroupsStore.Views.Forms -> FormsContent(
                                     component = component.formsComponent,
                                     topPadding = padding.calculateTopPadding(),
-                                    padding = padding
+                                    padding = padding,
+                                    hazeState = hazeState
                                 )
 
                                 GroupsStore.Views.Students -> StudentsContent(
                                     component = component.studentsComponent,
-                                    topPadding = padding.calculateTopPadding()
+                                    topPadding = padding.calculateTopPadding(),
+                                    hazeState = hazeState
                                 )
                             }
                         }

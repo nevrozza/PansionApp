@@ -50,12 +50,13 @@ import components.CLazyColumn
 import components.CustomTextButton
 import components.GroupPicker
 import components.LoadingAnimation
-import components.networkInterface.NetworkState
-import components.listDialog.ListDialogStore
 import components.NSCutedGroup
 import components.NSSubject
+import components.listDialog.ListDialogStore
+import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import dev.chrisbanes.haze.HazeState
 import groups.students.StudentsComponent
 import groups.students.StudentsStore
 import view.LocalViewManager
@@ -64,7 +65,8 @@ import view.LocalViewManager
 @Composable
 fun StudentsContent(
     component: StudentsComponent,
-    topPadding: Dp
+    topPadding: Dp,
+    hazeState: HazeState
 ) {
     val gModel by component.groupModel.subscribeAsState()
     val model by component.model.subscribeAsState()
@@ -87,7 +89,7 @@ fun StudentsContent(
                 NetworkState.None -> {
                     if (model.studentsInForm.isNotEmpty()) {
 
-                        CLazyColumn(padding = PaddingValues(top = topPadding)) { // + 45.dp
+                        CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = hazeState) { // + 45.dp
                             item {
                                 Spacer(Modifier.height(7.dp))
                             }
@@ -326,7 +328,8 @@ fun StudentsContent(
             }
         }
         ListDialogMobileContent(
-            component.formsListComponent
+            component.formsListComponent,
+            hazeState = hazeState
         )
     }
 }

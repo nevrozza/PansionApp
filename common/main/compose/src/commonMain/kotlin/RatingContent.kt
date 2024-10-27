@@ -1,17 +1,15 @@
-import achievements.HomeAchievementsComponent
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,21 +26,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.ChipElevation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -58,22 +49,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.painter.BrushPainter
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -81,14 +62,11 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.GetAvatar
-import components.hazeHeader
 import components.listDialog.ListDialogStore
-import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import journal.JournalComponent
-import journal.JournalStore
+import dev.chrisbanes.haze.HazeState
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
@@ -100,10 +78,13 @@ import view.WindowScreen
 import view.rememberImeState
 import view.toColor
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalSharedTransitionApi::class
+)
 @Composable
-fun RatingContent(
-    component: RatingComponent
+fun SharedTransitionScope.RatingContent(
+    component: RatingComponent,
+    isSharedVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -112,6 +93,8 @@ fun RatingContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+
+    val hazeState = remember { HazeState() }
 
     val refreshState = rememberPullRefreshState(
         nModel.state == NetworkState.Loading,
@@ -177,7 +160,9 @@ fun RatingContent(
                             )
                         }
                     }
-                }
+                },
+                hazeState = hazeState,
+                isHazeActivated = isSharedVisible
             )
 
         },
@@ -215,7 +200,8 @@ fun RatingContent(
                             previousItem.value!!,
                             meLogin = model.login,
                             isMe = true,
-                            component = component
+                            component = component,
+                            isSharedVisible = isSharedVisible
                         )
 
                         Spacer(Modifier.height(if (viewManager.orientation.value != WindowScreen.Vertical) 15.dp else 80.dp))
@@ -229,7 +215,8 @@ fun RatingContent(
             CLazyColumn(
                 padding = padding,
                 isBottomPaddingNeeded = true,
-                modifier = Modifier.pullRefresh(refreshState)
+                modifier = Modifier.pullRefresh(refreshState),
+                hazeState = hazeState
             ) {
                 item {
                     Row(Modifier.offset(y = -6.dp).horizontalScroll(rememberScrollState())) {
@@ -305,7 +292,7 @@ fun RatingContent(
                 if (!items.isNullOrEmpty()) {
 
                     items(items.sortedBy { it.top }) { i ->
-                        RatingCard(i, meLogin = model.login, component = component)
+                        RatingCard(i, meLogin = model.login, component = component, isSharedVisible = isSharedVisible)
                     }
                 } else {
                     item {
@@ -333,9 +320,9 @@ fun RatingContent(
             }
 
 
-            ListDialogMobileContent(component.subjectsListComponent, title = "Предмет")
-            ListDialogMobileContent(component.periodListComponent, title = "Период")
-            ListDialogMobileContent(component.formsListComponent, title = "Классы")
+            ListDialogMobileContent(component.subjectsListComponent, title = "Предмет", hazeState = hazeState)
+            ListDialogMobileContent(component.periodListComponent, title = "Период", hazeState = hazeState)
+            ListDialogMobileContent(component.formsListComponent, title = "Классы", hazeState = hazeState)
             PullRefreshIndicator(
                 modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = nModel.state == NetworkState.Loading && model.items[model.currentSubject].isNullOrEmpty(),
@@ -346,8 +333,12 @@ fun RatingContent(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false, component: RatingComponent) {
+private fun SharedTransitionScope.RatingCard(
+    item: RatingItem, meLogin: String, isMe: Boolean = false, component: RatingComponent,
+    isSharedVisible: Boolean
+) {
     Surface(
         modifier = Modifier
             .then(
@@ -404,7 +395,11 @@ private fun RatingCard(item: RatingItem, meLogin: String, isMe: Boolean = false,
                 avatarId = item.avatarId,
                 name = item.fio.name,
                 size = 40.dp,
-                textSize = 20.sp
+                textSize = 20.sp,
+                modifier = Modifier.sharedElementWithCallerManagedVisibility(
+                    sharedContentState = rememberSharedContentState(key = item.login + "avatar"),
+                    visible = isSharedVisible
+                )
             )
 
             Spacer(modifier = Modifier.width(16.dp))

@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -10,18 +11,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,7 +27,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -67,7 +64,6 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -104,7 +100,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import server.fetchReason
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -133,27 +128,29 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.compose.ui.util.fastSumBy
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.arkivanov.decompose.value.getValue
 import components.AnimatedElevatedButton
 import components.AppBar
 import components.CustomCheckbox
 import components.CustomTextButton
 import components.CustomTextField
+import components.ErrorAnimation
 import components.MarkContent
 import components.ReportTitle
 import components.SaveAnimation
-import components.ErrorAnimation
 import components.ScrollBaredBox
 import components.TeacherTime
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
 import components.cClickable
+import components.hazeUnder
+import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import dev.chrisbanes.haze.HazeState
 import homeTasksDialog.HomeTasksDialogStore
 import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.delay
@@ -166,7 +163,7 @@ import lessonReport.StudentLine
 import lessonReport.Stup
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.rememberPullRefreshState
-import server.cut
+import server.fetchReason
 import server.getDate
 import server.getSixTime
 import server.roundTo
@@ -194,6 +191,7 @@ fun LessonReportContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
     //PullToRefresh
     val refreshScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
@@ -273,7 +271,7 @@ fun LessonReportContent(
             }
 
         ) { padding ->
-            Column(Modifier.fillMaxSize().padding(padding)) {
+            Column(Modifier.fillMaxSize().hazeUnder(viewManager, hazeState = hazeState).padding(padding)) {
                 Crossfade(nModel.state) {
                     when {
                         model.students.isNotEmpty() -> {
@@ -354,7 +352,8 @@ fun LessonReportContent(
 
                 ListDialogMobileContent(
                     component = component.setLateTimeMenuComponent,
-                    title = "Выберите время опоздания"
+                    title = "Выберите время опоздания",
+                    hazeState = hazeState
                 )
 
                 //Set Mark
@@ -362,14 +361,16 @@ fun LessonReportContent(
                     component = component.setMarkMenuComponent,
                     title =
                     markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName,
-                    modifier = Modifier.setMarksBind(component)
+                    modifier = Modifier.setMarksBind(component),
+                    hazeState = hazeState
                 )
 
                 ListDialogMobileContent(
                     component = component.deleteMarkMenuComponent,
                     title =
                     markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName + " - " + markValue
-                            + "\n" + model.selectedDeploy
+                            + "\n" + model.selectedDeploy,
+                    hazeState = hazeState
                 )
             }
 
@@ -381,7 +382,7 @@ fun LessonReportContent(
             )
 
             CBottomSheetContent(
-                component.setReportColumnsComponent
+                component.setReportColumnsComponent,
             ) {
                 val minSize = (LocalViewManager.current.size?.maxWidth ?: 0.dp)
                 val isLikeMenuOpened =
@@ -2223,7 +2224,8 @@ private fun getMaxStupsCount(reason: String) = when (reason) {
 @Composable
 fun LessonReportTopBar(
     component: LessonReportComponent,
-    isFullView: Boolean
+    isFullView: Boolean,
+//    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     AppBar(
@@ -2260,7 +2262,9 @@ fun LessonReportTopBar(
         actionRow = {
             settingsAB(component)
             refreshAB(component)
-        }
+        },
+        isHazeActivated = false,
+        hazeState = null
     )
 
 }
@@ -2333,6 +2337,7 @@ fun Modifier.setMarksBind(
                     text = mark
                 )
             )
+            component.setMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
         }
         false
     }

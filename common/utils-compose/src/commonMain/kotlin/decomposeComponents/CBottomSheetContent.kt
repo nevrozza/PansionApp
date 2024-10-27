@@ -26,9 +26,10 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
 import components.DefaultModalBottomSheet
 import components.LoadingAnimation
-import components.networkInterface.NetworkState
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
+import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.launch
 
 @ExperimentalMaterial3Api

@@ -26,18 +26,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,15 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -70,12 +54,15 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
 import components.DefaultModalBottomSheet
 import components.LoadingAnimation
-import components.networkInterface.NetworkInterface
-import components.networkInterface.NetworkState
+import components.hazeHeader
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
+import components.networkInterface.NetworkInterface
+import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import view.GlobalHazeState
 import view.LocalViewManager
 import view.ViewManager
 import view.WindowScreen
@@ -287,7 +274,12 @@ fun DropdownVariant(
             component.onEvent(ListDialogStore.Intent.HideDialog)
         },
         modifier = modifier.then(if (!isFullHeight) Modifier.sizeIn(maxHeight = 200.dp) else Modifier)
-            .animateContentSize(),
+            .animateContentSize().hazeHeader(
+                viewManager = viewManager,
+                hazeState = GlobalHazeState.current,
+                isProgressive = false
+            ),
+        containerColor = if (viewManager.hazeHardware.value) Color.Transparent else MenuDefaults.containerColor,
         offset = offset
     ) {
         Crossfade(

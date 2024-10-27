@@ -27,7 +27,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Person
@@ -73,13 +72,12 @@ import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
+import dev.chrisbanes.haze.HazeState
 import groups.students.StudentsComponent
 import groups.students.StudentsStore
 import groups.subjects.SubjectsComponent
 import groups.subjects.SubjectsStore
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import users.UsersStore
 import view.LocalViewManager
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -89,12 +87,14 @@ fun SubjectsContent(
     component: SubjectsComponent,
     sComponent: StudentsComponent,
     coroutineScope: CoroutineScope,
-    topPadding: Dp
+    topPadding: Dp,
+    hazeState: HazeState
 ) {
     val gModel by component.groupModel.subscribeAsState()
     val model by component.model.subscribeAsState()
     val nSModel by component.nSubjectsInterface.networkModel.subscribeAsState()
     val viewManager = LocalViewManager.current
+
     Box() {
 //    Spacer(Modifier.height(10.dp))
         Crossfade(nSModel.state) {
@@ -117,7 +117,7 @@ fun SubjectsContent(
                 else -> {
                     if (model.groups.isNotEmpty()) {
                         Spacer(Modifier.height(7.dp))
-                        CLazyColumn(padding = PaddingValues(top = topPadding)) {
+                        CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = hazeState) {
                             items(model.groups.sortedByDescending { it.isActive }) { group ->
                                 if (model.groups.any { !it.isActive }) {
                                     Box(

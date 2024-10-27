@@ -100,7 +100,8 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             CompositionLocalProvider(
-                LocalViewManager provides viewManager
+                LocalViewManager provides viewManager,
+                GlobalHazeState provides remember { HazeState() }
             ) {
                 AppTheme {
                     Scaffold() {

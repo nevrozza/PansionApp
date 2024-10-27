@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +46,7 @@ import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import report.ClientStudentLine
 import studentLines.StudentLinesComponent
 import studentReportDialog.StudentReportDialogStore
@@ -56,7 +58,8 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun StudentLinesContent(
-    component: StudentLinesComponent
+    component: StudentLinesComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -65,7 +68,7 @@ fun StudentLinesContent(
     val viewManager = LocalViewManager.current
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
-
+    val hazeState = remember { HazeState() }
 
     Scaffold(
         Modifier.fillMaxSize(),
@@ -90,14 +93,15 @@ fun StudentLinesContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
         }
     ) { padding ->
         Column(Modifier.fillMaxSize()) {
             Crossfade(nModel.state) { state ->
                 when (state) {
-                    NetworkState.None -> CLazyColumn(padding) {
+                    NetworkState.None -> CLazyColumn(padding, hazeState = hazeState) {
                         itemsIndexed(items = model.studentLines, key = { i, sl -> i  }) { i, sl ->
 
                             if (i == model.studentLines.indexOfFirst { it.date == sl.date }) {
@@ -143,7 +147,8 @@ fun StudentLinesContent(
     }
 
     StudentReportDialogContent(
-        component = component.studentReportDialog
+        component = component.studentReportDialog,
+        hazeState = hazeState
     )
 }
 

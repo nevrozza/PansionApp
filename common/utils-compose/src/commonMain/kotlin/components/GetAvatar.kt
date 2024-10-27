@@ -51,6 +51,7 @@ fun GetAvatar(avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit 
                 color = Color.White
             )
         } else {
+
             Image(
                 getAvatarImageVector(avatarId),
                 null,

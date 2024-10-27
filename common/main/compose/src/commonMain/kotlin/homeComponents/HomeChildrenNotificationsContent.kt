@@ -1,15 +1,8 @@
 package homeComponents
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,7 +32,8 @@ fun LazyListScope.homeChildrenNotificationsContent(
     component: HomeComponent
 ) {
     val itShouldBe = (model.isMentor || model.isParent)
-    if (!(model.childrenNotifications.flatMap { it.value }.isEmpty() && model.notChildren.isEmpty() && nQuickTabModel.state == NetworkState.None ) && itShouldBe) {
+    if (!(model.childrenNotifications.flatMap { it.value }
+            .isEmpty() && model.notChildren.isEmpty() && nQuickTabModel.state == NetworkState.None) && itShouldBe) {
         item {
             Text(
                 "Уведомления",
@@ -52,57 +46,57 @@ fun LazyListScope.homeChildrenNotificationsContent(
         }
         item {
 
-            AnimatedVisibility(
-                nQuickTabModel.state != NetworkState.None || model.childrenNotifications.isEmpty(),
-                enter = fadeIn() + expandVertically(
-                    expandFrom = Alignment.Top, clip = false
-                ),
-                exit = fadeOut() + shrinkVertically(
-                    shrinkTowards = Alignment.Top, clip = false
-                )
-            ) {
-                Column {
-                    Spacer(Modifier.height(7.5.dp))
-                    Crossfade(
-                        nQuickTabModel.state,
-                        modifier = Modifier.fillMaxSize()
-                    ) { state ->
-                        when (state) {
-                            NetworkState.None -> {
-                                if (model.childrenNotifications.isEmpty()) {
-                                    Text("Нет никаких уведомлений")
-                                }
-                            }
+//            AnimatedVisibility(
+//                nQuickTabModel.state != NetworkState.None || model.childrenNotifications.isEmpty(),
+//                enter = fadeIn() + expandVertically(
+//                    expandFrom = Alignment.Top, clip = false
+//                ),
+//                exit = fadeOut() + shrinkVertically(
+//                    shrinkTowards = Alignment.Top, clip = false
+//                )
+//            ) {
+            Column {
+                Spacer(Modifier.height(7.5.dp))
+                val state = nQuickTabModel.state
+//                    Crossfade(
+//                        nQuickTabModel.state,
+//                        modifier = Modifier.fillMaxSize()
+                when (state) {
+                    NetworkState.None -> {
+                        if (model.childrenNotifications.isEmpty()) {
+                            Text("Нет никаких уведомлений")
+                        }
+                    }
 
-                            NetworkState.Loading -> {
-                                Box(
-                                    Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
+                    NetworkState.Loading -> {
+                        Box(
+                            Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
 
-                            NetworkState.Error -> {
-                                Column(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(nQuickTabModel.error)
-                                    Spacer(Modifier.height(7.dp))
-                                    CustomTextButton("Попробовать ещё раз") {
-                                        nQuickTabModel.onFixErrorClick()
-                                    }
-                                }
+                    NetworkState.Error -> {
+                        Column(
+                            Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(nQuickTabModel.error)
+                            Spacer(Modifier.height(7.dp))
+                            CustomTextButton("Попробовать ещё раз") {
+                                nQuickTabModel.onFixErrorClick()
                             }
                         }
+
+
                     }
                 }
             }
         }
-        items(items = model.notChildren) { s ->
+        items(items = model.notChildren, key = { it.login }) { s ->
             val list = model.childrenNotifications[s.login] ?: listOf()
-            if(list.isNotEmpty()) {
+            if (list.isNotEmpty()) {
                 Text(
                     "${s.fio.surname} ${s.fio.name}",
                     modifier = Modifier.padding(start = 12.dp),

@@ -179,9 +179,9 @@ fun getDate(): String {
             "${time.year}"
 }
 
-fun Float.roundTo(numFractionDigits: Int): Float {
+fun Float.roundTo(numFractionDigits: Int): String {
     if (this.isNaN()) {
-        return Float.NaN
+        return "NaN"// Float.NaN
     } else {
         //wasm fix... why(
         val strFirst = this.toString()
@@ -190,7 +190,11 @@ fun Float.roundTo(numFractionDigits: Int): Float {
         if (strFirst.cut(cutLength+1).last().toString().toInt() >= 5) {
             str = strFirst.cut(cutLength-1) + (str.last().toString().toInt()+1)
         }
-        return str.toFloat()
+        return str
+//        println("FULL OF SADNESS: ${str}")
+
+//        println("FULL OF SADNESS2: ${str.toFloat()}")
+//        return "$str".toFloat()
 //        val factor = 10.0.pow(numFractionDigits.toDouble())
 //        return ((this * factor).roundToInt() / factor).toFloat()
     }

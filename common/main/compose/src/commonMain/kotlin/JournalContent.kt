@@ -47,10 +47,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -79,6 +79,7 @@ import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import journal.JournalComponent
 import journal.JournalStore
@@ -129,6 +130,7 @@ private fun TrueJournalContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
 
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded && isNotMinimized
 
@@ -209,8 +211,8 @@ private fun TrueJournalContent(
                     }
 
                 },
-                containerColor = Color.Transparent,
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = true
             )
         }
     ) { padding ->
@@ -229,7 +231,8 @@ private fun TrueJournalContent(
                             CLazyColumn(
                                 padding = padding,
                                 modifier = Modifier.pullRefresh(refreshState),
-                                isBottomPaddingNeeded = true
+                                isBottomPaddingNeeded = true,
+                                hazeState = hazeState
                             ) {
                                 item {
                                     Row(
@@ -429,11 +432,11 @@ private fun TrueJournalContent(
                 state = refreshState,
                 topPadding = padding.calculateTopPadding()
             )
-            ListDialogMobileContent(component.groupListComponent)
-            ListDialogMobileContent(component.fGroupListComponent)
-            ListDialogMobileContent(component.fStatusListComponent)
-            ListDialogMobileContent(component.fDateListComponent)
-            ListDialogMobileContent(component.fTeachersListComponent)
+            ListDialogMobileContent(component.groupListComponent, hazeState = hazeState)
+            ListDialogMobileContent(component.fGroupListComponent, hazeState = hazeState)
+            ListDialogMobileContent(component.fStatusListComponent, hazeState = hazeState)
+            ListDialogMobileContent(component.fDateListComponent, hazeState = hazeState)
+            ListDialogMobileContent(component.fTeachersListComponent, hazeState = hazeState)
             StudentsPreviewDialog(
                 component, model
             )

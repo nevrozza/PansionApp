@@ -71,11 +71,12 @@ import components.CLazyColumn
 import components.CustomTextButton
 import components.CustomTextField
 import components.GroupPicker
-import components.cBottomSheet.CBottomSheetStore
 import components.NSCutedGroup
 import components.NSSubject
+import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
+import dev.chrisbanes.haze.HazeState
 import excel.exportForms
 import groups.forms.FormsComponent
 import groups.forms.FormsStore
@@ -86,18 +87,20 @@ import groups.forms.FormsStore
 fun FormsContent(
     component: FormsComponent,
     topPadding: Dp,
-    padding: PaddingValues
+    padding: PaddingValues,
+    hazeState: HazeState
 ) {
     val gModel by component.groupModel.subscribeAsState()
     val model by component.model.subscribeAsState()
     val nFModel by component.nFormsModel.subscribeAsState()
     val nFGModel by component.nFormGroupsModel.subscribeAsState()
+
     Crossfade(nFModel.state) {
         Column(Modifier.fillMaxSize()) {
             when {
                 gModel.forms.isNotEmpty() && it != NetworkState.Error -> {
                     Spacer(Modifier.height(7.dp))
-                    CLazyColumn(padding = PaddingValues(top = topPadding)) {
+                    CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = hazeState) {
                         items(gModel.forms) { form ->
                             val mentor =
                                 model.mentors.find { it.login == form.form.mentorLogin }

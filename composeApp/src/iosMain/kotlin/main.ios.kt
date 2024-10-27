@@ -10,22 +10,20 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.essenty.lifecycle.ApplicationLifecycle
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import dev.chrisbanes.haze.HazeState
 import di.Inject
+import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 import platform.UIKit.UIDevice
 import platform.UIKit.UIViewController
 import root.RootComponentImpl
 import server.DeviceTypex
 import server.cut
-import view.AppTheme
-import view.LocalViewManager
-import view.ViewManager
-import view.toRGB
-import view.toTint
+import view.*
 
 @OptIn(
     ExperimentalDecomposeApi::class, ExperimentalAnimationApi::class,
-    ExperimentalFoundationApi::class
+    ExperimentalFoundationApi::class, ExperimentalSplitPaneApi::class
 )
 fun MainViewController(): UIViewController =
     ComposeUIViewController {
@@ -56,7 +54,8 @@ fun MainViewController(): UIViewController =
             ), storeFactory = DefaultStoreFactory(), isMentoring = null
         )
         CompositionLocalProvider(
-            LocalViewManager provides viewManager
+            LocalViewManager provides viewManager,
+            GlobalHazeState provides remember { HazeState() }
         ) {
             AppTheme {
                 Scaffold() {

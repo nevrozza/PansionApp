@@ -1,8 +1,7 @@
+
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import di.Inject
 import view.AppTheme
 import view.ThemeTint
@@ -35,8 +34,8 @@ fun setHaze(viewManager: ViewManager) {
     val repository: SettingsRepository = Inject.instance()
     if (repository.fetchIsHaze()) {
         AppTheme {
-            val hazeStyle = HazeMaterials.thin()
-            viewManager.hazeStyle = mutableStateOf(hazeStyle)
+//            LocalHazeStyle.provides( HazeMaterials.thin(MaterialTheme.colorScheme.background) )
+            viewManager.hazeHardware.value = true
         }
     }
 }
@@ -47,8 +46,8 @@ fun changeOnHaze(viewManager: ViewManager) {
     val repository: SettingsRepository = Inject.instance()
     repository.saveIsHaze(true)
     AppTheme {
-        val hazeStyle = HazeMaterials.thin()
-        viewManager.hazeStyle = mutableStateOf(hazeStyle)
+//        LocalHazeStyle.provides(HazeMaterials.thin(MaterialTheme.colorScheme.background))
+        viewManager.hazeHardware.value = true
     }
 }
 
@@ -56,7 +55,7 @@ fun changeOnHaze(viewManager: ViewManager) {
 fun changeOffHaze(viewManager: ViewManager) {
     val repository: SettingsRepository = Inject.instance()
     repository.saveIsHaze(false)
-    viewManager.hazeStyle = null
+    viewManager.hazeHardware.value = false
 }
 
 

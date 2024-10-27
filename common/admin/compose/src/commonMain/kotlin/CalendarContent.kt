@@ -1,16 +1,13 @@
-import androidx.compose.animation.AnimatedContent
+
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,21 +15,15 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Save
-import androidx.compose.material3.CalendarLocale
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ElevatedCard
@@ -52,45 +43,36 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cabinets.CabinetsComponent
-import cabinets.CabinetsStore
 import calendar.CalendarComponent
 import calendar.CalendarStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
-import components.CustomTextField
 import components.SaveAnimation
-import components.hazeUnder
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
-import schedule.ScheduleStore
 import server.twoNums
-import users.UsersStore
 import view.LocalViewManager
 import view.rememberImeState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarContent(
-    component: CalendarComponent
+    component: CalendarComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -99,7 +81,7 @@ fun CalendarContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val density = LocalDensity.current
-
+    val hazeState = remember { HazeState() }
     var datePickerState = rememberDatePickerState()
 
 
@@ -125,7 +107,8 @@ fun CalendarContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
         },
         floatingActionButton = {
@@ -182,7 +165,7 @@ fun CalendarContent(
                         CircularProgressIndicator()
                     }
                 }
-               else -> CLazyColumn(padding = padding) {
+               else -> CLazyColumn(padding = padding, hazeState = hazeState) {
                     item {
                         Text(
                             text = "1 полугодие",

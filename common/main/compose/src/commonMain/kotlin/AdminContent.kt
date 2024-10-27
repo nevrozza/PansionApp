@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
+import dev.chrisbanes.haze.HazeState
 import view.LocalViewManager
 import view.rememberImeState
 
@@ -40,7 +42,7 @@ import view.rememberImeState
 fun AdminContent(
     component: AdminComponent,
     isActive: Boolean = false,
-    currentRouting: AdminComponent.Output? = null
+    currentRouting: AdminComponent.Output? = null,
 ) {
     val model by component.model.subscribeAsState()
     val focusManager = LocalFocusManager.current
@@ -48,6 +50,7 @@ fun AdminContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
 
     Scaffold(
         Modifier.fillMaxSize(),
@@ -61,7 +64,9 @@ fun AdminContent(
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
-                }
+                },
+                hazeState = hazeState,
+                isHazeActivated = true
             )
         }
     ) { padding ->
@@ -69,7 +74,8 @@ fun AdminContent(
             if (model.items != null) {
                 CLazyColumn(
                     padding = padding,
-                    isBottomPaddingNeeded = true
+                    isBottomPaddingNeeded = true,
+                    hazeState = hazeState
                 ) {
                     items(model.items!!) { item ->
                         AdminItemCompose(item.title, currentRouting == item.routing, isActive) {

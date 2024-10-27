@@ -28,6 +28,7 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
@@ -46,13 +47,15 @@ import components.AppBar
 import components.CustomTextField
 import components.hazeUnder
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import view.LocalViewManager
 import view.rememberImeState
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun CabinetsContent(
-    component: CabinetsComponent
+    component: CabinetsComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -61,6 +64,7 @@ fun CabinetsContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val density = LocalDensity.current
+    val hazeState = remember { HazeState() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -84,7 +88,8 @@ fun CabinetsContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
         },
         floatingActionButton = {
@@ -150,7 +155,7 @@ fun CabinetsContent(
                 .consumeWindowInsets(padding)
                 .fillMaxSize()
                 .imePadding()
-                .hazeUnder(viewManager)
+                .hazeUnder(viewManager, hazeState = hazeState)
                 .verticalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center
 

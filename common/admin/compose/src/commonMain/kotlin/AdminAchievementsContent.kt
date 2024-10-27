@@ -1,3 +1,4 @@
+
 import achievements.AdminAchievementsComponent
 import achievements.AdminAchievementsStore
 import androidx.compose.animation.Crossfade
@@ -24,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -65,7 +65,7 @@ import components.CustomTextField
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
-import server.getLocalDate
+import dev.chrisbanes.haze.HazeState
 import view.LocalViewManager
 import view.rememberImeState
 
@@ -75,7 +75,8 @@ import view.rememberImeState
 )
 @Composable
 fun AdminAchievementsContent(
-    component: AdminAchievementsComponent
+    component: AdminAchievementsComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -84,6 +85,7 @@ fun AdminAchievementsContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val density = LocalDensity.current
+    val hazeState = remember { HazeState() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -124,13 +126,14 @@ fun AdminAchievementsContent(
                         )
                     }
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
         }
     ) { padding ->
         Crossfade(nModel.state, modifier = Modifier.fillMaxSize()) { state ->
             when (state) {
-                NetworkState.None -> CLazyColumn(padding = padding) {
+                NetworkState.None -> CLazyColumn(padding = padding, hazeState = hazeState) {
                     val headers = model.achievements.sortedBy { it.id }.reversed().map {
                         Header(
                             text = it.text,

@@ -2,12 +2,7 @@ package components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,11 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -34,7 +26,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.materialkolor.ktx.blend
-import com.materialkolor.ktx.harmonize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import report.UserMark
@@ -73,13 +64,13 @@ fun MarkContent(
     offset: DpOffset = DpOffset(0.dp, 0.dp),
     paddingValues: PaddingValues = PaddingValues(start = 5.dp, top = 5.dp),
     size: Dp = 25.dp,
-    textYOffset: Dp = 0.dp,
+//    textYOffset: Dp = 0.dp,
     reason: String? = null
 ) {
     if (reason != null && (reason.subSequence(0, 3) == "!st" || reason.subSequence(0, 3) == "!ds")) {
         BorderStup(
             mark,
-            addModifier = addModifier.padding(paddingValues).clip(RoundedCornerShape(30)),
+            addModifier = addModifier.padding(paddingValues).height(size).widthIn(min = size).clip(RoundedCornerShape(30)),
             reason = reason
         )
     } else {
@@ -101,7 +92,7 @@ fun MarkContent(
             Text(
                 mark,
                 fontSize = size.value.sp / 1.6f,
-                modifier = Modifier.fillMaxSize().offset(y = textYOffset),
+                modifier = Modifier.fillMaxWidth().align(Alignment.Center), //.offset(y = textYOffset)
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Black,
                 color = if (viewManager.colorMode.value == "3") color.blend(
@@ -146,7 +137,7 @@ fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = tr
         MarkContent(
             mark.content,
             size = markSize,
-            textYOffset = yOffset,
+//            textYOffset = yOffset,
             addModifier = Modifier.clickable {
                 coroutineScope.launch {
                     tState.show()

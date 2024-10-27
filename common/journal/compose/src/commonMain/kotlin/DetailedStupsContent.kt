@@ -56,6 +56,7 @@ import components.StupsButtons
 import components.networkInterface.NetworkState
 import detailedStups.DetailedStupsComponent
 import detailedStups.DetailedStupsStore
+import dev.chrisbanes.haze.HazeState
 import report.UserMark
 import server.fetchReason
 import server.getLocalDate
@@ -67,7 +68,8 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun DetailedStupsContent(
-    component: DetailedStupsComponent
+    component: DetailedStupsComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -77,6 +79,8 @@ fun DetailedStupsContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+
+    val hazeState = remember { HazeState() }
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -119,7 +123,8 @@ fun DetailedStupsContent(
                         }
                     }
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
             //LessonReportTopBar(component, isFullView) //, scrollBehavior
         }
@@ -127,7 +132,7 @@ fun DetailedStupsContent(
         Column(Modifier.fillMaxSize()) {
             Crossfade(nModel.state) { state ->
                 when (state) {
-                    NetworkState.None -> CLazyColumn(padding) {
+                    NetworkState.None -> CLazyColumn(padding, hazeState = hazeState) {
                         item {
                             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                 FilledTonalButton(

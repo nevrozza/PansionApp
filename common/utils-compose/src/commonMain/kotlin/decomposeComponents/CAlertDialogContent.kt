@@ -34,10 +34,14 @@ import components.CustomTextButton
 import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogComponent
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import components.hazeHeader
 import components.networkInterface.NetworkState
+import view.GlobalHazeState
+import view.LocalViewManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,17 +61,26 @@ fun CAlertDialogContent(
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
     val isShowing = customIf ?: model.isDialogShowing
+    val viewManager = LocalViewManager.current
     if (isShowing) {
         BasicAlertDialog(
             onDismissRequest = {
                 model.onDeclineClick.invoke()
             },
+
         ) {
             Surface(
                 modifier = Modifier
                     .wrapContentWidth()
                     .wrapContentHeight()
-                    .animateContentSize(),
+                    .animateContentSize()
+                    .clip(MaterialTheme.shapes.large)
+                        .hazeHeader(
+                                                      viewManager = viewManager,
+                                                      hazeState = GlobalHazeState.current,
+                                                      isProgressive = false
+                                                  ),
+                color = if(viewManager.hazeHardware.value) Color.Transparent else MaterialTheme.colorScheme.surface,
                 shape = MaterialTheme.shapes.large
             ) {
                 Column {

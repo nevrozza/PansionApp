@@ -79,7 +79,8 @@ object ScheduleReducer : Reducer<State, Message> {
                 eiCabinetErrorGroupId = 0,
                 eiCabinet = null,
                 eiGroupId = null,
-                eiStudentErrors = emptyList()
+                eiStudentErrors = emptyList(),
+                eiNewLogin = null
             )
 
 

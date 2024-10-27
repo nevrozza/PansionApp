@@ -80,6 +80,7 @@ import components.LoadingAnimation
 import components.MarkTable
 import components.cClickable
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import io.github.alexzhirkevich.qrose.options.QrBallShape
 import io.github.alexzhirkevich.qrose.options.QrFrameShape
 import io.github.alexzhirkevich.qrose.options.QrPixelShape
@@ -95,7 +96,8 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun MentoringContent(
-    component: MentoringComponent
+    component: MentoringComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -104,6 +106,7 @@ fun MentoringContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -148,7 +151,8 @@ fun MentoringContent(
                     }
 
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = isVisible
             )
         }
     ) { padding ->
@@ -250,7 +254,7 @@ fun MentoringContent(
                                 }
                             }
                         } else {
-                            CLazyColumn(padding = padding, isBottomPaddingNeeded = true) {
+                            CLazyColumn(padding = padding, isBottomPaddingNeeded = true, hazeState = hazeState) {
                                 items(model.forms) { f ->
                                     FormsItem(
                                         form = f,

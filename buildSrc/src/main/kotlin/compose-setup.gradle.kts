@@ -13,8 +13,8 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
-            implementation("dev.chrisbanes.haze:haze:0.7.2")
-            implementation("dev.chrisbanes.haze:haze-materials:0.7.2")
+            implementation("dev.chrisbanes.haze:haze:0.9.0-rc01")
+            implementation("dev.chrisbanes.haze:haze-materials:0.9.0-rc01")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.common)

@@ -99,10 +99,12 @@ import components.LoadingAnimation
 import components.ScrollBaredBox
 import components.cBottomSheet.CBottomSheetStore
 import components.cClickable
+import components.hazeUnder
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
+import dev.chrisbanes.haze.HazeState
 import excel.importStudents
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
@@ -116,6 +118,7 @@ import server.Roles
 import server.twoNums
 import users.UsersComponent
 import users.UsersStore
+import view.LocalViewManager
 import view.LockScreenOrientation
 
 @OptIn(
@@ -130,8 +133,8 @@ fun UsersContent(
     LockScreenOrientation(-1)
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
-
-
+    val viewManager = LocalViewManager.current
+    val hazeState = remember { HazeState() }
     val isTextFieldShown = remember { mutableStateOf(false) }
 
     val refreshState = rememberPullRefreshState(
@@ -331,7 +334,9 @@ fun UsersContent(
                             )
                         }
                     }
-                }
+                },
+                isHazeActivated = false,
+                hazeState = hazeState
             )
         }
     ) { padding ->
@@ -365,7 +370,7 @@ fun UsersContent(
             if (model.fStudents) Roles.student else null
         )
 
-        Box(Modifier.fillMaxSize().padding(padding)) {
+        Box(Modifier.fillMaxSize().hazeUnder(viewManager = viewManager, hazeState = hazeState).padding(padding)) {
             Crossfade(targetState = nModel) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     when {
@@ -481,11 +486,13 @@ fun UsersContent(
             )
             editUserSheet(
                 component,
-                model
+                model,
+                hazeState = hazeState
             )
             createUserSheet(
                 component,
-                model
+                model,
+                hazeState = hazeState
             )
 
         }
@@ -498,7 +505,8 @@ fun UsersContent(
 @Composable
 private fun editUserSheet(
     component: UsersComponent,
-    model: UsersStore.State
+    model: UsersStore.State,
+    hazeState: HazeState
 ) {
 
 
@@ -1038,7 +1046,8 @@ private fun editUserSheet(
 @Composable
 private fun createUserSheet(
     component: UsersComponent,
-    model: UsersStore.State
+    model: UsersStore.State,
+    hazeState: HazeState?
 ) {
     val cNModel = component.cUserBottomSheet.nModel.subscribeAsState()
     val isCreatingInProcess = (cNModel.value.state == NetworkState.Loading)

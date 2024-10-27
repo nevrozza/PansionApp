@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -5,7 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import forks.splitPane.dSplitter
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -16,12 +16,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,7 +32,6 @@ import androidx.compose.material.icons.rounded.DeviceUnknown
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.PhoneIphone
 import androidx.compose.material.icons.rounded.QrCodeScanner
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,12 +50,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -68,23 +59,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AppBar
-import components.BottomThemePanel
-import components.CustomTextButton
-import components.CustomTextField
-import components.ThemePreview
+import components.*
 import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import dev.chrisbanes.haze.HazeState
 import forks.colorPicker.toHex
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
-import forks.splitPane.rememberSplitPaneState
-import qr.QRComponent
+import forks.splitPane.dSplitter
 import server.DeviceTypex
 import view.LocalViewManager
 import view.ViewManager
@@ -97,7 +83,8 @@ import view.handy
 @Composable
 fun SettingsContent(
     isExpanded: Boolean,
-    settingsComponent: SettingsComponent
+    settingsComponent: SettingsComponent,
+    isVisible: Boolean
 //    secondScreen: @Composable () -> Unit
 ) {
     val viewManager = LocalViewManager.current
@@ -106,7 +93,7 @@ fun SettingsContent(
             splitPaneState = viewManager.splitPaneState
         ) {
             first(minSize = 400.dp) {
-                SettingsView(settingsComponent, viewManager)
+                SettingsView(settingsComponent, viewManager, isVisible = isVisible)
             }
             dSplitter()
             second(minSize = 500.dp) {
@@ -121,7 +108,7 @@ fun SettingsContent(
             }
         }
     } else {
-        SettingsView(settingsComponent, viewManager)
+        SettingsView(settingsComponent, viewManager, isVisible)
     }
 }
 
@@ -129,14 +116,15 @@ fun SettingsContent(
 @Composable
 fun SettingsView(
     component: SettingsComponent,
-    viewManager: ViewManager
+    viewManager: ViewManager,
+    isVisible: Boolean
 ) {
 
 
     val isHazeNeedToUpdate = remember { mutableStateOf(false) }
-    val isHaze = remember { mutableStateOf(viewManager.hazeStyle?.value != null) }
+    val isHaze = remember { mutableStateOf(viewManager.hazeHardware.value) }
 
-
+    val hazeState = remember { HazeState() }
     if (isHazeNeedToUpdate.value) {
         changeOnHaze(viewManager = viewManager)
         isHazeNeedToUpdate.value = false
@@ -174,11 +162,13 @@ fun SettingsView(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
+                },
+                isHazeActivated = isVisible,
+                hazeState = hazeState
             )
         }
     ) { padding ->
-        Box(Modifier.padding(horizontal = 15.dp)) {
+        Box(Modifier.hazeUnder(viewManager, hazeState).padding(horizontal = 15.dp)) {
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)
                     .imePadding()
@@ -407,7 +397,8 @@ fun SettingsView(
 
         ListDialogMobileContent(
             component = component.colorModeListComponent,
-            title = "Цветовой режим"
+            title = "Цветовой режим",
+            hazeState = hazeState
         )
 
 

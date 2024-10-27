@@ -3,8 +3,6 @@
     ExperimentalMaterial3Api::class
 )
 
-import allGroupMarks.AllGroupMarksStore
-import allGroupMarks.DatesFilter
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -13,7 +11,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,7 +39,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -73,24 +69,23 @@ import components.CFilterChip
 import components.CLazyColumn
 import components.CustomTextButton
 import components.MarkTable
-import components.MarkTableItem
 import components.StupsButton
 import components.cMark
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import dnevnikRuMarks.DnevnikRuMarkStore
 import dnevnikRuMarks.DnevnikRuMarksComponent
 import kotlinx.coroutines.CoroutineScope
-import report.DnevnikRuMarksSubject
 import report.UserMark
-import report.UserMarkPlus
 import server.fetchReason
 import server.getLocalDate
 import server.roundTo
-import server.sortedDate
 import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
+import view.hazeProgressive
 import view.rememberImeState
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -98,7 +93,8 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun DnevnikRuMarkContent(
-    component: DnevnikRuMarksComponent
+    component: DnevnikRuMarksComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -108,6 +104,7 @@ fun DnevnikRuMarkContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -115,13 +112,15 @@ fun DnevnikRuMarkContent(
         Modifier.fillMaxSize(),
 //                .nestedScroll(scrollBehavior.nestedScrollConnection)
         topBar = {
-            val isHaze = viewManager.hazeStyle != null
+            val isHaze = viewManager.hazeHardware.value
             Column(
                 Modifier.then(
                     if (isHaze) Modifier.hazeChild(
-                        state = viewManager.hazeState,
-                        style = viewManager.hazeStyle!!.value
-                    )
+                        hazeState,
+                        style = LocalHazeStyle.current
+                    ) {
+                        progressive = hazeProgressive
+                    }
                     else Modifier
                 ),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -164,7 +163,9 @@ fun DnevnikRuMarkContent(
                             )
                         }
                     },
-                    isTransparentHaze = isHaze
+                    isTransparentHaze = isHaze,
+                    isHazeActivated = isVisible,
+                    hazeState = null
                 )
                 AnimatedVisibility(
                     model.isQuarters != null && !model.isTableView,
@@ -284,7 +285,8 @@ fun DnevnikRuMarkContent(
                             padding = PaddingValues(
                                 top = padding.calculateTopPadding(),
                                 bottom = padding.calculateBottomPadding()
-                            )
+                            ),
+                            hazeState = hazeState
                         ) {
                             items(model.subjects[(model.tabIndex ?: 0)] ?: listOf()) {
                                 SubjectMarksItem(
@@ -369,7 +371,8 @@ fun DnevnikRuMarkContent(
     }
 
     StudentReportDialogContent(
-        component = component.studentReportDialog
+        component = component.studentReportDialog,
+        hazeState = hazeState
     )
 
 

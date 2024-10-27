@@ -14,6 +14,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onPlaced
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.listDialog.ListComponent
+import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.launch
 import view.LocalViewManager
 import view.WindowScreen
@@ -23,7 +24,8 @@ import view.WindowScreen
 fun ListDialogMobileContent(
     component: ListComponent,
     title: String = "Выберите",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hazeState: HazeState?
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()

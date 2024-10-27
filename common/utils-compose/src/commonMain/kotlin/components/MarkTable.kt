@@ -2,6 +2,7 @@ package components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,7 +80,7 @@ fun MarkTableUnit(m: MarkTableItem, markSize: Dp) {
         MarkContent(
             m.content,
             size = markSize,
-            textYOffset = yOffset,
+//            textYOffset = yOffset,
             addModifier = Modifier.handy().clickable {
                 m.onClick(m.reportId)
             }.alpha(if (m.isTransparent) .2f else 1f),
@@ -122,7 +123,7 @@ fun MarkTable(
 
     val dividerWidth = 1.5.dp
 
-    val markSize = 30.dp
+    val markSize = 40.dp//30.dp
     val minWidth = 50.dp
     allWidth.value = dateMarks.map { dm ->
         var maxSize = 0
@@ -133,7 +134,7 @@ fun MarkTable(
         max(maxSize * markSize, minWidth)
     }.fastSumBy { it.value.toInt() }.dp + lP
 
-    allHeight.value = 25.dp + (fields.size * 55.dp)
+    allHeight.value = 25.dp + (fields.size * 65.dp)
 
     ScrollBaredBox(
         vState = vScrollState, hState = hScrollState,
@@ -280,23 +281,21 @@ fun MarkTable(
                                     Box(
                                         modifier = Modifier.width(
                                             width
-                                        ).padding(end = dividerWidth).height(25.dp),
+                                        ).padding(end = dividerWidth).height(35.dp), //25
                                         contentAlignment = Alignment.Center
                                     ) {
 
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.Center,
+//                                            modifier = Modifier.horizontalScroll(rememberScrollState())
                                         ) {
-                                            println(marks)
                                             marks.filter { it.login == f.first }
                                                 .forEach { mark ->
                                                     MarkTableUnit(
                                                         m = mark,
-                                                        markSize = (markSize - 5.dp) //because of start padding
+                                                        markSize = (markSize - 6.dp) //because of start padding
                                                     )
-
-
                                                 }
                                         }
 

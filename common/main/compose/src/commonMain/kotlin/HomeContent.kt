@@ -3,6 +3,8 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.VectorConverter
@@ -115,6 +117,8 @@ import components.markColorsMono
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import home.HomeComponent
 import home.HomeStore
@@ -143,29 +147,39 @@ import view.LocalViewManager
 import view.WindowScreen
 import view.blend
 import view.handy
+import view.hazeProgressive
 import view.rememberImeState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @ExperimentalLayoutApi
 @Composable
 fun HomeContent(
     component: HomeComponent,
-    pickedLogin: String = ""
+    pickedLogin: String = "",
+    sharedTransitionScope: SharedTransitionScope,
+    isSharedVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
+    val hazeState = remember { HazeState() }
     when (model.role) {
         Roles.student -> {
-            StudentHomeContent(component)
+            StudentHomeContent(
+                component = component,
+                sharedTransitionScope = sharedTransitionScope,
+                isSharedVisible = isSharedVisible,
+                hazeState = hazeState
+                )
         }
 
         Roles.teacher -> {
-            TeacherHomeContent(component, pickedLogin)
+            TeacherHomeContent(component, pickedLogin, hazeState)
         }
 
         else -> {
             OtherHomeContent(
                 component = component,
-                pickedLogin = pickedLogin
+                pickedLogin = pickedLogin,
+                hazeState = hazeState
             )
         }
     }
@@ -201,7 +215,8 @@ fun HomeContent(
                     isDeep = true
                 )
             )
-        } else null
+        } else null,
+        hazeState = hazeState
     )
 }
 
@@ -209,13 +224,15 @@ fun HomeContent(
 @Composable
 fun OtherHomeContent(
     component: HomeComponent,
-    pickedLogin: String
+    pickedLogin: String,
+    hazeState: HazeState
 ) {
     val viewManager = LocalViewManager.current
     val model by component.model.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
+
     Scaffold(
         Modifier.fillMaxSize()
             .onKeyEvent {
@@ -259,11 +276,12 @@ fun OtherHomeContent(
                     }
 
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = true
             )
         }
     ) { padding ->
-        CLazyColumn(padding, isBottomPaddingNeeded = true) {
+        CLazyColumn(padding, isBottomPaddingNeeded = true, hazeState = hazeState) {
             this.homeKidsContent(
                 model = model,
                 nGradesModel = nGradesModel,
@@ -291,10 +309,12 @@ fun OtherHomeContent(
 @Composable
 fun TeacherHomeContent(
     component: HomeComponent,
-    pickedLogin: String
+    pickedLogin: String,
+    hazeState: HazeState
 ) {
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
+
 
 
     if (component.journalComponent != null) {
@@ -348,13 +368,15 @@ fun TeacherHomeContent(
                     false
                 },
             topBar = {
-                val isHaze = viewManager.hazeStyle != null
+                val isHaze = viewManager.hazeHardware.value
                 Column(
                     Modifier.then(
                         if (isHaze) Modifier.hazeChild(
-                            state = viewManager.hazeState,
-                            style = viewManager.hazeStyle!!.value
-                        )
+                            state = hazeState,
+                            style = LocalHazeStyle.current
+                        )  {
+                            progressive = hazeProgressive}
+
                         else Modifier
                     )
                 ) {
@@ -412,7 +434,9 @@ fun TeacherHomeContent(
                             }
 
                         },
-                        isTransparentHaze = isHaze
+                        isTransparentHaze = isHaze,
+                        isHazeActivated = true,
+                        hazeState = hazeState
                     )
                     AnimatedVisibility(model.isDatesShown && !isMainView) {
                         DatesLine(
@@ -432,7 +456,8 @@ fun TeacherHomeContent(
                         .pullRefresh(refreshState),
                     state = lazyListState,
                     padding = padding,
-                    isBottomPaddingNeeded = true
+                    isBottomPaddingNeeded = true,
+                    hazeState = hazeState
                 ) {
                     this.homeTeacherGroupsContent(
                         model = model,
@@ -641,10 +666,13 @@ val numToMonth = mapOf<Int, String>(
     12 to "Декабря",
 )
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun StudentHomeContent(
-    component: HomeComponent
+    component: HomeComponent,
+    sharedTransitionScope: SharedTransitionScope,
+    isSharedVisible: Boolean,
+    hazeState: HazeState
 ) {
     val model by component.model.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
@@ -657,6 +685,8 @@ fun StudentHomeContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+
+
 
     val isMainView = lazyListState.firstVisibleItemIndex in (0..model.notifications.size)
 
@@ -679,13 +709,13 @@ fun StudentHomeContent(
                 false
             },
         topBar = {
-            val isHaze = viewManager.hazeStyle != null
+            val isHaze = viewManager.hazeHardware.value
             Column(
                 Modifier.then(
                     if (isHaze) Modifier.hazeChild(
-                        state = viewManager.hazeState,
-                        style = viewManager.hazeStyle!!.value
-                    )
+                        hazeState
+                    )  {
+                        progressive = hazeProgressive}
                     else Modifier
                 )
             ) {
@@ -756,7 +786,9 @@ fun StudentHomeContent(
                         }
 
                     },
-                    isTransparentHaze = isHaze
+                    isTransparentHaze = isHaze,
+                    isHazeActivated = true,
+                    hazeState = hazeState
                 )
                 AnimatedVisibility(model.isDatesShown && !isMainView) {
                     DatesLine(
@@ -777,14 +809,17 @@ fun StudentHomeContent(
                     .animateContentSize(),
                 state = lazyListState,
                 padding = padding,
-                isBottomPaddingNeeded = true
+                isBottomPaddingNeeded = true,
+                hazeState = hazeState
             ) {
                 this.homeStudentBar(
                     model = model,
                     nGradesModel = nGradesModel,
                     nQuickTabModel = nQuickTabModel,
                     component = component,
-                    coroutineScope = coroutineScope
+                    coroutineScope = coroutineScope,
+                    sharedTransitionScope = sharedTransitionScope,
+                    isSharedVisible = isSharedVisible
                 )
                 this.homeStudentNotifications(
                     model = model,

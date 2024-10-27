@@ -45,7 +45,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -88,6 +87,7 @@ import components.StupsButtons
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
+import dev.chrisbanes.haze.HazeState
 import homeTasksDialog.HomeTasksDialogStore
 import kotlinx.coroutines.CoroutineScope
 import report.UserMarkPlus
@@ -103,12 +103,14 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun AllGroupMarksContent(
-    component: AllGroupMarksComponent
+    component: AllGroupMarksComponent,
+    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val nOpenReportModel by component.nOpenReportInterface.networkModel.subscribeAsState()
     val coroutineScope = rememberCoroutineScope()
+    val hazeState = remember { HazeState() }
     val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
 //    val scrollState = rememberScrollState()
@@ -198,7 +200,7 @@ fun AllGroupMarksContent(
 
                         }
                     },
-                    isHaze = true,
+                    hazeState = hazeState,
                     actionRow = {
 
                         IconButton(
@@ -231,7 +233,8 @@ fun AllGroupMarksContent(
                                 null
                             )
                         }
-                    }
+                    },
+                    isHazeActivated = isVisible
                 )
                 //LessonReportTopBar(component, isFullView) //, scrollBehavior
             }
@@ -345,7 +348,7 @@ fun AllGroupMarksContent(
                                         }
                                     }
                                 } else {
-                                    CLazyColumn(padding = padding) {
+                                    CLazyColumn(padding = padding, hazeState = hazeState) {
                                         if (model.students.isNotEmpty()) {
                                             items(model.students) { s ->
 
@@ -709,7 +712,7 @@ fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent, isModer: Bo
         MarkContent(
             mark.mark.content,
             size = markSize,
-            textYOffset = yOffset,
+//            textYOffset = yOffset,
             addModifier = Modifier.handy().clickable {
                 component.onEvent(AllGroupMarksStore.Intent.OpenFullReport(mark.mark.reportId))
             }

@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +54,7 @@ import components.CLazyColumn
 import components.CustomTextButton
 import components.LoadingAnimation
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import formRating.FormRatingStore
 import home.HomeComponent
 import home.HomeStore
@@ -81,6 +83,7 @@ fun SchoolContent(
     val lazyListState = rememberLazyListState()
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
+    val hazeState = remember { HazeState() }
     Scaffold(
         Modifier.fillMaxSize(),
         topBar = {
@@ -113,7 +116,8 @@ fun SchoolContent(
                         )
                     }
                 },
-                isHaze = true
+                hazeState = hazeState,
+                isHazeActivated = true
             )
         }
     ) { padding ->
@@ -122,7 +126,8 @@ fun SchoolContent(
 //                .pullRefresh(refreshState)
             state = lazyListState,
             padding = padding,
-            isBottomPaddingNeeded = true
+            isBottomPaddingNeeded = true,
+            hazeState = hazeState
         ) {
             item {
                 Row(Modifier.fillMaxWidth()) {
