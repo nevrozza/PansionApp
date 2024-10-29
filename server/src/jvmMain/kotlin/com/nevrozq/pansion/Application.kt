@@ -33,6 +33,7 @@ import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.secondLogins.SecondLogins
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
+import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.tokens.Tokens
@@ -117,7 +118,8 @@ fun main() {
             Parents,
             PickedGIA,
             DeviceBinds,
-            SecondLogins
+            SecondLogins,
+            StudentMinistry
         )
 
     }

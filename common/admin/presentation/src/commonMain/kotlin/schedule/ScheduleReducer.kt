@@ -48,12 +48,14 @@ object ScheduleReducer : Reducer<State, Message> {
                 ciTiming = null,
                 ciId = if (ciIsPair) ciId else null,
                 ciCabinet = if (ciIsPair) ciCabinet else 0,
-                ciIsPair = false
+                ciIsPair = false,
+                ciCustom = "",
+                ciFormId = null
             )
 
             is Message.ciTimeChosed -> copy(ciTiming = msg.t)
             is Message.ciTimingsGot -> copy(ciTimings = msg.timings)
-            is Message.ciStarted -> copy(ciLogin = msg.login, ciCabinet = msg.cabinet)
+            is Message.ciStarted -> copy(ciLogin = msg.login, ciCabinet = msg.cabinet, ciFormId = msg.formId)
             Message.ciGroupIdNulled -> copy(ciId = null)
             Message.ciPreviewFalsed -> copy(ciPreview = false, ciIsPair = false)
             is Message.TeacherCreated -> {
@@ -135,6 +137,7 @@ object ScheduleReducer : Reducer<State, Message> {
             is Message.IsSavedAnimation -> copy(isSavedAnimation = msg.isSavedAnimation)
             Message.ChangeIsTeacherView -> copy(isTeachersView = !isTeachersView)
             is Message.eiLoginChanged -> copy(eiState = ScheduleStore.EditState.Preview, eiNewLogin = msg.login)
+            is Message.ciCustomChanged -> copy(ciCustom = msg.custom)
         }
     }
 }

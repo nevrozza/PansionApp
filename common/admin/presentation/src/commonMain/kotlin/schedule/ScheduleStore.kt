@@ -14,6 +14,9 @@ import server.getDates
 
 interface ScheduleStore : Store<Intent, State, Label> {
     data class State(
+        val login: String,
+
+
         val teachers: List<SchedulePerson> = emptyList(),
         val students: List<SchedulePerson> = emptyList(),
         val subjects: List<ScheduleSubject> = emptyList(),
@@ -30,6 +33,8 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val ciTiming: ScheduleTiming? = null,
         val ciPreview: Boolean = false,
         val ciIsPair: Boolean = false,
+        val ciFormId: Int? = null,
+        val ciCustom: String = "",
 
 
         val eiState: EditState = EditState.Preview,
@@ -51,6 +56,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
     )
 
     sealed interface Intent {
+
         data object Init : Intent
         data class IsSavedAnimation(val isSavedAnimation: Boolean): Intent
 
@@ -91,11 +97,12 @@ interface ScheduleStore : Store<Intent, State, Label> {
 
         data class eiDelete(val index: Int) : Intent
 
-        data class ciStart(val login: String) : Intent
+        data class ciStart(val login: String, val formId: Int? = null) : Intent
         data class ciChooseGroup(val groupId: Int) : Intent
 
         data class ciChooseTime(val t: ScheduleTiming) : Intent
         data class ciChangeCabinet(val cabinet: Int) : Intent
+        data class ciChangeCustom(val custom: String) : Intent
 
         data object ciPreview : Intent
 
@@ -150,9 +157,11 @@ interface ScheduleStore : Store<Intent, State, Label> {
         ) : Message
 
 
-        data class ciStarted(val login: String, val cabinet: Int) : Message
+        data class ciStarted(val login: String, val cabinet: Int, val formId: Int?) : Message
 
         data class ciGroupChosed(val groupId: Int) : Message
+
+        data class ciCustomChanged(val custom: String) : Message
         data class ciCabinetChanged(val cabinet: Int) : Message
 
         data class ciTimeChosed(val t: ScheduleTiming) : Message

@@ -52,13 +52,4 @@ object SecondLogins : Table() {
             }.firstOrNull()
         }
     }
-
-
-//    fun selectNewLogin(id: UUID) : List<String> {
-//        return transaction {
-//            SecondLogins.select { deviceId eq id }.mapNotNull {
-//                it[registeredLogin]
-//            }
-//        }
-//    }
 }

@@ -37,20 +37,22 @@ import view.LocalViewManager
 import view.ViewManager
 import view.WindowScreen
 
+    //USING ONLY FOR SCHEDULE (why..)
 @Composable
 fun mpChoseDesktopContent(
     component: MpChoseComponent,
     offset: DpOffset = DpOffset(x = 40.dp, y = -25.dp),
     backButton: (() -> Unit)? = null,
+    isCanBeOpened: Boolean,
     content: @Composable () -> Unit
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
     val coroutineScope = rememberCoroutineScope()
     val viewManager = LocalViewManager.current
-    val isTooltip = viewManager.orientation.value != WindowScreen.Vertical
+    val isTooltip = true// viewManager.orientation.value != WindowScreen.Vertical
 
-    if (isTooltip) {
+//    if (isTooltip) {
         DropdownVariant(
             component = component,
             viewManager = viewManager,
@@ -62,7 +64,7 @@ fun mpChoseDesktopContent(
         ) {
             content()
         }
-    }
+//    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

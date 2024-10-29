@@ -12,6 +12,7 @@ import main.Period
 import report.Grade
 import report.ReportHeader
 import schedule.PersonScheduleItem
+import schedule.PersonScheduleItemWithNum
 import server.getCurrentDate
 import server.getDates
 
@@ -45,7 +46,7 @@ interface HomeStore : Store<Intent, State, Label> {
         ),
         val homeWorkEmojiCount: Int? = null,
 
-        val items: HashMap<String, List<PersonScheduleItem>> = hashMapOf(),
+        val items: HashMap<String, List<PersonScheduleItemWithNum>> = hashMapOf(),
         val currentDate: Pair<Int, String> = getCurrentDate(),
         val today: String = getCurrentDate().second,
         val dates: List<Pair<Int, String>> = getDates(4, 4),
@@ -104,7 +105,7 @@ interface HomeStore : Store<Intent, State, Label> {
 
         data class GradesUpdated(val grades: List<Grade>) : Message
 
-        data class ItemsUpdated(val items: HashMap<String, List<PersonScheduleItem>>) : Message
+        data class ItemsUpdated(val items: HashMap<String, List<PersonScheduleItemWithNum>>) : Message
 
         data class DateChanged(val date: Pair<Int, String>) : Message
 

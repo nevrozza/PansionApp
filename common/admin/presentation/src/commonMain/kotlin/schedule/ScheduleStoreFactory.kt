@@ -13,6 +13,8 @@ import schedule.ScheduleStore.State
 class ScheduleStoreFactory(
     private val storeFactory: StoreFactory,
     private val adminRepository: AdminRepository,
+
+    private val login: String,
     private val nInterface: NetworkInterface,
     private val mpCreateItem: MpChoseComponent,
     private val mpEditItem: MpChoseComponent,
@@ -27,7 +29,9 @@ class ScheduleStoreFactory(
         ScheduleStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "ScheduleStore",
-            initialState = ScheduleStore.State(),
+            initialState = ScheduleStore.State(
+                login = login
+            ),
             executorFactory = { ScheduleExecutor(
                 adminRepository = adminRepository,
                 nInterface = nInterface,

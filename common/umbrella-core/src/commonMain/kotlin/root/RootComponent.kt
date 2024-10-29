@@ -227,7 +227,7 @@ interface RootComponent : BackHandlerOwner {
         data object AdminGroups : Config
 
         @Serializable
-        data object AdminSchedule : Config
+        data class AdminSchedule(val isModerator: Boolean) : Config
 
         @Serializable
         data object AdminCalendar : Config

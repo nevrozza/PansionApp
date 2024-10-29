@@ -40,7 +40,10 @@ class ScheduleExecutor(
                 }
             }
 
-            Intent.ciCreate -> createItem()
+            Intent.ciCreate -> {
+                createItem()
+                mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+            }
 
             Intent.ciPreview -> scope.launch { dispatch(Message.ciPreviewed) }
 
@@ -48,7 +51,7 @@ class ScheduleExecutor(
                 if (intent.login != state().ciLogin) dispatch(Message.ciReset)
                 val cabinet =
                     state().cabinets.firstOrNull { it.login == intent.login }?.cabinet ?: 0
-                dispatch(Message.ciStarted(intent.login, cabinet))
+                dispatch(Message.ciStarted(intent.login, cabinet, formId = intent.formId))
             }
 
             Intent.ciNullGroupId -> scope.launch {
@@ -113,7 +116,8 @@ class ScheduleExecutor(
                     val key =
                         if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                     val newItems = (state().items[key] ?: emptyList()).toMutableList()
-                    newItems[intent.index] = ScheduleItem(
+                    val oldItem = newItems.first { it.index == intent.index }
+                    val newItem = ScheduleItem(
                         teacherLogin = intent.login,
                         groupId = intent.id,
                         t = ScheduleTiming(
@@ -121,8 +125,13 @@ class ScheduleExecutor(
                             end = intent.s.second
                         ),
                         cabinet = intent.cabinet,
-                        teacherLoginBefore = newItems[intent.index].teacherLoginBefore
+                        teacherLoginBefore = oldItem.teacherLoginBefore,
+                        formId = null,
+                        custom = "",
+                        index = oldItem.index
                     )
+                    newItems.remove(oldItem)
+                    newItems.add(newItem)
                     scope.launch {
                         dispatch(
                             Message.ItemsUpdated(
@@ -138,7 +147,7 @@ class ScheduleExecutor(
                 scope.launch(CDispatcher) {
                     val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                     val list = (state().items[key] ?: emptyList()).toMutableList()
-                    list.removeAt(intent.index)
+                    list.remove(list.first { it.index == intent.index })
                     scope.launch {
                         dispatch(Message.ItemsUpdated(list))
                         mpEditItem.onEvent(MpChoseStore.Intent.HideDialog)
@@ -175,6 +184,7 @@ class ScheduleExecutor(
             is Intent.IsSavedAnimation -> dispatch(Message.IsSavedAnimation(intent.isSavedAnimation))
             Intent.ChangeIsTeacherView -> dispatch(Message.ChangeIsTeacherView)
             is Intent.eiChangeLogin -> dispatch(Message.eiLoginChanged(intent.login))
+            is Intent.ciChangeCustom -> dispatch(Message.ciCustomChanged(intent.custom))
         }
     }
 
@@ -216,8 +226,8 @@ class ScheduleExecutor(
                     ).list
                     items.forEach {
                         it.value.forEach { item ->
-                            val teacher =
-                                state().teachers.firstOrNull { item.groupId in it.groups.map { it.first } }?.login
+                            val teacher = if (item.teacherLogin in state().teachers.map { it.login }) item.teacherLogin
+                                                    else null
                             if (teacher != null) {
                                 val list =
                                     (commonList[date])
@@ -264,6 +274,7 @@ class ScheduleExecutor(
         }
     }
 
+
     private fun updateCreateTeacherList(isError: Boolean = false) {
         scope.launch(CDispatcher) {
             if (!isError) {
@@ -291,11 +302,14 @@ class ScheduleExecutor(
 
     private fun createItem() {
         val item = ScheduleItem(
-            teacherLogin = state().ciLogin!!,
+            teacherLogin = state().ciLogin ?: state().login,
             groupId = state().ciId!!,
             t = state().ciTiming!!,
             cabinet = state().ciCabinet,
-            teacherLoginBefore = state().ciLogin!!
+            teacherLoginBefore = state().ciLogin ?: state().login,
+            formId = state().ciFormId,
+            custom = state().ciCustom,
+            index = (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) +1
         )
         scope.launch(CDispatcher) {
             val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
@@ -349,7 +363,7 @@ class ScheduleExecutor(
                 state().items[key]
                     ?: emptyList()
             val coItems =
-                (trueItems - trueItems[state().eiIndex!!]).filter {
+                (trueItems - trueItems.first { it.index == state().eiIndex!! }).filter {
                     // ! (закончилось раньше чем началось наше) или (началось позже чем началось наше)
                     ((!((it.t.end.toMinutes() < s.first.toMinutes() ||
                             it.t.start.toMinutes() > s.second.toMinutes())) && it.groupId != -11) ||

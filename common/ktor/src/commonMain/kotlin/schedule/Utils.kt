@@ -10,7 +10,10 @@ data class ScheduleItem(
     val groupId: Int,
     val t: ScheduleTiming,
     val cabinet: Int,
-    val teacherLoginBefore: String
+    val teacherLoginBefore: String,
+    val formId: Int?,
+    val custom: String,
+    val index: Int
 )
 
 @Serializable
@@ -25,6 +28,22 @@ data class PersonScheduleItem(
     val marks: List<UserMark>,
     val stupsSum: Int,
     val isSwapped: Boolean
+)
+
+
+@Serializable
+data class PersonScheduleItemWithNum(
+    val groupId: Int,
+    val teacherFio: FIO,
+    val cabinet: Int,
+    val start: String,
+    val end: String,
+    val subjectName: String,
+    val groupName: String,
+    val marks: List<UserMark>,
+    val stupsSum: Int,
+    val isSwapped: Boolean,
+    val num: Int
 )
 
 @Serializable

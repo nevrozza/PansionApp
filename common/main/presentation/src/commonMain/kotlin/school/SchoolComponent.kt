@@ -72,5 +72,8 @@ class SchoolComponent(
             val formId: Int?
         ) : Output()
 
+        data class NavigateToSchedule(
+            val isModer: Boolean
+        ) : Output()
     }
 }

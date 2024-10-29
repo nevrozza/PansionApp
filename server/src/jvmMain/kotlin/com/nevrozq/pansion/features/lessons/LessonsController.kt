@@ -119,6 +119,7 @@ import schedule.RFetchPersonScheduleReceive
 import schedule.RFetchScheduleDateReceive
 import schedule.RPersonScheduleList
 import schedule.RScheduleList
+import server.Roles
 import server.getLocalDate
 import server.toMinutes
 import java.util.HashMap
@@ -519,22 +520,26 @@ class LessonsController() {
         if (call.isMember) {
             val r = call.receive<RFetchPersonScheduleReceive>()
             val alreadyGroups = mutableListOf<Int>()
+            val isTeacher = Users.getRole(r.login) != Roles.student
             try {
                 var items = Schedule.getOnDate(r.day)
                 if (items.isEmpty()) {
                     items = Schedule.getOnDate(r.dayOfWeek)
                 }
 
-                items = if (call.isTeacher) {
+                items = if (isTeacher) {
                     items.filter { it.teacherLogin == r.login }
                 } else {
+                    val formId = StudentsInForm.fetchFormIdOfLogin(r.login)
                     val idList = StudentGroups.fetchGroupsOfStudent(r.login)
 
 //                    val parts = r.day.split(".")
 //                    val date = "${parts[0]}.${parts[1]}.${parts[2]}"
 //                    val marks = Marks.fetchUserByDate(login = call.login, date = date)
 //                    val stups = Stups.fetchUserByDate(login = call.login, date = date)
-                    items.filter { it.groupId in idList.filter { it.isActive }.map { it.id } }
+                    items.filter { (it.groupId in idList.filter { it.isActive }.map { it.id }) ||
+                                   (it.groupId == -6 && it.custom.contains(r.login)) ||
+                                   (it.groupId in listOf(-11, 0) && it.formId == formId)}
                 }
 
                 val subjects = Subjects.fetchAllSubjects()
@@ -542,50 +547,104 @@ class LessonsController() {
                 val teachers = Users.fetchAllTeachers()
 
                 val personItems = items.mapNotNull {
-                    val group = groups.firstOrNull { group -> group.id == it.groupId }
-                    alreadyGroups.add(it.groupId)
                     val teacher =
                         teachers.firstOrNull { teacher -> teacher.login == it.teacherLogin }
-
-                    val marks = Marks.fetchUserByDate(login = r.login, date = r.day)
-                        .filter { x -> x.groupId == it.groupId }
-                    val stups = Stups.fetchUserByDate(login = r.login, date = r.day)
-                        .filter { x -> x.groupId == it.groupId }
-
-
                     val fio = FIO(
                         name = teacher?.name ?: "null",
                         surname = teacher?.surname ?: "null",
                         praname = teacher?.praname
                     )
+                    if (it.groupId !in listOf(-6, -11, 0)) {
+                        val group = groups.firstOrNull { group -> group.id == it.groupId }
+                        alreadyGroups.add(it.groupId)
 
-                    if (group != null) {
-                        PersonScheduleItem(
-                            groupId = it.groupId,
-                            cabinet = it.cabinet,
-                            start = it.t.start,
-                            end = it.t.end,
-                            subjectName = subjects.first { it.id == group.subjectId }.name,
-                            groupName = group.name,
-                            teacherFio = fio,
-                            marks = if ((alreadyGroups.find { x -> x == it.groupId }
-                                    ?: 0) > 1) listOf() else marks.map {
-                                UserMark(
-                                    id = it.id,
-                                    content = it.content,
-                                    reason = it.reason,
-                                    isGoToAvg = it.isGoToAvg,
-                                    groupId = it.groupId,
-                                    date = it.date,
-                                    reportId = it.reportId,
-                                    module = it.part
-                                )
-                            },
-                            stupsSum = stups.sumOf { it.content.toInt() },
-                            isSwapped = it.teacherLoginBefore != it.teacherLogin
-                        )
+
+                        val marks = Marks.fetchUserByDate(login = r.login, date = r.day)
+                            .filter { x -> x.groupId == it.groupId }
+                        val stups = Stups.fetchUserByDate(login = r.login, date = r.day)
+                            .filter { x -> x.groupId == it.groupId }
+
+
+
+
+                        if (group != null) {
+                            PersonScheduleItem(
+                                groupId = it.groupId,
+                                cabinet = it.cabinet,
+                                start = it.t.start,
+                                end = it.t.end,
+                                subjectName = subjects.first { it.id == group.subjectId }.name,
+                                groupName = group.name,
+                                teacherFio = fio,
+                                marks = if ((alreadyGroups.find { x -> x == it.groupId }
+                                        ?: 0) > 1) listOf() else marks.map {
+                                            UserMark(
+                                                id = it.id,
+                                                content = it.content,
+                                                reason = it.reason,
+                                                isGoToAvg = it.isGoToAvg,
+                                                groupId = it.groupId,
+                                                date = it.date,
+                                                reportId = it.reportId,
+                                                module = it.part
+                                            )
+                                                                           },
+                                stupsSum = stups.sumOf { it.content.toInt() },
+                                isSwapped = it.teacherLoginBefore != it.teacherLogin
+                            )
+                        } else {
+                            null
+                        }
                     } else {
-                        null
+                        if (it.groupId == -6) {
+                            val dopFio = if (!isTeacher) fio
+                                else {
+                                val user = Users.fetchUser(it.custom)
+                                FIO(
+                                    name = "",
+                                    praname = null,
+                                    surname = "${user?.surname}"
+                                )
+                            }
+                            PersonScheduleItem(
+                                groupId = it.groupId,
+                                cabinet = it.cabinet,
+                                start = it.t.start,
+                                end = it.t.end,
+                                subjectName = "Занятие",
+                                groupName = "Доп с",
+                                teacherFio = dopFio,
+                                marks = listOf(),
+                                stupsSum = 0,
+                                isSwapped = it.teacherLoginBefore != it.teacherLogin
+                            )
+                        } else if (it.groupId == -11) {
+                            PersonScheduleItem(
+                                groupId = it.groupId,
+                                cabinet = it.cabinet,
+                                start = it.t.start,
+                                end = it.t.end,
+                                subjectName = "",
+                                groupName = "",
+                                teacherFio = FIO("", "", ""),
+                                marks = listOf(),
+                                stupsSum = 0,
+                                isSwapped = it.teacherLoginBefore != it.teacherLogin
+                            )
+                        } else {
+                            PersonScheduleItem(
+                                groupId = it.groupId,
+                                cabinet = it.cabinet,
+                                start = it.t.start,
+                                end = it.t.end,
+                                subjectName = it.custom,
+                                groupName = "",
+                                teacherFio = FIO("", "", ""),
+                                marks = listOf(),
+                                stupsSum = 0,
+                                isSwapped = it.teacherLoginBefore != it.teacherLogin
+                            )
+                        }
                     }
                 }
 
@@ -618,7 +677,10 @@ class LessonsController() {
                             start = it.t.start,
                             end = it.t.end,
                             cabinet = it.cabinet.toString(),
-                            teacherLoginBefore = it.teacherLoginBefore
+                            teacherLoginBefore = it.teacherLoginBefore,
+                            formId = it.formId,
+                            custom = it.custom,
+                            id = it.index
                         )
                     }
                 }
@@ -729,7 +791,7 @@ class LessonsController() {
 
 
     suspend fun fetchInitSchedule(call: ApplicationCall) {
-        if (call.isModer) {
+        if (call.isMember) {
             try {
                 val teachers = mutableListOf<SchedulePerson>()
                 val students = mutableListOf<SchedulePerson>()

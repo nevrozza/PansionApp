@@ -554,6 +554,7 @@ class ReportsController() {
                     println("xxxx2:")
                     println(s.login)
                     val isQuarter = isQuarter(RIsQuartersReceive(s.login))
+                    println("x0")
                     val marks = Marks.fetchForUserGroup(
                         login = s.login,
                         groupId = r.groupId
@@ -574,6 +575,7 @@ class ReportsController() {
                             deployLogin = it.deployLogin
                         )
                     }
+                    println("x1")
                     val stups = Stups.fetchForUserGroup(
                         login = s.login,
                         groupId = r.groupId
@@ -597,9 +599,10 @@ class ReportsController() {
                             deployLogin = it.deployLogin
                         )
                     }
-
+                    println("x2")
                     val shortFio =
                         "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}"
+                    println("x3")
                     val nki = mutableListOf<StudentNka>()
                     StudentLines.fetchStudentLinesByLoginAndGroup(
                         login = s.login,

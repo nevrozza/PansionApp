@@ -13,7 +13,10 @@ data class ScheduleDTO(
     val groupId: Int,
     val start: String,
     val end: String,
-    val cabinet: String
+    val cabinet: String,
+    val formId: Int?,
+    val custom: String,
+    val id: Int
 )
 
 
@@ -26,6 +29,9 @@ fun ScheduleDTO.mapToItem() =
                 end = this.end
             ),
             cabinet = this.cabinet.toInt(),
-            teacherLoginBefore = this.teacherLoginBefore
+            teacherLoginBefore = this.teacherLoginBefore,
+            formId = this.formId,
+            custom = this.custom,
+            index = this.id
         )
 

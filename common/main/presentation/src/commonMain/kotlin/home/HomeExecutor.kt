@@ -17,7 +17,9 @@ import main.RChangeToUv
 import main.RDeleteMainNotificationsReceive
 import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainNotificationsReceive
+import schedule.PersonScheduleItemWithNum
 import server.Roles
+import server.toMinutes
 
 class HomeExecutor(
     private val authRepository: AuthRepository,
@@ -267,7 +269,24 @@ class HomeExecutor(
                     )
                 val newList = state().items.toMutableMap()
                 response.list.forEach {
-                    newList[it.key] = it.value
+                    var num = 0
+                    val items = it.value.sortedBy { it.start.toMinutes() }.map { item ->
+                        if (item.groupId !in listOf(-11)) num +=1
+                        PersonScheduleItemWithNum(
+                            groupId = item.groupId,
+                            teacherFio = item.teacherFio,
+                            cabinet = item.cabinet,
+                            start = item.start,
+                            end = item.end,
+                            subjectName = item.subjectName,
+                            groupName = item.groupName,
+                            marks = item.marks,
+                            stupsSum = item.stupsSum,
+                            isSwapped = item.isSwapped,
+                            num = num
+                        )
+                    }
+                    newList[it.key] = items
                 }
                 scope.launch {
                     dispatch(Message.ItemsUpdated(newList.toMap(HashMap())))

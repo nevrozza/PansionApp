@@ -19,6 +19,8 @@ object Schedule : Table() {
     private val start = Schedule.varchar("start", 5)
     private val end = Schedule.varchar("end", 5)
     private val cabinet = Schedule.varchar("cabinet", 3)
+    private val formId = Schedule.integer("formId").nullable()
+    private val custom = Schedule.varchar("custom", length = 60)
 
     fun insert(dto: ScheduleDTO) {
         try {
@@ -31,6 +33,8 @@ object Schedule : Table() {
                     it[cabinet] = dto.cabinet
                     it[date] = dto.date
                     it[teacherLoginBefore] = dto.teacherLoginBefore
+                    it[formId] = dto.formId
+                    it[custom] = dto.custom
                 }
             }
         } catch (e: Throwable) {
@@ -66,7 +70,10 @@ object Schedule : Table() {
                     start = it[start],
                     end = it[end],
                     cabinet = it[cabinet],
-                    teacherLoginBefore = it[teacherLoginBefore]
+                    teacherLoginBefore = it[teacherLoginBefore],
+                    formId = it[formId],
+                    custom = it[custom],
+                    id = it[Schedule.id]
                 )
             }
         }
@@ -82,7 +89,10 @@ object Schedule : Table() {
                     start = it[start],
                     end = it[end],
                     cabinet = it[cabinet],
-                    teacherLoginBefore = it[teacherLoginBefore]
+                    teacherLoginBefore = it[teacherLoginBefore],
+                    formId = it[formId],
+                    custom = it[custom],
+                    id = it[Schedule.id]
                 ).mapToItem()
             }
         }

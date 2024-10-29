@@ -1186,7 +1186,7 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         Config.AdminCabinets -> Admin
         Config.AdminCalendar -> Admin
         Config.AdminGroups -> Admin
-        Config.AdminSchedule -> Admin
+        is Config.AdminSchedule -> School
         Config.AdminUsers -> Admin
         Config.AdminAchievements -> Admin
         Config.AdminParents -> Admin

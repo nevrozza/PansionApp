@@ -52,10 +52,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CalendarToday
-import androidx.compose.material.icons.rounded.Schedule
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -138,11 +135,7 @@ import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
 import report.UserMark
-import server.Roles
-import server.fetchReason
-import server.getCurrentDayTime
-import server.toMinutes
-import server.weekPairs
+import server.*
 import view.LocalViewManager
 import view.WindowScreen
 import view.blend
@@ -168,7 +161,7 @@ fun HomeContent(
                 sharedTransitionScope = sharedTransitionScope,
                 isSharedVisible = isSharedVisible,
                 hazeState = hazeState
-                )
+            )
         }
 
         Roles.teacher -> {
@@ -333,8 +326,10 @@ fun TeacherHomeContent(
 
         val itHotsShouldBe = (model.isMentor || model.isParent)
 
-        val groupsItems = if(!(model.teacherGroups.isEmpty() && nTeacherModel.state == NetworkState.None)) 2 + model.teacherGroups.size else 0
-        val childrenNotsItems = 2 + if(!(model.notChildren.isEmpty() && nQuickTabModel.state == NetworkState.None ) && itHotsShouldBe) model.notChildren.size else 0
+        val groupsItems =
+            if (!(model.teacherGroups.isEmpty() && nTeacherModel.state == NetworkState.None)) 2 + model.teacherGroups.size else 0
+        val childrenNotsItems =
+            2 + if (!(model.notChildren.isEmpty() && nQuickTabModel.state == NetworkState.None) && itHotsShouldBe) model.notChildren.size else 0
 
         val isMainView =
             lazyListState.firstVisibleItemIndex in (0..(groupsItems + childrenNotsItems + 1)).toList()
@@ -374,9 +369,9 @@ fun TeacherHomeContent(
                         if (isHaze) Modifier.hazeChild(
                             state = hazeState,
                             style = LocalHazeStyle.current
-                        )  {
-                            progressive = hazeProgressive}
-
+                        ) {
+                            progressive = hazeProgressive
+                        }
                         else Modifier
                     )
                 ) {
@@ -608,10 +603,10 @@ private fun RaspisanieTable(
                             textAlign = TextAlign.Center
                         )
                     } else {
-                        items.sortedBy { it.start }
-                            .forEachIndexed { id, it ->
+                        items
+                            .forEach { it ->
                                 Lesson(
-                                    num = id + 1,
+                                    num = it.num,
                                     title = it.subjectName,
                                     group = it.groupName,
                                     start = it.start,
@@ -687,8 +682,7 @@ fun StudentHomeContent(
     val coroutineScope = rememberCoroutineScope()
 
 
-
-    val isMainView = lazyListState.firstVisibleItemIndex in (0..model.notifications.size)
+    val isMainView = lazyListState.firstVisibleItemIndex in (0..model.notifications.size + 1)
 
     val refreshing =
         (nQuickTabModel.state == NetworkState.Loading || nGradesModel.state == NetworkState.Loading
@@ -714,8 +708,9 @@ fun StudentHomeContent(
                 Modifier.then(
                     if (isHaze) Modifier.hazeChild(
                         hazeState
-                    )  {
-                        progressive = hazeProgressive}
+                    ) {
+                        progressive = hazeProgressive
+                    }
                     else Modifier
                 )
             ) {
@@ -740,7 +735,7 @@ fun StudentHomeContent(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             println(lazyListState.firstVisibleItemIndex)
                             AnimatedContent(
-                                targetState = if (lazyListState.firstVisibleItemIndex !in (0..model.notifications.size)) {
+                                targetState = if (!isMainView) {
                                     val str = model.currentDate.second.substring(
                                         0,
                                         5
@@ -965,8 +960,8 @@ fun Lesson(
     isSwapped: Boolean
 ) {
 
-    val isSurnameShown = remember { mutableStateOf(false) }
-
+    val isSurnameShown = remember { mutableStateOf(groupId == -6) }
+    val viewManager = LocalViewManager.current
     val firstElement =
         model.items[date]?.sortedBy { it.start.toMinutes() }?.first { it.groupId == groupId }
     val isFirst = firstElement?.start == start
@@ -978,198 +973,241 @@ fun Lesson(
             (todayParts[0].toInt() > dateParts[0].toInt() && todayParts[1].toInt() == dateParts[1].toInt()) ||
             (todayParts[1].toInt() > dateParts[1].toInt())
     val minutesOst = start.toMinutes() - currentTime
-    Row(Modifier.padding(end = 10.dp)) {
-        Box(Modifier.width(25.dp).height(50.dp), contentAlignment = Alignment.CenterStart) {
-            Text(
-                num.toString(),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            if (role == Roles.teacher) {
-                val headers = journalModel!!.headers.filter {
-                    it.date == model.currentDate.second &&
-                            it.groupId == groupId &&
-                            (it.time.toMinutes() >= start.toMinutes() && it.time.toMinutes() < end.toMinutes())
-                }
-                if (headers.isNotEmpty() && headers.first().status) {
-                    Box(
-                        Modifier.offset(x = 16.dp, y = (-14).dp).align(Alignment.CenterStart)
-                            .size(5.dp).clip(
-                                CircleShape
-                            ).background(MaterialTheme.colorScheme.primary)
+
+    val endOfZavtrak = "10:00".toMinutes()
+    val endOfLunch = "11:00".toMinutes()
+    val endOfObed = "15:20".toMinutes()
+    val endOfPoldnik = "17:00".toMinutes()
+    val text = if (groupId != -11) title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+    else when (start.toMinutes()) {
+        in 0..endOfZavtrak -> "Завтрак"
+        in endOfZavtrak..endOfLunch -> "Ланч"
+        in endOfLunch..endOfObed -> "Обед"
+        in endOfObed..endOfPoldnik -> "Полдник"
+        else -> "Ужин"
+    }
+
+    if (groupId != -11) {
+        Row(Modifier.padding(end = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.width(25.dp).height(50.dp), contentAlignment = Alignment.CenterStart) {
+                if (groupId != -11) {
+                    Text(
+                        num.toString(),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                } else {
+                    Icon(
+                        Icons.Rounded.Restaurant, null,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                     )
                 }
-            }
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column {
-                AnimatedContent(
-                    if (isSurnameShown.value) fio.surname else "",
-                    transitionSpec = { fadeIn().togetherWith(fadeOut()) }
-                ) { surname ->
-                    Text(buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
-                            )
-                        ) {
-                            append(title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
-                            )
-                        ) {
-                            append(" $cabinet")
-                        }
-
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 17.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
-                            )
-                        ) {
-                            append("\n")
-                            append(group.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 17.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
-                            )
-                        ) {
-                            append(
-                                " ${surname}${if (isSwapped) "*" else ""}"
-                            )
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
-                            )
-                        ) {
-                            append("\n")
-                            append("$start-$end")
-                        }
-
-                    }, lineHeight = 17.sp,
-                        modifier = Modifier.clickable(
-                            interactionSource = MutableInteractionSource(),
-                            indication = null
-                        ) { isSurnameShown.value = !isSurnameShown.value })
-                }
-            }
-
-            if (role == Roles.student) {
-                if (
-                    isEnded || today == date
-                ) {
-                    val notNow = minutesOst > 0 && !isEnded
-                    if (notNow || !isEnded || (marks.isEmpty() && stupsSum == 0)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (notNow) {
-                                Icon(
-                                    Icons.Rounded.Schedule,
-                                    null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(Modifier.width(5.dp))
-                            }
-                            Text(
-                                if (notNow) "$minutesOst мин."
-                                else if (!isEnded) "Начался"
-                                else "",
-                                lineHeight = 5.sp,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1
-                            )
-                        }
-                    } else if (isFirst) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            LazyRow {
-                                items(items = marks) {
-                                    cMark(
-                                        mark = it,
-                                        coroutineScope = coroutineScope,
-                                        showDate = false
-                                    )
-                                }
-                            }
-                            if (stupsSum != 0) {
-                                Spacer(Modifier.width(7.dp))
-                                Box(modifier = Modifier.padding(top = 3.dp)) {
-                                    BorderStup(stupsSum.toString(), "!st")
-                                }
-                            }
-                        }
-                    }
-                }
-            } else if (journalModel != null) {
-                if (isEnded || today == date) {
-                    val headers = journalModel.headers.filter {
+                if (role == Roles.teacher) {
+                    val headers = journalModel!!.headers.filter {
                         it.date == model.currentDate.second &&
                                 it.groupId == groupId &&
                                 (it.time.toMinutes() >= start.toMinutes() && it.time.toMinutes() < end.toMinutes())
                     }
-                    val isCreated = headers.isNotEmpty()
-                    FilledTonalButton(
-                        onClick = {
-                            with(component.journalComponent!!) {
-                                if (isCreated) {
-                                    if (headers.size == 1) {
-                                        onEvent(JournalStore.Intent.FetchReportData(headers.first()))
-                                    } else {
-                                        component.onEvent(
-                                            HomeStore.Intent.UpdateSomeHeaders(
-                                                headers
-                                            )
-                                        )
-                                        component.reportsDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                                    }
-                                } else if (!isEnded) {
-                                    onEvent(
-                                        JournalStore.Intent.OnGroupClicked(
-                                            groupId,
-                                            start
-                                        )
-                                    )
-                                }
-                            }
-                        },
-                        enabled = !isEnded || isCreated,
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
-                    ) {
-                        Text(
-                            if (isCreated) "Посмотреть отчёт" else if (isEnded) "Отчёт не найден" else "Создать отчёт",
-                            lineHeight = 10.sp
+                    if (headers.isNotEmpty() && headers.first().status) {
+                        Box(
+                            Modifier.offset(x = 16.dp, y = (-14).dp).align(Alignment.CenterStart)
+                                .size(5.dp).clip(
+                                    CircleShape
+                                ).background(MaterialTheme.colorScheme.primary)
                         )
                     }
                 }
             }
-//            else if (mark != "0") {
-//                ElevatedCard(
-//                    Modifier.size(45.dp)
-//                ) {
-//                    Box(
-//                        Modifier.fillMaxSize(),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Text("5", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color(185, 254, 179))
-//                    }
-//                }
-//            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    AnimatedContent(
+                        if (isSurnameShown.value) fio.surname else "",
+                        transitionSpec = { fadeIn().togetherWith(fadeOut()) }
+                    ) { surname ->
+                        Text(
+                            buildAnnotatedString {
+                                withStyle(
+                                    SpanStyle(
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
+                                    )
+                                ) {
+                                    append(text)
+                                }
+                                if (cabinet != "0") {
+                                    withStyle(
+                                        SpanStyle(
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                                        )
+                                    ) {
+                                        append(" $cabinet")
+                                    }
+                                }
+
+                                if (groupId !in listOf(0, -11)) {
+                                    withStyle(
+                                        SpanStyle(
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 17.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
+                                        )
+                                    ) {
+                                        append("\n")
+                                        append(group.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
+                                    }
+                                }
+                                withStyle(
+                                    SpanStyle(
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 17.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                                    )
+                                ) {
+                                    append(
+                                        " ${surname}${if (isSwapped) "*" else ""}"
+                                    )
+                                }
+                                withStyle(
+                                    SpanStyle(
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
+                                    )
+                                ) {
+                                    append("\n")
+                                    append("$start-$end")
+                                }
+
+                            }, lineHeight = 17.sp,
+                            modifier = Modifier.clickable(
+                                interactionSource = MutableInteractionSource(),
+                                indication = null
+                            ) { isSurnameShown.value = !isSurnameShown.value })
+                    }
+                }
+
+
+                if (role == Roles.student || groupId <= 0) {
+                    if (
+                        isEnded || today == date
+                    ) {
+                        val notNow = minutesOst > 0 && !isEnded
+                        if (notNow || !isEnded || (marks.isEmpty() && stupsSum == 0)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (notNow) {
+                                    Icon(
+                                        Icons.Rounded.Schedule,
+                                        null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(Modifier.width(5.dp))
+                                }
+                                val hours = (minutesOst / 60.0f).roundTo(1)
+                                Text(
+                                    if (notNow) if (hours.toFloat() >= 1) "$hours ч." else "$minutesOst мин."
+                                    else if (!isEnded) "Уже идёт!"
+                                    else "",
+                                    lineHeight = 5.sp,
+                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 1
+                                )
+                            }
+                        } else if (isFirst) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                LazyRow {
+                                    items(items = marks) {
+                                        cMark(
+                                            mark = it,
+                                            coroutineScope = coroutineScope,
+                                            showDate = false
+                                        )
+                                    }
+                                }
+                                if (stupsSum != 0) {
+                                    Spacer(Modifier.width(7.dp))
+                                    Box(modifier = Modifier.padding(top = 3.dp)) {
+                                        BorderStup(stupsSum.toString(), "!st")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if (journalModel != null && groupId > 0) {
+                    if (isEnded || today == date) {
+                        val headers = journalModel.headers.filter {
+                            it.date == model.currentDate.second &&
+                                    it.groupId == groupId &&
+                                    (it.time.toMinutes() >= start.toMinutes() && it.time.toMinutes() < end.toMinutes())
+                        }
+                        val isCreated = headers.isNotEmpty()
+                        FilledTonalButton(
+                            onClick = {
+                                with(component.journalComponent!!) {
+                                    if (isCreated) {
+                                        if (headers.size == 1) {
+                                            onEvent(JournalStore.Intent.FetchReportData(headers.first()))
+                                        } else {
+                                            component.onEvent(
+                                                HomeStore.Intent.UpdateSomeHeaders(
+                                                    headers
+                                                )
+                                            )
+                                            component.reportsDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                        }
+                                    } else if (!isEnded) {
+                                        onEvent(
+                                            JournalStore.Intent.OnGroupClicked(
+                                                groupId,
+                                                start
+                                            )
+                                        )
+                                    }
+                                }
+                            },
+                            enabled = !isEnded || isCreated,
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
+                        ) {
+                            Text(
+                                if (isCreated) "Посмотреть отчёт" else if (isEnded) "Отчёт не найден" else "Создать отчёт",
+                                lineHeight = 10.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Box(
+            Modifier.fillMaxWidth(),
+        ) {
+            Icon(
+                Icons.Rounded.Restaurant, null,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
+                modifier = Modifier.align(Alignment.CenterStart)
+            )
+            Text(
+                text,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
+                modifier = Modifier.align(Alignment.Center)
+            )
+            Text(
+                "$start-$end",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f),
+                modifier = Modifier.align(Alignment.CenterEnd)
+            )
+
         }
     }
 }
@@ -1179,7 +1217,10 @@ fun Lesson(
 @Composable
 fun cGrade(mark: Grade, coroutineScope: CoroutineScope, onClick: () -> Unit) {
     val tState = rememberTooltipState(isPersistent = false)
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(PaddingValues(start = 5.dp))) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(PaddingValues(start = 5.dp))
+    ) {
         Text(mark.date.subSequence(0, 5).toString(), fontSize = 10.sp, lineHeight = 10.sp)
         Spacer(Modifier.height(2.dp))
         TooltipBox(

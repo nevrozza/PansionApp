@@ -14,6 +14,8 @@ import di.Inject
 class ScheduleComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
+    login: String,
+    val isCanBeEdited: Boolean,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     val nInterface = NetworkInterface(
@@ -65,7 +67,8 @@ class ScheduleComponent(
                 nInterface = nInterface,
                 mpCreateItem = mpCreateItem,
                 mpEditItem = mpEditItem,
-                listCreateTeacher = listCreateTeacher
+                listCreateTeacher = listCreateTeacher,
+                login = login
             ).create()
         }
 

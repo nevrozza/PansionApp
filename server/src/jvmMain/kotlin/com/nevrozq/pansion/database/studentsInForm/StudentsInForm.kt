@@ -132,8 +132,8 @@ object StudentsInForm : Table() {
 
     fun fetchFormIdOfLogin(studentLogin: String): Int {
         return transaction {
-            StudentsInForm.select { StudentsInForm.login eq studentLogin }
-                .first()[StudentsInForm.formId]
+            (StudentsInForm.select { StudentsInForm.login eq studentLogin }
+                .firstOrNull()?.get(StudentsInForm.formId)) ?: 1
         }
     }
 

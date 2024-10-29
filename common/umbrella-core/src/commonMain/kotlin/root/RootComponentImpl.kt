@@ -492,11 +492,13 @@ class RootComponentImpl(
                 )
             )
 
-            Config.AdminSchedule -> Child.AdminSchedule(
+            is Config.AdminSchedule -> Child.AdminSchedule(
                 scheduleComponent = ScheduleComponent(
                     childContext,
                     storeFactory,
-                    output = ::onAdminScheduleOutput
+                    output = ::onAdminScheduleOutput,
+                    login = authRepository.fetchLogin(),
+                    isCanBeEdited = config.isModerator
                 )
             )
 
@@ -654,6 +656,8 @@ class RootComponentImpl(
                 formName = output.formName,
                 formId = output.formId
             ))
+
+            is SchoolComponent.Output.NavigateToSchedule -> navigation.bringToFront(Config.AdminSchedule(output.isModer))
         }
 
     private fun onQRScannerOutput(output: QRComponent.Output): Unit =
@@ -951,7 +955,7 @@ class RootComponentImpl(
 
             RootComponent.Output.NavigateToAdmin -> navigation.bringToFront(Config.MainAdmin)
 
-            RootComponent.Output.NavigateToSchedule -> navigation.bringToFront(Config.AdminSchedule)
+            RootComponent.Output.NavigateToSchedule -> navigation.bringToFront(Config.AdminSchedule(isModerator = true))
 
             RootComponent.Output.NavigateToSchool -> navigation.bringToFront(Config.MainSchool)
 
