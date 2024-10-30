@@ -41,7 +41,20 @@ import androidx.compose.material.icons.rounded.EditCalendar
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Token
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,7 +88,6 @@ import components.CustomTextButton
 import components.hazeHeader
 import components.hazeUnder
 import components.networkInterface.NetworkState
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import forks.splitPane.ExperimentalSplitPaneApi
@@ -114,8 +126,11 @@ import server.Moderation
 import server.Roles
 import server.cut
 import server.getDate
-import view.*
-import androidx.compose.ui.draw.clip
+import view.GlobalHazeState
+import view.LocalViewManager
+import view.ViewManager
+import view.WindowCalculator
+import view.WindowScreen
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -769,6 +784,18 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 )
                             }
                         )
+                        is Child.SchoolMinistry -> MultiPaneSchool(
+                            isExpanded = isExpanded,
+                            schoolComponent = child.schoolComponent,
+                            currentRouting = SchoolRoutings.Ministry,
+                            viewManager = viewManager,
+                            secondScreen = {
+                                MinistryContent(
+                                    child.ministryComponent,
+                                    isVisible = stack.active.instance is Child.SchoolMinistry
+                                )
+                            }
+                        )
                     }
                 }
                 if (component.secondLogin == null) {
@@ -1214,5 +1241,6 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
         is Config.QRScanner -> Home
         Config.MainSchool -> School
         is Config.SchoolFormRating -> School
+        Config.SchoolMinistry -> School
     }
 }

@@ -47,6 +47,7 @@ import lessonReport.LessonReportComponent.Output
 import login.LoginComponent
 import mentoring.MentoringComponent
 import mentoring.MentoringStore
+import ministry.MinistryComponent
 import parents.AdminParentsComponent
 import profile.ProfileComponent
 import qr.QRComponent
@@ -185,6 +186,7 @@ class RootComponentImpl(
             is Child.QRScanner -> onQRScannerOutput(QRComponent.Output.Back)
             is Child.SchoolFormRating -> onFormRatingOutput(FormRatingComponent.Output.Back)
             is Child.SecondView -> navigation.pop()
+            is Child.SchoolMinistry -> onMinistryOutput(MinistryComponent.Output.Back)
         }
     }
 
@@ -375,17 +377,6 @@ class RootComponentImpl(
                     getMainAdminComponent(childContext, true)
                 )
             }
-//
-//            is Config.AdminMentors -> {
-//                Child.AdminMentors(
-//                    adminComponent = mainAdminComponent,
-//                    mentorsComponent = MentorsComponent(
-//                        componentContext,
-//                        storeFactory,
-//                        output = ::onAdminMentorsOutput
-//                    )
-//                )
-//            }
 
             is Config.AdminUsers -> {
                 Child.AdminUsers(
@@ -475,47 +466,54 @@ class RootComponentImpl(
                 )
             }
 
-            is Config.HomeProfile -> Child.HomeProfile(
-                homeComponent = getMainHomeComponent(childContext, true),
-                profileComponent = ProfileComponent(
-                    componentContext = childContext,
-                    storeFactory = storeFactory,
-                    studentLogin = config.studentLogin,
-                    fio = config.fio,
-                    avatarId = config.avatarId,
-                    output = ::onHomeProfileOutput,
-                    changeAvatarOnMain = {
-                        mainHomeComponent?.onEvent(HomeStore.Intent.UpdateAvatarId(it))
-                    },
-                    isOwner = config.isOwner,
-                    isCanEdit = config.isCanEdit
+            is Config.HomeProfile -> {
+                Child.HomeProfile(
+                    homeComponent = getMainHomeComponent(childContext, true),
+                    profileComponent = ProfileComponent(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        studentLogin = config.studentLogin,
+                        fio = config.fio,
+                        avatarId = config.avatarId,
+                        output = ::onHomeProfileOutput,
+                        changeAvatarOnMain = {
+                            mainHomeComponent?.onEvent(HomeStore.Intent.UpdateAvatarId(it))
+                        },
+                        isOwner = config.isOwner,
+                        isCanEdit = config.isCanEdit
+                    )
                 )
-            )
+            }
 
-            is Config.AdminSchedule -> Child.AdminSchedule(
-                scheduleComponent = ScheduleComponent(
-                    childContext,
-                    storeFactory,
-                    output = ::onAdminScheduleOutput,
-                    login = authRepository.fetchLogin(),
-                    isCanBeEdited = config.isModerator
+            is Config.AdminSchedule -> {
+                Child.AdminSchedule(
+                    scheduleComponent = ScheduleComponent(
+                        childContext,
+                        storeFactory,
+                        output = ::onAdminScheduleOutput,
+                        login = authRepository.fetchLogin(),
+                        isCanBeEdited = config.isModerator
+                    )
                 )
-            )
+            }
 
-            Config.AdminCabinets -> Child.AdminCabinets(
-                adminComponent = getMainAdminComponent(childContext, true),
-                cabinetsComponent = CabinetsComponent(
-                    childContext,
-                    storeFactory,
-                    output = ::onAdminCabinetsOutput
+            Config.AdminCabinets -> {
+                Child.AdminCabinets(
+                    adminComponent = getMainAdminComponent(childContext, true),
+                    cabinetsComponent = CabinetsComponent(
+                        childContext,
+                        storeFactory,
+                        output = ::onAdminCabinetsOutput
+                    )
                 )
-            )
+            }
 
-            Config.MainRating -> Child.MainRating(
-                schoolComponent = getMainSchoolComponent(childContext, true),
-                ratingComponent = getMainRatingComponent(childContext, true)
-            )
-
+            Config.MainRating -> {
+                Child.MainRating(
+                    schoolComponent = getMainSchoolComponent(childContext, true),
+                    ratingComponent = getMainRatingComponent(childContext, true)
+                )
+            }
             is Config.HomeTasks -> {
                 Child.HomeTasks(
                     homeComponent = getMainHomeComponent(childContext, true),
@@ -534,18 +532,22 @@ class RootComponentImpl(
             }
 
 
-            Config.AdminCalendar -> Child.AdminCalendar(
-                adminComponent = getMainAdminComponent(childContext, true),
-                calendarComponent = CalendarComponent(
-                    componentContext = childContext,
-                    storeFactory = storeFactory,
-                    output = ::onAdminCalendarOutput
+            Config.AdminCalendar -> {
+                Child.AdminCalendar(
+                    adminComponent = getMainAdminComponent(childContext, true),
+                    calendarComponent = CalendarComponent(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        output = ::onAdminCalendarOutput
+                    )
                 )
-            )
+            }
 
-            Config.MainMentoring -> Child.MainMentoring(
-                mentoringComponent = getMainMentoringComponent(childContext)
-            )
+            Config.MainMentoring -> {
+                Child.MainMentoring(
+                    mentoringComponent = getMainMentoringComponent(childContext)
+                )
+            }
 
             is Config.SecondView -> {
                 println("WTFIK: ${config.isMentoring}")
@@ -570,37 +572,43 @@ class RootComponentImpl(
                 )
             }
 
-            Config.AdminAchievements -> Child.AdminAchievements(
-                adminComponent = getMainAdminComponent(childContext, getOld = true),
-                adminAchievementsComponent = AdminAchievementsComponent(
-                    componentContext = childContext,
-                    storeFactory = storeFactory,
-                    output = ::onAdminAchievementsOutput
+            Config.AdminAchievements -> {
+                Child.AdminAchievements(
+                    adminComponent = getMainAdminComponent(childContext, getOld = true),
+                    adminAchievementsComponent = AdminAchievementsComponent(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        output = ::onAdminAchievementsOutput
+                    )
                 )
-            )
+            }
 
-            is Config.HomeAchievements -> Child.HomeAchievements(
-                homeComponent = getMainHomeComponent(childContext, true),
-                achievementsComponent = HomeAchievementsComponent(
-                    componentContext = childContext,
-                    storeFactory = storeFactory,
-                    output = ::onHomeAchievementsOutput,
-                    login = config.studentLogin,
-                    name = config.name,
-                    avatarId = config.avatarId
+            is Config.HomeAchievements -> {
+                Child.HomeAchievements(
+                    homeComponent = getMainHomeComponent(childContext, true),
+                    achievementsComponent = HomeAchievementsComponent(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        output = ::onHomeAchievementsOutput,
+                        login = config.studentLogin,
+                        name = config.name,
+                        avatarId = config.avatarId
+                    )
                 )
-            )
+            }
 
-            Config.AdminParents -> Child.AdminParents(
-                adminComponent = getMainAdminComponent(childContext, true),
-                parentsComponent = AdminParentsComponent(
-                    componentContext = childContext,
-                    storeFactory = storeFactory,
-                    output = ::onAdminParentsOutput
+            Config.AdminParents -> {
+                Child.AdminParents(
+                    adminComponent = getMainAdminComponent(childContext, true),
+                    parentsComponent = AdminParentsComponent(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        output = ::onAdminParentsOutput
+                    )
                 )
-            )
+            }
 
-            is Config.HomeStudentLines ->
+            is Config.HomeStudentLines -> {
                 Child.HomeStudentLines(
                     homeComponent = getMainHomeComponent(childContext, true),
                     studentLinesComponent = StudentLinesComponent(
@@ -610,8 +618,8 @@ class RootComponentImpl(
                         login = config.login
                     )
                 )
-
-            is Config.QRScanner ->
+            }
+            is Config.QRScanner -> {
                 Child.QRScanner(
                     qrComponent = QRComponent(
                         childContext,
@@ -620,26 +628,42 @@ class RootComponentImpl(
                         isRegistration = config.isRegistration
                     )
                 )
+            }
 
-            Config.MainSchool -> Child.MainSchool(
-                schoolComponent = getMainSchoolComponent(
-                    childContext, false
-                ),
-                ratingComponent = getMainRatingComponent(childContext, getOld = true)
-            )
-
-            is Config.SchoolFormRating -> Child.SchoolFormRating(
-                schoolComponent = getMainSchoolComponent(childContext, true),
-                formRatingComponent = FormRatingComponent(
-                    componentContext = childContext,
-                    storeFactory = storeFactory,
-                    output = ::onFormRatingOutput,
-                    formId = config.formId,
-                    formName = config.formName,
-                    formNum = config.formNum,
-                    login = config.login
+            Config.MainSchool -> {
+                Child.MainSchool(
+                    schoolComponent = getMainSchoolComponent(
+                        childContext, false
+                    ),
+                    ratingComponent = getMainRatingComponent(childContext, getOld = true)
                 )
-            )
+            }
+
+            is Config.SchoolFormRating -> {
+                Child.SchoolFormRating(
+                    schoolComponent = getMainSchoolComponent(childContext, true),
+                    formRatingComponent = FormRatingComponent(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        output = ::onFormRatingOutput,
+                        formId = config.formId,
+                        formName = config.formName,
+                        formNum = config.formNum,
+                        login = config.login
+                    )
+                )
+            }
+
+            is Config.SchoolMinistry -> {
+                Child.SchoolMinistry(
+                    schoolComponent = getMainSchoolComponent(childContext, true),
+                    ministryComponent = MinistryComponent(
+                        componentContext = childContext,
+                        storeFactory = storeFactory,
+                        output = ::onMinistryOutput
+                    )
+                )
+            }
         }
 
 
@@ -658,6 +682,7 @@ class RootComponentImpl(
             ))
 
             is SchoolComponent.Output.NavigateToSchedule -> navigation.bringToFront(Config.AdminSchedule(output.isModer))
+            SchoolComponent.Output.NavigateToMinistry -> navigation.bringToFront(Config.SchoolMinistry)
         }
 
     private fun onQRScannerOutput(output: QRComponent.Output): Unit =
@@ -803,6 +828,10 @@ class RootComponentImpl(
                     isCanEdit = false
                 )
             )
+        }
+    private fun onMinistryOutput(output: MinistryComponent.Output): Unit =
+        when (output) {
+            MinistryComponent.Output.Back -> popOnce(Child.SchoolMinistry::class)
         }
 
     private fun onRatingOutput(output: RatingComponent.Output): Unit =

@@ -26,12 +26,12 @@ import admin.groups.students.deep.RFetchStudentGroupsResponse
 import admin.groups.subjects.RAddStudentToGroup
 import admin.groups.subjects.RCreateGroupReceive
 import admin.groups.subjects.REditGroupReceive
-import admin.groups.subjects.topBar.RDeleteSubject
-import admin.groups.subjects.topBar.REditSubjectReceive
 import admin.groups.subjects.RFetchGroupsReceive
 import admin.groups.subjects.RFetchGroupsResponse
 import admin.groups.subjects.RFetchTeachersResponse
 import admin.groups.subjects.topBar.RCreateSubjectReceive
+import admin.groups.subjects.topBar.RDeleteSubject
+import admin.groups.subjects.topBar.REditSubjectReceive
 import admin.groups.subjects.topBar.RFetchAllSubjectsResponse
 import admin.schedule.RFetchInitScheduleResponse
 import admin.schedule.ScheduleFormValue
@@ -57,7 +57,6 @@ import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
 import com.nevrozq.pansion.database.parents.Parents
-import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
@@ -108,7 +107,6 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
@@ -122,8 +120,6 @@ import schedule.RScheduleList
 import server.Roles
 import server.getLocalDate
 import server.toMinutes
-import java.util.HashMap
-import kotlin.math.log
 
 class LessonsController() {
 
@@ -131,7 +127,7 @@ class LessonsController() {
         if (call.isModer) {
             try {
                 val r = call.receive<RAddStudentToGroup>()
-                val login = Users.getLoginWithFIO(r.fio)
+                val login = Users.getLoginWithFIO(r.fio, itShouldBeStudent = true)!!
                 StudentGroups.insert(
                     StudentGroupDTO(
                         groupId = r.groupId,

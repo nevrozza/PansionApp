@@ -1,4 +1,4 @@
-import admin.schedule.ScheduleSubject
+
 import journal.init.RFetchMentorGroupIdsResponse
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
@@ -13,6 +13,8 @@ import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
 import main.RFetchSchoolDataReceive
 import main.RFetchSchoolDataResponse
+import main.school.RCreateMinistryStudentReceive
+import main.school.RFetchMinistrySettingsResponse
 import mentoring.RFetchJournalBySubjectsReceive
 import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
@@ -23,8 +25,6 @@ import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingResponse
 import registration.CloseRequestQRReceive
 import registration.OpenRequestQRReceive
-import registration.ScanRequestQRReceive
-import registration.SendRegistrationRequestReceive
 import registration.SolveRequestReceive
 import report.RCreateReportReceive
 import report.RCreateReportResponse
@@ -32,9 +32,13 @@ import report.RFetchHeadersResponse
 import report.RFetchRecentGradesResponse
 import report.RFetchReportDataResponse
 import schedule.RPersonScheduleList
-import schedule.RScheduleList
 
 interface MainRepository {
+
+    suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive) : RFetchMinistrySettingsResponse
+
+    suspend fun fetchMinistrySettings() : RFetchMinistrySettingsResponse
+
 
     suspend fun fetchSchoolData(r: RFetchSchoolDataReceive) : RFetchSchoolDataResponse
 

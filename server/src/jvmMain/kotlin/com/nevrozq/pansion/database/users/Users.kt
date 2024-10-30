@@ -51,10 +51,14 @@ object Users : Table() {
         }
     }
 
-    fun getLoginWithFIO(fio: FIO): String {
+    fun getLoginWithFIO(fio: FIO, itShouldBeStudent: Boolean): String? {
         return transaction {
-            val u = Users.select((Users.surname eq fio.surname) and (Users.name eq fio.name) and (Users.praname eq fio.praname)).first()
-            u[login]
+            val u =
+                Users.select((Users.surname eq fio.surname) and (Users.name eq fio.name) and (Users.praname eq fio.praname))
+                    .firstOrNull {
+                        (itShouldBeStudent && it[Users.role] == Roles.student) || (!itShouldBeStudent)
+                    }
+            u?.get(login)
         }
     }
 

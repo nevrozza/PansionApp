@@ -9,6 +9,22 @@ fun Application.configureSchoolRouting() {
     routing {
         val schoolController = SchoolController()
 
+        post(RequestPaths.Main.FetchMinistryList) {
+            schoolController.fetchMinistryList(call)
+        }
+
+        post(RequestPaths.Main.FetchMinistryHeaderInit) {
+            schoolController.fetchMinistryHeaderInit(call)
+        }
+
+        post(RequestPaths.Main.CreateMinistryStudent) {
+            schoolController.createMinistryStudent(call)
+        }
+
+        post(RequestPaths.Main.FetchMinistrySettings) {
+            schoolController.fetchMinistrySettings(call)
+        }
+
         post(RequestPaths.Main.FetchFormRating) {
             schoolController.fetchFormRating(call)
         }

@@ -3,20 +3,19 @@ package com.nevrozq.pansion.utils
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.tokens.Tokens
+import com.nevrozq.pansion.database.users.Users
+import io.ktor.server.application.ApplicationCall
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import com.nevrozq.pansion.database.users.Users
-import io.ktor.server.application.ApplicationCall
 import server.Moderation
 import server.Roles
 import server.cut
 import server.getLocalDate
 import server.latin
-import java.lang.IllegalArgumentException
-import java.util.*
+import java.util.UUID
 
 fun List<String>?.toStr(): String? = this?.joinToString("/-")
 fun String?.toList(): List<String>? = if((this?.length ?: 0) > 2) this?.split("/-") else null
@@ -91,6 +90,10 @@ val ApplicationCall.isMentor: Boolean get() {
 }
 val ApplicationCall.isOnlyMentor: Boolean get() {
     return Users.getModeration(this.login) == Moderation.mentor//in listOf(Moderation.both, Moderation.mentor)
+}
+
+val ApplicationCall.moderation: String get() {
+    return Users.getModeration(this.login)
 }
 
 val ApplicationCall.token: String?

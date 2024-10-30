@@ -1,7 +1,7 @@
 object RequestPaths {
 //    val ip = "pansionapp-test-server.ru:${ if (deviceType != DeviceTypex.web) 8080 else 8443}"//"109.172.88.2:8443"//""//"192.168.0.107:8081"
-//    val ip = "0.0.0.0:8080"
-    val ip = "192.168.0.112:8080"
+    val ip = "0.0.0.0:8080"
+//    val ip = "192.168.0.112:8080"
     object Parents {
         const val FetchParents = "server/admin/parents/fetch"
         const val UpdateParent = "server/admin/parents/update"
@@ -58,6 +58,12 @@ object RequestPaths {
         const val FetchSchoolData = "server/school/data"
         const val FetchFormsForFormRating = "server/school/formsForFormRating"
         const val FetchFormRating = "server/school/formRating"
+
+
+        const val FetchMinistrySettings = "server/school/ministry/fetchSettings"
+        const val CreateMinistryStudent = "server/school/ministry/createStudent"
+        const val FetchMinistryHeaderInit = "server/school/ministry/fetchMinistryHeaderInit"
+        const val FetchMinistryList = "server/school/ministry/fetchList"
     }
 
     object Mentoring {

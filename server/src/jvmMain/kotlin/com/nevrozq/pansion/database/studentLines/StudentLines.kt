@@ -202,6 +202,46 @@ object StudentLines : Table() {
             }
         }
     }
+    fun fetchClientStudentLines(login: String, date: String): List<ClientStudentLine> {
+        return transaction {
+            try {
+                val studentLines =
+                    StudentLines.select((StudentLines.login eq login) and (StudentLines.dateN eq date))
+                studentLines.map {
+                    val reportHeader = ReportHeaders.fetchHeader(it[reportId])
+
+                    var preAttendance = PreAttendance.fetchPreAttendanceByDateAndLogin(
+                        date = it[dateN],
+                        login = login
+                    )
+
+                    val minutes = it[timeN].toMinutes()
+
+                    preAttendance =
+                        if (preAttendance != null && preAttendance.start.toMinutes() <= minutes && preAttendance.end.toMinutes() > minutes) preAttendance else null
+
+                    ClientStudentLine(
+                        reportId = it[reportId],
+//                        groupId = it[groupId],
+//                        login = it[StudentLines.login],
+                        lateTime = it[lateTime],
+                        isLiked = it[isLiked],
+                        attended = if (it[attended] != null) it[attended] else if (preAttendance != null) if (preAttendance.isGood) "2" else "1" else null,
+//                        aReason = it[aReason],
+                        subjectName = it[subjectN],
+                        groupName = it[groupN],
+                        time = it[timeN],
+                        date = it[dateN],
+                        login= it[StudentLines.login],
+                        topic = reportHeader.topic
+                    )
+                }
+            } catch (e: Throwable) {
+                println(e)
+                listOf()
+            }
+        }
+    }
 
     fun fetchClientStudentLine(login: String, reportId: Int): ClientStudentLine? {
         return transaction {

@@ -14,7 +14,7 @@ object StudentMinistry : Table() {
     fun set(login: String, ministry: String) {
         transaction {
             StudentMinistry.deleteWhere { StudentMinistry.login eq login }
-            if (ministry.isNotBlank()) {
+            if (ministry.isNotBlank() || login.isNotBlank()) {
                 StudentMinistry.insert {
                     it[this.login] = login
                     it[this.ministry] = ministry

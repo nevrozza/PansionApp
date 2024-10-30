@@ -1,6 +1,5 @@
 package school
 
-import AuthRepository
 import MainRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
@@ -8,7 +7,7 @@ import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
-import components.cAlertDialog.CAlertDialogComponent
+import components.cBottomSheet.CBottomSheetComponent
 import components.networkInterface.NetworkInterface
 import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +30,13 @@ class SchoolComponent(
         nInterfaceName
     )
 
+    val ministrySettingsCBottomSheetComponent = CBottomSheetComponent(
+        componentContext = childContext("ministrySettingsCBottomSheetComponentCONTEXT"),
+        storeFactory = storeFactory,
+        name = "ministrySettingsCBottomSheetComponent"
+    )
+
+
     private val mainRepository: MainRepository = Inject.instance()
     private val schoolStore =
         instanceKeeper.getStore {
@@ -40,7 +46,8 @@ class SchoolComponent(
                 role = role,
                 moderation = moderation,
                 nInterface = nInterface,
-                mainRepository = mainRepository
+                mainRepository = mainRepository,
+                openMinSettingsBottom = ministrySettingsCBottomSheetComponent
 //                authRepository = authRepository
             ).create()
         }
@@ -75,5 +82,7 @@ class SchoolComponent(
         data class NavigateToSchedule(
             val isModer: Boolean
         ) : Output()
+
+        data object NavigateToMinistry : Output()
     }
 }

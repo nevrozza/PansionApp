@@ -1,15 +1,13 @@
 package school
 
-import AuthRepository
 import MainRepository
 import com.arkivanov.mvikotlin.core.store.Store
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import components.cBottomSheet.CBottomSheetComponent
 import components.networkInterface.NetworkInterface
 import school.SchoolStore.Intent
 import school.SchoolStore.Label
 import school.SchoolStore.State
-import school.SchoolStore.Message
 
 class SchoolStoreFactory(
     private val storeFactory: StoreFactory,
@@ -17,7 +15,8 @@ class SchoolStoreFactory(
     private val role: String,
     private val moderation: String,
     private val nInterface: NetworkInterface,
-    private val mainRepository: MainRepository
+    private val mainRepository: MainRepository,
+    private val openMinSettingsBottom: CBottomSheetComponent
 ) {
 
     fun create(): SchoolStore {
@@ -35,7 +34,8 @@ class SchoolStoreFactory(
             ),
             executorFactory = { SchoolExecutor(
                 nInterface = nInterface,
-                mainRepository = mainRepository
+                mainRepository = mainRepository,
+                openMinSettingsBottom = openMinSettingsBottom
             ) },
             reducer = SchoolReducer
         )

@@ -52,7 +52,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material.icons.rounded.Restaurant
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -135,7 +139,12 @@ import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
 import report.UserMark
-import server.*
+import server.Roles
+import server.fetchReason
+import server.getCurrentDayTime
+import server.roundTo
+import server.toMinutes
+import server.weekPairs
 import view.LocalViewManager
 import view.WindowScreen
 import view.blend
@@ -603,6 +612,8 @@ private fun RaspisanieTable(
                             textAlign = TextAlign.Center
                         )
                     } else {
+                        Spacer(Modifier.height(10.dp))
+
                         items
                             .forEach { it ->
                                 Lesson(
@@ -978,14 +989,15 @@ fun Lesson(
     val endOfLunch = "11:00".toMinutes()
     val endOfObed = "15:20".toMinutes()
     val endOfPoldnik = "17:00".toMinutes()
-    val text = if (groupId != -11) title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-    else when (start.toMinutes()) {
-        in 0..endOfZavtrak -> "Завтрак"
-        in endOfZavtrak..endOfLunch -> "Ланч"
-        in endOfLunch..endOfObed -> "Обед"
-        in endOfObed..endOfPoldnik -> "Полдник"
-        else -> "Ужин"
-    }
+    val text =
+        if (groupId != -11) title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        else when (start.toMinutes()) {
+            in 0..endOfZavtrak -> "Завтрак"
+            in endOfZavtrak..endOfLunch -> "Ланч"
+            in endOfLunch..endOfObed -> "Обед"
+            in endOfObed..endOfPoldnik -> "Полдник"
+            else -> "Ужин"
+        }
 
     if (groupId != -11) {
         Row(Modifier.padding(end = 10.dp), verticalAlignment = Alignment.CenterVertically) {

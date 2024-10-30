@@ -10,6 +10,9 @@ import homework.RFetchReportHomeTasksResponse
 import homework.RFetchTasksInitReceive
 import homework.RFetchTasksInitResponse
 import homework.RSaveReportHomeTasksReceive
+import main.school.RFetchMinistryHeaderInitResponse
+import main.school.RMinistryListReceive
+import main.school.RMinistryListResponse
 import rating.RFetchFormRatingReceive
 import rating.RFetchFormRatingResponse
 import rating.RFetchFormsForFormResponse
@@ -27,6 +30,10 @@ import report.RIsQuartersResponse
 import report.RUpdateReportReceive
 
 interface JournalRepository {
+
+    suspend fun fetchMinistryList(r: RMinistryListReceive) : RMinistryListResponse
+
+    suspend fun fetchMinistryHeaderInit() : RFetchMinistryHeaderInitResponse
 
     suspend fun fetchFormRating(r: RFetchFormRatingReceive) : RFetchFormRatingResponse
 

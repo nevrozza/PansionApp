@@ -1,5 +1,4 @@
-import io.ktor.client.request.post
-import io.ktor.http.path
+
 import journal.init.RFetchMentorGroupIdsResponse
 import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
@@ -17,6 +16,8 @@ import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
 import main.RFetchSchoolDataReceive
 import main.RFetchSchoolDataResponse
+import main.school.RCreateMinistryStudentReceive
+import main.school.RFetchMinistrySettingsResponse
 import mentoring.RFetchJournalBySubjectsReceive
 import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
@@ -28,8 +29,6 @@ import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
 import registration.CloseRequestQRReceive
 import registration.OpenRequestQRReceive
-import registration.ScanRequestQRReceive
-import registration.SendRegistrationRequestReceive
 import registration.SolveRequestReceive
 import report.RCreateReportReceive
 import report.RCreateReportResponse
@@ -39,13 +38,19 @@ import report.RFetchRecentGradesResponse
 import report.RFetchReportDataReceive
 import report.RFetchReportDataResponse
 import schedule.RFetchPersonScheduleReceive
-import schedule.RFetchScheduleDateReceive
 import schedule.RPersonScheduleList
-import schedule.RScheduleList
 
 class MainRepositoryImpl(
     private val remoteDataSource: KtorMainRemoteDataSource
 ) : MainRepository {
+    override suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive): RFetchMinistrySettingsResponse {
+        return remoteDataSource.createMinistryStudent(r)
+    }
+
+    override suspend fun fetchMinistrySettings(): RFetchMinistrySettingsResponse {
+        return remoteDataSource.fetchMinistrySettings()
+    }
+
     override suspend fun fetchSchoolData(r: RFetchSchoolDataReceive): RFetchSchoolDataResponse {
         return remoteDataSource.fetchSchoolData(r)
     }

@@ -11,6 +11,9 @@ import homework.RFetchTasksInitReceive
 import homework.RFetchTasksInitResponse
 import homework.RSaveReportHomeTasksReceive
 import ktor.KtorJournalRemoteDataSource
+import main.school.RFetchMinistryHeaderInitResponse
+import main.school.RMinistryListReceive
+import main.school.RMinistryListResponse
 import rating.RFetchFormRatingReceive
 import rating.RFetchFormRatingResponse
 import rating.RFetchFormsForFormResponse
@@ -37,6 +40,14 @@ class JournalRepositoryImpl(
     private val remoteDataSource: KtorJournalRemoteDataSource,
 //    private val cacheDataSource: SettingsAuthDataSource
 ) : JournalRepository {
+    override suspend fun fetchMinistryList(r: RMinistryListReceive): RMinistryListResponse {
+        return remoteDataSource.fetchMinistryList(r)
+    }
+
+    override suspend fun fetchMinistryHeaderInit(): RFetchMinistryHeaderInitResponse {
+        return remoteDataSource.fetchMinistryHeaderInit()
+    }
+
     override suspend fun fetchFormRating(r: RFetchFormRatingReceive): RFetchFormRatingResponse {
         return remoteDataSource.fetchFormRating(r)
     }

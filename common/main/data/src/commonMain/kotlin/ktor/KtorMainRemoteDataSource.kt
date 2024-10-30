@@ -25,6 +25,8 @@ import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
 import main.RFetchSchoolDataReceive
 import main.RFetchSchoolDataResponse
+import main.school.RCreateMinistryStudentReceive
+import main.school.RFetchMinistrySettingsResponse
 import mentoring.RFetchJournalBySubjectsReceive
 import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
@@ -36,8 +38,6 @@ import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
 import registration.CloseRequestQRReceive
 import registration.OpenRequestQRReceive
-import registration.ScanRequestQRReceive
-import registration.SendRegistrationRequestReceive
 import registration.SolveRequestReceive
 import report.RCreateReportReceive
 import report.RCreateReportResponse
@@ -47,13 +47,29 @@ import report.RFetchRecentGradesResponse
 import report.RFetchReportDataReceive
 import report.RFetchReportDataResponse
 import schedule.RFetchPersonScheduleReceive
-import schedule.RFetchScheduleDateReceive
 import schedule.RPersonScheduleList
-import schedule.RScheduleList
 
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+
+    suspend fun fetchMinistrySettings() : RFetchMinistrySettingsResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchMinistrySettings)
+            }
+        }.body()
+    }
+    suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive) : RFetchMinistrySettingsResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.CreateMinistryStudent)
+                setBody(r)
+            }
+        }.body()
+    }
 
     suspend fun changeToUv(r: RChangeToUv) {
         httpClient.post {

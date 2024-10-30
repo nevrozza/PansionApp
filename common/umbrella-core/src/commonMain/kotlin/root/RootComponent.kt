@@ -2,7 +2,6 @@ package root
 
 
 import FIO
-import lessonReport.LessonReportComponent
 import ReportData
 import SettingsComponent
 import achievements.AdminAchievementsComponent
@@ -20,13 +19,14 @@ import detailedStups.DetailedStupsComponent
 import dnevnikRuMarks.DnevnikRuMarksComponent
 import formRating.FormRatingComponent
 import groups.GroupsComponent
-import kotlinx.coroutines.flow.StateFlow
-import login.LoginComponent
 import home.HomeComponent
 import homeTasks.HomeTasksComponent
 import journal.JournalComponent
 import kotlinx.serialization.Serializable
+import lessonReport.LessonReportComponent
+import login.LoginComponent
 import mentoring.MentoringComponent
+import ministry.MinistryComponent
 import parents.AdminParentsComponent
 import profile.ProfileComponent
 import qr.QRComponent
@@ -72,6 +72,10 @@ interface RootComponent : BackHandlerOwner {
         class SchoolFormRating(
             val schoolComponent: SchoolComponent,
             val formRatingComponent: FormRatingComponent,
+        ) : Child()
+        class SchoolMinistry(
+            val schoolComponent: SchoolComponent,
+            val ministryComponent: MinistryComponent
         ) : Child()
 
         class SecondView(
@@ -210,6 +214,8 @@ interface RootComponent : BackHandlerOwner {
         data object MainRating : Config
         @Serializable
         data object MainSchool : Config
+        @Serializable
+        data object SchoolMinistry : Config
         @Serializable
         data class SchoolFormRating(
             val login: String,
