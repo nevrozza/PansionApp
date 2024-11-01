@@ -68,6 +68,7 @@ import school.SchoolComponent
 import school.SchoolStore
 import server.Ministries
 import server.Moderation
+import server.Roles
 import view.LocalViewManager
 import view.WindowScreen
 import view.handy
@@ -318,18 +319,40 @@ fun SchoolContent(
 //                CustomTextButton()
                 Box(
                     Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape).clickable {
-                        component.onOutput(SchoolComponent.Output.NavigateToSchedule(isModer = model.moderation in listOf(Moderation.moderator, Moderation.both)))
+                        component.onOutput(
+                            SchoolComponent.Output.NavigateToSchedule(
+                                isModer = model.moderation in listOf(
+                                    Moderation.moderator,
+                                    Moderation.both
+                                )
+                            )
+                        )
                     }
                 ) {
-                    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Расписание", fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.primary)
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            "Расписание",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                         Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
             item {
                 Spacer(Modifier.height(7.dp))
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(
                         "Министерства",
                         fontSize = 19.sp,
@@ -350,17 +373,116 @@ fun SchoolContent(
                     }
                 }
             }
-            item {
-                Spacer(Modifier.height(7.dp))
-//                CustomTextButton()
-                Box(
-                    Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape).clickable {
-                        component.onOutput(SchoolComponent.Output.NavigateToMinistry)
+            if (model.ministryId in listOf(
+                    Ministries.DressCode,
+                    Ministries.MVD
+                ) || model.moderation != Moderation.nothing
+            ) {
+                item {
+                    Spacer(Modifier.height(7.dp))
+                    //                CustomTextButton()
+                    Box(
+                        Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape).clickable {
+                            component.onOutput(SchoolComponent.Output.NavigateToMinistry)
+                        }
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Редактировать",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Icon(
+                                Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                ) {
-                    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Редактировать", fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.primary)
-                        Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+            if (model.role == Roles.student) {
+                item {
+                    Spacer(Modifier.height(7.dp))
+                    Row {
+                        ElevatedCard(
+                            Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                                .weight(1f)
+                                .handy()
+                                .clickable {
+
+                                },
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        ) {
+                            Column(
+                                Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
+                                    .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "МВД",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.height(5.dp))
+                                Box(
+                                    Modifier.fillMaxWidth()
+                                        .padding(end = 5.dp, bottom = 5.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Group,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.width(15.dp))
+                        ElevatedCard(
+                            Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                                .weight(1f)
+                                .handy()
+                                .clickable { //enabled = !isExpanded
+
+                                },
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        ) {
+                            Column(
+                                Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
+                                    .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "Здраво-\nохранение",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+
+                                Box(
+                                    Modifier.fillMaxWidth()
+                                        .padding(end = 5.dp, bottom = 5.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Group,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -400,8 +522,13 @@ fun SchoolContent(
                     }
                 }
                 Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Spacer(Modifier.height(5.dp))
-                    Text(text = s.second, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(5.dp))
+                    Text(
+                        text = s.second,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
 
                     ministryStudents.forEach { student ->
                         MinistrySettingsItem(
@@ -416,7 +543,10 @@ fun SchoolContent(
                             )
                         }
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.animateContentSize().offset(y = (-5).dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.animateContentSize().offset(y = (-5).dp)
+                    ) {
                         IconButton(
                             onClick = {
                                 isAdding.value = !isAdding.value

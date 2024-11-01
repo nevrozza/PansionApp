@@ -9,6 +9,10 @@ fun Application.configureSchoolRouting() {
     routing {
         val schoolController = SchoolController()
 
+        post(RequestPaths.Main.UploadMinistryStup) {
+            schoolController.uploadMinistryStups(call)
+        }
+
         post(RequestPaths.Main.FetchMinistryList) {
             schoolController.fetchMinistryList(call)
         }

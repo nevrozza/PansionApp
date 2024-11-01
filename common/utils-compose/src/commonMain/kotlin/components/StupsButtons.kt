@@ -93,9 +93,17 @@ fun BorderStup(string: String, reason: String, addModifier: Modifier = Modifier)
 private fun CostilText(string: String) {
 
     Text(
-        "${if(!string.contains("-")) "+" else ""}${string}"//, modifier = Modifier.offset(x = -2.dp)
+        getStupString(string)//, modifier = Modifier.offset(x = -2.dp)
         ,maxLines = 1
     )
+}
+
+fun getStupString(string: String): String {
+    return "${if(!string.contains("-") && !string.contains("+")) "+" else ""}${string}"
+}
+
+fun getStupString(int: Int): String {
+    return "${if(!int.toString().contains("-") && !int.toString().contains("+")) "+" else ""}${int.toString()}"
 }
 
 fun Modifier.dashedBorder(strokeWidth: Dp, color: Color, cornerRadiusDp: Dp) = composed(

@@ -93,7 +93,8 @@ class SchoolExecutor(
                             formId = r.formId,
                             formNum = r.formNum,
                             formName = r.formName,
-                            top = r.top
+                            top = r.top,
+                            ministryId = r.ministryId
                         )
                     )
                     nInterface.nSuccess()

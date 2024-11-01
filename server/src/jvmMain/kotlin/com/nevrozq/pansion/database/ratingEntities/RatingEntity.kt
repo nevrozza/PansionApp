@@ -31,11 +31,12 @@ open class RatingEntity : Table() {
     val reason = this.varchar("reason", 5)
     val id = this.integer("id")
     val part = this.varchar("part", 1)
-    private val date = this.varchar("date", 10)
+    val date = this.varchar("date", 10)
     val isGoToAvg = this.bool("isGoToAvg")
     val deployDate = this.varchar("deployDate", 10)
     val deployLogin = this.varchar("deployLogin", 30)
     val deployTime = this.varchar("deployTime", 5)
+    val custom = this.text("custom").nullable()
 
     fun delete(id: Int, reportId: Int) {
         try {
@@ -69,6 +70,7 @@ open class RatingEntity : Table() {
                     it[deployDate] = r.deployDate
                     it[deployTime] = r.deployTime
                     it[deployLogin] = r.deployLogin
+                    it[custom] = r.custom
                 }
             }
         } catch (e: Throwable) {
@@ -104,7 +106,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployDate = it[deployDate],
                         deployTime = it[deployTime],
-                        deployLogin = it[deployLogin]
+                        deployLogin = it[deployLogin],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -133,7 +136,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployLogin = it[deployLogin],
                         deployTime = it[deployTime],
-                        deployDate = it[deployDate]
+                        deployDate = it[deployDate],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -162,7 +166,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployDate = it[deployDate],
                         deployTime = it[deployTime],
-                        deployLogin = it[deployLogin]
+                        deployLogin = it[deployLogin],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -190,7 +195,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployDate = it[deployDate],
                         deployTime = it[deployTime],
-                        deployLogin = it[deployLogin]
+                        deployLogin = it[deployLogin],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -220,7 +226,8 @@ open class RatingEntity : Table() {
                         date = it[this@RatingEntity.date],
                         deployDate = it[deployDate],
                         deployLogin = it[deployLogin],
-                        deployTime = it[deployTime]
+                        deployTime = it[deployTime],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -253,7 +260,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
-                        deployDate = it[deployDate]
+                        deployDate = it[deployDate],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -282,7 +290,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployDate = it[deployDate],
                         deployLogin = it[deployLogin],
-                        deployTime = it[deployTime]
+                        deployTime = it[deployTime],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -314,7 +323,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
-                        deployDate = it[deployDate]
+                        deployDate = it[deployDate],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -343,7 +353,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployDate = it[deployDate],
                         deployLogin = it[deployLogin],
-                        deployTime = it[deployTime]
+                        deployTime = it[deployTime],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -372,7 +383,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
-                        deployDate = it[deployDate]
+                        deployDate = it[deployDate],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {
@@ -400,7 +412,8 @@ open class RatingEntity : Table() {
                         date = it[date],
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
-                        deployDate = it[deployDate]
+                        deployDate = it[deployDate],
+                        custom = it[custom]
                     )
                 }
             } catch (e: Throwable) {

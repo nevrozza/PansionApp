@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
 import components.MarkContent
+import components.dashedBorder
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import dev.chrisbanes.haze.HazeState
@@ -276,17 +277,31 @@ private fun StupContent(
         Modifier.padding(paddingValues)
             .offset(offset.x, offset.y)
             .size(size)
-            .clip(RoundedCornerShape(percent = 30))
             .border(
-                1.5.dp,
-                shape = RoundedCornerShape(percent = 30),
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = if (!isDs) .5f else .25f)
+                width =  1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(
+                    if (!isDs) 1f else 0f
+                ),
+                shape = RoundedCornerShape(30)
+            )
+            .clip(RoundedCornerShape(percent = 30))
+//            .border(
+//                1.5.dp,
+//                shape = RoundedCornerShape(percent = 30),
+//                color = MaterialTheme.colorScheme.onBackground.copy(alpha = if (!isDs) .5f else .25f)
+//            )
+            .then(
+                if (isDs) Modifier.dashedBorder(
+                    3.dp,
+                    color = MaterialTheme.colorScheme.outline,
+                    cornerRadiusDp = 16.dp
+                ) else Modifier
             )
             .then(addModifier),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            (if (mark.first() != '-') "+" else "")+mark,
+            (if (mark.first() !in listOf('-', '+')) "+" else "")+mark,
             fontSize = size.value.sp / 1.6f,
             modifier = Modifier.fillMaxSize().offset(y = textYOffset),
             textAlign = TextAlign.Center,

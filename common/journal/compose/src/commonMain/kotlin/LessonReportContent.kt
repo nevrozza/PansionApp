@@ -1988,7 +1988,8 @@ fun LessonTable(
                                                             id = model.ids,
                                                             deployTime = "",
                                                             deployLogin = "",
-                                                            deployDate = ""
+                                                            deployDate = "",
+                                                            custom = null
                                                         )).value,
                                                     maxCount =
                                                     getMaxStupsCount(reason),
@@ -2169,20 +2170,22 @@ fun PrisutCheckBox(
 }
 
 @Composable
-private fun Stepper(
+fun Stepper(
     count: Int,
     isEditable: Boolean,
     maxCount: Int,
     minCount: Int,
+    height: Dp = 25.dp,
     onChangeCount: (Int) -> Unit
 ) {
     val animatedAllAlpha by animateFloatAsState(if (count != 0) 1f else .2f)
     Row(
-        modifier = Modifier.border(
+        modifier = Modifier.height(height).border(
             width = 1.dp,
             color = MaterialTheme.colorScheme.outline.copy(if (count != 0) 1f else .2f),
             shape = RoundedCornerShape(30)
-        ).clip(RoundedCornerShape(30)).alpha(animatedAllAlpha)
+        ).clip(RoundedCornerShape(30)).alpha(animatedAllAlpha),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         if (isEditable) {
 //            val animatedAlpha by animateFloatAsState(if (count != minCount) 1f else .2f)

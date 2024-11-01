@@ -234,7 +234,8 @@ data class Stup(
     val id: Int,
     val deployTime: String,
     val deployLogin: String,
-    val deployDate: String
+    val deployDate: String,
+    val custom: String?
 )
 
 

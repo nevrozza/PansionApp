@@ -12,5 +12,6 @@ data class RFetchSchoolDataResponse(
     val formId: Int?,
     val formName: String?,
     val top: Int?,
-    val formNum: Int?
+    val formNum: Int?,
+    val ministryId: String
 )

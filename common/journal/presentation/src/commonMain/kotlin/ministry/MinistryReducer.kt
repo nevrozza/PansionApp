@@ -11,6 +11,10 @@ object MinistryReducer : Reducer<State, Message> {
             is Message.MinistryChanged -> copy(pickedMinistry = msg.ministryId)
             is Message.DateChanged -> copy(currentDate = msg.date)
             is Message.ListUpdated -> copy(ministryList = msg.list)
+            is Message.MVDEditOpened -> copy(mvdLogin = msg.login, mvdReportId = msg.reportId)
+            is Message.MVDDS3Opened -> copy(mvdCustom = msg.custom, mvdStups = msg.stups)
+            is Message.Ds3StepperChanged -> copy(mvdStups = msg.stups)
+            is Message.Ds3CustomChanged -> copy(mvdCustom = msg.custom)
         }
     }
 }

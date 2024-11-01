@@ -227,7 +227,8 @@ object ReportHeaders : Table() {
                         isGoToAvg = it.isGoToAvg,
                         deployTime = it.deployTime,
                         deployDate = it.deployDate,
-                        deployLogin = it.deployLogin
+                        deployLogin = it.deployLogin,
+                        custom = it.custom
                     )
                 }
                 val toDelete = p - c.toSet()
@@ -251,7 +252,8 @@ object ReportHeaders : Table() {
                             date = pHeader.date,
                             deployTime = i.deployTime,
                             deployLogin = i.deployLogin,
-                            deployDate = i.deployDate
+                            deployDate = i.deployDate,
+                            custom = i.custom
                         ),
                         isDelete = false
                     )

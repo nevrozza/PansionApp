@@ -23,6 +23,7 @@ import io.ktor.http.path
 import main.school.RFetchMinistryHeaderInitResponse
 import main.school.RMinistryListReceive
 import main.school.RMinistryListResponse
+import main.school.RUploadMinistryStup
 import rating.RFetchFormRatingReceive
 import rating.RFetchFormRatingResponse
 import rating.RFetchFormsForFormResponse
@@ -48,6 +49,16 @@ import report.RUpdateReportReceive
 class KtorJournalRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+    suspend fun uploadMinistryStup(r: RUploadMinistryStup) {
+        return httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Main.UploadMinistryStup)
+            }
+        }.status.value.checkOnNoOk()
+    }
+
     suspend fun fetchMinistryList(r: RMinistryListReceive) : RMinistryListResponse {
         return httpClient.post {
             url {

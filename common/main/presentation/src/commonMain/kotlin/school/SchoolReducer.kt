@@ -11,7 +11,8 @@ object SchoolReducer : Reducer<State, Message> {
                 formId = msg.formId,
                 formName = msg.formName,
                 top = msg.top,
-                formNum = msg.formNum
+                formNum = msg.formNum,
+                ministryId = msg.ministryId
             )
 
             is Message.MinistrySettingsOpened -> copy(

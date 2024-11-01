@@ -44,6 +44,27 @@ import server.getWeekDays
 
 class SchoolController {
 
+    suspend fun uploadMinistryStups(call: ApplicationCall) {
+        if (call.isMember && (StudentMinistry.fetchMinistryWithLogin(call.login) in listOf(Ministries.DressCode, Ministries.MVD) || call.isMentor)) {
+            try {
+                Stups.uploadMinistryStup(call.receive<RUploadMinistryStup>(), call.login)
+
+                call.respond(
+                    HttpStatusCode.OK
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't upload min stups: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
     suspend fun fetchMinistryList(call: ApplicationCall) {
         if (call.isMember) {
             try {
@@ -109,7 +130,9 @@ class SchoolController {
                         val dayStups: List<MinistryStup> = stups.filter { it.date == r.date }.map {
                             MinistryStup(
                                 reason = it.reason,
-                                content = it.content
+                                content = it.content,
+                                reportId = it.reportId,
+                                custom = it.custom
                             )
                         }
 
@@ -432,12 +455,15 @@ class SchoolController {
                     }
                 }
 
+                val ministryId = StudentMinistry.fetchMinistryWithLogin(r.login) ?: "0"
+
                 call.respond(
                     RFetchSchoolDataResponse(
                         formId = formId,
                         formName = formName,
                         formNum = formNum,
-                        top = top
+                        top = top,
+                        ministryId = ministryId
                     )
                 )
             } catch (e: ExposedSQLException) {

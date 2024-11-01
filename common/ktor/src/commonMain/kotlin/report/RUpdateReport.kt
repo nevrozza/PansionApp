@@ -31,7 +31,8 @@ data class ServerRatingUnit(
     val isGoToAvg: Boolean,
     val deployDate: String,
     val deployTime: String,
-    val deployLogin: String
+    val deployLogin: String,
+    val custom: String?
 )
 
 @Serializable

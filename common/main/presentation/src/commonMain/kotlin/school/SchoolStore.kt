@@ -16,7 +16,9 @@ interface SchoolStore : Store<Intent, State, Label> {
         val top: Int? = null,
         val formNum: Int? = null,
 
-        val ministryStudents: List<MinistryStudent> = emptyList()
+        val ministryStudents: List<MinistryStudent> = emptyList(),
+
+        val ministryId: String = "0"
     )
 
     sealed interface Intent {
@@ -26,7 +28,7 @@ interface SchoolStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
-        data class Inited(val formId: Int?, val formName: String?, val top: Int?, val formNum: Int?) : Message
+        data class Inited(val formId: Int?, val formName: String?, val top: Int?, val formNum: Int?, val ministryId: String) : Message
         data class MinistrySettingsOpened(val ministryStudents: List<MinistryStudent>) : Message
     }
 

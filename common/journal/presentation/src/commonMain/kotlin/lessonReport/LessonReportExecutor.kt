@@ -183,7 +183,8 @@ class LessonReportExecutor(
                         id = state().ids,
                         deployTime = getSixTime(),
                         deployLogin = authRepository.fetchLogin(),
-                        deployDate = getDate()
+                        deployDate = getDate(),
+                        custom = null
                     )
                 )
 
@@ -275,7 +276,8 @@ class LessonReportExecutor(
                                             id = it.id,
                                             deployTime = it.deployTime,
                                             deployDate = it.deployDate,
-                                            deployLogin = it.deployLogin
+                                            deployLogin = it.deployLogin,
+                                            custom = it.custom
                                         )
                                     }
 
@@ -291,7 +293,8 @@ class LessonReportExecutor(
                                             id = it.id,
                                             deployTime = it.deployTime,
                                             deployDate = it.deployDate,
-                                            deployLogin = it.deployLogin
+                                            deployLogin = it.deployLogin,
+                                            custom = it.custom
                                         )
                                     }
 
@@ -307,7 +310,8 @@ class LessonReportExecutor(
                                             id = it.id,
                                             deployTime = it.deployTime,
                                             deployDate = it.deployDate,
-                                            deployLogin = it.deployLogin
+                                            deployLogin = it.deployLogin,
+                                            custom = it.custom
                                         )
                                     }
                                 }
@@ -684,7 +688,8 @@ class LessonReportExecutor(
                     id = it.id,
                     deployTime = it.deployTime,
                     deployDate = it.deployDate,
-                    deployLogin = it.deployLogin
+                    deployLogin = it.deployLogin,
+                    custom = it.custom
                 )
             }
         val toAdd = mutableListOf<Stup>()
@@ -701,7 +706,8 @@ class LessonReportExecutor(
                     id = state().ids,
                     deployTime = getSixTime(),
                     deployLogin = authRepository.fetchLogin(),
-                    deployDate = getDate()
+                    deployDate = getDate(),
+                    custom = null
                 )
             )
             dispatch(LessonReportStore.Message.InvisibleStupAdd)
@@ -719,7 +725,8 @@ class LessonReportExecutor(
                     id = state().ids,
                     deployTime = getSixTime(),
                     deployLogin = authRepository.fetchLogin(),
-                    deployDate = getDate()
+                    deployDate = getDate(),
+                    custom = null
                 )
             )
             dispatch(LessonReportStore.Message.InvisibleStupAdd)
@@ -737,7 +744,8 @@ class LessonReportExecutor(
                     id = state().ids,
                     deployTime = getSixTime(),
                     deployLogin = authRepository.fetchLogin(),
-                    deployDate = getDate()
+                    deployDate = getDate(),
+                    custom = null
                 )
             )
             dispatch(LessonReportStore.Message.InvisibleStupAdd)
@@ -765,7 +773,8 @@ class LessonReportExecutor(
                                 isGoToAvg = m.isGoToAvg,
                                 deployTime = m.deployTime,
                                 deployDate = m.deployDate,
-                                deployLogin = m.deployLogin
+                                deployLogin = m.deployLogin,
+                                custom = null
                             )
                         )
                     }
@@ -780,7 +789,8 @@ class LessonReportExecutor(
                                 isGoToAvg = true,
                                 deployTime = m.deployTime,
                                 deployLogin = m.deployLogin,
-                                deployDate = m.deployDate
+                                deployDate = m.deployDate,
+                                custom = m.custom
                             )
                         )
                     }

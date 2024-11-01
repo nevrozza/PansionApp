@@ -1392,7 +1392,7 @@ fun RecentMarkContent(
             modifier = Modifier.padding(5.dp).padding(horizontal = 2.dp).offset(y = -2.dp)
         ) {
             Text(
-                (if (!isNotStups && mark.toInt() > 0
+                (if (!isNotStups && mark.toInt() > 0 && !mark.contains("+") 
                 ) "+" else "") + mark,
                 fontSize = 18.sp,
                 modifier = Modifier.fillMaxWidth().offset(y = 4.dp),

@@ -4,10 +4,21 @@ import FIO
 import kotlinx.serialization.Serializable
 import report.StudentNka
 
+
+@Serializable
+data class RUploadMinistryStup(
+    val studentLogin: String,
+    val stup: MinistryStup,
+    val date: String
+)
+
+
 @Serializable
 data class MinistryStup(
     val reason: String,
-    val content: String
+    val content: String,
+    val reportId: Int,
+    val custom: String?
 )
 
 @Serializable

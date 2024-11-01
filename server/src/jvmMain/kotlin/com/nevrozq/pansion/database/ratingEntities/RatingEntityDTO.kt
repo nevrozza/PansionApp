@@ -19,7 +19,8 @@ data class RatingEntityDTO(
     val date: String,
     val deployDate: String,
     val deployTime: String,
-    val deployLogin: String
+    val deployLogin: String,
+    val custom: String?
 )
 
 //fun GroupDTO.mapToGroup() =
