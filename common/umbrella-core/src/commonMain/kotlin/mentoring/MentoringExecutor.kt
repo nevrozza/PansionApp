@@ -215,7 +215,7 @@ class MentoringExecutor(
                             allDates = dates,
                             allDateMarks = dm,
                             allNki = r.studentsNki,
-                            chosenSubject = r.subjects.keys.first(),
+                            chosenSubject = r.subjects.keys.firstOrNull() ?: 1,
                             groups = r.groups,
                             modules = dates.map { it.module }.toSet().toList(),
                             studentToGroups = r.studentsGroups

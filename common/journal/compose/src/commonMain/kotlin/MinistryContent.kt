@@ -1,4 +1,5 @@
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -10,8 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -41,6 +42,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import main.school.MinistryKid
+import main.school.MinistryStup
 import ministry.MinistryComponent
 import ministry.MinistryStore
 import server.Ministries
@@ -329,8 +331,8 @@ private fun MinistryKidItem(
     component: MinistryComponent
 ) {
 
-    val isScheduleShowing = remember { mutableStateOf(false) }
-
+    val isFullOpened = remember { mutableStateOf(false) }
+    val prev = item.dayStups.firstOrNull { it.reportId == null }
     Surface(
         Modifier.fillMaxWidth(),
         tonalElevation = 2.dp,
@@ -346,25 +348,34 @@ private fun MinistryKidItem(
                 Text(
                     buildAnnotatedString {
                         val textikToday = "${getStupString(item.dayStups.sumOf { it.content.toIntOrNull() ?: 0 })} "
-                        val colorToday = if (textikToday.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
+                        val colorToday =
+                            if (textikToday.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
 
 
                         val textikWeek = "${getStupString(item.weekStupsCount)} "
-                        val colorWeek = if (textikWeek.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
+                        val colorWeek =
+                            if (textikWeek.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
 
 
                         val textikModule = "${getStupString(item.moduleStupsCount)} "
-                        val colorModule = if (textikModule.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
+                        val colorModule =
+                            if (textikModule.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
 
 
                         val textikYear = "${getStupString(item.yearStupsCount)} "
-                        val colorYear = if (textikYear.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
+                        val colorYear =
+                            if (textikYear.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
 
-                        withStyle(SpanStyle(
-                                color = colorToday)) {
-                            withStyle(SpanStyle(
-                                fontWeight = FontWeight.Bold
-                            )) {
+                        withStyle(
+                            SpanStyle(
+                                color = colorToday
+                            )
+                        ) {
+                            withStyle(
+                                SpanStyle(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
                                 append("Сегодня: ")
                             }
                             append(textikToday)
@@ -380,14 +391,14 @@ private fun MinistryKidItem(
 
                         append("\n")
 
-                        withStyle(SpanStyle( color = colorModule)) {
+                        withStyle(SpanStyle(color = colorModule)) {
                             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("Модуль: ")
                             }
                             append(textikModule)
                         }
 
-                        withStyle(SpanStyle( color = colorYear)) {
+                        withStyle(SpanStyle(color = colorYear)) {
                             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("Год: ")
                             }
@@ -395,18 +406,61 @@ private fun MinistryKidItem(
                         }
                     }
                 )
-                if (item.lessons.isNotEmpty()) {
-                    IconButton(
-                        onClick = {
-                            isScheduleShowing.value = !isScheduleShowing.value
+                Row {
+                    if (item.lessons.isNotEmpty() || model.pickedMinistry == Ministries.DressCode) {
+                        IconButton(
+                            onClick = {
+                                isFullOpened.value = !isFullOpened.value
+                            }
+                        ) {
+                            val rotation = animateFloatAsState(if (isFullOpened.value) 180f else 0f)
+                            Icon(Icons.Rounded.ExpandMore, null, modifier = Modifier.rotate(rotation.value))
                         }
-                    ) {
-                        Icon(Icons.Rounded.Schedule, null)
+                    }
+                    if (model.pickedMinistry == Ministries.MVD) {
+
+                        if (prev == null) {
+                            IconButton(
+                                onClick = {
+                                    component.onEvent(
+                                        MinistryStore.Intent.OpenMVDEdit(
+                                            login = item.login,
+                                            reason = "!ds3",
+                                            reportId = null,
+                                            custom = "",
+                                            stups = 0
+                                        )
+                                    )
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Add, null
+                                )
+                            }
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    component.onEvent(
+                                        MinistryStore.Intent.OpenMVDEdit(
+                                            login = item.login,
+                                            reason = prev.reason,
+                                            reportId = prev.reportId,
+                                            custom = prev.custom ?: "",
+                                            stups = prev.content.toIntOrNull() ?: 0
+                                        )
+                                    )
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Edit, null
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            AnimatedVisibility(isScheduleShowing.value) {
+            AnimatedVisibility(isFullOpened.value && model.pickedMinistry == Ministries.MVD) {
                 Column {
                     item.lessons.forEachIndexed { i, l ->
                         val stups = item.dayStups.filter { it.reportId == l.reportId }
@@ -448,7 +502,8 @@ private fun MinistryKidItem(
                                             else -> "???"
                                         }
                                         val textik = getStupString(it.content)
-                                        val color = if (textik.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                        val color =
+                                            if (textik.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                                         Spacer(Modifier.width(5.dp))
                                         Box() {
                                             AnimatedContent(
@@ -555,9 +610,101 @@ private fun MinistryKidItem(
                 }
             }
 
-            if (model.pickedMinistry == Ministries.DressCode) {
-//                val
+            AnimatedVisibility (isFullOpened.value && model.pickedMinistry == Ministries.DressCode) {
+                Column {
+                    DressCodeBlock(
+                        title = "Одежда",
+                        map = mapOf(
+                            "!zd1" to "Манжеты",
+                            "!zd2" to "Ворот",
+                            "!zd3" to "Как отутюжена",
+                            "!zd4" to "Общ состояние",
+                        ),
+                        item = item,
+                        component = component
+                    )
+                    DressCodeBlock(
+                        title = "Состояние",
+                        map = mapOf(
+                            "!zd5" to "Обуви",
+                            "!zd6" to "Причёски",
+                            "!zd7" to "Ногти, макияж"
+                        ),
+                        item = item,
+                        component = component
+                    )
+                }
             }
+
+            AnimatedVisibility(prev != null) {
+
+                Text(
+                    "${prev?.content} ${prev?.custom}",
+                    color = MaterialTheme.colorScheme.error,
+//                    modifier = Modifier.padding(start = 20.dp),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DressCodeBlock(
+    title: String,
+    map: Map<String, String>,
+    item: MinistryKid,
+    component: MinistryComponent
+) {
+    Text(title, fontWeight = FontWeight.Bold)
+    map.forEach { m ->
+        val stup = item.dayStups.firstOrNull { it.reason == m.key } ?: MinistryStup(
+            reason = m.key,
+            content = "0",
+            reportId = null,
+            custom = null
+        )
+        DressCodeRow(
+            stup = stup,
+            text = m.value,
+        ) {
+            component.onEvent(
+                MinistryStore.Intent.UploadStup(
+                    reason = m.key,
+                    login = item.login,
+                    content = it.toString(),
+                    reportId = null,
+                    custom = null
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun DressCodeRow(
+    stup: MinistryStup,
+    text: String,
+    onValueChange: (Int) -> Unit
+) {
+    Row(
+        Modifier.fillMaxWidth()
+            .padding(horizontal = 7.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Stepper(
+            count = stup.content.toIntOrNull() ?: 0,
+            isEditable = true,
+            maxCount = 1,
+            minCount = -1
+        ) {
+            onValueChange(it)
         }
     }
 }

@@ -17,7 +17,7 @@ data class RUploadMinistryStup(
 data class MinistryStup(
     val reason: String,
     val content: String,
-    val reportId: Int,
+    val reportId: Int?,
     val custom: String?
 )
 

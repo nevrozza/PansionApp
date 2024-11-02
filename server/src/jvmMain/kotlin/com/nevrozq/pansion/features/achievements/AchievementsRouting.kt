@@ -12,6 +12,10 @@ fun Application.configureAchievementsRouting() {
             achievementsController.createAchievement(call)
         }
 
+        post(RequestPaths.Achievements.Delete) {
+            achievementsController.deleteAchievement(call)
+        }
+
 
         post(RequestPaths.Achievements.Edit) {
             achievementsController.updateAchievement(call)

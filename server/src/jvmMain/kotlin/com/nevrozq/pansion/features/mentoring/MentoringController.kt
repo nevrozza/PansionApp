@@ -87,22 +87,24 @@ class MentoringController {
                     ) + Stups.fetchForUserSubject(
                         login = s.first,
                         subjectId = subjectId
-                    )).map {
-                        UserMarkPlus(
-                            mark = UserMark(
-                                id = it.id,
-                                content = it.content,
-                                reason = it.reason,
-                                isGoToAvg = it.isGoToAvg,
-                                groupId = it.groupId,
-                                date = it.date,
-                                reportId = it.reportId,
-                                module = it.part
-                            ),
-                            deployTime = it.deployTime,
-                            deployDate = it.deployDate,
-                            deployLogin = it.deployLogin
-                        )
+                    )).mapNotNull {
+                        if (it.groupId != null && it.reportId != null) {
+                            UserMarkPlus(
+                                mark = UserMark(
+                                    id = it.id,
+                                    content = it.content,
+                                    reason = it.reason,
+                                    isGoToAvg = it.isGoToAvg,
+                                    groupId = it.groupId,
+                                    date = it.date,
+                                    reportId = it.reportId,
+                                    module = it.part
+                                ),
+                                deployTime = it.deployTime,
+                                deployDate = it.deployDate,
+                                deployLogin = it.deployLogin
+                            )
+                        } else null
                     }
                         .sortedWith(
                             compareBy({ getLocalDate(it.deployDate).toEpochDays() },

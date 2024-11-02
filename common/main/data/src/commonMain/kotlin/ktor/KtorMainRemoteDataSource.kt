@@ -25,8 +25,7 @@ import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
 import main.RFetchSchoolDataReceive
 import main.RFetchSchoolDataResponse
-import main.school.RCreateMinistryStudentReceive
-import main.school.RFetchMinistrySettingsResponse
+import main.school.*
 import mentoring.RFetchJournalBySubjectsReceive
 import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
@@ -52,6 +51,33 @@ import schedule.RPersonScheduleList
 class KtorMainRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+    suspend fun updateTodayDuty(r: RUpdateTodayDuty) {
+        httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.UpdateDuty)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+    suspend fun startNewDayDuty(r: RStartNewDayDuty) {
+        httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.StartNewDayDuty)
+                setBody(r)
+            }
+        }.status.value.checkOnNoOk()
+    }
+    suspend fun fetchDuty(r: RFetchDutyReceive) : RFetchDutyResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                path(RequestPaths.Main.FetchDuty)
+                setBody(r)
+            }
+        }.body()
+    }
 
     suspend fun fetchMinistrySettings() : RFetchMinistrySettingsResponse {
         return httpClient.post {

@@ -23,11 +23,17 @@ class SchoolComponent(
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()\
     val nInterfaceName = "MainSchoolNInterface"
+    val nDutyInterfaceName = "DutySchoolNInterface"
 
     val nInterface = NetworkInterface(
         childContext(nInterfaceName + "CONTEXT"),
         storeFactory,
         nInterfaceName
+    )
+    val nDutyInterface = NetworkInterface(
+        childContext(nDutyInterfaceName + "CONTEXT"),
+        storeFactory,
+        nDutyInterfaceName
     )
 
     val ministrySettingsCBottomSheetComponent = CBottomSheetComponent(
@@ -47,7 +53,8 @@ class SchoolComponent(
                 moderation = moderation,
                 nInterface = nInterface,
                 mainRepository = mainRepository,
-                openMinSettingsBottom = ministrySettingsCBottomSheetComponent
+                openMinSettingsBottom = ministrySettingsCBottomSheetComponent,
+                nDutyInterface = nDutyInterface
 //                authRepository = authRepository
             ).create()
         }

@@ -27,6 +27,8 @@ data class FormRatingStudent(
     val formTitle: String?,
     val avg: ForAvg,
     val edStups: List<FormRatingStup>,
+    val mvdStupsCount: Int,
+    val zdStupsCount: Int,
 //    val likes: Int,
 //    val dislikes: Int
     //mvdStups
@@ -35,7 +37,7 @@ data class FormRatingStudent(
 
 @Serializable
 data class FormRatingStup(
-    val subjectId: Int,
+    val subjectId: Int?,
     val reason: String,
     val date: String,
     val content: String

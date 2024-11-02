@@ -44,18 +44,6 @@ class MentoringComponent(
         storeFactory = storeFactory,
         name = nPreAttendanceInterfaceName
     )
-//    private val navigation = StackNavigation<Config>()
-//    val stack = childStack(
-//        source = navigation,
-//        initialStack = {
-//            listOf()
-//        },
-//        serializer = Config.serializer(),
-//        handleBackButton = true,
-//        childFactory = ::child,
-//        )
-//    val childStack: Value<ChildStack<*, Child>> = stack
-
     private val mentoringStore =
         instanceKeeper.getStore {
             MentoringStoreFactory(
@@ -67,8 +55,6 @@ class MentoringComponent(
         }
 
     val model = mentoringStore.asValue()
-
-
 
 
     init {
@@ -85,5 +71,6 @@ class MentoringComponent(
 
     sealed class Output {
         data class CreateSecondView(val login: String, val fio: FIO, val avatarId: Int, val config: RootComponent.Config) : Output()
+        data object NavigateToAchievements : Output()
     }
 }

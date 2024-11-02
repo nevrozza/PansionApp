@@ -177,39 +177,43 @@ class ReportsController() {
                     call.respond(
                         RFetchStudentReportResponse(
                             studentLine = sl,
-                            marks = marks.map {
-                                UserMarkPlus(
-                                    mark = UserMark(
-                                        id = it.id,
-                                        content = it.content,
-                                        reason = it.reason,
-                                        isGoToAvg = it.isGoToAvg,
-                                        groupId = it.groupId,
-                                        date = it.date,
-                                        reportId = it.reportId,
-                                        module = it.part
-                                    ),
-                                    deployDate = it.deployDate,
-                                    deployTime = it.deployTime,
-                                    deployLogin = it.deployLogin
-                                )
+                            marks = marks.mapNotNull {
+                                if (it.groupId != null && it.reportId != null) {
+                                    UserMarkPlus(
+                                        mark = UserMark(
+                                            id = it.id,
+                                            content = it.content,
+                                            reason = it.reason,
+                                            isGoToAvg = it.isGoToAvg,
+                                            groupId = it.groupId,
+                                            date = it.date,
+                                            reportId = it.reportId,
+                                            module = it.part
+                                        ),
+                                        deployDate = it.deployDate,
+                                        deployTime = it.deployTime,
+                                        deployLogin = it.deployLogin
+                                    )
+                                } else null
                             },
-                            stups = stups.map {
-                                UserMarkPlus(
-                                    mark = UserMark(
-                                        id = it.id,
-                                        content = it.content,
-                                        reason = it.reason,
-                                        isGoToAvg = it.isGoToAvg,
-                                        groupId = it.groupId,
-                                        date = it.date,
-                                        reportId = it.reportId,
-                                        module = it.part
-                                    ),
-                                    deployDate = it.deployDate,
-                                    deployTime = it.deployTime,
-                                    deployLogin = it.deployLogin
-                                )
+                            stups = stups.mapNotNull {
+                                if (it.groupId != null && it.reportId != null) {
+                                    UserMarkPlus(
+                                        mark = UserMark(
+                                            id = it.id,
+                                            content = it.content,
+                                            reason = it.reason,
+                                            isGoToAvg = it.isGoToAvg,
+                                            groupId = it.groupId,
+                                            date = it.date,
+                                            reportId = it.reportId,
+                                            module = it.part
+                                        ),
+                                        deployDate = it.deployDate,
+                                        deployTime = it.deployTime,
+                                        deployLogin = it.deployLogin
+                                    )
+                                } else null
                             },
                             info = info,
                             homeTasks = homeTasks.map {
@@ -363,8 +367,7 @@ class ReportsController() {
             try {
                 val module = (getModuleByDate(getDate())?.num ?: 1).toString()
                 val avg: ForAvg
-                val notDsStups: Int
-                val allStups: Int
+                val stStups: Int
                 var achievementsStups: MutableMap<Period, Pair<Int, Int>>? = null
 
                 if (r.isFirst) {
@@ -443,9 +446,8 @@ class ReportsController() {
                         avg = Marks.fetchWeekAVG(r.login)
                         val stups = Stups.fetchForAWeek(r.login)
 
-                        notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                        stStups = stups.filter { it.reason.subSequence(0, 3) =="!st" }
                             .map { it.content.toInt() }.sum()
-                        allStups = stups.map { it.content.toInt() }.sum()
                     }
 
                     "1" -> { //module
@@ -456,9 +458,8 @@ class ReportsController() {
                             quartersNum = module,
                             isQuarters = true
                         )
-                        notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                        stStups = stups.filter { it.reason.subSequence(0, 3) =="!st" }
                             .map { it.content.toInt() }.sum()
-                        allStups = stups.map { it.content.toInt() }.sum()
                     }
 
                     "2" -> { //halfyear
@@ -469,9 +470,8 @@ class ReportsController() {
                             quartersNum = c.toString(),
                             isQuarters = false
                         )
-                        notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                        stStups = stups.filter { it.reason.subSequence(0, 3) =="!st" }
                             .map { it.content.toInt() }.sum()
-                        allStups = stups.map { it.content.toInt() }.sum()
                     }
 
                     "3" -> {
@@ -479,9 +479,8 @@ class ReportsController() {
                         val stups = Stups.fetchForUser(
                             login = r.login
                         )
-                        notDsStups = stups.filter { it.reason.subSequence(0, 3) != "!ds" }
+                        stStups = stups.filter { it.reason.subSequence(0, 3) =="!st" }
                             .map { it.content.toInt() }.sum()
-                        allStups = stups.map { it.content.toInt() }.sum()
                     } //year
                     else -> {
                         call.respond(HttpStatusCode.BadRequest)
@@ -491,7 +490,7 @@ class ReportsController() {
                 call.respond(
                     RFetchMainAVGResponse(
                         avg = avg.sum / avg.count.toFloat(),
-                        stups = Pair(notDsStups, (allStups - notDsStups)),
+                        stups = stStups,
                         achievementsStups = achievementsStups
                     )
                 )
@@ -558,22 +557,24 @@ class ReportsController() {
                     val marks = Marks.fetchForUserGroup(
                         login = s.login,
                         groupId = r.groupId
-                    ).sortedBy { it.deployTime.toMinutes() }.map {
-                        UserMarkPlus(
-                            mark = UserMark(
-                                id = it.id,
-                                content = it.content,
-                                reason = it.reason,
-                                isGoToAvg = it.isGoToAvg,
-                                groupId = it.groupId,
-                                date = it.date,
-                                reportId = it.reportId,
-                                module = it.part
-                            ),
-                            deployDate = it.deployDate,
-                            deployTime = it.deployTime,
-                            deployLogin = it.deployLogin
-                        )
+                    ).sortedBy { it.deployTime.toMinutes() }.mapNotNull {
+                        if (it.groupId != null && it.reportId != null) {
+                            UserMarkPlus(
+                                mark = UserMark(
+                                    id = it.id,
+                                    content = it.content,
+                                    reason = it.reason,
+                                    isGoToAvg = it.isGoToAvg,
+                                    groupId = it.groupId,
+                                    date = it.date,
+                                    reportId = it.reportId,
+                                    module = it.part
+                                ),
+                                deployDate = it.deployDate,
+                                deployTime = it.deployTime,
+                                deployLogin = it.deployLogin
+                            )
+                        } else null
                     }
                     println("x1")
                     val stups = Stups.fetchForUserGroup(
@@ -582,22 +583,24 @@ class ReportsController() {
                     ).sortedWith(
                         compareBy({ getLocalDate(it.deployDate).toEpochDays() },
                             { it.deployTime.toMinutes() })
-                    ).map {
-                        UserMarkPlus(
-                            mark = UserMark(
-                                id = it.id,
-                                content = it.content,
-                                reason = it.reason,
-                                isGoToAvg = it.isGoToAvg,
-                                groupId = it.groupId,
-                                date = it.date,
-                                reportId = it.reportId,
-                                module = it.part
-                            ),
-                            deployDate = it.deployDate,
-                            deployTime = it.deployTime,
-                            deployLogin = it.deployLogin
-                        )
+                    ).mapNotNull {
+                        if (it.groupId != null && it.reportId != null) {
+                            UserMarkPlus(
+                                mark = UserMark(
+                                    id = it.id,
+                                    content = it.content,
+                                    reason = it.reason,
+                                    isGoToAvg = it.isGoToAvg,
+                                    groupId = it.groupId,
+                                    date = it.date,
+                                    reportId = it.reportId,
+                                    module = it.part
+                                ),
+                                deployDate = it.deployDate,
+                                deployTime = it.deployTime,
+                                deployLogin = it.deployLogin
+                            )
+                        } else null
                     }
                     println("x2")
                     val shortFio =
@@ -657,17 +660,19 @@ class ReportsController() {
                 ).sortedWith(
                     compareBy({ getLocalDate(it.deployDate).toEpochDays() },
                         { it.deployTime.toMinutes() })
-                ).map {
-                    UserMark(
-                        id = it.id,
-                        content = it.content,
-                        reason = it.reason,
-                        isGoToAvg = it.isGoToAvg,
-                        groupId = it.groupId,
-                        date = it.date,
-                        reportId = it.reportId,
-                        module = it.part
-                    )
+                ).mapNotNull {
+                    if (it.groupId != null && it.reportId != null) {
+                        UserMark(
+                            id = it.id,
+                            content = it.content,
+                            reason = it.reason,
+                            isGoToAvg = it.isGoToAvg,
+                            groupId = it.groupId,
+                            date = it.date,
+                            reportId = it.reportId,
+                            module = it.part
+                        )
+                    } else null
                 }
 
                 call.respond(
@@ -693,8 +698,8 @@ class ReportsController() {
                 val subjects = Subjects.fetchAllSubjects()
                 val limit = 7
                 val stups = Stups.fetchForUser(r.login).filter {
-                    it.reason.subSequence(0, 3) == "!st" ||
-                            it.content.toInt() < 0
+                    (it.reason.subSequence(0, 3) == "!st" ||
+                            it.content.toInt() < 0)
                 }
                 val n = if (limit > stups.size) stups.size else limit
                 val preGrades = (Marks.fetchRecentForUser(
@@ -712,7 +717,7 @@ class ReportsController() {
                         reason = p.reason,
                         date = p.date,
                         reportId = p.reportId,
-                        subjectName = subjects.first { it.id == p.subjectId }.name
+                        subjectName = if(p.subjectId != null) subjects.first { it.id == p.subjectId }.name else "Министерство"
                     )
                 }
 
@@ -742,8 +747,10 @@ class ReportsController() {
                 val responseList = mutableListOf<DetailedStupsSubject>()
 
                 val subjects = StudentGroups.fetchSubjectsOfStudent(studentLogin = r.login)
-                val stupSubjects = stups.map { s ->
-                    allSubjects.first { it.id == s.subjectId }
+                val stupSubjects = stups.mapNotNull { s ->
+                    if (s.subjectId != null) {
+                        allSubjects.first { it.id == s.subjectId }
+                    } else null
                 }
 
                 val all = subjects.union(stupSubjects)
@@ -755,17 +762,19 @@ class ReportsController() {
                     responseList.add(
                         DetailedStupsSubject(
                             subjectName = s.name,
-                            stups = iStups.map {
-                                UserMark(
-                                    id = it.id,
-                                    content = it.content,
-                                    reason = it.reason,
-                                    isGoToAvg = it.isGoToAvg,
-                                    groupId = it.groupId,
-                                    date = it.date,
-                                    reportId = it.reportId,
-                                    module = it.part
-                                )
+                            stups = iStups.mapNotNull {
+                                if (it.groupId != null && it.reportId != null) {
+                                    UserMark(
+                                        id = it.id,
+                                        content = it.content,
+                                        reason = it.reason,
+                                        isGoToAvg = it.isGoToAvg,
+                                        groupId = it.groupId,
+                                        date = it.date,
+                                        reportId = it.reportId,
+                                        module = it.part
+                                    )
+                                } else null
                             }
                         )
                     )
@@ -794,7 +803,7 @@ class ReportsController() {
         if (call.isMember) {
             try {
                 val allSubjects = Subjects.fetchAllSubjects()
-
+                println("x1")
                 val marks = Marks.fetchForUserQuarters(
                     login = r.login,
                     quartersNum = r.quartersNum,
@@ -803,26 +812,32 @@ class ReportsController() {
                     compareBy({ getLocalDate(it.deployDate).toEpochDays() },
                         { it.deployTime.toMinutes() })
                 )
+                println("x2")
                 val stups = Stups.fetchForUserQuarters(
                     login = r.login,
                     quartersNum = r.quartersNum,
                     isQuarters = r.isQuarters
                 )
+                println("x3")
 
                 val responseList = mutableListOf<DnevnikRuMarksSubject>()
-
+                println("x4")
                 val subjects = StudentGroups.fetchSubjectsOfStudent(studentLogin = r.login)
                 val markSubjects = marks.map { m ->
                     allSubjects.first { it.id == m.subjectId }
                 }
-                val stupSubjects = stups.map { s ->
-                    allSubjects.first { it.id == s.subjectId }
+                println("x6")
+                val stupSubjects = stups.mapNotNull { s ->
+                    if (s.subjectId != null) {
+                        allSubjects.first { it.id == s.subjectId }
+                    } else null
                 }
+                println("x7")
 
-                val groupIds = (marks + stups).associate { it.subjectId to it.groupId }
-
+                val groupIds = (marks + stups).filter { it.subjectId != null && it.groupId != null}.associate { it.subjectId!! to it.groupId!! }
+                println("x8")
                 val all = subjects.union(markSubjects).union(stupSubjects)
-
+                println("x9")
                 all.forEach { s ->
                     val iMarks = marks.filter { it.subjectId == s.id }
                     val iStups = stups.filter { it.subjectId == s.id }
@@ -830,29 +845,33 @@ class ReportsController() {
                         DnevnikRuMarksSubject(
                             subjectId = s.id,
                             subjectName = s.name,
-                            marks = iMarks.map {
-                                UserMark(
-                                    id = it.id,
-                                    content = it.content,
-                                    reason = it.reason,
-                                    isGoToAvg = it.isGoToAvg,
-                                    groupId = it.groupId,
-                                    date = it.date,
-                                    reportId = it.reportId,
-                                    module = it.part
-                                )
+                            marks = iMarks.mapNotNull {
+                                if (it.groupId != null && it.reportId != null) {
+                                    UserMark(
+                                        id = it.id,
+                                        content = it.content,
+                                        reason = it.reason,
+                                        isGoToAvg = it.isGoToAvg,
+                                        groupId = it.groupId,
+                                        date = it.date,
+                                        reportId = it.reportId,
+                                        module = it.part
+                                    )
+                                } else null
                             },
-                            stups = iStups.map {
-                                UserMark(
-                                    id = it.id,
-                                    content = it.content,
-                                    reason = it.reason,
-                                    isGoToAvg = it.isGoToAvg,
-                                    groupId = it.groupId,
-                                    date = it.date,
-                                    reportId = it.reportId,
-                                    module = it.part
-                                )
+                            stups = iStups.mapNotNull {
+                                if (it.groupId != null && it.reportId != null) {
+                                    UserMark(
+                                        id = it.id,
+                                        content = it.content,
+                                        reason = it.reason,
+                                        isGoToAvg = it.isGoToAvg,
+                                        groupId = it.groupId,
+                                        date = it.date,
+                                        reportId = it.reportId,
+                                        module = it.part
+                                    )
+                                } else null
                             },
                             nki = StudentLines.fetchStudentLinesByLoginAndGroup(
                                 login = r.login,

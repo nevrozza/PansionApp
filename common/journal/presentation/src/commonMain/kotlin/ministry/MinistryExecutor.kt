@@ -83,7 +83,7 @@ class MinistryExecutor(
         reason: String,
         login: String,
         content: String,
-        reportId: Int,
+        reportId: Int?,
         custom: String?
     ) {
         scope.launch(CDispatcher) {

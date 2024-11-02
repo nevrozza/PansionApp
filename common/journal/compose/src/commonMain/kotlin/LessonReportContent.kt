@@ -1164,11 +1164,11 @@ private fun MarksTabContent(
         (LocalViewManager.current.size?.maxWidth ?: 0.dp) >= BottomSheetDefaults.SheetMaxWidth
 
     val dzColumnsList = listOf(
-        MarkColumn("dzТест", "!dz1"),
-        MarkColumn("dzПисьм. работа", "!dz2"),
-        MarkColumn("dzРешение задач", "!dz3"),
+        MarkColumn("dzПисьм. работа", "!dz1"),
+        MarkColumn("dzРешение задач", "!dz2"),
+        MarkColumn("dzУстно", "!dz3"),
 //                                    "Другое"
-        MarkColumn("dzУстный ответ", "!dz4"),
+        MarkColumn("dzДругое", "!dz4"),
     )
 
     val clColumnsList = listOf(
@@ -1190,7 +1190,7 @@ private fun MarksTabContent(
     val stColumnsList = listOf(
         MarkColumn("stДЗ", "!st1"),
         MarkColumn("stМ/К", "!st2"),
-        MarkColumn("stТетрадь", "!st3"),
+//        MarkColumn("stТетрадь", "!st3"),
         MarkColumn("stУрок", "!st4"),
         MarkColumn("stРост", "!st5")
 //                                    "Другое"
@@ -2176,11 +2176,12 @@ fun Stepper(
     maxCount: Int,
     minCount: Int,
     height: Dp = 25.dp,
+    modifier: Modifier = Modifier,
     onChangeCount: (Int) -> Unit
 ) {
     val animatedAllAlpha by animateFloatAsState(if (count != 0) 1f else .2f)
     Row(
-        modifier = Modifier.height(height).border(
+        modifier = modifier.height(height).border(
             width = 1.dp,
             color = MaterialTheme.colorScheme.outline.copy(if (count != 0) 1f else .2f),
             shape = RoundedCornerShape(30)

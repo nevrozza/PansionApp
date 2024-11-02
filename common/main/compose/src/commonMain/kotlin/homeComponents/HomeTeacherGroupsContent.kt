@@ -1,13 +1,15 @@
 package homeComponents
 
 import TeacherGroupButton
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FormatListNumbered
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -25,13 +27,23 @@ fun LazyListScope.homeTeacherGroupsContent(
 ) {
     if (!(model.teacherGroups.isEmpty() && teacherNInterface.state == NetworkState.None)) {
             item {
-                Text(
-                    "Группы",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
+                Box(Modifier.fillMaxWidth()) {
+                    Text(
+                        "Группы",
+                        modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+//                    if (model.isMentor || model.isModer) {
+//                        IconButton(
+//                            onClick = {},
+//                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 15.dp).size(30.dp)
+//                        ) {
+//                            Icon(Icons.Rounded.FormatListNumbered, null)
+//                        }
+//                    }
+                }
             }
             item {
                 Spacer(Modifier.height(2.dp))

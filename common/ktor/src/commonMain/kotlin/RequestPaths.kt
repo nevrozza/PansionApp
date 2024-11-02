@@ -65,6 +65,10 @@ object RequestPaths {
         const val FetchMinistryHeaderInit = "server/school/ministry/fetchMinistryHeaderInit"
         const val FetchMinistryList = "server/school/ministry/fetchList"
         const val UploadMinistryStup = "server/school/ministry/uploadStup"
+
+        const val FetchDuty = "server/school/duty/fetch"
+        const val UpdateDuty = "server/school/duty/update"
+        const val StartNewDayDuty = "server/school/duty/startNewDay"
     }
 
     object Mentoring {

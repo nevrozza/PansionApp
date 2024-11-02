@@ -1,68 +1,45 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.DeleteOutline
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.EmojiEvents
-import androidx.compose.material.icons.rounded.Group
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
-import components.CustomTextButton
-import components.CustomTextField
-import components.LoadingAnimation
+import components.*
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import dev.chrisbanes.haze.HazeState
+import main.school.DutyKid
 import main.school.MinistryStudent
 import school.SchoolComponent
 import school.SchoolStore
@@ -73,6 +50,7 @@ import view.LocalViewManager
 import view.WindowScreen
 import view.handy
 import view.toColor
+import kotlin.math.ceil
 
 
 enum class SchoolRoutings {
@@ -88,6 +66,7 @@ fun SchoolContent(
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+    val nDutyModel by component.nDutyInterface.networkModel.subscribeAsState()
     val lazyListState = rememberLazyListState()
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
@@ -292,25 +271,224 @@ fun SchoolContent(
             }
             item {
                 Spacer(Modifier.height(15.dp))
+                val isFullDutyView = remember { mutableStateOf(false) }
+                val isEditDutyView = remember { mutableStateOf(false) }
                 ElevatedCard(
-                    Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                    modifier = Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                        .clickable(enabled = !isEditDutyView.value) {
+                            isFullDutyView.value = !isFullDutyView.value
+                        }
                 ) {
-                    Column(
-                        Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
-                            .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
+                    Crossfade(
+                        targetState = nDutyModel.state,
+                        modifier = Modifier.padding(vertical = 10.dp)
+                            .fillMaxWidth().defaultMinSize(minHeight = 80.dp).animateContentSize(),
 //                        verticalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            "Дежурство",
-                            fontSize = 19.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = "В разработке",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
+                    ) { cf ->
+
+                        Box(
+                            Modifier.fillMaxWidth().defaultMinSize(minHeight = 80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            when (cf) {
+                                NetworkState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(nDutyModel.error, textAlign = TextAlign.Center)
+                                    Spacer(Modifier.height(7.dp))
+                                    CustomTextButton("Попробовать ещё раз") {
+                                        nDutyModel.onFixErrorClick()
+                                    }
+                                }
+
+                                NetworkState.Loading -> CircularProgressIndicator()
+                                NetworkState.None -> {
+                                    Crossfade(!isEditDutyView.value) { cf2 ->
+                                        if (cf2) {
+                                            Column {
+                                                AnimatedVisibility(model.dutyKids.size >= model.dutyPeopleCount) {
+
+                                                    if (model.dutyKids.size >= model.dutyPeopleCount) {
+                                                        val todayKids = model.dutyKids.slice(0..<model.dutyPeopleCount)
+                                                        Column {
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                                modifier = Modifier.fillMaxWidth()
+                                                                    .padding(horizontal = 15.dp)
+                                                            ) {
+                                                                Text(
+                                                                    "Сегодня дежурят",
+                                                                    fontSize = 19.sp,
+                                                                    fontWeight = FontWeight.Bold
+                                                                )
+                                                                if (model.role == Roles.student && todayKids.none { it.login == model.login }) {
+                                                                    val daysFor =
+                                                                        (ceil(((model.dutyKids.indexOfFirst { it.login == model.login } + 1) / model.dutyPeopleCount.toFloat()))).toInt() - 1
+                                                                    Text(
+                                                                        text = "Дней до: $daysFor",
+                                                                        fontWeight = FontWeight.SemiBold,
+                                                                        color = MaterialTheme.colorScheme.onBackground.copy(
+                                                                            alpha = .5f
+                                                                        ),
+                                                                        //                                                fontSize = 12.sp
+                                                                    )
+                                                                } else if (model.moderation in listOf(
+                                                                        Moderation.both,
+                                                                        Moderation.mentor
+                                                                    )
+                                                                ) {
+                                                                    IconButton(
+                                                                        onClick = {
+                                                                            isEditDutyView.value = !isEditDutyView.value
+                                                                        },
+                                                                        modifier = Modifier.size(30.dp)
+                                                                    ) {
+                                                                        Icon(
+                                                                            Icons.Rounded.Edit, null
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                            Spacer(Modifier.height(10.dp))
+                                                            todayKids.forEach { kid ->
+                                                                DutyCard(
+                                                                    kid = kid,
+                                                                    isHisTurn = true,
+                                                                    isEditMode = false
+                                                                )
+                                                                Spacer(Modifier.height(8.dp))
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                AnimatedVisibility(model.dutyKids.size - model.dutyPeopleCount > 0 && isFullDutyView.value) {
+                                                    Column {
+                                                        Text(
+                                                            "В другой раз",
+                                                            fontSize = 19.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            modifier = Modifier.padding(horizontal = 15.dp)
+                                                        )
+                                                        Spacer(Modifier.height(10.dp))
+                                                        if (model.dutyKids.size - model.dutyPeopleCount > 0) {
+                                                            model.dutyKids.slice(model.dutyPeopleCount..<model.dutyKids.size)
+                                                                .forEach { kid ->
+                                                                    DutyCard(
+                                                                        kid = kid,
+                                                                        isHisTurn = false,
+                                                                        isEditMode = false
+                                                                    )
+                                                                    Spacer(Modifier.height(8.dp))
+                                                                }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            val itemHeight = 50.dp
+                                            var items by remember { mutableStateOf(model.dutyKids) }
+                                            var countOfDuties by remember { mutableStateOf(model.dutyPeopleCount) }
+                                            Column(Modifier.fillMaxWidth()) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp)
+                                                ) {
+                                                    Text(
+                                                        "Дежурство",
+                                                        fontSize = 19.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        AnimatedVisibility(
+                                                            items == model.dutyKids
+                                                        ) {
+                                                            Row {
+                                                                CustomTextButton("Новый день") {
+                                                                    component.onEvent(
+                                                                        SchoolStore.Intent.StartNewDayDuty(
+                                                                             newDutyPeopleCount = countOfDuties
+                                                                        )
+                                                                    )
+                                                                    isEditDutyView.value = !isEditDutyView.value
+                                                                }
+                                                                Spacer(Modifier.width(10.dp))
+                                                            }
+                                                        }
+                                                        IconButton(
+                                                            onClick = {
+                                                                if (items != model.dutyKids || countOfDuties != model.dutyPeopleCount) {
+                                                                    component.onEvent(SchoolStore.Intent.UpdateTodayDuty(
+                                                                        kids = items.map { it.login },
+                                                                        newDutyPeopleCount = countOfDuties
+                                                                    ))
+                                                                }
+                                                                isEditDutyView.value = !isEditDutyView.value
+                                                            },
+                                                            modifier = Modifier.size(30.dp)
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Rounded.Done, null
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                                Spacer(Modifier.height(8.dp))
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp)
+                                                ) {
+                                                    Text("Кол-во дежурных")
+                                                    Spacer(Modifier.width(15.dp))
+                                                    Stepper(
+                                                        count = countOfDuties,
+                                                        isEditable = true,
+                                                        maxCount = 5,
+                                                        minCount = 1
+                                                    ) {
+                                                        countOfDuties = it
+                                                    }
+                                                }
+                                                Box(Modifier.height(model.dutyKids.size * itemHeight)) {
+                                                    DragDropList(
+                                                        items = items,
+                                                        onMove = { from, to ->
+                                                            val fromItem = items[from]
+                                                            val toItem = items[to]
+                                                            val newList = items.toMutableList()
+                                                            newList[from] = toItem
+                                                            newList[to] = fromItem
+                                                            items = newList
+                                                        },
+                                                        onDragFinished = {},
+                                                        modifier = Modifier.fillMaxSize()
+                                                    ) { i, it, isDragging ->
+                                                        val color by animateColorAsState(
+                                                            if (isDragging) MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                                                4.dp
+                                                            )
+                                                            else MaterialTheme.colorScheme.surfaceContainerLow,
+                                                            animationSpec = tween(500)
+                                                        )
+                                                        DutyCard(
+                                                            kid = it,
+                                                            isHisTurn = i + 1 <= model.dutyPeopleCount,
+                                                            isEditMode = true,
+                                                            modifier = Modifier.background(
+                                                                color
+                                                            ).height(itemHeight).animateItem()
+                                                                .padding(horizontal = 15.dp)
+                                                        )
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                     }
                 }
             }
@@ -412,77 +590,30 @@ fun SchoolContent(
                 item {
                     Spacer(Modifier.height(7.dp))
                     Row {
-                        ElevatedCard(
-                            Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
-                                .weight(1f)
-                                .handy()
-                                .clickable {
-
-                                },
-                            colors = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                            )
+                        MinistryCard(
+                            ministry = "МВД",
+                            nullIcon = Icons.Rounded.LocalPolice,
+                            stupsCount = model.mvdStupsCount
                         ) {
-                            Column(
-                                Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
-                                    .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
-                                verticalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    "МВД",
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(Modifier.height(5.dp))
-                                Box(
-                                    Modifier.fillMaxWidth()
-                                        .padding(end = 5.dp, bottom = 5.dp),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.Group,
-                                        null,
-                                        tint = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
+
                         }
                         Spacer(Modifier.width(15.dp))
-                        ElevatedCard(
-                            Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
-                                .weight(1f)
-                                .handy()
-                                .clickable { //enabled = !isExpanded
-
-                                },
-                            colors = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                            )
+                        MinistryCard(
+                            ministry = "Здраво-\nохранение",
+                            nullIcon = Icons.Rounded.Checkroom,
+                            stupsCount = model.zdStupsCount
                         ) {
-                            Column(
-                                Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
-                                    .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
-                                verticalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    "Здраво-\nохранение",
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
 
-                                Box(
-                                    Modifier.fillMaxWidth()
-                                        .padding(end = 5.dp, bottom = 5.dp),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.Group,
-                                        null,
-                                        tint = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
                         }
+                    }
+                    Spacer(Modifier.height(1.dp))
+                    if (model.mvdStupsCount < 0 || model.zdStupsCount < 0) {
+                        Text(
+                            text = "Числа показывают, сколько минусов Вам поставили за неделю",
+                            modifier = Modifier.fillMaxWidth().alpha(.5f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 10.sp
+                        )
                     }
                 }
             }
@@ -584,6 +715,111 @@ fun SchoolContent(
             }
             item {
                 Spacer(Modifier.height(40.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DutyCard(
+    kid: DutyKid,
+    isHisTurn: Boolean,
+    isEditMode: Boolean,
+    modifier: Modifier = Modifier.padding(horizontal = 15.dp)
+) {
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.clip(RoundedCornerShape(15.dp)).then(modifier.fillMaxWidth())
+    ) {
+        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+            if (!isEditMode) {
+                GetAvatar(
+                    avatarId = kid.avatarId,
+                    name = kid.fio.name,
+                    size = 40.dp,
+                    textSize = 15.sp
+                )
+            } else {
+                Icon(
+                    Icons.Rounded.Menu, null
+                )
+            }
+            if(isHisTurn) {
+                Icon(
+                    Icons.Rounded.RestaurantMenu, null,
+                    modifier = Modifier.size(20.dp).align(Alignment.BottomEnd).offset(x = 4.dp),
+                    tint = Color.White
+                )
+            }
+        }
+//        Spacer(Modifier.width(9.dp))
+        Text(
+            text = "${kid.fio.surname} ${kid.fio.name}",
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "дежурств: ${kid.dutyCount}",
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = .5f),
+            fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
+private fun RowScope.MinistryCard(
+    ministry: String,
+    nullIcon: ImageVector,
+    stupsCount: Int,
+    onClick: () -> Unit
+) {
+    ElevatedCard(
+        Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+            .weight(1f)
+            .handy()
+            .clickable {
+                onClick()
+            },
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
+                .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                ministry,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(5.dp))
+            Box(
+                Modifier.fillMaxWidth()
+                    .padding(end = 5.dp, bottom = 5.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Crossfade(
+                    stupsCount >= 0
+                ) { cf ->
+                    if (cf) {
+                        Icon(
+                            nullIcon,
+                            null,
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        Text(
+                            text = stupsCount.toString(),
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp
+                        )
+                    }
+                }
             }
         }
     }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
@@ -94,16 +95,18 @@ fun LazyListScope.homeChildrenNotificationsContent(
                 }
             }
         }
-        items(items = model.notChildren, key = { it.login }) { s ->
+        model.notChildren.forEach { s ->
             val list = model.childrenNotifications[s.login] ?: listOf()
             if (list.isNotEmpty()) {
-                Text(
-                    "${s.fio.surname} ${s.fio.name}",
-                    modifier = Modifier.padding(start = 12.dp),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                list.forEach {
+                itemsIndexed(list, key = { i, it -> it.key }) { i, it ->
+                    if (i == list.indexOf(list.first())) {
+                        Text(
+                            "${s.fio.surname} ${s.fio.name}",
+                            modifier = Modifier.padding(start = 12.dp),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     NotificationItem(
                         not = it,
                         viewManager = viewManager,
@@ -114,7 +117,7 @@ fun LazyListScope.homeChildrenNotificationsContent(
                                     reportId = reportId
                                 )
                             )
-                        },
+                                  },
                         changeToUV = { reportId ->
                             component.onEvent(
                                 HomeStore.Intent.ChangeToUv(
@@ -127,9 +130,10 @@ fun LazyListScope.homeChildrenNotificationsContent(
                     ) { key ->
                         component.onEvent(HomeStore.Intent.CheckNotification(s.login, key))
                     }
+                    if (i == list.lastIndex) {
+                        Spacer(Modifier.height(5.dp))
+                    }
                 }
-
-                Spacer(Modifier.height(5.5.dp))
             }
         }
     }

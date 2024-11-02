@@ -15,6 +15,7 @@ class SchoolStoreFactory(
     private val role: String,
     private val moderation: String,
     private val nInterface: NetworkInterface,
+    private val nDutyInterface: NetworkInterface,
     private val mainRepository: MainRepository,
     private val openMinSettingsBottom: CBottomSheetComponent
 ) {
@@ -35,7 +36,8 @@ class SchoolStoreFactory(
             executorFactory = { SchoolExecutor(
                 nInterface = nInterface,
                 mainRepository = mainRepository,
-                openMinSettingsBottom = openMinSettingsBottom
+                openMinSettingsBottom = openMinSettingsBottom,
+                nDutyInterface = nDutyInterface
             ) },
             reducer = SchoolReducer
         )

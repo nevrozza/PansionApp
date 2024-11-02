@@ -32,7 +32,7 @@ interface HomeStore : Store<Intent, State, Label> {
             Period.HALF_YEAR to null,
             Period.YEAR to null
         ),
-        val ladderOfSuccess: HashMap<Period, Pair<Int, Int>?> = hashMapOf(
+        val ladderOfSuccess: HashMap<Period, Int?> = hashMapOf(
             Period.WEEK to null,
             Period.MODULE to null,
             Period.HALF_YEAR to null,
@@ -99,7 +99,7 @@ interface HomeStore : Store<Intent, State, Label> {
 
         data class SomeHeadersUpdated(val someHeaders: List<ReportHeader>) : Message
         data class TeacherGroupUpdated(val teacherGroups: List<TeacherGroup>): Message
-        data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Pair<Int, Int>?>, val achievements: Map<Period, Pair<Int, Int>?>?) : Message
+        data class QuickTabUpdated(val avg: HashMap<Period, Float?>, val stups: HashMap<Period, Int?>, val achievements: Map<Period, Pair<Int, Int>?>?) : Message
 
         data class UpdateHomeWorkEmoji(val emoji: Int?) : Message
 

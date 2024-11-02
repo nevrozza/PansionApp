@@ -10,12 +10,8 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import server.daysShift
 import server.getPreviousWeekDays
@@ -23,9 +19,9 @@ import server.getWeekDays
 import server.twoNums
 
 open class RatingEntity : Table() {
-    val groupId = this.integer("groupId")
-    val subjectId = this.reference("subjectId", Subjects.id)
-    val reportId = this.integer("reportId")
+    val groupId = this.integer("groupId").nullable()
+    val subjectId = this.integer("subjectId").nullable()
+    val reportId = this.integer("reportId").nullable()
     val login = this.varchar("login", 30)
     val content = this.varchar("content", 5)
     val reason = this.varchar("reason", 5)
@@ -53,7 +49,9 @@ open class RatingEntity : Table() {
     fun insert(r: RatingEntityDTO, isDelete: Boolean) {
         try {
             if (isDelete) {
-                this.delete(id = r.id, reportId = r.reportId)
+                if (r.reportId != null) {
+                    this.delete(id = r.id, reportId = r.reportId)
+                }
             }
             transaction {
                 this@RatingEntity.insert {
@@ -243,7 +241,7 @@ open class RatingEntity : Table() {
             try {
 
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.isGoToAvg eq true) }.reversed()
+                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.isGoToAvg eq true)}.reversed()
 
                 val n = if(limit > ratingEntities.size) ratingEntities.size else limit
                 ratingEntities.slice(0..n-1).map {

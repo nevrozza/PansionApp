@@ -114,6 +114,9 @@ class AdminAchievementsExecutor(
                         )
                     )
                     nBSInterface.nSuccess()
+                    bottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    hugeBottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    editBottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
                 }
             } catch (e: Throwable) {
                 nBSInterface.nError(
@@ -142,6 +145,9 @@ class AdminAchievementsExecutor(
                         )
                     )
                     nBSInterface.nSuccess()
+                    bottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    hugeBottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    editBottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
                 }
             } catch (e: Throwable) {
                 nBSInterface.nError(
@@ -175,6 +181,9 @@ class AdminAchievementsExecutor(
                         )
                     )
                     nBSInterface.nSuccess()
+                    bottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    hugeBottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    editBottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
                 }
             } catch (e: Throwable) {
                 nBSInterface.nError(
@@ -214,6 +223,9 @@ class AdminAchievementsExecutor(
                         )
                     )
                     nBSInterface.nSuccess()
+                    bottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    hugeBottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    editBottomSheetComponent.onEvent(CBottomSheetStore.Intent.HideSheet)
                 }
             } catch (e: Throwable) {
                 nBSInterface.nError(

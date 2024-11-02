@@ -17,14 +17,14 @@ data class MinistryListItem(
 
 interface MinistryStore : Store<Intent, State, Label> {
     data class State(
-        val dates: List<Pair<Int, String>> = getDates(minus = 14, plus = 0),
+        val dates: List<Pair<Int, String>> = getDates(minus = 14, plus = 0).mapNotNull { if (it.first in listOf(6, 7)) null else it },
         val currentDate: Pair<Int, String> = getCurrentDate(),
         val isMultiMinistry: Boolean? = null,
         val pickedMinistry: String = "0",
         val ministryList: List<MinistryListItem> = emptyList(),
 
         val mvdLogin: String = "",
-        val mvdReportId: Int = 0,
+        val mvdReportId: Int? = null,
         val mvdCustom: String = "",
         val mvdStups: Int = 0
     )
@@ -37,7 +37,7 @@ interface MinistryStore : Store<Intent, State, Label> {
         data class OpenMVDEdit(
             val login: String,
             val reason: String,
-            val reportId: Int,
+            val reportId: Int?,
             val custom: String,
             val stups: Int
         ) : Intent
@@ -49,7 +49,7 @@ interface MinistryStore : Store<Intent, State, Label> {
             val reason: String,
             val login: String,
             val content: String,
-            val reportId: Int,
+            val reportId: Int?,
             val custom: String?
         ) : Intent
     }
@@ -62,7 +62,7 @@ interface MinistryStore : Store<Intent, State, Label> {
 
         data class MVDDS3Opened(val custom: String, val stups: Int) : Message
 
-        data class MVDEditOpened(val login: String, val reportId: Int) : Message
+        data class MVDEditOpened(val login: String, val reportId: Int?) : Message
         data class Ds3StepperChanged(val stups: Int) : Message
         data class Ds3CustomChanged(val custom: String) : Message
     }

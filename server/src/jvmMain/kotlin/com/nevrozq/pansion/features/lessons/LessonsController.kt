@@ -573,17 +573,21 @@ class LessonsController() {
                                 groupName = group.name,
                                 teacherFio = fio,
                                 marks = if ((alreadyGroups.find { x -> x == it.groupId }
-                                        ?: 0) > 1) listOf() else marks.map {
-                                            UserMark(
-                                                id = it.id,
-                                                content = it.content,
-                                                reason = it.reason,
-                                                isGoToAvg = it.isGoToAvg,
-                                                groupId = it.groupId,
-                                                date = it.date,
-                                                reportId = it.reportId,
-                                                module = it.part
-                                            )
+                                        ?: 0) > 1) listOf() else marks.mapNotNull {
+                                            if (it.groupId != null && it.reportId != null) {
+                                                UserMark(
+                                                    id = it.id,
+                                                    content = it.content,
+                                                    reason = it.reason,
+                                                    isGoToAvg = it.isGoToAvg,
+                                                    groupId = it.groupId,
+                                                    date = it.date,
+                                                    reportId = it.reportId,
+                                                    module = it.part
+                                                )
+                                            } else {
+                                                null
+                                            }
                                                                            },
                                 stupsSum = stups.sumOf { it.content.toInt() },
                                 isSwapped = it.teacherLoginBefore != it.teacherLogin

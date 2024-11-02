@@ -31,16 +31,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.ExpandLess
-import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.PermContactCalendar
-import androidx.compose.material.icons.rounded.Receipt
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Summarize
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -115,15 +106,25 @@ fun MentoringContent(
         topBar = {
             AppBar(
                 title = {
-
-                    Text(
-                        "Ученики",
-                        modifier = Modifier.padding(start = 10.dp),
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                        Text(
+                            "Ученики",
+                            modifier = Modifier.padding(start = 10.dp),
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        IconButton(
+                            onClick = {
+                                component.onOutput(MentoringComponent.Output.NavigateToAchievements)
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.LocalActivity,
+                                null
+                            )
+                        }
+                    
                 },
                 actionRow = {
                     AnimatedVisibility(
@@ -256,13 +257,17 @@ fun MentoringContent(
                         } else {
                             CLazyColumn(padding = padding, isBottomPaddingNeeded = true, hazeState = hazeState) {
                                 items(model.forms) { f ->
-                                    FormsItem(
-                                        form = f,
-                                        students = model.students.filter { it.formId == f.id },
-                                        component = component,
-                                        model = model,
-                                        requests = model.requests.filter { it.formId == f.id }
-                                    )
+                                    val students = model.students.filter { it.formId == f.id }
+                                    val requests = model.requests.filter { it.formId == f.id }
+                                    if(requests.isNotEmpty() || students.isNotEmpty()) {
+                                        FormsItem(
+                                            form = f,
+                                            students = students,
+                                            component = component,
+                                            model = model,
+                                            requests = requests
+                                        )
+                                    }
                                 }
                             }
                         }

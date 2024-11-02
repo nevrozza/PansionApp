@@ -723,6 +723,7 @@ class RootComponentImpl(
                     isMentoring = true
                 )
             )
+            MentoringComponent.Output.NavigateToAchievements -> navigation.bringToFront(Config.AdminAchievements)
         }
 
     private fun onHomeTasksOutput(output: HomeTasksComponent.Output): Unit =

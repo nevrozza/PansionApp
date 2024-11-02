@@ -337,8 +337,11 @@ fun TeacherHomeContent(
 
         val groupsItems =
             if (!(model.teacherGroups.isEmpty() && nTeacherModel.state == NetworkState.None)) 2 + model.teacherGroups.size else 0
+
         val childrenNotsItems =
-            2 + if (!(model.notChildren.isEmpty() && nQuickTabModel.state == NetworkState.None) && itHotsShouldBe) model.notChildren.size else 0
+            2 + if (!(model.notChildren.isEmpty()
+                      && nQuickTabModel.state == NetworkState.None)
+                    && itHotsShouldBe) model.childrenNotifications.values.flatMap { it.map { it } }.size else 0
 
         val isMainView =
             lazyListState.firstVisibleItemIndex in (0..(groupsItems + childrenNotsItems + 1)).toList()

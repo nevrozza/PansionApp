@@ -104,16 +104,16 @@ private fun initItems(login: String, r: RTables): MutableList<AddItem> {
 
     // -1 ALL STUPS
     val allStupsWeekCount = stupsWeekCount.filter {
-        it.reason.subSequence(0, 3) != "!ds"
+        it.reason.subSequence(0, 3) == "!st"
     }
     val allStupsPreviousWeekCount = stupsPreviousWeekCount.filter {
-        it.reason.subSequence(0, 3) != "!ds"
+        it.reason.subSequence(0, 3) == "!st"
     }
     val allStupsYearCount = stupsYearCount.filter {
-        it.reason.subSequence(0, 3) != "!ds"
+        it.reason.subSequence(0, 3) == "!st"
     }
     val allStupsModuleCount = stupsModuleCount.filter {
-        it.reason.subSequence(0, 3) != "!ds"
+        it.reason.subSequence(0, 3) == "!st"
     }
     // -2 MVD STUPS
     val dsStupsWeekCount = stupsWeekCount.filter {
@@ -384,13 +384,13 @@ fun updateRatings() {
 
             val items = initItems(s.login, x.r)
             val weekStups = Stups.fetchForAWeek(login = s.login).filter {
-                it.reason.subSequence(0, 3) != "!ds"
+                it.reason.subSequence(0, 3) == "!st"
             }
             val previousWeekStups = Stups.fetchForAPreviousWeek(login = s.login).filter {
-                it.reason.subSequence(0, 3) != "!ds"
+                it.reason.subSequence(0, 3) == "!st"
             }
             val yearStups = Stups.fetchForUser(login = s.login).filter {
-                it.reason.subSequence(0, 3) != "!ds"
+                it.reason.subSequence(0, 3) == "!st"
             }
             for (i in subjectList) {
                 val yearSubjectAchievements = achievements.filter {

@@ -7,9 +7,9 @@ package com.nevrozq.pansion.database.ratingEntities
 //    val reason = this.varchar("reason", 5)
 
 data class RatingEntityDTO(
-    val groupId: Int,
-    val subjectId: Int,
-    val reportId: Int,
+    val groupId: Int?,
+    val subjectId: Int?,
+    val reportId: Int?,
     val login: String,
     val content: String,
     val reason: String,

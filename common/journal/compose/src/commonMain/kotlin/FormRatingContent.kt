@@ -393,7 +393,10 @@ private fun FormRatingCard(
                     text = buildAnnotatedString {
                         if (item.formTitle != null) {
                             append(item.formTitle)
+                            append(" ")
                         }
+                        append("мвд: ${item.mvdStupsCount} ")
+                        append("зд: ${item.zdStupsCount} ")
                     },
                     fontSize = 14.sp, // Adjust font size for body text
                     lineHeight = 15.sp,

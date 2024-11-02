@@ -23,7 +23,7 @@ object Stups : RatingEntity() {
                                 and (Stups.date eq r.date)
                         )
             }
-            val report = ReportHeaders.fetchHeader(reportId = r.stup.reportId)
+            val report = if(r.stup.reportId != null) ReportHeaders.fetchHeader(reportId = r.stup.reportId!!) else null
             val id = if(r.stup.reason == "!ds1") 0
             else if (r.stup.reason == "!ds2") 1
             else 999
@@ -36,8 +36,8 @@ object Stups : RatingEntity() {
             if ((r.stup.content.toIntOrNull() ?: 0) != 0) {
                 Stups.insert(
                     RatingEntityDTO(
-                        groupId = report.groupId,
-                        subjectId = report.subjectId,
+                        groupId = report?.groupId,
+                        subjectId = report?.subjectId,
                         reportId = r.stup.reportId,
                         login = r.studentLogin,
                         content = r.stup.content.removeSuffix("+"),

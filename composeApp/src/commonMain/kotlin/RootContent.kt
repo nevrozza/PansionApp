@@ -697,18 +697,28 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
                         }
 
-                        is Child.AdminAchievements -> MultiPaneAdmin(
-                            isExpanded,
-                            viewManager = viewManager,
-                            adminComponent = child.adminComponent,
-                            currentRouting = AdminComponent.Output.NavigateToAchievements,
-                            secondScreen = {
+                        is Child.AdminAchievements ->{
+                            val previousScreen = stack.items.getOrNull(stack.items.size-2)?.instance
+                            if (previousScreen is Child.MainMentoring || stack.active.instance is Child.MainMentoring) {
                                 AdminAchievementsContent(
                                     child.adminAchievementsComponent,
                                     isVisible = stack.active.instance is Child.AdminAchievements
                                 )
+                            } else {
+                                MultiPaneAdmin(
+                                    isExpanded,
+                                    viewManager = viewManager,
+                                    adminComponent = child.adminComponent,
+                                    currentRouting = AdminComponent.Output.NavigateToAchievements,
+                                    secondScreen = {
+                                        AdminAchievementsContent(
+                                            child.adminAchievementsComponent,
+                                            isVisible = stack.active.instance is Child.AdminAchievements
+                                        )
+                                    }
+                                )
                             }
-                        )
+                        }
 
                         is Child.HomeAchievements ->
                             MultiPaneSplit(

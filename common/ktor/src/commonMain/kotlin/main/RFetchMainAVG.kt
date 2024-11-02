@@ -12,7 +12,7 @@ data class RFetchMainAVGReceive(
 @Serializable
 data class RFetchMainAVGResponse(
     val avg: Float,
-    val stups: Pair<Int, Int>,
+    val stups: Int,
     val achievementsStups: Map<Period, Pair<Int, Int>>?
 )
 

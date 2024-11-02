@@ -17,7 +17,7 @@ data class Grade(
     val content: String,
     val reason: String,
     val date: String,
-    val reportId: Int,
+    val reportId: Int?,
     val subjectName: String,
 //    val groupName: String
 )

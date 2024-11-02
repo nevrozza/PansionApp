@@ -110,7 +110,7 @@ fun LazyListScope.homeStudentBar(
                                         visible = isSharedVisible
                                     )
                                     else Modifier
-                            )
+                                )
                             )
                         }
                     }
@@ -167,16 +167,14 @@ fun LazyListScope.homeStudentBar(
                                                 model.achievements[model.period]!!.first,
                                                 model.achievements[model.period]!!.second
                                             ) else Pair(0, 0)
-                                        val ladderPair =
-                                            if (model.ladderOfSuccess[model.period] != null) Pair(
-                                                (model.ladderOfSuccess[model.period]!!.first + achievementsPairAdd.first).toFloat(),
-                                                model.ladderOfSuccess[model.period]!!.second + achievementsPairAdd.second
-                                            ) else Pair(null, 0)
+                                        val ladders =
+                                            if (model.ladderOfSuccess[model.period] != null)
+                                                (model.ladderOfSuccess[model.period]!! + achievementsPairAdd.first).toFloat()
+                                            else null
 
                                         QuickTabItem(
                                             "Ступени",
-                                            value = ladderPair.first,
-                                            dsValue = ladderPair.second
+                                            value = ladders
                                         ) {
                                             component.onOutput(
                                                 HomeComponent.Output.NavigateToDetailedStups(
@@ -361,12 +359,14 @@ fun LazyListScope.homeStudentBar(
                         LazyRow(Modifier.fillMaxWidth()) {
                             items(model.grades.reversed()) {
                                 cGrade(it, coroutineScope) {
-                                    component.studentReportDialog.onEvent(
-                                        StudentReportDialogStore.Intent.OpenDialog(
-                                            login = model.login,
-                                            reportId = it.reportId
+                                    if (it.reportId != null) {
+                                        component.studentReportDialog.onEvent(
+                                            StudentReportDialogStore.Intent.OpenDialog(
+                                                login = model.login,
+                                                reportId = it.reportId!!
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }
@@ -401,27 +401,22 @@ fun LazyListScope.homeStudentBar(
 private fun QuickTabItem(
     title: String,
     value: Float?,
-    dsValue: Int? = null,
     onClick: () -> Unit
 ) {
 
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         val endValue = if (value != null) {
-
-            if (dsValue == null) {
-                if (value.isNaN()) {
-                    "NaN"
+            if (value.isNaN()) {
+                "NaN"
+            } else {
+                if (value == value?.toInt()?.toFloat()) {
+                    value.toInt().toString()
                 } else {
                     value.roundTo(2).toString()
                 }
-                //, fontWeight = FontWeight.Bold, fontSize = 25.sp
-
-            } else {
-                "${
-                    value.toString().split(".")[0]
-                } ${if (dsValue > 0) "+" else ""}${if (dsValue != 0) dsValue else ""}"
             }
+            //, fontWeight = FontWeight.Bold, fontSize = 25.sp
         } else {
             ""
         }

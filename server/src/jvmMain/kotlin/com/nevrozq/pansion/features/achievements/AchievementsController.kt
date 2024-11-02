@@ -10,12 +10,11 @@ import achievements.RFetchAchievementsForStudentReceive
 import achievements.RFetchAchievementsResponse
 import achievements.RUpdateGroupOfAchievementsReceive
 import com.nevrozq.pansion.database.achievements.Achievements
+import com.nevrozq.pansion.database.forms.Forms
+import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
-import com.nevrozq.pansion.utils.isMember
-import com.nevrozq.pansion.utils.isMentor
-import com.nevrozq.pansion.utils.isModer
-import com.nevrozq.pansion.utils.login
+import com.nevrozq.pansion.utils.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -73,7 +72,7 @@ class AchievementsController {
         }
     }
     suspend fun deleteAchievement(call: ApplicationCall) {
-        if (call.isMentor || call.isModer) {
+        if (call.isModer) {
             try {
                 val r = call.receive<RDeleteAchievementReceive>()
                 Achievements.delete(r.id)
@@ -116,8 +115,13 @@ class AchievementsController {
         if (call.isMentor || call.isModer) {
             try {
                 val achievements = Achievements.fetchAll()
-                val students =
-                    Users.fetchAllStudents()
+                val students = if (call.isOnlyMentor) {
+                    val formIds = Forms.fetchMentorForms(call.login).map { it.id }
+                    val students = StudentsInForm.fetchStudentsLoginsByFormIds(formIds)
+                    Users.fetchByLoginsActivated(students)
+                } else {
+                    Users.fetchAllStudents().filter { it.isActive }
+                }
                 call.respond(
                     RFetchAchievementsResponse(
                         achievements,

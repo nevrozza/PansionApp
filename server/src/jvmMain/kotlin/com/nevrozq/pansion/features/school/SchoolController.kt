@@ -1,8 +1,13 @@
 package com.nevrozq.pansion.features.school
 
 import FIO
+import PersonPlus
 import admin.groups.forms.CutedForm
 import com.nevrozq.pansion.database.calendar.CalendarDTO
+import com.nevrozq.pansion.database.duty.Duty
+import com.nevrozq.pansion.database.duty.DutyCount
+import com.nevrozq.pansion.database.duty.DutySettings
+import com.nevrozq.pansion.database.duty.DutySettingsDTO
 import com.nevrozq.pansion.database.forms.FormDTO
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.ratingEntities.Marks
@@ -37,15 +42,151 @@ import rating.FormRatingStup
 import rating.RFetchFormRatingReceive
 import rating.RFetchFormRatingResponse
 import rating.RFetchFormsForFormResponse
-import server.Ministries
-import server.Moderation
-import server.getCurrentDate
-import server.getWeekDays
+import server.*
 
 class SchoolController {
 
+    suspend fun editTodayDuty(call: ApplicationCall) {
+        if (call.isMentor) {
+            try {
+                val r = call.receive<RUpdateTodayDuty>()
+                val oldCount = DutySettings.fetchByLogin(call.login)?.peopleCount ?: 2
+
+                if (oldCount != r.newDutiesCount) {
+                    DutySettings.insert(
+                        DutySettingsDTO(
+                            mentorLogin = call.login,
+                            peopleCount = r.newDutiesCount
+                        )
+                    )
+                }
+                Duty.enterList(
+                    mentorLogin = call.login,
+                    list =  r.kids
+                )
+
+                call.respond(
+                    HttpStatusCode.OK
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!11")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't edit today duty: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+    suspend fun startNewDayDuty(call: ApplicationCall) {
+        if (call.isMentor) {
+            try {
+                val r = call.receive<RStartNewDayDuty>()
+                val oldDutyList = Duty.fetchByMentorLogin(call.login)
+                val oldCount = DutySettings.fetchByLogin(call.login)?.peopleCount ?: 2
+                val oldKids = oldDutyList.slice(0..<oldCount)
+                val newKids = oldDutyList.slice(oldCount..<oldDutyList.size)
+                oldKids.forEach {
+                    DutyCount.plusOne(it)
+                }
+                if (oldCount != r.newDutiesCount) {
+                    DutySettings.insert(
+                        DutySettingsDTO(
+                            mentorLogin = call.login,
+                            peopleCount = r.newDutiesCount
+                        )
+                    )
+                }
+                val newDutyList = newKids+oldKids
+                Duty.enterList(
+                    mentorLogin = call.login,
+                    list = newDutyList
+                )
+
+                call.respond(
+                    HttpStatusCode.OK
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!11")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't start new duty: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
+
+    suspend fun fetchDuty(call: ApplicationCall) {
+        if (call.isMember) {
+            try {
+                val r = call.receive<RFetchDutyReceive>()
+                val user = Users.fetchUser(r.login)
+                val mentorLogin = if (user?.role == Roles.student) {
+                    val formId = StudentsInForm.fetchFormIdOfLogin(user?.login!!)
+                    Forms.fetchById(formId).mentorLogin
+                } else if (user?.moderation in listOf(Moderation.both, Moderation.mentor)) {
+                    user?.login!!
+                } else null!!
+
+                var dutyList = Duty.fetchByMentorLogin(mentorLogin)
+                if (dutyList.isEmpty()) {
+                    val forms = Forms.fetchMentorForms(mentorLogin)
+
+                    val logins = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
+                    dutyList = Users.fetchByLoginsActivated(logins).sortedWith(compareBy({ it.surname }, { it.name }))
+                        .map { it.login }
+                    Duty.enterList(
+                        mentorLogin,
+                        dutyList
+                    )
+                }
+                val peopleCount = DutySettings.fetchByLogin(mentorLogin)?.peopleCount ?: 2
+                val users = Users.fetchByLoginsActivated(dutyList).map {
+                    DutyKid(
+                        login = it.login,
+                        avatarId = it.avatarId,
+                        fio = FIO(
+                            name = it.name,
+                            praname = it.praname,
+                            surname = it.surname
+                        ),
+                        dutyCount = DutyCount.fetchByLogin(it.login)
+                    )
+                }
+                call.respond(
+                    RFetchDutyResponse(
+                        list = dutyList.mapNotNull { login ->
+                            users.firstOrNull { it.login == login }
+                        },
+                        peopleCount = peopleCount
+                    )
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!11")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch duty: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+
     suspend fun uploadMinistryStups(call: ApplicationCall) {
-        if (call.isMember && (StudentMinistry.fetchMinistryWithLogin(call.login) in listOf(Ministries.DressCode, Ministries.MVD) || call.isMentor)) {
+        if (call.isMember && (StudentMinistry.fetchMinistryWithLogin(call.login) in listOf(
+                Ministries.DressCode,
+                Ministries.MVD
+            ) || call.isMentor)
+        ) {
             try {
                 Stups.uploadMinistryStup(call.receive<RUploadMinistryStup>(), call.login)
 
@@ -69,7 +210,7 @@ class SchoolController {
         if (call.isMember) {
             try {
                 val r = call.receive<RMinistryListReceive>()
-                val availableKids: List<UserDTO>? = if (call.isStudent) {
+                val availableKids: MutableList<UserDTO>? = (if (call.isStudent) {
                     val formId = StudentsInForm.fetchFormIdOfLogin(call.login)
                     val students = StudentsInForm.fetchStudentsLoginsByFormId(formId)
                     Users.fetchByLoginsActivated(students)
@@ -81,8 +222,11 @@ class SchoolController {
                     Users.fetchAllStudents().filter { it.isActive }
                 } else {
                     null
-                }
+                })?.toMutableList()
 
+                val selfKid = availableKids?.firstOrNull { it.login == call.login }
+//                availableKids?.remove(selfKid)
+                //TODO
 
 
                 if (availableKids != null) {
@@ -123,7 +267,7 @@ class SchoolController {
 
                         val stups = Stups.fetchForUser(login = it.login).filter {
                             if (r.ministryId == Ministries.MVD) it.reason.subSequence(0, 3) == "!ds"
-                            else if (r.ministryId == Ministries.DressCode) it.reason.subSequence(0, 3) == "!dc"
+                            else if (r.ministryId == Ministries.DressCode) it.reason.subSequence(0, 3) == "!zd"
                             else false
                         }
 
@@ -343,6 +487,12 @@ class SchoolController {
                             val edStups = stups.filter {
                                 it.reason.subSequence(0, 3) in listOf("!st")
                             }
+                            val dsStupsCount = stups.filter {
+                                it.reason.subSequence(0, 3) == "!ds"
+                            }.sumOf { it.content.toIntOrNull() ?: 0 }
+                            val zdStupsCount = stups.filter {
+                                it.reason.subSequence(0, 3) == "!zd"
+                            }.sumOf { it.content.toIntOrNull() ?: 0 }
 //                            val studentLines = StudentLines.
 //                            val achievements = Achievements.fetchAllByLogin()
 
@@ -358,6 +508,8 @@ class SchoolController {
                                     formTitle = if (r.formNum > 9) forms.first { it.formId == formId }.shortTitle else null,
                                     avg = avg,
                                     edStups = edStups,
+                                    mvdStupsCount = dsStupsCount,
+                                    zdStupsCount = zdStupsCount
                                 )
                             )
                         }
@@ -456,6 +608,7 @@ class SchoolController {
                 }
 
                 val ministryId = StudentMinistry.fetchMinistryWithLogin(r.login) ?: "0"
+                val weekStups = Stups.fetchForAWeek(login = r.login) //, date = getCurrentDate().second
 
                 call.respond(
                     RFetchSchoolDataResponse(
@@ -463,7 +616,11 @@ class SchoolController {
                         formName = formName,
                         formNum = formNum,
                         top = top,
-                        ministryId = ministryId
+                        ministryId = ministryId,
+                        mvdStups = weekStups.filter { it.reason.subSequence(0, 3) == "!ds" && it.content.contains("-") }
+                            .sumOf { it.content.toIntOrNull() ?: 0 },
+                        zdStups = weekStups.filter { it.reason.subSequence(0, 3) == "!zd" && it.content.contains("-") }
+                            .sumOf { it.content.toIntOrNull() ?: 0 }
                     )
                 )
             } catch (e: ExposedSQLException) {

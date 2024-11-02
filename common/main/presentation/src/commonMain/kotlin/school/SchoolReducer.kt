@@ -12,11 +12,18 @@ object SchoolReducer : Reducer<State, Message> {
                 formName = msg.formName,
                 top = msg.top,
                 formNum = msg.formNum,
-                ministryId = msg.ministryId
+                ministryId = msg.ministryId,
+                mvdStupsCount = msg.mvdStupsCount,
+                zdStupsCount = msg.zdStupsCount
             )
 
             is Message.MinistrySettingsOpened -> copy(
                 ministryStudents = msg.ministryStudents
+            )
+
+            is Message.DutyFetched -> copy(
+                dutyKids = msg.dutyKids,
+                dutyPeopleCount = msg.dutyPeopleCount
             )
         }
     }

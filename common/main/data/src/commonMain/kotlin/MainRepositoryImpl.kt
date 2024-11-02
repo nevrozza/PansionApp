@@ -16,8 +16,7 @@ import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
 import main.RFetchSchoolDataReceive
 import main.RFetchSchoolDataResponse
-import main.school.RCreateMinistryStudentReceive
-import main.school.RFetchMinistrySettingsResponse
+import main.school.*
 import mentoring.RFetchJournalBySubjectsReceive
 import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
@@ -43,6 +42,18 @@ import schedule.RPersonScheduleList
 class MainRepositoryImpl(
     private val remoteDataSource: KtorMainRemoteDataSource
 ) : MainRepository {
+    override suspend fun updateTodayDuty(r: RUpdateTodayDuty) {
+        remoteDataSource.updateTodayDuty(r)
+    }
+
+    override suspend fun startNewDayDuty(r: RStartNewDayDuty) {
+        remoteDataSource.startNewDayDuty(r)
+    }
+
+    override suspend fun fetchDuty(r: RFetchDutyReceive): RFetchDutyResponse {
+        return remoteDataSource.fetchDuty(r)
+    }
+
     override suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive): RFetchMinistrySettingsResponse {
         return remoteDataSource.createMinistryStudent(r)
     }

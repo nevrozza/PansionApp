@@ -13,8 +13,7 @@ import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
 import main.RFetchSchoolDataReceive
 import main.RFetchSchoolDataResponse
-import main.school.RCreateMinistryStudentReceive
-import main.school.RFetchMinistrySettingsResponse
+import main.school.*
 import mentoring.RFetchJournalBySubjectsReceive
 import mentoring.RFetchJournalBySubjectsResponse
 import mentoring.RFetchMentoringStudentsResponse
@@ -34,6 +33,11 @@ import report.RFetchReportDataResponse
 import schedule.RPersonScheduleList
 
 interface MainRepository {
+
+    suspend fun updateTodayDuty(r: RUpdateTodayDuty)
+    suspend fun startNewDayDuty(r: RStartNewDayDuty)
+
+    suspend fun fetchDuty(r: RFetchDutyReceive) : RFetchDutyResponse
 
     suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive) : RFetchMinistrySettingsResponse
 

@@ -5,6 +5,9 @@ import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.checkedNotifications.CheckedNotifications
 import com.nevrozq.pansion.database.deviceBinds.DeviceBinds
+import com.nevrozq.pansion.database.duty.Duty
+import com.nevrozq.pansion.database.duty.DutyCount
+import com.nevrozq.pansion.database.duty.DutySettings
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
@@ -119,7 +122,10 @@ fun main() {
             PickedGIA,
             DeviceBinds,
             SecondLogins,
-            StudentMinistry
+            StudentMinistry,
+            Duty,
+            DutySettings,
+            DutyCount
         )
 
     }

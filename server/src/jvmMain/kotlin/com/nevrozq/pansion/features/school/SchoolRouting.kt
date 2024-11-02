@@ -9,6 +9,18 @@ fun Application.configureSchoolRouting() {
     routing {
         val schoolController = SchoolController()
 
+        post(RequestPaths.Main.StartNewDayDuty) {
+            schoolController.startNewDayDuty(call)
+        }
+
+        post(RequestPaths.Main.UpdateDuty) {
+            schoolController.editTodayDuty(call)
+        }
+
+        post(RequestPaths.Main.FetchDuty) {
+            schoolController.fetchDuty(call)
+        }
+
         post(RequestPaths.Main.UploadMinistryStup) {
             schoolController.uploadMinistryStups(call)
         }
