@@ -1,14 +1,9 @@
 import admin.schedule.ScheduleGroup
 import admin.schedule.SchedulePerson
 import admin.schedule.ScheduleSubject
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
@@ -45,14 +40,10 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -60,6 +51,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
@@ -67,6 +59,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
@@ -75,12 +68,15 @@ import components.CustomTextButton
 import components.CustomTextField
 import components.DateButton
 import components.SaveAnimation
+import components.cAlertDialog.CAlertDialogStore
 import components.cClickable
 import components.listDialog.ListDialogStore
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
+import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
+import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
 import schedule.*
 import schedule.ScheduleStore.EditState
@@ -271,7 +267,7 @@ fun ScheduleContent(
 
                                 NetworkState.Loading -> {}
                             }
-                                  },
+                        },
                         modifier = Modifier.animateContentSize()
                     ) {
                         when (it) {
@@ -449,11 +445,22 @@ fun ScheduleContent(
 //                }
 //            }
                     AnimatedVisibility(
-                        model.items[key].isNullOrEmpty(), modifier = Modifier.align(
+                        visible = model.items[key].isNullOrEmpty(),
+                        modifier = Modifier.align(
                             Alignment.Center
-                        )
+                        ),
+                        enter = fadeIn() + scaleIn(),
+                        exit = fadeOut() + scaleOut()
                     ) {
-                        Text("Здесь пока нет предметов")
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Здесь пока нет предметов")
+                            Spacer(Modifier.height(7.dp))
+                            AnimatedVisibility(!model.isDefault && model.items[model.currentDate.first.toString()]?.isNotEmpty() == true && component.isCanBeEdited) {
+                                CustomTextButton("Копировать из\nстандартного расписания") {
+                                    component.onEvent(ScheduleStore.Intent.CopyFromStandart)
+                                }
+                            }
+                        }
                     }
                     SaveAnimation(model.isSavedAnimation) {
                         component.onEvent(ScheduleStore.Intent.IsSavedAnimation(false))
@@ -478,6 +485,95 @@ fun ScheduleContent(
                 }
             }
         }
+    }
+    ListDialogMobileContent(
+        component = component.listCreateTeacher,
+        title = "Добавить учителя",
+        hazeState = null
+    )
+
+    if (model.niErrors.isNotEmpty()) {
+        CAlertDialogContent(
+            component = component.chooseConflictDialog,
+            dialogProperties = DialogProperties(false, false)
+        ) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                model.niErrors.forEach { e ->
+                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(Modifier.height(5.dp))
+                        Text(
+                            "Куда пойдут ${
+                                model.students.filter { it.login in e.logins }
+                                    .map { it.fio.surname }
+                            }?",
+                            textAlign = TextAlign.Center
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+
+                            val prevText = getNameOfConflictLesson(
+                                groupId = e.groupId,
+                                teacherLogin = e.teacherLogin,
+                                model = model,
+                                id = e.id
+                            )
+                            val nextText = getNameOfConflictLesson(
+                                groupId = model.niGroupId!!,
+                                teacherLogin = model.niTeacherLogin!!,
+                                model = model,
+                                id = model.niId!!
+                            )
+                            CustomTextButton(
+                                text = prevText
+                            ) {
+                                component.onEvent(
+                                    ScheduleStore.Intent.SolveConflict(
+                                        lessonId = model.niId!!,
+                                        studentLogins = e.logins
+                                    )
+                                )
+                            }
+                            CustomTextButton(
+                                text = nextText
+                            ) {
+                                component.onEvent(
+                                    ScheduleStore.Intent.SolveConflict(
+                                        lessonId = e.id,
+                                        studentLogins = e.logins
+                                    )
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(5.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun getNameOfConflictLesson(groupId: Int, teacherLogin: String, id: Int, model: ScheduleStore.State): String {
+
+    return if (groupId == -6) {
+        "Доп с ${model.teachers.firstOrNull { it.login == teacherLogin }?.fio?.surname}"
+    } else if (groupId == -11) {
+        "Приём пищи"
+    } else if (groupId == 0) {
+        if ((model.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1 != id) {
+            val key = if (model.isDefault) model.defaultDate.toString() else model.currentDate.second
+            val trueItems = model.items[key]?.firstOrNull { it.index == id }
+            "${trueItems?.custom}"
+        } else {
+            model.ciCustom
+        }
+    } else {
+        val groupx =
+            model.groups.firstOrNull { it.id == groupId }
+        val subjectx =
+            if (groupx != null) model.subjects.firstOrNull { it.id == groupx.subjectId } else null
+        "${subjectx?.name} ${groupx?.name}"
     }
 }
 
@@ -567,7 +663,7 @@ private fun LazyItemScope.ScheduleColumn(
                                     {
                                         component.onEvent(ScheduleStore.Intent.ciNullGroupId)
                                     }
-                                       },
+                                },
                                 isCanBeOpened = component.isCanBeEdited
                             ) {
                                 when {
@@ -580,9 +676,9 @@ private fun LazyItemScope.ScheduleColumn(
                                                         -6
                                                     )
                                                 )
-                                                      },
+                                            },
                                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                            )
+                                        )
                                         (model.teachers.first { it.login == c.login }.groups.filter { it.second }
                                             .sortedBy { x -> model.groups.first { it.id == x.first }.subjectId }).forEach { s ->
                                                 val group =
@@ -599,9 +695,9 @@ private fun LazyItemScope.ScheduleColumn(
                                                                         s.first
                                                                     )
                                                                 )
-                                                                      },
+                                                            },
                                                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                                            )
+                                                        )
                                                     }
                                                 }
                                             }
@@ -634,18 +730,18 @@ private fun LazyItemScope.ScheduleColumn(
                                                             )
                                                         )
                                                     } else if (it.matches(
-                                                        Regex(
-                                                            "^[1-3]?[0-1]?[0-9]?$"
+                                                            Regex(
+                                                                "^[1-3]?[0-1]?[0-9]?$"
+                                                            )
                                                         )
-                                                    )
-                                                        ) {
+                                                    ) {
                                                         component.onEvent(
                                                             ScheduleStore.Intent.ciChangeCabinet(
                                                                 it.toInt()
                                                             )
                                                         )
                                                     }
-                                                                },
+                                                },
                                                 text = "Кабинет",
                                                 isEnabled = nModel.state == NetworkState.None,
                                                 isMoveUpLocked = true,
@@ -661,42 +757,42 @@ private fun LazyItemScope.ScheduleColumn(
                                                     onClick = {
                                                         isCustomTime =
                                                             true
-                                                              },
+                                                    },
                                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                                    )
+                                                )
                                             } else {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     CustomTextField(
                                                         value = customTime,
                                                         onValueChange = {
                                                             if (!it.contains(
-                                                                " "
-                                                            )
-                                                                ) {
+                                                                    " "
+                                                                )
+                                                            ) {
                                                                 if (it.length <= 11) {
                                                                     customTime =
                                                                         it
                                                                 }
-                                                                    if (it.length == 11 && isTimeFormat(
+                                                                if (it.length == 11 && isTimeFormat(
                                                                         it
                                                                     )
-                                                                        ) {
-                                                                        val parts =
-                                                                            it.split(
-                                                                                "-"
+                                                                ) {
+                                                                    val parts =
+                                                                        it.split(
+                                                                            "-"
+                                                                        )
+                                                                    component.onEvent(
+                                                                        ScheduleStore.Intent.ciChooseTime(
+                                                                            ScheduleTiming(
+                                                                                start = parts[0],
+                                                                                end = parts[1]
                                                                             )
-                                                                            component.onEvent(
-                                                                                ScheduleStore.Intent.ciChooseTime(
-                                                                                    ScheduleTiming(
-                                                                                        start = parts[0],
-                                                                                        end = parts[1]
-                                                                                    )
-                                                                                )
-                                                                            )
+                                                                        )
+                                                                    )
 
-                                                                    }
+                                                                }
                                                             }
-                                                                        },
+                                                        },
                                                         text = "Время",
                                                         isEnabled = nModel.state == NetworkState.None,
                                                         isMoveUpLocked = true,
@@ -713,158 +809,200 @@ private fun LazyItemScope.ScheduleColumn(
                                                         )
                                                     )
                                                     if (customTime.length == 11 && isTimeFormat(
-                                                        customTime
-                                                    )
-                                                        ) {
+                                                            customTime
+                                                        )
+                                                    ) {
                                                         val parts =
                                                             customTime.split(
                                                                 "-"
                                                             )
-                                                            if (model.ciTiming == null) {
-                                                                CircularProgressIndicator(
-                                                                    modifier = Modifier.size(
-                                                                        20.dp
-                                                                    )
+                                                        if (model.ciTiming == null) {
+                                                            CircularProgressIndicator(
+                                                                modifier = Modifier.size(
+                                                                    20.dp
                                                                 )
-                                                            } else {
-                                                                if (model.ciTiming!!.start == parts[0] && model.ciTiming!!.end == parts[1]) {
-                                                                    if (model.ciTiming!!.studentErrors.isEmpty() && model.ciTiming!!.cabinetErrorGroupId == 0) {
-                                                                        IconButton(
-                                                                            onClick = {
-                                                                                val parts =
-                                                                                    customTime.split(
-                                                                                        "-"
-                                                                                    )
-                                                                                with(
-                                                                                    component
-                                                                                ) {
-                                                                                    onEvent(
-                                                                                        ScheduleStore.Intent.ciChooseTime(
-                                                                                            ScheduleTiming(
-                                                                                                start = parts[0],
-                                                                                                end = parts[1]
-                                                                                            )
-                                                                                        )
-                                                                                    )
-                                                                                    onEvent(
-                                                                                        ScheduleStore.Intent.ciPreview
-                                                                                    )
-                                                                                }
-                                                                            }
-                                                                        ) {
-                                                                            Icon(
-                                                                                Icons.Rounded.Done,
-                                                                                null
-                                                                            )
-                                                                        }
-                                                                    } else {
-                                                                        val cabinetErrorGroup =
-                                                                            model.groups.firstOrNull { it.id == model.ciTiming!!.cabinetErrorGroupId }
-                                                                        val cabinetErrorSubject =
-                                                                            if (cabinetErrorGroup != null) model.subjects.firstOrNull { it.id == cabinetErrorGroup.subjectId } else null
-
-                                                                        val studentErrors =
-                                                                            getStudentErrors(
-                                                                                model.ciTiming!!.studentErrors,
-                                                                                model
-                                                                            )
-                                                                        ErrorsTooltip(
-                                                                            cabinetErrorSubject = cabinetErrorSubject,
-                                                                            cabinetErrorGroup = cabinetErrorGroup,
-                                                                            studentErrors = studentErrors
-                                                                        )
-                                                                    }
-                                                                } else {
+                                                            )
+                                                        } else {
+                                                            if (model.ciTiming!!.start == parts[0] && model.ciTiming!!.end == parts[1]) {
+                                                                if (model.ciTiming!!.studentErrors.isEmpty() && model.ciTiming!!.cabinetErrorGroupId == 0) {
                                                                     IconButton(
                                                                         onClick = {
-                                                                            component.onEvent(
-                                                                                ScheduleStore.Intent.ciChooseTime(
-                                                                                    ScheduleTiming(
-                                                                                        start = parts[0],
-                                                                                        end = parts[1]
+                                                                            val parts =
+                                                                                customTime.split(
+                                                                                    "-"
+                                                                                )
+                                                                            with(
+                                                                                component
+                                                                            ) {
+                                                                                onEvent(
+                                                                                    ScheduleStore.Intent.ciChooseTime(
+                                                                                        ScheduleTiming(
+                                                                                            start = parts[0],
+                                                                                            end = parts[1]
+                                                                                        )
                                                                                     )
                                                                                 )
-                                                                            )
+                                                                                onEvent(
+                                                                                    ScheduleStore.Intent.ciPreview
+                                                                                )
+                                                                            }
                                                                         }
                                                                     ) {
                                                                         Icon(
-                                                                            Icons.Rounded.Replay,
+                                                                            Icons.Rounded.Done,
                                                                             null
                                                                         )
                                                                     }
+                                                                } else {
+                                                                    val cabinetErrorGroup =
+                                                                        model.groups.firstOrNull { it.id == model.ciTiming!!.cabinetErrorGroupId }
+                                                                    val cabinetErrorSubject =
+                                                                        if (cabinetErrorGroup != null) model.subjects.firstOrNull { it.id == cabinetErrorGroup.subjectId } else null
+
+                                                                    val studentErrors =
+                                                                        getStudentErrors(
+                                                                            model.ciTiming!!.studentErrors,
+                                                                            model
+                                                                        )
+                                                                    ErrorsTooltip(
+                                                                        cabinetErrorSubject = cabinetErrorSubject,
+                                                                        cabinetErrorGroup = cabinetErrorGroup,
+                                                                        studentErrors = studentErrors,
+                                                                        cabinetErrorGroupId = model.ciTiming!!.cabinetErrorGroupId,
+                                                                        component = component,
+                                                                        niCustom = model.ciCustom,
+                                                                        niFormId = model.ciFormId ?: 0,
+                                                                        niGroupId = model.ciId ?: 0,
+                                                                        niTeacherLogin = model.ciLogin ?: model.login,
+                                                                        classicStudentErrors = model.ciTiming!!.studentErrors,
+                                                                        niOnClick = {
+                                                                            with(component) {
+                                                                                onEvent(
+                                                                                    ScheduleStore.Intent.ciCreate(
+                                                                                        ScheduleTiming(
+                                                                                            start = parts[0],
+                                                                                            end = parts[1]
+                                                                                        )
+                                                                                    )
+                                                                                )
+                                                                            }
+                                                                        },
+                                                                        niIndex = (model.items.flatMap { it.value.map { it.index } }
+                                                                            .maxByOrNull { it } ?: 1) + 1
+                                                                    )
+                                                                }
+                                                            } else {
+                                                                IconButton(
+                                                                    onClick = {
+                                                                        component.onEvent(
+                                                                            ScheduleStore.Intent.ciChooseTime(
+                                                                                ScheduleTiming(
+                                                                                    start = parts[0],
+                                                                                    end = parts[1]
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                ) {
+                                                                    Icon(
+                                                                        Icons.Rounded.Replay,
+                                                                        null
+                                                                    )
                                                                 }
                                                             }
+                                                        }
                                                     }
                                                 }
                                             }
                                             model.ciTimings!!.sortedBy { it.start }
-                                            .forEach { t ->
-                                                val source =
-                                                    remember { MutableInteractionSource() }
-                                                val isHovered =
-                                                    source.collectIsHoveredAsState().value
-                                                LaunchedEffect(
-                                                    isHovered
-                                                ) {
-                                                    if (isHovered) {
-                                                        component.onEvent(
-                                                            ScheduleStore.Intent.ciChooseTime(
-                                                                t
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                                DropdownMenuItem(
-                                                    text = {
-                                                        Text(
-                                                            "${t.start}-${t.end}",
-                                                            modifier = Modifier.align(
-                                                                Alignment.Center
-                                                            ),
-                                                            color = MaterialTheme.colorScheme.onSurface.copy(
-                                                                alpha = if (t.cabinetErrorGroupId == 0 && t.studentErrors.isEmpty()) 1f else .3f
-                                                            )
-                                                        )
-                                                           },
-                                                    trailingIcon = {
-                                                        if (t.cabinetErrorGroupId != 0 || t.studentErrors.isNotEmpty()) {
-                                                            val cabinetErrorGroup =
-                                                                model.groups.firstOrNull { it.id == t.cabinetErrorGroupId }
-                                                            val cabinetErrorSubject =
-                                                                if (cabinetErrorGroup != null) model.subjects.firstOrNull { it.id == cabinetErrorGroup.subjectId } else null
-
-                                                            val studentErrors =
-                                                                getStudentErrors(
-                                                                    t.studentErrors,
-                                                                    model
+                                                .forEach { t ->
+                                                    val source =
+                                                        remember { MutableInteractionSource() }
+                                                    val isHovered =
+                                                        source.collectIsHoveredAsState().value
+                                                    LaunchedEffect(
+                                                        isHovered
+                                                    ) {
+                                                        if (isHovered) {
+                                                            component.onEvent(
+                                                                ScheduleStore.Intent.ciChooseTime(
+                                                                    t
                                                                 )
-                                                            ErrorsTooltip(
-                                                                cabinetErrorSubject = cabinetErrorSubject,
-                                                                cabinetErrorGroup = cabinetErrorGroup,
-                                                                studentErrors = studentErrors
                                                             )
                                                         }
-                                                                   },
-                                                    onClick = {
-                                                        if (t.cabinetErrorGroupId == 0 && t.studentErrors.isEmpty()) {
-                                                            with(
-                                                                component
-                                                            ) {
-                                                                onEvent(
-                                                                    ScheduleStore.Intent.ciChooseTime(
-                                                                        t
-                                                                    )
+                                                    }
+                                                    DropdownMenuItem(
+                                                        text = {
+                                                            Text(
+                                                                "${t.start}-${t.end}",
+                                                                modifier = Modifier.align(
+                                                                    Alignment.Center
+                                                                ),
+                                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                                    alpha = if (t.cabinetErrorGroupId == 0 && t.studentErrors.isEmpty()) 1f else .3f
                                                                 )
-                                                                onEvent(
-                                                                    ScheduleStore.Intent.ciPreview
+                                                            )
+                                                        },
+                                                        trailingIcon = {
+                                                            if (t.cabinetErrorGroupId != 0 || t.studentErrors.isNotEmpty()) {
+                                                                val cabinetErrorGroup =
+                                                                    model.groups.firstOrNull { it.id == t.cabinetErrorGroupId }
+                                                                val cabinetErrorSubject =
+                                                                    if (cabinetErrorGroup != null) model.subjects.firstOrNull { it.id == cabinetErrorGroup.subjectId } else null
+
+                                                                val studentErrors =
+                                                                    getStudentErrors(
+                                                                        t.studentErrors,
+                                                                        model
+                                                                    )
+                                                                ErrorsTooltip(
+                                                                    cabinetErrorSubject = cabinetErrorSubject,
+                                                                    cabinetErrorGroup = cabinetErrorGroup,
+                                                                    studentErrors = studentErrors,
+                                                                    cabinetErrorGroupId = t.cabinetErrorGroupId,
+                                                                    component = component,
+                                                                    niCustom = model.ciCustom,
+                                                                    niFormId = model.ciFormId ?: 0,
+                                                                    niGroupId = model.ciId ?: 0,
+                                                                    niTeacherLogin = model.ciLogin ?: model.login,
+                                                                    classicStudentErrors = t.studentErrors,
+                                                                    niOnClick = {
+                                                                        with(
+                                                                            component
+                                                                        ) {
+
+                                                                            onEvent(
+                                                                                ScheduleStore.Intent.ciCreate(
+                                                                                    t
+                                                                                )
+                                                                            )
+                                                                        }
+                                                                    },
+                                                                    niIndex = (model.items.flatMap { it.value.map { it.index } }
+                                                                        .maxByOrNull { it } ?: 1) + 1
                                                                 )
                                                             }
-                                                        }
-                                                              },
-                                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                                    interactionSource = source
-                                                )
-                                            }
+                                                        },
+                                                        onClick = {
+                                                            if (t.cabinetErrorGroupId == 0 && t.studentErrors.isEmpty()) {
+                                                                with(
+                                                                    component
+                                                                ) {
+                                                                    onEvent(
+                                                                        ScheduleStore.Intent.ciChooseTime(
+                                                                            t
+                                                                        )
+                                                                    )
+                                                                    onEvent(
+                                                                        ScheduleStore.Intent.ciPreview
+                                                                    )
+                                                                }
+                                                            }
+                                                        },
+                                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                                        interactionSource = source
+                                                    )
+                                                }
                                         }
                                     }
 
@@ -898,13 +1036,13 @@ private fun LazyItemScope.ScheduleColumn(
                                                     Row(
                                                         Modifier.height(40.dp)
                                                             .cClickable(
-                                                            //                                                        interactionSource = remember { MutableInteractionSource() },
-                                                            //                                                        null
+                                                                //                                                        interactionSource = remember { MutableInteractionSource() },
+                                                                //                                                        null
                                                             ) {
                                                                 component.onEvent(
                                                                     ScheduleStore.Intent.ciChangeIsPair
                                                                 )
-                                                              },
+                                                            },
                                                         verticalAlignment = Alignment.CenterVertically
                                                     ) {
                                                         CustomCheckbox(
@@ -939,7 +1077,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                                         )
                                                                     }
                                                                     onEvent(
-                                                                        ScheduleStore.Intent.ciCreate
+                                                                        ScheduleStore.Intent.ciCreate(null)
                                                                     )
                                                                 }
                                                             }
@@ -955,8 +1093,22 @@ private fun LazyItemScope.ScheduleColumn(
                                                 Text("Error")
                                             }
                                         } else if (model.ciId == -6) {
+                                            val trueItems =
+                                                model.items[key]?.filter { it.groupId in model.groups.map { it.id } + (-11) + (0) + (-6) }
+                                                    ?: emptyList()
+//                                                    ?.filter { (it.formId == null ) && (it.groupId != -6 || it.custom in form.logins) }
+                                            val coItems =
+                                                (trueItems).filter {
+                                                    // ! (закончилось раньше чем началось наше) или (началось позже чем началось наше)
+                                                    ((!((it.t.end.toMinutes() < model.ciTiming!!.start.toMinutes() ||
+                                                            it.t.start.toMinutes() > model.ciTiming!!.end.toMinutes())) && it.groupId != -11) ||
+                                                            (!((it.t.end.toMinutes() <= model.ciTiming!!.start.toMinutes() ||
+                                                                    it.t.start.toMinutes() >= model.ciTiming!!.end.toMinutes())) && it.groupId == -11))
+                                                }
+
                                             val filterStudents = remember { mutableStateOf("") }
                                             Row {
+
                                                 IconButton(
                                                     onClick = {
                                                         component.onEvent(
@@ -974,7 +1126,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                     onValueChange = {
                                                         filterStudents.value = it
 
-                                                                    },
+                                                    },
                                                     text = "ФИО ученика",
                                                     isEnabled = nModel.state == NetworkState.None,
                                                     isMoveUpLocked = true,
@@ -982,21 +1134,97 @@ private fun LazyItemScope.ScheduleColumn(
                                                     keyboardType = KeyboardType.Text
                                                 )
                                             }
+
+//
+//                                            val okStudents = logins?.okLogins?.mapNotNull { l ->
+//                                                state().students.firstOrNull { it.login == l }
+//                                            } ?: listOf()
+//                                            val allStudents =
+//                                                ((((logins?.deletedLogins ?: listOf()) + (logins?.okLogins)) ?: listOf())).mapNotNull { l ->
+//                                                    state().students.firstOrNull { it.login == l }
+//                                                } ?: listOf()
+//
+//                                            val okErrors = getStudentErrors(
+//                                                coItems = coItems,
+//                                                students = okStudents,
+//                                                state = state()
+//                                            )
+
+//                                            val logins = fetchLoginsOfLesson(
+//                                                trueItems = coItems,
+//                                                solvedConflictsItems = model.solveConflictItems[key],
+//                                                students = model.students,
+//                                                forms = model.forms,
+//                                                lessonIndex = (model.items.flatMap { it.value.map { it.index } }
+//                                                    .maxByOrNull { it } ?: 1) + 1,
+//                                                state = model,
+//                                                timing = model.ciTiming
+//                                            )
+
+                                            val studentErrors = schedule.getStudentErrors(
+                                                coItems = coItems,
+                                                students = model.students,//logins?.okLogins?.mapNotNull { l ->
+//                                                    model.students.firstOrNull { it.login == l }
+//                                                                                                } ?: listOf(),
+                                                state = model
+                                            )
+
+//
+
+
                                             model.students.filter {
                                                 "${it.fio.surname} ${it.fio.name} ${it.fio.praname}".lowercase()
                                                     .contains(filterStudents.value.lowercase())
-                                            }.forEach {
-                                                DropdownMenuItem(
-                                                    text = { Text("${it.fio.surname} ${it.fio.name} ${it.fio.praname}") },
-                                                    onClick = {
-                                                        component.onEvent(ScheduleStore.Intent.ciChangeCustom(it.login))
-                                                        component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
-                                                        component.onEvent(
-                                                            ScheduleStore.Intent.ciCreate
-                                                        )
-                                                              },
-                                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                            }.forEach { s ->
+//                                                val cabinetErros = coItems.filter { it.cabinet  }
+//                                                val isErrored = s.login in studentErrors.flatMap { it.logins }
+                                                val erroredItem =
+                                                    studentErrors.firstOrNull { s.login in it.logins }?.copy(
+                                                        logins = listOf(s.login)
                                                     )
+                                                DropdownMenuItem(
+                                                    text = {
+                                                        Text(
+                                                            text = "${s.fio.surname} ${s.fio.name} ${s.fio.praname}",
+                                                            color = if (erroredItem == null) MaterialTheme.colorScheme.onBackground
+                                                            else MaterialTheme.colorScheme.error
+                                                        )
+                                                    },
+                                                    onClick = {
+                                                        if (erroredItem == null) {
+                                                            component.onEvent(ScheduleStore.Intent.ciChangeCustom(s.login))
+                                                            component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+                                                            component.onEvent(
+                                                                ScheduleStore.Intent.ciCreate(null)
+                                                            )
+                                                        } else {
+//                                                            val item = coItems.first { it.index == erroredItem.id }
+                                                            component.onEvent(
+                                                                ScheduleStore.Intent.StartConflict(
+                                                                    niFormId = model.ciFormId ?: 0,
+                                                                    niGroupId = model.ciId!!,
+                                                                    niCustom = model.ciCustom,
+                                                                    niTeacherLogin = model.ciLogin ?: model.login,
+                                                                    niErrors = listOf(erroredItem),
+                                                                    niId = (model.items.flatMap { it.value.map { it.index } }
+                                                                        .maxByOrNull { it } ?: 1) + 1,
+                                                                    niOnClick = {
+                                                                        component.onEvent(
+                                                                            ScheduleStore.Intent.ciChangeCustom(
+                                                                                s.login
+                                                                            )
+                                                                        )
+                                                                        component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+                                                                        component.onEvent(
+                                                                            ScheduleStore.Intent.ciCreate(null)
+                                                                        )
+                                                                    }
+                                                                ))
+                                                            component.chooseConflictDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                                        }
+                                                    },
+                                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                                )
                                             }
                                         }
                                     }
@@ -1047,6 +1275,7 @@ private fun LazyItemScope.ScheduleColumn(
                                 )
                             }
                         ) {
+//                            Text(e.index.toString())
                             Box(Modifier.fillMaxSize()) {
                                 if (e.groupId == -11) {
                                     Text(
@@ -1171,7 +1400,20 @@ private fun LazyItemScope.ScheduleColumn(
                                         textAlign = TextAlign.Center
                                     )
                                 }
-
+                                val logins = fetchLoginsOfLesson(
+                                    trueItems = trueItems,
+                                    solvedConflictsItems = model.solveConflictItems[key],
+                                    students = model.students,
+                                    forms = model.forms,
+                                    lessonIndex = e.index,
+                                    state = model
+                                )
+                                val okKids = logins?.okLogins?.mapNotNull { l ->
+                                    model.students.firstOrNull { it.login == l }
+                                } ?: listOf()
+                                val deletedKids = logins?.deletedLogins?.mapNotNull { l ->
+                                    model.students.firstOrNull { it.login == l }
+                                } ?: listOf()
                                 EditPopup(
                                     model = model,
                                     e = e,
@@ -1180,8 +1422,8 @@ private fun LazyItemScope.ScheduleColumn(
                                     nModel = nModel,
                                     trueItems = trueItems,
                                     tLogin = login,
-                                    kids = if (e.groupId > 0) model.students.filter { e.groupId in it.groups.map { it.first }  }
-                                        else listOf()
+                                    okKids = okKids,
+                                    deletedKids = deletedKids
                                 )
 
 
@@ -1240,7 +1482,8 @@ fun BoxScope.EditPopup(
     trueItems: List<ScheduleItem>,
     showKids: Boolean = true,
     tLogin: String?,
-    kids: List<SchedulePerson>
+    okKids: List<SchedulePerson>,
+    deletedKids: List<SchedulePerson>,
 ) {
 
     if (model.eiIndex == e.index) {
@@ -1284,7 +1527,7 @@ fun BoxScope.EditPopup(
                     },
                 isCanBeOpened = component.isCanBeEdited
 
-                ) {
+            ) {
                 /////
                 val group =
                     model.groups.firstOrNull { it.id == groupId }
@@ -1397,11 +1640,11 @@ fun BoxScope.EditPopup(
                                                 )
                                             )
                                         } else if (it.matches(
-                                            Regex(
-                                                "^[1-3]?[0-1]?[0-9]?$"
+                                                Regex(
+                                                    "^[1-3]?[0-1]?[0-9]?$"
+                                                )
                                             )
-                                        )
-                                            ) {
+                                        ) {
                                             component.onEvent(
                                                 ScheduleStore.Intent.eiCheck(
                                                     cabinet = it.toInt(),
@@ -1410,11 +1653,11 @@ fun BoxScope.EditPopup(
                                                     s = t
                                                 )
                                             )
-                                                component.onEvent(
-                                                    ScheduleStore.Intent.eiChangeCabinet(
-                                                        it.toInt()
-                                                    )
+                                            component.onEvent(
+                                                ScheduleStore.Intent.eiChangeCabinet(
+                                                    it.toInt()
                                                 )
+                                            )
                                         }
                                     }
                                 },
@@ -1469,17 +1712,17 @@ fun BoxScope.EditPopup(
                                             null,
                                             e.cabinet
                                         ) ||
-                                         model.eiGroupId !in listOf(
-                                             null,
-                                             e.groupId
-                                         ) ||
-                                         model.eiTiming !in listOf(
-                                             null,
-                                             Pair(
-                                                 e.t.start,
-                                                 e.t.end
-                                             )
-                                         ) || (newLogin != null))
+                                                model.eiGroupId !in listOf(
+                                            null,
+                                            e.groupId
+                                        ) ||
+                                                model.eiTiming !in listOf(
+                                            null,
+                                            Pair(
+                                                e.t.start,
+                                                e.t.end
+                                            )
+                                        ) || (newLogin != null))
                                     ) {
                                         if (model.eiCabinetErrorGroupId == 0 && model.eiStudentErrors.isEmpty()) {
                                             IconButton(
@@ -1489,7 +1732,7 @@ fun BoxScope.EditPopup(
                                                             index = e.index,
                                                             cabinet = cabinetik,
                                                             login = newLogin
-                                                                    ?: login,
+                                                                ?: login,
                                                             id = groupId,
                                                             s = t
                                                         )
@@ -1513,24 +1756,66 @@ fun BoxScope.EditPopup(
                                                     model.eiStudentErrors,
                                                     model
                                                 )
+//                                            val login = tLogin ?: trueItems.first { it.index == e.index }.teacherLogin
+//                                            val c = model.teachers.first { it.login == login }
 
+//                                            val groupId =
+//                                                model.eiGroupId ?: e.groupId
+//                                            val cabinetik =
+//                                                model.eiCabinet ?: e.cabinet
+//                                            val newLogin =
+//                                                model.eiNewLogin
+//                                            val t =
+//                                                model.eiTiming ?: Pair(
+//                                                    e.t.start,
+//                                                    e.t.end
+//                                                )
                                             ErrorsTooltip(
                                                 cabinetErrorSubject = cabinetErrorSubject,
                                                 cabinetErrorGroup = cabinetErrorGroup,
-                                                studentErrors = studentErrors
+                                                studentErrors = studentErrors,
+                                                cabinetErrorGroupId = model.eiCabinetErrorGroupId,
+                                                component = component,
+                                                niCustom = "",
+                                                niFormId = model.eiFormId ?: 0,
+                                                niGroupId = groupId,
+                                                niTeacherLogin = login,
+                                                classicStudentErrors = model.eiStudentErrors,
+                                                niOnClick = {
+                                                    component.onEvent(
+                                                        ScheduleStore.Intent.eiSave(
+                                                            index = e.index,
+                                                            cabinet = cabinetik,
+                                                            login = newLogin
+                                                                ?: login,
+                                                            id = groupId,
+                                                            s = t
+                                                        )
+                                                    )
+                                                },
+                                                niIndex = model.eiIndex!!
                                             )
                                         }
                                     }
 
-                                ///
+                                    ///
                                 }
                             }
 
                             Column(Modifier.padding(horizontal = 10.dp, vertical = 5.dp)) {
                                 Text("В этой группе:")
-                                if (kids.isNotEmpty()) {
-                                    kids.forEach {
+                                if (okKids.isNotEmpty()) {
+                                    okKids.forEach {
                                         Text("${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}.")
+                                    }
+                                }
+                                if (deletedKids.isNotEmpty()) {
+                                    deletedKids.forEach {
+                                        Text(
+                                            "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}.",
+                                            textDecoration = TextDecoration.LineThrough,
+                                            modifier = Modifier.alpha(.5f)
+                                        )
                                     }
                                 }
                             }
@@ -1799,6 +2084,32 @@ fun getStudentErrors(
                 studentFios = model.students.filter { it.login in e.logins }
                     .map { it.fio.surname }
             )
+        } else if (e.groupId == -6) {
+            StudentErrorCompose(
+                subjectName = "Доп с",
+                groupName = "${model.teachers.firstOrNull { it.login == e.teacherLogin }?.fio?.surname}",
+                studentFios = model.students.filter { it.login in e.logins }
+                    .map { it.fio.surname }
+            )
+        } else if (e.groupId == 0) {
+            StudentErrorCompose(
+                subjectName = "Событие",
+                groupName = getNameOfConflictLesson(
+                    groupId = 0,
+                    teacherLogin = e.teacherLogin,
+                    id = e.id,
+                    model = model
+                ),
+                studentFios = model.students.filter { it.login in e.logins }
+                    .map { it.fio.surname }
+            )
+        } else if (e.groupId == -11) {
+            StudentErrorCompose(
+                subjectName = "Приём пищи",
+                groupName = "",
+                studentFios = model.students.filter { it.login in e.logins }
+                    .map { it.fio.surname }
+            )
         } else null
     }
 }
@@ -1808,7 +2119,16 @@ fun getStudentErrors(
 fun ErrorsTooltip(
     cabinetErrorSubject: ScheduleSubject?,
     cabinetErrorGroup: ScheduleGroup?,
-    studentErrors: List<StudentErrorCompose>
+    studentErrors: List<StudentErrorCompose>,
+    classicStudentErrors: List<StudentError>,
+    cabinetErrorGroupId: Int,
+    component: ScheduleComponent,
+    niFormId: Int,
+    niGroupId: Int,
+    niCustom: String,
+    niTeacherLogin: String,
+    niIndex: Int,
+    niOnClick: () -> Unit
 ) {
     val tState =
         rememberTooltipState(
@@ -1820,13 +2140,17 @@ fun ErrorsTooltip(
             PlainTooltip() {
                 Text(
                     buildString {
+                        if (cabinetErrorGroupId == -6) {
+                            append(
+                                "Кабинет занят: ${"Доп"}"
+                            )
+                        }
                         if (cabinetErrorSubject != null) {
                             append(
                                 "Кабинет занят: ${cabinetErrorSubject.name} ${cabinetErrorGroup!!.name}"
                             )
                         }
                         if (studentErrors.isNotEmpty()) {
-
                             studentErrors.forEachIndexed { i, it ->
                                 if (cabinetErrorSubject != null || i != 0) append(
                                     "\n"
@@ -1847,8 +2171,21 @@ fun ErrorsTooltip(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
     ) {
         IconButton(
-            {},
-            enabled = false
+            {
+                component.chooseConflictDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                component.onEvent(
+                    ScheduleStore.Intent.StartConflict(
+                        niFormId = niFormId,
+                        niGroupId = niGroupId,
+                        niCustom = niCustom,
+                        niTeacherLogin = niTeacherLogin,
+                        niErrors = classicStudentErrors,
+                        niOnClick = niOnClick,
+                        niId = niIndex
+                    )
+                )
+            },
+            enabled = true
         ) {
             Icon(
                 Icons.Rounded.ErrorOutline,

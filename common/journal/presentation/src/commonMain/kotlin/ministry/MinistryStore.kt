@@ -1,19 +1,14 @@
 package ministry
 
+import admin.groups.forms.Form
 import com.arkivanov.mvikotlin.core.store.Store
 import main.school.MinistryKid
+import main.school.MinistryListItem
 import ministry.MinistryStore.Intent
 import ministry.MinistryStore.Label
 import ministry.MinistryStore.State
 import server.getCurrentDate
 import server.getDates
-
-
-data class MinistryListItem(
-    val date: String,
-    val ministryId: String,
-    val kids: List<MinistryKid>
-)
 
 interface MinistryStore : Store<Intent, State, Label> {
     data class State(
@@ -26,10 +21,13 @@ interface MinistryStore : Store<Intent, State, Label> {
         val mvdLogin: String = "",
         val mvdReportId: Int? = null,
         val mvdCustom: String = "",
-        val mvdStups: Int = 0
+        val mvdStups: Int = 0,
+        val pickedFormId: Int? = null,
+        val forms: List<Form> = emptyList()
     )
 
     sealed interface Intent {
+        data class PickFormId(val formId: Int) : Intent
         data object Init : Intent
         data class ChangeMinistry(val ministryId: String) : Intent
         data class ChangeDate(val date: Pair<Int, String>) : Intent
@@ -55,8 +53,10 @@ interface MinistryStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+        data class FormIdPicked(val formId: Int) : Message
         data class MinistryHeaderInited(val isMultiMinistry: Boolean, val pickedMinistry: String) : Message
         data class MinistryChanged(val ministryId: String) : Message
+
         data class DateChanged(val date: Pair<Int, String>) : Message
         data class ListUpdated(val list: List<MinistryListItem>) : Message
 
@@ -65,6 +65,7 @@ interface MinistryStore : Store<Intent, State, Label> {
         data class MVDEditOpened(val login: String, val reportId: Int?) : Message
         data class Ds3StepperChanged(val stups: Int) : Message
         data class Ds3CustomChanged(val custom: String) : Message
+        data class FormFetched(val forms: List<Form>) : Message
     }
 
     sealed interface Label

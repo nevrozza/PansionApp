@@ -2,6 +2,7 @@ package components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -24,19 +25,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import resources.getAvatarImageVector
 import view.LocalViewManager
+import view.ThemeTint
 
 @Composable
 fun GetAvatar(avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit = 30.sp, modifier: Modifier = Modifier) {
     val viewManager = LocalViewManager.current
+    val isDark = if (viewManager.tint.value == ThemeTint.Auto) isSystemInDarkTheme()
+    else viewManager.tint.value == ThemeTint.Dark
     Box(
         modifier = modifier.size(size).clip(CircleShape).background(
             brush = Brush.verticalGradient(
-                colors = if (viewManager.isDark.value) listOf(
-                    MaterialTheme.colorScheme.secondary,
-                    MaterialTheme.colorScheme.primaryContainer
+                colors = if(isDark) listOf(
+
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.inversePrimary,
                 ) else listOf(
-                    MaterialTheme.colorScheme.primaryContainer,
-                    MaterialTheme.colorScheme.secondary
+                    MaterialTheme.colorScheme.inversePrimary,
+                    MaterialTheme.colorScheme.primary
                 ),
                 tileMode = TileMode.Decal
             )

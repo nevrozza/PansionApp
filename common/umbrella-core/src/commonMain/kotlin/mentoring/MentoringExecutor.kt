@@ -35,7 +35,7 @@ class MentoringExecutor(
             }
 
             is Intent.SelectStudent -> dispatch(Message.StudentSelected(intent.login))
-            is Intent.SelectPreAttendanceLogin -> selectPreAttendance(intent.login, intent.date)
+            is Intent.SelectPreAttendanceLogin -> selectPreAttendance(intent.login, intent.date, dayOfWeek = intent.dayOfWeek)
             is Intent.ChangeDate -> dispatch(Message.DateChanged(intent.date))
             is Intent.StartEditPreAttendance -> dispatch(
                 Message.EditPreAttendanceStarted(
@@ -338,7 +338,7 @@ class MentoringExecutor(
         }
     }
 
-    private fun selectPreAttendance(login: String?, date: String) {
+    private fun selectPreAttendance(login: String?, date: String, dayOfWeek: String) {
         dispatch(Message.PreAttendanceLoginChanged(login))
         if (login != null) {
             scope.launch(CDispatcher) {
@@ -347,7 +347,8 @@ class MentoringExecutor(
                     val r = mainRepository.fetchPreAttendanceDay(
                         RFetchPreAttendanceDayReceive(
                             studentLogin = login,
-                            date = date
+                            date = date,
+                            dayOfWeek = dayOfWeek
                         )
                     )
 
@@ -382,7 +383,7 @@ class MentoringExecutor(
 
                 } catch (_: Throwable) {
                     nPreAttendance.nError(text = "Не удалось загрузить уроки") {
-                        selectPreAttendance(login, date)
+                        selectPreAttendance(login, date, dayOfWeek = dayOfWeek)
                     }
                 }
             }

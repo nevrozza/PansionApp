@@ -33,7 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
+import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
+import components.listDialog.ListDialogStoreFactory
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
@@ -46,19 +48,11 @@ import main.school.MinistryStup
 import ministry.MinistryComponent
 import ministry.MinistryStore
 import server.Ministries
+import server.headerTitlesForMinistry
 import view.LocalViewManager
 
 
-private val headerTitles = mapOf(
-    "0" to "...",
-    Ministries.MVD to "МВД",
-    Ministries.Culture to "Культура",
-    Ministries.DressCode to "Здравоохранение",
-    Ministries.Education to "Образование",
-    Ministries.Print to "Печать",
-    Ministries.Social to "Соц опрос",
-    Ministries.Sport to "Спорт",
-)
+
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -109,7 +103,7 @@ fun SharedTransitionScope.MinistryContent(
                     title = {
                         AnimatedContent(
                             if (model.isMultiMinistry == true && model.pickedMinistry == "0") "Выберите"
-                            else headerTitles[model.pickedMinistry].toString(),
+                            else headerTitlesForMinistry[model.pickedMinistry].toString(),
                             modifier = Modifier.sharedElementWithCallerManagedVisibility(
                                 sharedContentState = rememberSharedContentState(key = "Ministry"),
                                 visible = isVisible
@@ -206,27 +200,58 @@ fun SharedTransitionScope.MinistryContent(
                                     Text("meow")
                                 }
                             } else {
-                                val kidList = ministryList.kids.sortedWith(
-                                    compareBy(
-                                        { it.formId },
-                                        { it.fio.surname })
-                                )
-                                itemsIndexed(items = kidList, key = { i, item -> item.login }) { i, item ->
-                                    if (i == kidList.indexOfFirst { it.formId == item.formId }) {
-                                        Text(
-                                            item.formTitle,
-                                            fontSize = 22.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(start = 10.dp, bottom = 5.dp, top = 8.dp)
-                                        )
-                                    }
-                                    MinistryKidItem(
-                                        item = item,
-                                        component = component,
-                                        model = model
+
+                                items(items = model.forms.sortedBy { it.id }, key = {it.id}) { form ->
+                                    val kidList = ministryList.kids.filter { it.formId == form.id }.sortedWith(
+                                        compareBy(
+                                            { it.fio.surname })
                                     )
-                                    Spacer(Modifier.height(10.dp))
+                                    Text(
+                                        "${form.form.classNum}-${form.form.shortTitle}",
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.cClickable {
+                                            if(kidList.isEmpty()) {
+                                                component.onEvent(MinistryStore.Intent.PickFormId(form.id))
+                                            }
+                                        }.padding(start = 10.dp, bottom = 5.dp, top = 8.dp)
+                                    )
+                                    kidList.forEach { item ->
+                                        MinistryKidItem(
+                                            item = item,
+                                            pickedMinistry = model.pickedMinistry,
+                                            mvdLogin = model.mvdLogin,
+                                            mvdReportId = model.mvdReportId,
+                                            ds1ListComponent = component.ds1ListComponent,
+                                            ds2ListComponent = component.ds2ListComponent,
+                                            uploadStup = { reason, login, content, reportId, custom ->
+                                                component.onEvent(
+                                                    MinistryStore.Intent.UploadStup(
+                                                        reason = reason,
+                                                        login = login,
+                                                        content = content,
+                                                        reportId = reportId,
+                                                        custom = custom
+                                                    )
+                                                )
+                                            },
+                                            //openMVDEvent: (login: String, reason: String, reportId: Int?, custom: String, stups: Int) -> Unit
+                                            openMVDEvent = { login, reason, reportId, custom, stups ->
+                                                component.onEvent(
+                                                    MinistryStore.Intent.OpenMVDEdit(
+                                                        login = login,
+                                                        reason = reason,
+                                                        reportId = reportId,
+                                                        custom = custom,
+                                                        stups = stups
+                                                    )
+                                                )
+                                            }
+                                        )
+                                        Spacer(Modifier.height(10.dp))
+                                    }
                                 }
+
                             }
                             //                        items(items = model.dates) { i, date ->
                             //                            DateTasksItem(
@@ -319,392 +344,6 @@ fun SharedTransitionScope.MinistryContent(
                 modifier = Modifier.fillMaxWidth(),
                 isSingleLine = false
             )
-        }
-    }
-}
-
-
-@Composable
-private fun MinistryKidItem(
-    item: MinistryKid,
-    model: MinistryStore.State,
-    component: MinistryComponent
-) {
-
-    val isFullOpened = remember { mutableStateOf(false) }
-    val prev = item.dayStups.firstOrNull { it.reportId == null }
-    Surface(
-        Modifier.fillMaxWidth(),
-        tonalElevation = 2.dp,
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(Modifier.padding(5.dp).padding(start = 11.dp).animateContentSize()) {
-            Text(
-                "${item.fio.surname} ${item.fio.name} ${item.fio.praname ?: ""}",
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp
-            )
-            Row {
-                Text(
-                    buildAnnotatedString {
-                        val textikToday = "${getStupString(item.dayStups.sumOf { it.content.toIntOrNull() ?: 0 })} "
-                        val colorToday =
-                            if (textikToday.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
-
-
-                        val textikWeek = "${getStupString(item.weekStupsCount)} "
-                        val colorWeek =
-                            if (textikWeek.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
-
-
-                        val textikModule = "${getStupString(item.moduleStupsCount)} "
-                        val colorModule =
-                            if (textikModule.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
-
-
-                        val textikYear = "${getStupString(item.yearStupsCount)} "
-                        val colorYear =
-                            if (textikYear.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
-
-                        withStyle(
-                            SpanStyle(
-                                color = colorToday
-                            )
-                        ) {
-                            withStyle(
-                                SpanStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            ) {
-                                append("Сегодня: ")
-                            }
-                            append(textikToday)
-                        }
-
-                        withStyle(SpanStyle(color = colorWeek)) {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Неделя: ")
-                            }
-                            append(textikWeek)
-                        }
-
-
-                        append("\n")
-
-                        withStyle(SpanStyle(color = colorModule)) {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Модуль: ")
-                            }
-                            append(textikModule)
-                        }
-
-                        withStyle(SpanStyle(color = colorYear)) {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Год: ")
-                            }
-                            append(textikYear)
-                        }
-                    }
-                )
-                Row {
-                    if (item.lessons.isNotEmpty() || model.pickedMinistry == Ministries.DressCode) {
-                        IconButton(
-                            onClick = {
-                                isFullOpened.value = !isFullOpened.value
-                            }
-                        ) {
-                            val rotation = animateFloatAsState(if (isFullOpened.value) 180f else 0f)
-                            Icon(Icons.Rounded.ExpandMore, null, modifier = Modifier.rotate(rotation.value))
-                        }
-                    }
-                    if (model.pickedMinistry == Ministries.MVD) {
-
-                        if (prev == null) {
-                            IconButton(
-                                onClick = {
-                                    component.onEvent(
-                                        MinistryStore.Intent.OpenMVDEdit(
-                                            login = item.login,
-                                            reason = "!ds3",
-                                            reportId = null,
-                                            custom = "",
-                                            stups = 0
-                                        )
-                                    )
-                                }
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Add, null
-                                )
-                            }
-                        } else {
-                            IconButton(
-                                onClick = {
-                                    component.onEvent(
-                                        MinistryStore.Intent.OpenMVDEdit(
-                                            login = item.login,
-                                            reason = prev.reason,
-                                            reportId = prev.reportId,
-                                            custom = prev.custom ?: "",
-                                            stups = prev.content.toIntOrNull() ?: 0
-                                        )
-                                    )
-                                }
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Edit, null
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            AnimatedVisibility(isFullOpened.value && model.pickedMinistry == Ministries.MVD) {
-                Column {
-                    item.lessons.forEachIndexed { i, l ->
-                        val stups = item.dayStups.filter { it.reportId == l.reportId }
-                        val isGroupView = remember { mutableStateOf(false) }
-                        val customText = stups.firstOrNull { !it.custom.isNullOrBlank() }?.custom
-                        Column {
-                            Row {
-                                Text(
-                                    text = "${(i + 1)} ",
-                                    modifier = Modifier.alpha(.5f)
-                                )
-                                AnimatedContent(
-                                    if (isGroupView.value) l.groupName else l.subjectName,
-                                    modifier = Modifier.cClickable {
-                                        isGroupView.value = !isGroupView.value
-                                    }
-                                ) {
-                                    Text(it, fontWeight = FontWeight.Bold)
-                                }
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    text = l.time +
-                                            (if (l.isUvNka == true) " Ув" else if (l.isUvNka == false) " Н" else "") +
-                                            (if (l.isLiked == "t") " +" else if (l.isLiked == "f") " -" else "") +
-                                            (if (l.lateTime.isNotEmpty() && l.lateTime != "0") " ${l.lateTime}" else "")
-                                )
-                            }
-                            Row {
-                                Text(
-                                    text = "${(i + 1)} ",
-                                    modifier = Modifier.alpha(.0f)
-                                )
-                                stups.forEach {
-                                    if (it.content != "0") {
-                                        val reason = when (it.reason) {
-                                            "!ds1" -> "Гот"
-                                            "!ds2" -> "Пов"
-                                            "!ds3" -> "Нар"
-                                            else -> "???"
-                                        }
-                                        val textik = getStupString(it.content)
-                                        val color =
-                                            if (textik.contains("-")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                                        Spacer(Modifier.width(5.dp))
-                                        Box() {
-                                            AnimatedContent(
-                                                "${textik} ($reason)"
-                                            ) { text ->
-                                                CustomTextButton(
-                                                    text,
-                                                    color = color
-                                                ) {
-                                                    component.onEvent(
-                                                        MinistryStore.Intent.OpenMVDEdit(
-                                                            login = item.login,
-                                                            reason = it.reason,
-                                                            reportId = l.reportId,
-                                                            custom = it.custom ?: "",
-                                                            stups = it.content.toIntOrNull() ?: 0
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                            if (model.mvdLogin == item.login && model.mvdReportId == l.reportId) {
-                                                if (it.reason != "!ds3") {
-                                                    ListDialogDesktopContent(
-                                                        when (it.reason) {
-                                                            "!ds1" -> component.ds1ListComponent
-                                                            else -> component.ds2ListComponent
-                                                        },
-                                                        isFullHeight = true
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                if (stups.none { it.reason == "!ds1" && it.content != "0" }) {
-                                    Spacer(Modifier.width(5.dp))
-                                    Box() {
-                                        CustomTextButton("готовность?") {
-                                            component.onEvent(
-                                                MinistryStore.Intent.OpenMVDEdit(
-                                                    login = item.login,
-                                                    reason = "!ds1",
-                                                    reportId = l.reportId,
-                                                    custom = "",
-                                                    stups = 0
-                                                )
-                                            )
-                                        }
-                                        if (model.mvdLogin == item.login && model.mvdReportId == l.reportId) {
-                                            ListDialogDesktopContent(
-                                                component = component.ds1ListComponent,
-                                                isFullHeight = true
-                                            )
-                                        }
-                                    }
-                                }
-                                if (stups.none { it.reason == "!ds2" && it.content != "0" }) {
-                                    Spacer(Modifier.width(5.dp))
-                                    Box() {
-                                        CustomTextButton("поведение?") {
-                                            component.onEvent(
-                                                MinistryStore.Intent.OpenMVDEdit(
-                                                    login = item.login,
-                                                    reason = "!ds2",
-                                                    reportId = l.reportId,
-                                                    custom = "",
-                                                    stups = 0
-                                                )
-                                            )
-                                        }
-                                        if (model.mvdLogin == item.login && model.mvdReportId == l.reportId) {
-                                            ListDialogDesktopContent(
-                                                component = component.ds2ListComponent,
-                                                isFullHeight = true
-                                            )
-                                        }
-                                    }
-                                }
-                                if (stups.none { it.reason == "!ds3" && it.content != "0" }) {
-                                    Spacer(Modifier.width(5.dp))
-                                    CustomTextButton("нарушение?") {
-                                        component.onEvent(
-                                            MinistryStore.Intent.OpenMVDEdit(
-                                                login = item.login,
-                                                reason = "!ds3",
-                                                reportId = l.reportId,
-                                                custom = "",
-                                                stups = 0
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                            AnimatedVisibility(customText != null) {
-                                Text(
-                                    customText.toString(),
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.padding(start = 20.dp),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            AnimatedVisibility (isFullOpened.value && model.pickedMinistry == Ministries.DressCode) {
-                Column {
-                    DressCodeBlock(
-                        title = "Одежда",
-                        map = mapOf(
-                            "!zd1" to "Манжеты",
-                            "!zd2" to "Ворот",
-                            "!zd3" to "Как отутюжена",
-                            "!zd4" to "Общ состояние",
-                        ),
-                        item = item,
-                        component = component
-                    )
-                    DressCodeBlock(
-                        title = "Состояние",
-                        map = mapOf(
-                            "!zd5" to "Обуви",
-                            "!zd6" to "Причёски",
-                            "!zd7" to "Ногти, макияж"
-                        ),
-                        item = item,
-                        component = component
-                    )
-                }
-            }
-
-            AnimatedVisibility(prev != null) {
-
-                Text(
-                    "${prev?.content} ${prev?.custom}",
-                    color = MaterialTheme.colorScheme.error,
-//                    modifier = Modifier.padding(start = 20.dp),
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DressCodeBlock(
-    title: String,
-    map: Map<String, String>,
-    item: MinistryKid,
-    component: MinistryComponent
-) {
-    Text(title, fontWeight = FontWeight.Bold)
-    map.forEach { m ->
-        val stup = item.dayStups.firstOrNull { it.reason == m.key } ?: MinistryStup(
-            reason = m.key,
-            content = "0",
-            reportId = null,
-            custom = null
-        )
-        DressCodeRow(
-            stup = stup,
-            text = m.value,
-        ) {
-            component.onEvent(
-                MinistryStore.Intent.UploadStup(
-                    reason = m.key,
-                    login = item.login,
-                    content = it.toString(),
-                    reportId = null,
-                    custom = null
-                )
-            )
-        }
-    }
-}
-
-@Composable
-private fun DressCodeRow(
-    stup: MinistryStup,
-    text: String,
-    onValueChange: (Int) -> Unit
-) {
-    Row(
-        Modifier.fillMaxWidth()
-            .padding(horizontal = 7.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Stepper(
-            count = stup.content.toIntOrNull() ?: 0,
-            isEditable = true,
-            maxCount = 1,
-            minCount = -1
-        ) {
-            onValueChange(it)
         }
     }
 }

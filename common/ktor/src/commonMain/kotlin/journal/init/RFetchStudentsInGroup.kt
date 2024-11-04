@@ -5,10 +5,18 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RFetchStudentsInGroupReceive(
-    val groupId: Int
+    val groupId: Int,
+    val date: String?,
+    val lessonId: Int?
+)
+
+@Serializable
+data class PersonForGroup(
+    val p: Person,
+    val isDeleted: Boolean
 )
 
 @Serializable
 data class RFetchStudentsInGroupResponse(
-    val students: List<Person>
+    val students: List<PersonForGroup>
 )

@@ -1,5 +1,6 @@
 
 import journal.init.RFetchMentorGroupIdsResponse
+import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
 import main.RChangeToUv
@@ -41,7 +42,7 @@ interface MainRepository {
 
     suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive) : RFetchMinistrySettingsResponse
 
-    suspend fun fetchMinistrySettings() : RFetchMinistrySettingsResponse
+    suspend fun fetchMinistrySettings(r: RFetchMinistryStudentsReceive) : RFetchMinistrySettingsResponse
 
 
     suspend fun fetchSchoolData(r: RFetchSchoolDataReceive) : RFetchSchoolDataResponse
@@ -67,7 +68,7 @@ interface MainRepository {
     suspend fun fetchPreAttendanceDay(r: RFetchPreAttendanceDayReceive) : RFetchPreAttendanceDayResponse
     suspend fun savePreAttendanceDay(r: RSavePreAttendanceDayReceive)
     suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse
-    suspend fun fetchStudentsInGroup(groupId: Int): RFetchStudentsInGroupResponse
+    suspend fun fetchStudentsInGroup(r: RFetchStudentsInGroupReceive): RFetchStudentsInGroupResponse
 
     suspend fun fetchMainAvg(login: String, reason: String, isFirst: Boolean): RFetchMainAVGResponse
     suspend fun fetchMainHomeTasksCount(r: RFetchMainHomeTasksCountReceive) : RFetchMainHomeTasksCountResponse

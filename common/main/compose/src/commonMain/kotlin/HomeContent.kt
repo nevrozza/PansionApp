@@ -52,11 +52,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CalendarToday
-import androidx.compose.material.icons.rounded.Restaurant
-import androidx.compose.material.icons.rounded.Schedule
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -636,7 +632,8 @@ private fun RaspisanieTable(
                                     journalModel = journalModel,
                                     marks = it.marks,
                                     stupsSum = it.stupsSum,
-                                    isSwapped = it.isSwapped
+                                    isSwapped = it.isSwapped,
+                                    lessonIndex = it.lessonIndex
                                 )
                                 Spacer(Modifier.padding(10.dp))
                             }
@@ -766,6 +763,13 @@ fun StudentHomeContent(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
+                            }
+                            AnimatedVisibility (isMainView) {
+                                IconButton(onClick = {
+                                    component.onOutput(HomeComponent.Output.NavigateToSchool)
+                                }) {
+                                    Icon(Icons.Rounded.Token, null)
+                                }
                             }
                         }
                     },
@@ -971,7 +975,8 @@ fun Lesson(
     component: HomeComponent,
     model: HomeStore.State,
     journalModel: JournalStore.State?,
-    isSwapped: Boolean
+    isSwapped: Boolean,
+    lessonIndex: Int
 ) {
 
     val isSurnameShown = remember { mutableStateOf(groupId == -6) }
@@ -1125,9 +1130,10 @@ fun Lesson(
                                     )
                                     Spacer(Modifier.width(5.dp))
                                 }
-                                val hours = (minutesOst / 60.0f).roundTo(1)
+                                val hours = (minutesOst / 60)
+                                val finalMinutes = (minutesOst - hours*60)
                                 Text(
-                                    if (notNow) if (hours.toFloat() >= 1) "$hours ч." else "$minutesOst мин."
+                                    if (notNow) if (hours >= 1 && finalMinutes != 0) "$hours ч $finalMinutes мин" else "$minutesOst мин."
                                     else if (!isEnded) "Уже идёт!"
                                     else "",
                                     lineHeight = 5.sp,
@@ -1181,7 +1187,9 @@ fun Lesson(
                                         onEvent(
                                             JournalStore.Intent.OnGroupClicked(
                                                 groupId,
-                                                start
+                                                start,
+                                                date = date,
+                                                lessonId = lessonIndex
                                             )
                                         )
                                     }

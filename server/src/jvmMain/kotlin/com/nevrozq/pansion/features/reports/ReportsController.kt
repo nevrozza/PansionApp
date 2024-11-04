@@ -911,7 +911,7 @@ class ReportsController() {
 
     suspend fun fetchReportStudents(call: ApplicationCall) {
         val r = call.receive<RFetchReportStudentsReceive>()
-        if (call.isTeacher || call.isModer) {
+        if (call.isTeacher || call.isModer || call.isMentor) {
             try {
                 val students = StudentLines.fetchStudentLinesOfReport(r.reportId)
                 val marks = Marks.fetchForReport(r.reportId).sortedWith(

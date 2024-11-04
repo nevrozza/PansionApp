@@ -132,6 +132,6 @@ interface AdminRepository {
     suspend fun fetchAllTeachers(): RFetchTeachersResponse
     suspend fun fetchAllMentors(): RFetchMentorsResponse
 
-    suspend fun fetchSchedule(dayOfWeek: String, date: String): RScheduleList
+    suspend fun fetchSchedule(dayOfWeek: String, date: String, isFirstTime: Boolean): RScheduleList
     suspend fun saveSchedule(list: RScheduleList)
 }

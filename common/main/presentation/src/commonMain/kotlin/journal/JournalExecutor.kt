@@ -14,6 +14,7 @@ import journal.JournalStore.Intent
 import journal.JournalStore.Label
 import journal.JournalStore.State
 import journal.JournalStore.Message
+import journal.init.RFetchStudentsInGroupReceive
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import report.RCreateReportReceive
@@ -38,7 +39,7 @@ class JournalExecutor(
                 dispatch(Message.TimeChanged(intent.time))
                 groupListComponent.onEvent(ListDialogStore.Intent.HideDialog)
                 studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                fetchStudentsInGroup(intent.groupId)
+                fetchStudentsInGroup(intent.groupId, date = intent.date, lessonId = intent.lessonId)
             }
 
             Intent.CreateReport -> {
@@ -49,7 +50,7 @@ class JournalExecutor(
                             groupId = state().currentGroupId,
                             date = getDate(),
                             time = state().time,
-                            studentLogins = state().studentsInGroup.map { it.login }
+                            studentLogins = state().studentsInGroup.filter { !it.isDeleted }.map { it.p.login }
                         )).reportId
                         scope.launch {
                             dispatch(Message.ReportCreated(id))
@@ -174,18 +175,28 @@ class JournalExecutor(
         }
     }
 
-    private fun fetchStudentsInGroup(groupId: Int) {
+    private fun fetchStudentsInGroup(
+        groupId: Int,
+        date: String?,
+        lessonId: Int?
+    ) {
         scope.launch {
             try {
                 studentsInGroupCAlertDialogComponent.nInterface.nStartLoading()
-                val students = mainRepository.fetchStudentsInGroup(groupId).students
+                val students = mainRepository.fetchStudentsInGroup(
+                    RFetchStudentsInGroupReceive(
+                        groupId = groupId,
+                        date = date,
+                        lessonId = lessonId
+                    )
+                ).students
                 dispatch(Message.StudentsInGroupUpdated(students, groupId))
                 studentsInGroupCAlertDialogComponent.nInterface.nSuccess()
             } catch (e: Throwable) {
                 //CHECK
                 studentsInGroupCAlertDialogComponent.nInterface.nError(text = "Не удалось загрузить список учеников =/") {
                     fetchStudentsInGroup(
-                        groupId
+                        groupId, date, lessonId
                     )
                 }
             }

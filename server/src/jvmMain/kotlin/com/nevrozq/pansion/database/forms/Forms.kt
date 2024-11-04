@@ -89,4 +89,18 @@ object Forms : Table() {
 
         }
     }
+    fun fetchByIds(formIds: List<Int>): List<FormDTO> {
+        return transaction {
+            Forms.select { Forms.id inList formIds }.map {
+                FormDTO(
+                    formId = it[Forms.id],
+                    classNum = it[classNum],
+                    title = it[title],
+                    shortTitle = it[shortTitle],
+                    mentorLogin = it[mentorLogin],
+                    isActive = it[isActive]
+                )
+            }
+        }
+    }
 }

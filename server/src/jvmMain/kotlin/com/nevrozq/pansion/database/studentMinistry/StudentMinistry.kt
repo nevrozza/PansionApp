@@ -1,23 +1,22 @@
 package com.nevrozq.pansion.database.studentMinistry
 
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object StudentMinistry : Table() {
     val login = this.varchar("login", 30).uniqueIndex()
     val ministry = this.varchar("min", 1)
+    val level = this.varchar("lvl", 1)
 
-    fun set(login: String, ministry: String) {
+    fun set(dto : StudentMinistryDTO) {
         transaction {
-            StudentMinistry.deleteWhere { StudentMinistry.login eq login }
-            if (ministry.isNotBlank() || login.isNotBlank()) {
+            StudentMinistry.deleteWhere { StudentMinistry.login eq dto.login }
+            if (dto.ministry.isNotBlank() || dto.login.isNotBlank()) {
                 StudentMinistry.insert {
-                    it[this.login] = login
-                    it[this.ministry] = ministry
+                    it[this.login] = dto.login
+                    it[this.ministry] = dto.ministry
+                    it[this.level] = dto.lvl
                 }
             }
         }
@@ -31,18 +30,37 @@ object StudentMinistry : Table() {
 //        }
 //    }
 
-    fun fetchMinistryWithLogin(login: String): String? {
+    fun fetchMinistryWithLogin(login: String): StudentMinistryDTO? {
         return transaction {
             StudentMinistry.select { StudentMinistry.login eq login }.map {
-                it[StudentMinistry.ministry]
+                StudentMinistryDTO(
+                    ministry = it[StudentMinistry.ministry],
+                    login = it[StudentMinistry.login],
+                    lvl = it[level]
+                )
             }.firstOrNull()
         }
     }
 
-    fun fetchLoginsOfMinistry(ministry: String): List<String> {
+    fun fetchOfMinistry(ministry: String): List<StudentMinistryDTO> {
         return transaction {
             StudentMinistry.select { StudentMinistry.ministry eq ministry }.map {
-                it[StudentMinistry.login]
+                StudentMinistryDTO(
+                    ministry = it[StudentMinistry.ministry],
+                    login = it[StudentMinistry.login],
+                    lvl = it[level]
+                )
+            }
+        }
+    }
+    fun fetchAll(): List<StudentMinistryDTO> {
+        return transaction {
+            StudentMinistry.selectAll().map {
+                StudentMinistryDTO(
+                    ministry = it[StudentMinistry.ministry],
+                    login = it[StudentMinistry.login],
+                    lvl = it[level]
+                )
             }
         }
     }

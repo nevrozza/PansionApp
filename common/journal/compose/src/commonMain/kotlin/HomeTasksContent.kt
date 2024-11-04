@@ -340,10 +340,11 @@ private fun GroupTaskItems(
     val isDone = false !in groupTasks.map { it.done }
     val currentTime = remember { Clock.System.now().toEpochMilliseconds() }
     val remainingTime = (((groupTime ?: 0) - currentTime) / 60000)
-    val remainingTimeHours = (remainingTime / 60)
-    val remainingTimeMinutes = remainingTime - (remainingTimeHours * 60)
+    val remainingTimeDays = (remainingTime / 60 /24)
+    val remainingTimeHours = (remainingTime - (remainingTimeDays * 24 * 60)) / 60
+    val remainingTimeMinutes = remainingTime - (remainingTimeDays * 24 * 60) - (remainingTimeHours * 60)
     val time =
-        if (remainingTimeHours > 0) "$remainingTimeHours ч" else if (remainingTimeMinutes > 0) "$remainingTimeMinutes мин" else ""
+       if(remainingTimeDays > 0) "$remainingTimeDays д $remainingTimeHours ч" else if (remainingTimeHours > 0) "$remainingTimeHours ч $remainingTimeMinutes мин" else if (remainingTimeMinutes > 0) "$remainingTimeMinutes мин" else ""
     Column(Modifier.padding(start = 5.dp, bottom = 2.dp)) {
         Text(
             buildAnnotatedString {

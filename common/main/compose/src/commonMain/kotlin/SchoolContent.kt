@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -40,12 +41,14 @@ import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import dev.chrisbanes.haze.HazeState
 import main.school.DutyKid
+import main.school.MinistrySettingsReason
 import main.school.MinistryStudent
 import school.SchoolComponent
 import school.SchoolStore
 import server.Ministries
 import server.Moderation
 import server.Roles
+import server.headerTitlesForMinistry
 import view.LocalViewManager
 import view.WindowScreen
 import view.handy
@@ -76,7 +79,6 @@ fun SchoolContent(
         topBar = {
             AppBar(
                 title = {
-
                     Text(
                         "Пансион",
                         modifier = Modifier.padding(start = 10.dp),
@@ -85,6 +87,17 @@ fun SchoolContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    if (component.isSecondScreen) {
+                        IconButton(
+                            onClick = {
+                                component.onOutput(SchoolComponent.Output.NavigateBack)
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.Home, null
+                            )
+                        }
+                    }
                     AnimatedVisibility(nModel.state == NetworkState.Loading) {
                         Row() {
                             Spacer(Modifier.width(10.dp))
@@ -269,226 +282,236 @@ fun SchoolContent(
                     }
                 }
             }
-            item {
-                Spacer(Modifier.height(15.dp))
-                val isFullDutyView = remember { mutableStateOf(false) }
-                val isEditDutyView = remember { mutableStateOf(false) }
-                ElevatedCard(
-                    modifier = Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
-                        .clickable(enabled = !isEditDutyView.value) {
-                            isFullDutyView.value = !isFullDutyView.value
-                        }
-                ) {
-                    Crossfade(
-                        targetState = nDutyModel.state,
-                        modifier = Modifier.padding(vertical = 10.dp)
-                            .fillMaxWidth().defaultMinSize(minHeight = 80.dp).animateContentSize(),
-//                        verticalArrangement = Arrangement.SpaceBetween
-                    ) { cf ->
+            if (model.role in listOf(Roles.student) || model.moderation in listOf(Moderation.both, Moderation.mentor)) {
+                item {
+                    Spacer(Modifier.height(15.dp))
+                    val isFullDutyView = remember { mutableStateOf(false) }
+                    val isEditDutyView = remember { mutableStateOf(false) }
+                    ElevatedCard(
+                        modifier = Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                            .clickable(enabled = !isEditDutyView.value) {
+                                isFullDutyView.value = !isFullDutyView.value
+                            }
+                    ) {
+                        Crossfade(
+                            targetState = nDutyModel.state,
+                            modifier = Modifier.padding(vertical = 10.dp)
+                                .fillMaxWidth().defaultMinSize(minHeight = 80.dp).animateContentSize(),
+                            //                        verticalArrangement = Arrangement.SpaceBetween
+                        ) { cf ->
 
-                        Box(
-                            Modifier.fillMaxWidth().defaultMinSize(minHeight = 80.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            when (cf) {
-                                NetworkState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(nDutyModel.error, textAlign = TextAlign.Center)
-                                    Spacer(Modifier.height(7.dp))
-                                    CustomTextButton("Попробовать ещё раз") {
-                                        nDutyModel.onFixErrorClick()
+                            Box(
+                                Modifier.fillMaxWidth().defaultMinSize(minHeight = 80.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                when (cf) {
+                                    NetworkState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(nDutyModel.error, textAlign = TextAlign.Center)
+                                        Spacer(Modifier.height(7.dp))
+                                        CustomTextButton("Попробовать ещё раз") {
+                                            nDutyModel.onFixErrorClick()
+                                        }
                                     }
-                                }
 
-                                NetworkState.Loading -> CircularProgressIndicator()
-                                NetworkState.None -> {
-                                    Crossfade(!isEditDutyView.value) { cf2 ->
-                                        if (cf2) {
-                                            Column {
-                                                AnimatedVisibility(model.dutyKids.size >= model.dutyPeopleCount) {
+                                    NetworkState.Loading -> CircularProgressIndicator()
+                                    NetworkState.None -> {
+                                        Crossfade(!isEditDutyView.value) { cf2 ->
+                                            if (cf2) {
+                                                Column {
+                                                    AnimatedVisibility(model.dutyKids.isNotEmpty()) {
 
-                                                    if (model.dutyKids.size >= model.dutyPeopleCount) {
-                                                        val todayKids = model.dutyKids.slice(0..<model.dutyPeopleCount)
-                                                        Column {
-                                                            Row(
-                                                                verticalAlignment = Alignment.CenterVertically,
-                                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                                modifier = Modifier.fillMaxWidth()
-                                                                    .padding(horizontal = 15.dp)
-                                                            ) {
-                                                                Text(
-                                                                    "Сегодня дежурят",
-                                                                    fontSize = 19.sp,
-                                                                    fontWeight = FontWeight.Bold
-                                                                )
-                                                                if (model.role == Roles.student && todayKids.none { it.login == model.login }) {
-                                                                    val daysFor =
-                                                                        (ceil(((model.dutyKids.indexOfFirst { it.login == model.login } + 1) / model.dutyPeopleCount.toFloat()))).toInt() - 1
-                                                                    Text(
-                                                                        text = "Дней до: $daysFor",
-                                                                        fontWeight = FontWeight.SemiBold,
-                                                                        color = MaterialTheme.colorScheme.onBackground.copy(
-                                                                            alpha = .5f
-                                                                        ),
-                                                                        //                                                fontSize = 12.sp
-                                                                    )
-                                                                } else if (model.moderation in listOf(
-                                                                        Moderation.both,
-                                                                        Moderation.mentor
-                                                                    )
+                                                        if (model.dutyKids.isNotEmpty()) {
+                                                            val sliceNum =
+                                                                if (model.dutyKids.size >= model.dutyPeopleCount) model.dutyPeopleCount else model.dutyKids.size
+                                                            val todayKids = model.dutyKids.slice(0..<sliceNum)
+                                                            Column {
+                                                                Row(
+                                                                    verticalAlignment = Alignment.CenterVertically,
+                                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                                    modifier = Modifier.fillMaxWidth()
+                                                                        .padding(horizontal = 15.dp)
                                                                 ) {
-                                                                    IconButton(
-                                                                        onClick = {
-                                                                            isEditDutyView.value = !isEditDutyView.value
-                                                                        },
-                                                                        modifier = Modifier.size(30.dp)
-                                                                    ) {
-                                                                        Icon(
-                                                                            Icons.Rounded.Edit, null
+                                                                    Text(
+                                                                        "Сегодня дежурят",
+                                                                        fontSize = 19.sp,
+                                                                        fontWeight = FontWeight.Bold
+                                                                    )
+                                                                    if (model.role == Roles.student && todayKids.none { it.login == model.login }) {
+                                                                        val daysFor =
+                                                                            (ceil(((model.dutyKids.indexOfFirst { it.login == model.login } + 1) / model.dutyPeopleCount.toFloat()))).toInt() - 1
+                                                                        Text(
+                                                                            text = "Дней до: $daysFor",
+                                                                            fontWeight = FontWeight.SemiBold,
+                                                                            color = MaterialTheme.colorScheme.onBackground.copy(
+                                                                                alpha = .5f
+                                                                            ),
+                                                                            //                                                fontSize = 12.sp
                                                                         )
+                                                                    } else if (model.moderation in listOf(
+                                                                            Moderation.both,
+                                                                            Moderation.mentor
+                                                                        )
+                                                                    ) {
+                                                                        IconButton(
+                                                                            onClick = {
+                                                                                isEditDutyView.value =
+                                                                                    !isEditDutyView.value
+                                                                            },
+                                                                            modifier = Modifier.size(30.dp)
+                                                                        ) {
+                                                                            Icon(
+                                                                                Icons.Rounded.Edit, null
+                                                                            )
+                                                                        }
                                                                     }
                                                                 }
-                                                            }
-                                                            Spacer(Modifier.height(10.dp))
-                                                            todayKids.forEach { kid ->
-                                                                DutyCard(
-                                                                    kid = kid,
-                                                                    isHisTurn = true,
-                                                                    isEditMode = false
-                                                                )
-                                                                Spacer(Modifier.height(8.dp))
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                AnimatedVisibility(model.dutyKids.size - model.dutyPeopleCount > 0 && isFullDutyView.value) {
-                                                    Column {
-                                                        Text(
-                                                            "В другой раз",
-                                                            fontSize = 19.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                            modifier = Modifier.padding(horizontal = 15.dp)
-                                                        )
-                                                        Spacer(Modifier.height(10.dp))
-                                                        if (model.dutyKids.size - model.dutyPeopleCount > 0) {
-                                                            model.dutyKids.slice(model.dutyPeopleCount..<model.dutyKids.size)
-                                                                .forEach { kid ->
+                                                                Spacer(Modifier.height(10.dp))
+                                                                todayKids.forEach { kid ->
                                                                     DutyCard(
                                                                         kid = kid,
-                                                                        isHisTurn = false,
-                                                                        isEditMode = false
+                                                                        isHisTurn = true,
+                                                                        isEditMode = false,
+                                                                        myLogin = model.login
                                                                     )
                                                                     Spacer(Modifier.height(8.dp))
                                                                 }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            val itemHeight = 50.dp
-                                            var items by remember { mutableStateOf(model.dutyKids) }
-                                            var countOfDuties by remember { mutableStateOf(model.dutyPeopleCount) }
-                                            Column(Modifier.fillMaxWidth()) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp)
-                                                ) {
-                                                    Text(
-                                                        "Дежурство",
-                                                        fontSize = 19.sp,
-                                                        fontWeight = FontWeight.Bold
-                                                    )
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        AnimatedVisibility(
-                                                            items == model.dutyKids
-                                                        ) {
-                                                            Row {
-                                                                CustomTextButton("Новый день") {
-                                                                    component.onEvent(
-                                                                        SchoolStore.Intent.StartNewDayDuty(
-                                                                             newDutyPeopleCount = countOfDuties
-                                                                        )
-                                                                    )
-                                                                    isEditDutyView.value = !isEditDutyView.value
-                                                                }
-                                                                Spacer(Modifier.width(10.dp))
                                                             }
                                                         }
-                                                        IconButton(
-                                                            onClick = {
-                                                                if (items != model.dutyKids || countOfDuties != model.dutyPeopleCount) {
-                                                                    component.onEvent(SchoolStore.Intent.UpdateTodayDuty(
-                                                                        kids = items.map { it.login },
-                                                                        newDutyPeopleCount = countOfDuties
-                                                                    ))
-                                                                }
-                                                                isEditDutyView.value = !isEditDutyView.value
-                                                            },
-                                                            modifier = Modifier.size(30.dp)
-                                                        ) {
-                                                            Icon(
-                                                                Icons.Rounded.Done, null
+                                                    }
+                                                    AnimatedVisibility(model.dutyKids.size - model.dutyPeopleCount > 0 && isFullDutyView.value) {
+                                                        Column {
+                                                            Text(
+                                                                "В другой раз",
+                                                                fontSize = 19.sp,
+                                                                fontWeight = FontWeight.Bold,
+                                                                modifier = Modifier.padding(horizontal = 15.dp)
                                                             )
+                                                            Spacer(Modifier.height(10.dp))
+                                                            if (model.dutyKids.size - model.dutyPeopleCount > 0) {
+                                                                model.dutyKids.slice(model.dutyPeopleCount..<model.dutyKids.size)
+                                                                    .forEach { kid ->
+                                                                        DutyCard(
+                                                                            kid = kid,
+                                                                            isHisTurn = false,
+                                                                            isEditMode = false,
+                                                                            myLogin = model.login
+                                                                        )
+                                                                        Spacer(Modifier.height(8.dp))
+                                                                    }
+                                                            }
                                                         }
                                                     }
                                                 }
-                                                Spacer(Modifier.height(8.dp))
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp)
-                                                ) {
-                                                    Text("Кол-во дежурных")
-                                                    Spacer(Modifier.width(15.dp))
-                                                    Stepper(
-                                                        count = countOfDuties,
-                                                        isEditable = true,
-                                                        maxCount = 5,
-                                                        minCount = 1
+                                            } else {
+                                                val itemHeight = 50.dp
+                                                var items by remember { mutableStateOf(model.dutyKids) }
+                                                var countOfDuties by remember { mutableStateOf(model.dutyPeopleCount) }
+                                                Column(Modifier.fillMaxWidth()) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp)
                                                     ) {
-                                                        countOfDuties = it
+                                                        Text(
+                                                            "Дежурство",
+                                                            fontSize = 19.sp,
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                                            AnimatedVisibility(
+                                                                items == model.dutyKids
+                                                            ) {
+                                                                Row {
+                                                                    CustomTextButton("Новый день") {
+                                                                        component.onEvent(
+                                                                            SchoolStore.Intent.StartNewDayDuty(
+                                                                                newDutyPeopleCount = countOfDuties
+                                                                            )
+                                                                        )
+                                                                        isEditDutyView.value = !isEditDutyView.value
+                                                                    }
+                                                                    Spacer(Modifier.width(10.dp))
+                                                                }
+                                                            }
+                                                            IconButton(
+                                                                onClick = {
+                                                                    if (items != model.dutyKids || countOfDuties != model.dutyPeopleCount) {
+                                                                        component.onEvent(
+                                                                            SchoolStore.Intent.UpdateTodayDuty(
+                                                                                kids = items.map { it.login },
+                                                                                newDutyPeopleCount = countOfDuties
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    isEditDutyView.value = !isEditDutyView.value
+                                                                },
+                                                                modifier = Modifier.size(30.dp)
+                                                            ) {
+                                                                Icon(
+                                                                    Icons.Rounded.Done, null
+                                                                )
+                                                            }
+                                                        }
                                                     }
-                                                }
-                                                Box(Modifier.height(model.dutyKids.size * itemHeight)) {
-                                                    DragDropList(
-                                                        items = items,
-                                                        onMove = { from, to ->
-                                                            val fromItem = items[from]
-                                                            val toItem = items[to]
-                                                            val newList = items.toMutableList()
-                                                            newList[from] = toItem
-                                                            newList[to] = fromItem
-                                                            items = newList
-                                                        },
-                                                        onDragFinished = {},
-                                                        modifier = Modifier.fillMaxSize()
-                                                    ) { i, it, isDragging ->
-                                                        val color by animateColorAsState(
-                                                            if (isDragging) MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                                                4.dp
+                                                    Spacer(Modifier.height(8.dp))
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp)
+                                                    ) {
+                                                        Text("Кол-во дежурных")
+                                                        Spacer(Modifier.width(15.dp))
+                                                        Stepper(
+                                                            count = countOfDuties,
+                                                            isEditable = true,
+                                                            maxCount = 5,
+                                                            minCount = 1
+                                                        ) {
+                                                            countOfDuties = it
+                                                        }
+                                                    }
+                                                    Box(Modifier.height(model.dutyKids.size * itemHeight)) {
+                                                        DragDropList(
+                                                            items = items,
+                                                            onMove = { from, to ->
+                                                                val fromItem = items[from]
+                                                                val toItem = items[to]
+                                                                val newList = items.toMutableList()
+                                                                newList[from] = toItem
+                                                                newList[to] = fromItem
+                                                                items = newList
+                                                            },
+                                                            onDragFinished = {},
+                                                            modifier = Modifier.fillMaxSize()
+                                                        ) { i, it, isDragging ->
+                                                            val color by animateColorAsState(
+                                                                if (isDragging) MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                                                    4.dp
+                                                                )
+                                                                else MaterialTheme.colorScheme.surfaceContainerLow,
+                                                                animationSpec = tween(500)
                                                             )
-                                                            else MaterialTheme.colorScheme.surfaceContainerLow,
-                                                            animationSpec = tween(500)
-                                                        )
-                                                        DutyCard(
-                                                            kid = it,
-                                                            isHisTurn = i + 1 <= model.dutyPeopleCount,
-                                                            isEditMode = true,
-                                                            modifier = Modifier.background(
-                                                                color
-                                                            ).height(itemHeight).animateItem()
-                                                                .padding(horizontal = 15.dp)
-                                                        )
+                                                            DutyCard(
+                                                                kid = it,
+                                                                isHisTurn = i + 1 <= model.dutyPeopleCount,
+                                                                isEditMode = true,
+                                                                modifier = Modifier.background(
+                                                                    color
+                                                                ).height(itemHeight).animateItem()
+                                                                    .padding(horizontal = 15.dp),
+                                                                myLogin = model.login
+                                                            )
+                                                        }
                                                     }
-                                                }
 
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
 
+                        }
                     }
                 }
             }
@@ -513,7 +536,7 @@ fun SchoolContent(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            "Расписание",
+                            "Расписание БЕТА",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
@@ -531,21 +554,59 @@ fun SchoolContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        "Министерства",
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier.padding(horizontal = 10.dp)
-                    )
-                    if (model.moderation in listOf(Moderation.mentor, Moderation.both)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Министерства",
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(start = 10.dp)
+                        )
+                        if (model.moderation in listOf(Moderation.moderator, Moderation.both)) {
+                            IconButton(
+                                onClick = {
+                                    component.onEvent(
+                                        SchoolStore.Intent.OpenMinistrySettings(
+                                            MinistrySettingsReason.School
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.size(30.dp)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Rocket, null
+                                )
+                            }
+                        }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (model.moderation in listOf(Moderation.mentor, Moderation.both)) {
+                            IconButton(
+                                onClick = {
+                                    component.onEvent(
+                                        SchoolStore.Intent.OpenMinistrySettings(
+                                            MinistrySettingsReason.Form
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.padding(end = 7.dp).size(30.dp)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Settings, null
+                                )
+                            }
+                        }
                         IconButton(
                             onClick = {
-                                component.onEvent(SchoolStore.Intent.OpenMinistrySettings)
+                                component.onEvent(
+                                    SchoolStore.Intent.OpenMinistrySettings(
+                                        MinistrySettingsReason.Overview
+                                    )
+                                )
                             },
                             modifier = Modifier.padding(end = 7.dp).size(30.dp)
                         ) {
                             Icon(
-                                Icons.Rounded.Settings, null
+                                Icons.Rounded.Menu, null
                             )
                         }
                     }
@@ -553,7 +614,8 @@ fun SchoolContent(
             }
             if (model.ministryId in listOf(
                     Ministries.DressCode,
-                    Ministries.MVD
+                    Ministries.MVD,
+                    Ministries.Culture
                 ) || model.moderation != Moderation.nothing
             ) {
                 item {
@@ -561,7 +623,11 @@ fun SchoolContent(
                     //                CustomTextButton()
                     Box(
                         Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape).clickable {
-                            component.onOutput(SchoolComponent.Output.NavigateToMinistry)
+                            if (model.ministryId !in listOf(Ministries.Culture) || model.role != Roles.student) {
+                                component.onOutput(SchoolComponent.Output.NavigateToMinistry)
+                            } else if (model.ministryId == Ministries.Culture) {
+                                component.onOutput(SchoolComponent.Output.NavigateToAchievements)
+                            }
                         }
                     ) {
                         Row(
@@ -595,7 +661,7 @@ fun SchoolContent(
                             nullIcon = Icons.Rounded.LocalPolice,
                             stupsCount = model.mvdStupsCount
                         ) {
-
+                            component.onEvent(SchoolStore.Intent.OpenMinistryOverview(Ministries.MVD))
                         }
                         Spacer(Modifier.width(15.dp))
                         MinistryCard(
@@ -603,7 +669,7 @@ fun SchoolContent(
                             nullIcon = Icons.Rounded.Checkroom,
                             stupsCount = model.zdStupsCount
                         ) {
-
+                            component.onEvent(SchoolStore.Intent.OpenMinistryOverview(Ministries.DressCode))
                         }
                     }
                     Spacer(Modifier.height(1.dp))
@@ -619,6 +685,7 @@ fun SchoolContent(
             }
         }
     }
+
 
     CBottomSheetContent(
         component = component.ministrySettingsCBottomSheetComponent
@@ -636,6 +703,19 @@ fun SchoolContent(
         LazyColumn(
             Modifier.padding(horizontal = 15.dp)
         ) {
+            item {
+                Text(
+                    text = when (model.ministrySettingsReason) {
+                        MinistrySettingsReason.Form -> "Министерства в классе"
+                        MinistrySettingsReason.School -> "Главы министерств"
+                        MinistrySettingsReason.Overview -> "Министерства"
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
             items(
                 ministryList, key = { it.first }) { s ->
                 val ministryStudents = model.ministryStudents.filter { it.ministryId == s.first }
@@ -650,6 +730,8 @@ fun SchoolContent(
                                 fio = addingField.value
                             )
                         )
+                        addingField.value = ""
+                        isAdding.value = false
                     }
                 }
                 Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -661,55 +743,120 @@ fun SchoolContent(
                         fontWeight = FontWeight.Bold
                     )
 
-                    ministryStudents.forEach { student ->
+                    ministryStudents.sortedBy { it.lvl != "1" }.forEach { student ->
                         MinistrySettingsItem(
-                            ministryStudent = student
+                            ministryStudent = student,
+                            isDeleteButton = model.ministrySettingsReason != MinistrySettingsReason.Overview
                         ) {
-                            component.onEvent(
-                                SchoolStore.Intent.SetMinistryStudent(
-                                    ministryId = "",
-                                    login = student.login,
-                                    fio = ""
+                            if (model.ministrySettingsReason != MinistrySettingsReason.Overview) {
+                                component.onEvent(
+                                    SchoolStore.Intent.SetMinistryStudent(
+                                        ministryId = "",
+                                        login = student.login,
+                                        fio = ""
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.animateContentSize().offset(y = (-5).dp)
-                    ) {
-                        IconButton(
-                            onClick = {
-                                isAdding.value = !isAdding.value
-                            },
-                            modifier = Modifier.size(30.dp)
+                    if (model.ministrySettingsReason != MinistrySettingsReason.Overview) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.animateContentSize().offset(y = (-5).dp)
                         ) {
-                            Icon(
-                                Icons.Rounded.Add, null
-                            )
-                        }
-
-                        AnimatedVisibility(isAdding.value) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CustomTextField(
-                                    value = addingField.value,
-                                    onValueChange = {
-                                        addingField.value = it
-                                    },
-                                    text = "ФИО",
-                                    isEnabled = nMinistrySettingsModel.state == NetworkState.None,
-                                    onEnterClicked = {
-                                        onEnterClick()
-                                    },
-                                    isMoveUpLocked = true,
-                                    autoCorrect = false,
-                                    keyboardType = KeyboardType.Text
+                            IconButton(
+                                onClick = {
+                                    isAdding.value = !isAdding.value
+                                },
+                                modifier = Modifier.size(30.dp)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Add, null
                                 )
-                                IconButton(onClick = { onEnterClick() }) {
-                                    Icon(Icons.Rounded.Done, null)
+                            }
+
+                            AnimatedVisibility(isAdding.value) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    CustomTextField(
+                                        value = addingField.value,
+                                        onValueChange = {
+                                            addingField.value = it
+                                        },
+                                        text = "ФИО",
+                                        isEnabled = nMinistrySettingsModel.state == NetworkState.None,
+                                        onEnterClicked = {
+                                            onEnterClick()
+                                        },
+                                        isMoveUpLocked = true,
+                                        autoCorrect = false,
+                                        keyboardType = KeyboardType.Text
+                                    )
+                                    IconButton(onClick = { onEnterClick() }) {
+                                        Icon(Icons.Rounded.Done, null)
+                                    }
                                 }
                             }
                         }
+                    }
+                }
+            }
+            item {
+                Spacer(Modifier.height(40.dp))
+            }
+        }
+    }
+
+
+
+
+    CBottomSheetContent(
+        component = component.ministryOverviewComponent
+    ) {
+
+        LazyColumn(
+            Modifier.padding(horizontal = 15.dp)
+        ) {
+            item {
+                Text(
+                    text = headerTitlesForMinistry[model.ministryOverviewId] ?: "Министерство?",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+            item {
+                Spacer(Modifier.height(10.dp))
+                DatesLine(
+                    dates = model.dates.reversed(),
+                    currentDate = model.currentDate,
+                    firstItemWidth = 0.dp
+                ) {
+                    component.onEvent(SchoolStore.Intent.ChangeDate(it))
+                }
+            }
+            item {
+                val ministryList =
+                    model.ministryList.firstOrNull { it.ministryId == model.ministryOverviewId && it.date == model.currentDate.second }
+                if (ministryList == null) {
+
+                    Text("meow")
+
+                } else {
+                    ministryList.kids.forEachIndexed { i, item ->
+                        MinistryKidItem(
+                            item = item,
+                            pickedMinistry = model.ministryOverviewId,
+                            mvdLogin = null,
+                            mvdReportId = null,
+                            ds1ListComponent = null,
+                            ds2ListComponent = null,
+                            uploadStup = { reason, login, content, reportId, custom ->
+                            },
+                            openMVDEvent = { login, reason, reportId, custom, stups ->
+                            }
+                        )
+                        Spacer(Modifier.height(10.dp))
                     }
                 }
             }
@@ -725,6 +872,7 @@ private fun DutyCard(
     kid: DutyKid,
     isHisTurn: Boolean,
     isEditMode: Boolean,
+    myLogin: String,
     modifier: Modifier = Modifier.padding(horizontal = 15.dp)
 ) {
 
@@ -746,7 +894,7 @@ private fun DutyCard(
                     Icons.Rounded.Menu, null
                 )
             }
-            if(isHisTurn) {
+            if (isHisTurn) {
                 Icon(
                     Icons.Rounded.RestaurantMenu, null,
                     modifier = Modifier.size(20.dp).align(Alignment.BottomEnd).offset(x = 4.dp),
@@ -756,8 +904,9 @@ private fun DutyCard(
         }
 //        Spacer(Modifier.width(9.dp))
         Text(
-            text = "${kid.fio.surname} ${kid.fio.name}",
-            fontWeight = FontWeight.SemiBold
+            text = "${kid.fio.surname} ${kid.fio.name}" ,
+            fontWeight = if(myLogin == kid.login) FontWeight.Bold else FontWeight.SemiBold,
+            color = if(myLogin == kid.login) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = "дежурств: ${kid.dutyCount}",
@@ -828,15 +977,24 @@ private fun RowScope.MinistryCard(
 @Composable
 private fun MinistrySettingsItem(
     ministryStudent: MinistryStudent,
+    isDeleteButton: Boolean,
     onDeleteClick: () -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("${ministryStudent.fio.surname} ${ministryStudent.fio.name} ${ministryStudent.form}")
-        IconButton(
-            onClick = { onDeleteClick() },
-            modifier = Modifier.size(30.dp)
-        ) {
-            Icon(Icons.Rounded.DeleteOutline, null)
+        if (ministryStudent.lvl == "1") {
+            Icon(
+                Icons.Rounded.Rocket, null,
+                modifier = Modifier.size(25.dp)
+            )
+        }
+        Text("${ministryStudent.fio.surname} ${ministryStudent.fio.name}${if (ministryStudent.form.isNotBlank()) " ${ministryStudent.form}" else ""}")
+        if (isDeleteButton) {
+            IconButton(
+                onClick = { onDeleteClick() },
+                modifier = Modifier.size(30.dp)
+            ) {
+                Icon(Icons.Rounded.DeleteOutline, null)
+            }
         }
     }
 }

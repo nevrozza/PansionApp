@@ -136,6 +136,12 @@ object StudentsInForm : Table() {
                 .firstOrNull()?.get(StudentsInForm.formId)) ?: 1
         }
     }
+    fun fetchFormIdOfLoginNullable(studentLogin: String): Int? {
+        return transaction {
+            (StudentsInForm.select { StudentsInForm.login eq studentLogin }
+                .firstOrNull()?.get(StudentsInForm.formId))
+        }
+    }
 
     fun fetchAllStudentsLogins(): List<String> {
         return transaction {

@@ -26,6 +26,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val isTeachersView: Boolean = true,
         val activeTeachers: HashMap<String, List<String>> = hashMapOf(), // changed List<Pair<String, List<String>>> to HashMap<String, List<String>>
         val items: HashMap<String, List<ScheduleItem>> = hashMapOf(), // changed List<Pair<String, List<ScheduleItem>>> to HashMap<String, List<ScheduleItem>>
+        val solveConflictItems: HashMap<String, MutableMap<Int, List<String>>> = hashMapOf(), // changed List<Pair<String, List<ScheduleItem>>> to HashMap<String, List<ScheduleItem>>
         val ciLogin: String? = null,
         val ciId: Int? = null,
         val ciCabinet: Int = 0,
@@ -45,6 +46,17 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val eiTiming: Pair<String, String>? = null,
         val eiNewLogin: String? = null,
 
+        val isEditItemCouldBeSavedWithDeletedLogins: Boolean = true,
+
+        val niFormId: Int? = null,
+        val niId: Int? = null,
+        val niGroupId: Int? = null,
+        val niCustom: String? = null,
+        val niTeacherLogin: String? = null,
+        val niErrors: List<StudentError> = emptyList(),
+        val isNiCreated: Boolean = false,
+        val niOnClick: () -> Unit = {},
+
         val eiCabinetErrorGroupId: Int = 0,
         val eiStudentErrors: List<StudentError> = emptyList(),
 
@@ -56,6 +68,10 @@ interface ScheduleStore : Store<Intent, State, Label> {
     )
 
     sealed interface Intent {
+
+        data class SolveConflict(val lessonId: Int, val studentLogins: List<String>) : Intent
+
+        data object CopyFromStandart: Intent
 
         data object Init : Intent
         data class IsSavedAnimation(val isSavedAnimation: Boolean): Intent
@@ -106,7 +122,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
 
         data object ciPreview : Intent
 
-        data object ciCreate : Intent
+        data class ciCreate(val cTiming : ScheduleTiming?) : Intent
 
         data object ciNullGroupId : Intent
         data object ciFalsePreview : Intent
@@ -119,9 +135,35 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data object ciChangeIsPair : Intent
 
         data object SaveSchedule : Intent
+
+        data class StartConflict(
+            val niFormId: Int,
+            val niGroupId: Int,
+            val niCustom: String,
+            val niTeacherLogin: String,
+            val niErrors: List<StudentError>,
+            val niId: Int,
+            val niOnClick: () -> Unit
+        ) : Intent
     }
 
     sealed interface Message {
+        data class IsEditItemCouldBeBLABLABLAChanged(val isEditItemCouldBeSavedWithDeletedLogins: Boolean) : Message
+        data class SolveConflictItemsUpdated(
+            val solveConflictItems: HashMap<String, MutableMap<Int, List<String>>>,
+            val niErrors: List<StudentError>?
+        ) : Message
+
+        data object NiOnClicked : Message
+        data class ConflictStarted(
+            val niFormId: Int,
+            val niGroupId: Int,
+            val niCustom: String,
+            val niTeacherLogin: String,
+            val niErrors: List<StudentError>,
+            val niId: Int,
+            val niOnClick: () -> Unit
+        ) : Message
 
         data object ChangeIsTeacherView: Message
 

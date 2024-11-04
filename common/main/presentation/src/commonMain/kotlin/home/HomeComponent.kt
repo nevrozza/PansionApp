@@ -135,5 +135,7 @@ class HomeComponent(
         data class NavigateToStudentLines(val studentLogin: String) : Output()
 
         data class NavigateToChildren(val studentLogin: String, val fio: FIO, val avatarId: Int) : Output()
+
+        data object NavigateToSchool : Output()
     }
 }

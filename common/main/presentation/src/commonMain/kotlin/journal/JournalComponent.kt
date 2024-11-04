@@ -41,7 +41,12 @@ class JournalComponent(
         storeFactory,
         name = "groupListInMainJournal",
         onItemClick = {
-            onEvent(JournalStore.Intent.OnGroupClicked(it.id.toInt(), getSixTime()))
+            onEvent(
+                JournalStore.Intent.OnGroupClicked(
+                    it.id.toInt(), getSixTime(),
+                    date = null, lessonId = null
+                )
+            )
         })
 
     val fGroupListComponent = ListComponent(
@@ -94,10 +99,10 @@ class JournalComponent(
 
     private fun getReportHeader(
         teacherGroups: List<TeacherGroup> = state.value.teacherGroups
-    ) : ReportHeader {
+    ): ReportHeader {
         val group =
             teacherGroups.first { it.cutedGroup.groupId == state.value.currentGroupId }
-        val time = if(state.value.time != "") state.value.time else getSixTime()
+        val time = if (state.value.time != "") state.value.time else getSixTime()
         onEvent(JournalStore.Intent.ResetTime)
         return ReportHeader(
             reportId = model.value.creatingReportId,
@@ -164,18 +169,20 @@ class JournalComponent(
 
 
     init {
-        fStatusListComponent.onEvent(ListDialogStore.Intent.InitList(
-            listOf(
-                ListItem(
-                    id = "True",
-                    text = "Закончен"
-                ),
-                ListItem(
-                    id = "False",
-                    text = "В процессе"
+        fStatusListComponent.onEvent(
+            ListDialogStore.Intent.InitList(
+                listOf(
+                    ListItem(
+                        id = "True",
+                        text = "Закончен"
+                    ),
+                    ListItem(
+                        id = "False",
+                        text = "В процессе"
+                    )
                 )
             )
-        ))
+        )
 //        onEvent(JournalStore.Intent.Init )
     }
 

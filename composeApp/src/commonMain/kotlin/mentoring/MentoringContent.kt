@@ -527,14 +527,16 @@ private fun FormsItem(
                                                 component.onEvent(
                                                     MentoringStore.Intent.SelectPreAttendanceLogin(
                                                         login = s.login,
-                                                        date = model.currentDate.second
+                                                        date = model.currentDate.second,
+                                                        dayOfWeek = model.currentDate.first.toString()
                                                     )
                                                 )
                                             } else {
                                                 component.onEvent(
                                                     MentoringStore.Intent.SelectPreAttendanceLogin(
                                                         login = null,
-                                                        date = model.currentDate.second
+                                                        date = model.currentDate.second,
+                                                        dayOfWeek = model.currentDate.first.toString()
                                                     )
                                                 )
                                             }
@@ -688,7 +690,8 @@ private fun FormsItem(
                                         component.onEvent(
                                             MentoringStore.Intent.SelectPreAttendanceLogin(
                                                 login = s.login,
-                                                date = it.second
+                                                date = it.second,
+                                                dayOfWeek = it.first.toString()
                                             )
                                         )
                                     }
@@ -722,7 +725,7 @@ private fun FormsItem(
                                                     if (!schedule.isNullOrEmpty()) {
                                                         Column {
                                                             schedule.forEach {
-                                                                Text("${it.subjectName} (${it.groupName})")
+                                                                Text("${it.subjectName}${if (it.groupName.isNotBlank()) " (${it.groupName})" else ""}")
                                                                 Text("${it.start}-${it.end}")
                                                             }
                                                         }

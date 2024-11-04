@@ -1,5 +1,6 @@
 package school
 
+import JournalRepository
 import MainRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -17,7 +18,9 @@ class SchoolStoreFactory(
     private val nInterface: NetworkInterface,
     private val nDutyInterface: NetworkInterface,
     private val mainRepository: MainRepository,
-    private val openMinSettingsBottom: CBottomSheetComponent
+    private val openMinSettingsBottom: CBottomSheetComponent,
+    private val ministryOverview: CBottomSheetComponent,
+    private val journalRepository: JournalRepository
 ) {
 
     fun create(): SchoolStore {
@@ -37,7 +40,9 @@ class SchoolStoreFactory(
                 nInterface = nInterface,
                 mainRepository = mainRepository,
                 openMinSettingsBottom = openMinSettingsBottom,
-                nDutyInterface = nDutyInterface
+                nDutyInterface = nDutyInterface,
+                ministryOverview = ministryOverview,
+                journalRepository = journalRepository
             ) },
             reducer = SchoolReducer
         )

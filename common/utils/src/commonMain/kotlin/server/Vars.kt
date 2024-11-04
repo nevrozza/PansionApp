@@ -3,6 +3,18 @@ package server
 
 const val delayForNewQRToken : Long = 1000 * 60 * 5
 
+
+val headerTitlesForMinistry = mapOf(
+    "0" to "...",
+    Ministries.MVD to "МВД",
+    Ministries.Culture to "Культура",
+    Ministries.DressCode to "Здравоохранение",
+    Ministries.Education to "Образование",
+    Ministries.Print to "Печать",
+    Ministries.Social to "Соц опрос",
+    Ministries.Sport to "Спорт",
+)
+
 object DeviceTypex {
     const val android = "Android"
     const val ios = "IOS"

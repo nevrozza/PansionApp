@@ -3,6 +3,7 @@ package com.nevrozq.pansion.features.homeworks
 import com.nevrozq.pansion.database.homework.HomeTasks
 import com.nevrozq.pansion.database.homework.HomeTasksDone
 import com.nevrozq.pansion.database.schedule.Schedule
+import com.nevrozq.pansion.database.schedule.ScheduleDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.utils.isMember
@@ -102,7 +103,10 @@ class HomeWorksController {
                 val r = call.receive<RFetchTasksInitReceive>()
                 val groups = StudentGroups.fetchGroupsOfStudent(r.login)
                 val subjects = Subjects.fetchAllSubjectsAsMap().filter { it.key in groups.map { g -> g.subjectId } }
-                val schedule = Schedule.getOnNext(getDate(), getSixTime()).sortedBy { getLocalDate(it.date).toEpochDays() + (it.start.toMinutes() / 1000f) }
+                val schedule: List<ScheduleDTO> =
+                    Schedule.getOnNext(
+                    getDate(), getSixTime()).sortedBy { getLocalDate(it.date).toEpochDays() + (it.start.toMinutes() / 1000f)
+                    }
                 val cutedDateTimeGroups = groups.map { g ->
                     val lesson = schedule.firstOrNull { it.groupId == g.id }
                     CutedDateTimeGroup(

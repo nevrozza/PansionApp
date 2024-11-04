@@ -9,6 +9,7 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
 import kotlinx.coroutines.launch
+import main.school.MinistryListItem
 import main.school.MinistryStup
 import main.school.RMinistryListReceive
 import main.school.RUploadMinistryStup
@@ -76,6 +77,10 @@ class MinistryExecutor(
                 reportId = intent.reportId,
                 custom = intent.custom
             )
+            is Intent.PickFormId -> {
+                dispatch(Message.FormIdPicked(intent.formId))
+                updateList(ministryId = state().pickedMinistry, date = state().currentDate.second)
+            }
         }
     }
 
@@ -168,21 +173,37 @@ class MinistryExecutor(
                     val r = journalRepository.fetchMinistryList(
                         RMinistryListReceive(
                             date = date,
-                            ministryId = ministryId
-                        )
-                    )
-                    val newList = state().ministryList.toMutableList()
-                    val oldItem = newList.firstOrNull { it.date == date && it.ministryId == ministryId }
-                    newList.remove(oldItem)
-                    newList.add(
-                        MinistryListItem(
-                            date = date,
                             ministryId = ministryId,
-                            kids = r.kids
+                            login = null,
+                            formId = state().pickedFormId
                         )
                     )
+                    val newList = if (state().ministryList.firstOrNull { it.date == date && it.ministryId == ministryId } != null) state().ministryList.map { x -> //.toMutableList()
+                        if (x.date == date && x.ministryId == ministryId) {
+                            x.copy(
+                                kids = x.kids.mapNotNull {
+                                    if(it.formId == r.kids.firstOrNull()?.formId) null
+                                    else it
+                                } + r.kids
+                            )
+                        } else x
+                    } else {
+                        state().ministryList + MinistryListItem(date = date, ministryId = ministryId, kids = r.kids)
+                    }
+//                    val oldItem = newList.firstOrNull { it.date == date && it.ministryId == ministryId }
+//                    newList.remove(oldItem)
+//                    newList.add(
+//                        MinistryListItem(
+//                            date = date,
+//                            ministryId = ministryId,
+//                            kids = r.kids
+//                        )
+//                    )
                     scope.launch {
-                        dispatch(Message.ListUpdated(newList))
+                        dispatch(Message.ListUpdated( newList))
+                        if (r.forms != null) {
+                            dispatch(Message.FormFetched(r.forms!!))
+                        }
                     }
                     nInterface.nSuccess()
                 } catch (_: Throwable) {

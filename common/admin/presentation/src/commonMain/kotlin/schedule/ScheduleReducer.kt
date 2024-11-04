@@ -63,8 +63,6 @@ object ScheduleReducer : Reducer<State, Message> {
             }
 
 
-
-
             is Message.ciCabinetChanged -> copy(ciCabinet = msg.cabinet)
             is Message.ItemsUpdated -> {
                 val newItems = items.toMutableMap()
@@ -138,6 +136,22 @@ object ScheduleReducer : Reducer<State, Message> {
             Message.ChangeIsTeacherView -> copy(isTeachersView = !isTeachersView)
             is Message.eiLoginChanged -> copy(eiState = ScheduleStore.EditState.Preview, eiNewLogin = msg.login)
             is Message.ciCustomChanged -> copy(ciCustom = msg.custom)
+
+            is Message.ConflictStarted -> copy(
+                niCustom = msg.niCustom, niErrors = msg.niErrors, niFormId = msg.niFormId, niGroupId = msg.niGroupId,
+                niTeacherLogin = msg.niTeacherLogin,
+                isNiCreated = false,
+                niId = msg.niId,
+                niOnClick = msg.niOnClick
+            )
+
+            is Message.NiOnClicked -> copy(isNiCreated = true)
+            is Message.SolveConflictItemsUpdated -> copy(
+                solveConflictItems = msg.solveConflictItems,
+                niErrors = msg.niErrors ?: niErrors
+            )
+
+            is Message.IsEditItemCouldBeBLABLABLAChanged -> copy(isEditItemCouldBeSavedWithDeletedLogins = msg.isEditItemCouldBeSavedWithDeletedLogins)
         }
     }
 }

@@ -15,6 +15,8 @@ object MinistryReducer : Reducer<State, Message> {
             is Message.MVDDS3Opened -> copy(mvdCustom = msg.custom, mvdStups = msg.stups)
             is Message.Ds3StepperChanged -> copy(mvdStups = msg.stups)
             is Message.Ds3CustomChanged -> copy(mvdCustom = msg.custom)
+            is Message.FormIdPicked -> copy(pickedFormId = msg.formId)
+            is Message.FormFetched -> copy(forms = msg.forms)
         }
     }
 }

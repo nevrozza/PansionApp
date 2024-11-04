@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.window.DialogProperties
 import components.hazeHeader
 import components.networkInterface.NetworkState
 import view.GlobalHazeState
@@ -56,18 +57,20 @@ fun CAlertDialogContent(
     titleXOffset: Dp = 0.dp,
     acceptText: String = "Ок",
     declineText: String = "Отмена",
+    dialogProperties: DialogProperties = DialogProperties(),
     content: @Composable (() -> Unit)
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
     val isShowing = customIf ?: model.isDialogShowing
     val viewManager = LocalViewManager.current
+
     if (isShowing) {
         BasicAlertDialog(
             onDismissRequest = {
                 model.onDeclineClick.invoke()
             },
-
+            properties = dialogProperties
         ) {
             Surface(
                 modifier = Modifier

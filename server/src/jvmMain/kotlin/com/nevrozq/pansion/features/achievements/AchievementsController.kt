@@ -11,6 +11,7 @@ import achievements.RFetchAchievementsResponse
 import achievements.RUpdateGroupOfAchievementsReceive
 import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.forms.Forms
+import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
@@ -20,6 +21,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import org.jetbrains.exposed.sql.deleteWhere
+import server.Ministries
 
 class AchievementsController {
 
@@ -35,11 +37,13 @@ class AchievementsController {
                     newText = r.newText,
                     newShowDate = r.newShowDate
                 )
-                call.respond(RFetchAchievementsResponse(
-                    list = Achievements.fetchAll(),
-                    students = null,
-                    subjects = emptyMap()
-                ))
+                call.respond(
+                    RFetchAchievementsResponse(
+                        list = Achievements.fetchAll(),
+                        students = null,
+                        subjects = emptyMap()
+                    )
+                )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -56,11 +60,13 @@ class AchievementsController {
             try {
                 val r = call.receive<REditAchievementReceive>()
                 Achievements.edit(id = r.id, subjectId = r.subjectId, stups = r.stups, studentLogin = r.studentLogin)
-                call.respond(RFetchAchievementsResponse(
-                    list = Achievements.fetchAll(),
-                    students = null,
-                    subjects = emptyMap()
-                ))
+                call.respond(
+                    RFetchAchievementsResponse(
+                        list = Achievements.fetchAll(),
+                        students = null,
+                        subjects = emptyMap()
+                    )
+                )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -71,16 +77,19 @@ class AchievementsController {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
+
     suspend fun deleteAchievement(call: ApplicationCall) {
-        if (call.isModer) {
+        if (call.isMentor || call.isModer) {
             try {
                 val r = call.receive<RDeleteAchievementReceive>()
                 Achievements.delete(r.id)
-                call.respond(RFetchAchievementsResponse(
-                    list = Achievements.fetchAll(),
-                    students = null,
-                    subjects = emptyMap()
-                ))
+                call.respond(
+                    RFetchAchievementsResponse(
+                        list = Achievements.fetchAll(),
+                        students = null,
+                        subjects = emptyMap()
+                    )
+                )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -98,7 +107,11 @@ class AchievementsController {
                 val r = call.receive<RFetchAchievementsForStudentReceive>()
                 val achievements = Achievements.fetchAllByLogin(r.studentLogin)
                 call.respond(
-                    RFetchAchievementsResponse(achievements, students = null, subjects = Subjects.fetchAllSubjectsAsMap())
+                    RFetchAchievementsResponse(
+                        achievements,
+                        students = null,
+                        subjects = Subjects.fetchAllSubjectsAsMap()
+                    )
                 )
             } catch (e: Throwable) {
                 call.respond(
@@ -112,11 +125,17 @@ class AchievementsController {
     }
 
     suspend fun fetchAllAchievements(call: ApplicationCall) {
-        if (call.isMentor || call.isModer) {
+        val minDTO = StudentMinistry.fetchMinistryWithLogin(call.login)
+        if (call.isMentor || call.isModer || minDTO?.ministry == Ministries.Culture) {
             try {
                 val achievements = Achievements.fetchAll()
-                val students = if (call.isOnlyMentor) {
-                    val formIds = Forms.fetchMentorForms(call.login).map { it.id }
+                val students =  if (call.isOnlyMentor || (call.isStudent && minDTO?.lvl == "0")) {
+                    val mentorLogin = if (call.isStudent) {
+                        val formId = StudentsInForm.fetchFormIdOfLogin(call.login)
+                        val form = Forms.fetchById(formId)
+                        form.mentorLogin
+                    } else call.login
+                    val formIds = Forms.fetchMentorForms(mentorLogin).map { it.id }
                     val students = StudentsInForm.fetchStudentsLoginsByFormIds(formIds)
                     Users.fetchByLoginsActivated(students)
                 } else {
@@ -137,7 +156,7 @@ class AchievementsController {
                             )
                         },
                         subjects = Subjects.fetchAllSubjectsAsMap()
-                        )
+                    )
                 )
             } catch (e: Throwable) {
                 call.respond(
@@ -151,15 +170,18 @@ class AchievementsController {
     }
 
     suspend fun createAchievement(call: ApplicationCall) {
-        if (call.isMentor || call.isModer) {
+        val minId = StudentMinistry.fetchMinistryWithLogin(call.login)?.ministry
+        if (call.isMentor || call.isModer || minId == Ministries.Culture) {
             try {
                 val r = call.receive<RCreateAchievementReceive>()
                 Achievements.insert(r.achievement.copy(creatorLogin = call.login))
-                call.respond(RFetchAchievementsResponse(
-                    list = Achievements.fetchAll(),
-                    students = null,
-                    subjects = emptyMap()
-                ))
+                call.respond(
+                    RFetchAchievementsResponse(
+                        list = Achievements.fetchAll(),
+                        students = null,
+                        subjects = emptyMap()
+                    )
+                )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,

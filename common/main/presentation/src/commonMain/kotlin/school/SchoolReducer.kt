@@ -25,6 +25,10 @@ object SchoolReducer : Reducer<State, Message> {
                 dutyKids = msg.dutyKids,
                 dutyPeopleCount = msg.dutyPeopleCount
             )
+            is Message.MinistrySettingsReasonChanged -> copy(ministrySettingsReason = msg.reason)
+            is Message.MinistryOverviewOpened -> copy(ministryOverviewId = msg.ministryOverviewId)
+            is Message.MinistryListUpdated -> copy(ministryList = msg.list)
+            is Message.DateChanged -> copy(currentDate = msg.date)
         }
     }
 }

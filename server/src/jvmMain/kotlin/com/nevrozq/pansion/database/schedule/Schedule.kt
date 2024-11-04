@@ -11,7 +11,7 @@ import server.toMinutes
 
 
 object Schedule : Table() {
-    private val id = Schedule.integer("id").autoIncrement().uniqueIndex()
+    private val id = Schedule.integer("id")//.autoIncrement().uniqueIndex()
     val date = Schedule.varchar("date", 10) //12.45.78
     private val teacherLogin = Schedule.varchar("teacherLogin", 30)
     private val teacherLoginBefore = Schedule.varchar("teacherLoginBefore", 30)
@@ -35,6 +35,7 @@ object Schedule : Table() {
                     it[teacherLoginBefore] = dto.teacherLoginBefore
                     it[formId] = dto.formId
                     it[custom] = dto.custom
+                    it[Schedule.id] = dto.id
                 }
             }
         } catch (e: Throwable) {
@@ -55,27 +56,34 @@ object Schedule : Table() {
     }
 
     fun getOnNext(date: String, time: String): List<ScheduleDTO> {
-        val minutes = time.toMinutes()
-        val days = getLocalDate(date).toEpochDays()
-        return transaction {
-            Schedule.selectAll().filter {
-                val scheduleMinutes = it[Schedule.start].toMinutes()
-                val scheduleDays = getLocalDate(it[Schedule.date]).toEpochDays()
-                ( scheduleDays > days || (scheduleDays == days && scheduleMinutes > minutes)  )
-            }.map {
-                ScheduleDTO(
-                    date = it[Schedule.date],
-                    teacherLogin = it[teacherLogin],
-                    groupId = it[groupId],
-                    start = it[start],
-                    end = it[end],
-                    cabinet = it[cabinet],
-                    teacherLoginBefore = it[teacherLoginBefore],
-                    formId = it[formId],
-                    custom = it[custom],
-                    id = it[Schedule.id]
-                )
+        try {
+
+
+            val minutes = time.toMinutes()
+            val days = getLocalDate(date).toEpochDays()
+            return transaction {
+                Schedule.selectAll().filter { it[Schedule.date].length != 1 }.filter {
+                    val scheduleMinutes = it[Schedule.start].toMinutes()
+                    val scheduleDays = getLocalDate(it[Schedule.date]).toEpochDays()
+                    ( scheduleDays > days || (scheduleDays == days && scheduleMinutes > minutes)  )
+                }.map {
+                    ScheduleDTO(
+                        date = it[Schedule.date],
+                        teacherLogin = it[teacherLogin],
+                        groupId = it[groupId],
+                        start = it[start],
+                        end = it[end],
+                        cabinet = it[cabinet],
+                        teacherLoginBefore = it[teacherLoginBefore],
+                        formId = it[formId],
+                        custom = it[custom],
+                        id = it[Schedule.id]
+                    )
+                }
             }
+        } catch (e: Throwable) {
+            println("ANIMEEE${e}")
+            return emptyList()
         }
     }
 

@@ -59,6 +59,7 @@ import root.store.RootStore
 import root.store.RootStoreFactory
 import schedule.ScheduleComponent
 import school.SchoolComponent
+import server.Moderation
 import server.Roles
 import studentLines.StudentLinesComponent
 import users.UsersComponent
@@ -274,14 +275,19 @@ class RootComponentImpl(
         componentContext: ComponentContext,
         getOld: Boolean = true
     ): SchoolComponent {
-        return if (getOld && mainSchoolComponent != null) mainSchoolComponent!! else {
+        return if (getOld && mainSchoolComponent != null
+//                   && mainSchoolComponent?.state?.value?.login == (secondLogin
+//                ?: authRepository.fetchLogin()
+//                           )
+        ) mainSchoolComponent!! else {
             mainSchoolComponent = SchoolComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
                 output = ::onMainSchoolOutput,
                 login = secondLogin ?: authRepository.fetchLogin(),
-                role = authRepository.fetchRole(),
-                moderation = authRepository.fetchModeration()
+                role = if(secondLogin != null) Roles.student else authRepository.fetchRole(),
+                moderation = if(secondLogin != null) Moderation.nothing else authRepository.fetchModeration(),
+                isSecondScreen = secondLogin != null
             )
             mainSchoolComponent!!
         }
@@ -514,6 +520,7 @@ class RootComponentImpl(
                     ratingComponent = getMainRatingComponent(childContext, true)
                 )
             }
+
             is Config.HomeTasks -> {
                 Child.HomeTasks(
                     homeComponent = getMainHomeComponent(childContext, true),
@@ -619,6 +626,7 @@ class RootComponentImpl(
                     )
                 )
             }
+
             is Config.QRScanner -> {
                 Child.QRScanner(
                     qrComponent = QRComponent(
@@ -667,29 +675,33 @@ class RootComponentImpl(
         }
 
 
-
     private fun onMainSchoolOutput(output: SchoolComponent.Output): Unit =
         when (output) {
+            SchoolComponent.Output.NavigateBack ->  popOnce(Child.MainSchool::class)
+
             SchoolComponent.Output.NavigateToRating -> {
                 mainRatingComponent?.onEvent(RatingStore.Intent.Init)
                 navigation.bringToFront(Config.MainRating)
             }
-            is SchoolComponent.Output.NavigateToFormRating -> navigation.bringToFront(Config.SchoolFormRating(
-                login = output.login,
-                formNum = output.formNum,
-                formName = output.formName,
-                formId = output.formId
-            ))
+
+            is SchoolComponent.Output.NavigateToFormRating -> navigation.bringToFront(
+                Config.SchoolFormRating(
+                    login = output.login,
+                    formNum = output.formNum,
+                    formName = output.formName,
+                    formId = output.formId
+                )
+            )
 
             is SchoolComponent.Output.NavigateToSchedule -> navigation.bringToFront(Config.AdminSchedule(output.isModer))
             SchoolComponent.Output.NavigateToMinistry -> navigation.bringToFront(Config.SchoolMinistry)
+            SchoolComponent.Output.NavigateToAchievements -> navigation.bringToFront(Config.AdminAchievements)
         }
 
     private fun onQRScannerOutput(output: QRComponent.Output): Unit =
         when (output) {
             QRComponent.Output.Back -> popOnce(Child.QRScanner::class)
         }
-
 
 
     private fun onHomeAchievementsOutput(output: HomeAchievementsComponent.Output): Unit =
@@ -723,6 +735,7 @@ class RootComponentImpl(
                     isMentoring = true
                 )
             )
+
             MentoringComponent.Output.NavigateToAchievements -> navigation.bringToFront(Config.AdminAchievements)
         }
 
@@ -830,6 +843,7 @@ class RootComponentImpl(
                 )
             )
         }
+
     private fun onMinistryOutput(output: MinistryComponent.Output): Unit =
         when (output) {
             MinistryComponent.Output.Back -> popOnce(Child.SchoolMinistry::class)
@@ -965,6 +979,10 @@ class RootComponentImpl(
                     config = RootComponent.Config.MainHome,
                     isMentoring = false
                 )
+            )
+
+            is HomeComponent.Output.NavigateToSchool -> navigation.bringToFront(
+                Config.MainSchool
             )
         }
 

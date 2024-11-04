@@ -78,7 +78,7 @@ interface MentoringStore : Store<Intent, State, Label> {
         data class SolveRequest(val isAccepted: Boolean, val r: RegistrationRequest) : Intent
         data class ManageQr(val formId: Int, val isOpen: Boolean) : Intent
         data class SelectStudent(val login: String?) : Intent
-        data class SelectPreAttendanceLogin(val login: String?, val date: String) : Intent
+        data class SelectPreAttendanceLogin(val login: String?, val date: String, val dayOfWeek: String) : Intent
         data class ChangeDate(val date: Pair<Int, String>) : Intent
 
         data class StartEditPreAttendance(

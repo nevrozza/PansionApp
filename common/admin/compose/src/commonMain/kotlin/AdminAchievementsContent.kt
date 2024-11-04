@@ -182,45 +182,47 @@ fun AdminAchievementsContent(
                             achievements.sortedBy { it.id }.reversed().forEach { a ->
                                 val fio =
                                     model.students.firstOrNull { it.login == a.studentLogin }?.fio
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.horizontalScroll(
-                                    rememberScrollState()).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                                    component.onEvent(AdminAchievementsStore.Intent.OpenEditBS(
-                                        id = a.id,
-                                        studentLogin = a.studentLogin,
-                                        subjectId = a.subjectId,
-                                        stups = a.stups,
-                                        text = a.text,
-                                        date = a.date
-                                    ))
-                                }) {
-                                    Text(text = a.id.toString(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground.copy(alpha = .3f))
-                                    Spacer(Modifier.width(5.dp))
-                                    Text(
-                                        "${fio?.surname} ${fio?.name} ${fio?.praname?.get(0)}.",
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(Modifier.width(5.dp))
-                                    Box(
-                                        Modifier.size(height = 15.dp, width = 5.dp)
-                                            .clip(RoundedCornerShape(15.dp))
-                                            .background(
-                                                MaterialTheme.colorScheme.primaryContainer.copy(
-                                                    alpha = .5f
-                                                )
+                                if (fio != null) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.horizontalScroll(
+                                        rememberScrollState()).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                                            component.onEvent(AdminAchievementsStore.Intent.OpenEditBS(
+                                                id = a.id,
+                                                studentLogin = a.studentLogin,
+                                                subjectId = a.subjectId,
+                                                stups = a.stups,
+                                                text = a.text,
+                                                date = a.date
+                                            ))
+                                        }) {
+                                        Text(text = a.id.toString(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground.copy(alpha = .3f))
+                                            Spacer(Modifier.width(5.dp))
+                                            Text(
+                                                "${fio?.surname} ${fio?.name} ${fio?.praname?.get(0)}.",
+                                                fontWeight = FontWeight.Bold
                                             )
-                                    )
-                                    Spacer(Modifier.width(5.dp))
-                                    Text("${model.subjects[a.subjectId]}")
-                                    Spacer(Modifier.width(5.dp))
-                                    if (a.stups != 0) {
-                                        Text(
-                                            "+${a.stups}",
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.Black
-                                        )
+                                            Spacer(Modifier.width(5.dp))
+                                            Box(
+                                                Modifier.size(height = 15.dp, width = 5.dp)
+                                                    .clip(RoundedCornerShape(15.dp))
+                                                    .background(
+                                                        MaterialTheme.colorScheme.primaryContainer.copy(
+                                                            alpha = .5f
+                                                        )
+                                                    )
+                                            )
+                                            Spacer(Modifier.width(5.dp))
+                                            Text("${model.subjects[a.subjectId]}")
+                                            Spacer(Modifier.width(5.dp))
+                                            if (a.stups != 0) {
+                                                Text(
+                                                    "+${a.stups}",
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    fontWeight = FontWeight.Black
+                                                )
+                                            }
                                     }
+                                    Spacer(Modifier.height(2.dp))
                                 }
-                                Spacer(Modifier.height(2.dp))
                             }
                             Spacer(Modifier.height(1.dp))
                             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

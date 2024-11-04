@@ -3,6 +3,8 @@ package com.nevrozq.pansion.features.school
 import FIO
 import PersonPlus
 import admin.groups.forms.CutedForm
+import admin.groups.forms.Form
+import admin.groups.forms.FormInit
 import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.duty.Duty
 import com.nevrozq.pansion.database.duty.DutyCount
@@ -15,6 +17,7 @@ import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
+import com.nevrozq.pansion.database.studentMinistry.StudentMinistryDTO
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.UserDTO
@@ -62,7 +65,7 @@ class SchoolController {
                 }
                 Duty.enterList(
                     mentorLogin = call.login,
-                    list =  r.kids
+                    list = r.kids
                 )
 
                 call.respond(
@@ -100,7 +103,7 @@ class SchoolController {
                         )
                     )
                 }
-                val newDutyList = newKids+oldKids
+                val newDutyList = newKids + oldKids
                 Duty.enterList(
                     mentorLogin = call.login,
                     list = newDutyList
@@ -182,7 +185,7 @@ class SchoolController {
     }
 
     suspend fun uploadMinistryStups(call: ApplicationCall) {
-        if (call.isMember && (StudentMinistry.fetchMinistryWithLogin(call.login) in listOf(
+        if (call.isMember && (StudentMinistry.fetchMinistryWithLogin(call.login)?.ministry in listOf(
                 Ministries.DressCode,
                 Ministries.MVD
             ) || call.isMentor)
@@ -210,108 +213,148 @@ class SchoolController {
         if (call.isMember) {
             try {
                 val r = call.receive<RMinistryListReceive>()
-                val availableKids: MutableList<UserDTO>? = (if (call.isStudent) {
+                val ministry = StudentMinistry.fetchMinistryWithLogin(call.login)
+                val isShowFull = call.isModer || (ministry?.ministry == r.ministryId && ministry?.lvl == "1")
+                val availableKids: MutableList<UserDTO>? = if (r.login != null) {
+                    val user = Users.fetchUser(r.login!!)
+                    if (user != null) {
+                        mutableListOf(user)
+                    } else null
+                } else {
+                    if (call.isStudent) {
+                        val formId = StudentsInForm.fetchFormIdOfLogin(call.login)
+                        val students = StudentsInForm.fetchStudentsLoginsByFormId(formId)
+                        Users.fetchByLoginsActivated(students).toMutableList()
+                    } else if (r.formId != null) {
+                        val students = StudentsInForm.fetchStudentsLoginsByFormId(r.formId!!)
+                        Users.fetchByLoginsActivated(students).toMutableList()
+                        //                        if (isShowFull) {
+                        //                            Users.fetchAllStudents().filter { it.isActive }
+                        //                        } else if (call.isStudent) {
+                        //                            val formId = StudentsInForm.fetchFormIdOfLogin(call.login)
+                        //                            val students = StudentsInForm.fetchStudentsLoginsByFormId(formId)
+                        //                            Users.fetchByLoginsActivated(students)
+                        //                        } else if (call.isOnlyMentor) {
+                        //                            val formIds = Forms.fetchMentorForms(call.login).map { it.id }
+                        //                            val students = StudentsInForm.fetchStudentsLoginsByFormIds(formIds)
+                        //                            Users.fetchByLoginsActivated(students)
+                        //                        } else {
+                        //                            null
+                        //                        }
+
+                    } else null
+                }
+
+
+                if (r.login == null) {
+                    val selfKid = availableKids?.firstOrNull { it.login == call.login }
+                    availableKids?.remove(selfKid)
+                }
+
+
+                val kids = mutableListOf<MinistryKid>()
+                val forms = if (isShowFull) Forms.getAllForms().filter { it.isActive }
+                else if (call.isStudent) {
                     val formId = StudentsInForm.fetchFormIdOfLogin(call.login)
-                    val students = StudentsInForm.fetchStudentsLoginsByFormId(formId)
-                    Users.fetchByLoginsActivated(students)
+                    listOf(Forms.fetchById(formId)).filter { it.isActive }
                 } else if (call.isOnlyMentor) {
                     val formIds = Forms.fetchMentorForms(call.login).map { it.id }
-                    val students = StudentsInForm.fetchStudentsLoginsByFormIds(formIds)
-                    Users.fetchByLoginsActivated(students)
-                } else if (call.isModer) {
-                    Users.fetchAllStudents().filter { it.isActive }
+                    Forms.fetchByIds(formIds).filter { it.isActive }
                 } else {
-                    null
-                })?.toMutableList()
-
-                val selfKid = availableKids?.firstOrNull { it.login == call.login }
-//                availableKids?.remove(selfKid)
-                //TODO
-
-
-                if (availableKids != null) {
-                    val kids = mutableListOf<MinistryKid>()
-                    val forms = Forms.getAllForms().filter { it.isActive }
-                    val currentModule = getModuleByDate(getCurrentDate().second) ?: CalendarDTO(
-                        num = 1,
-                        start = "01.01.2000",
-                        halfNum = 1
-                    )
-                    availableKids.forEach {
-                        val formId = StudentsInForm.fetchFormIdOfLogin(it.login)
-                        val form = forms.first { it.formId == formId }
+                    listOf()
+                }
+                val currentModule = getModuleByDate(getCurrentDate().second) ?: CalendarDTO(
+                    num = 1,
+                    start = "01.01.2000",
+                    halfNum = 1
+                )
+                availableKids?.forEach {
+                    val formId = StudentsInForm.fetchFormIdOfLogin(it.login)
+                    val form = forms.first { it.formId == formId }
 
 
-                        val lessons: List<MinistryLesson> = if (r.ministryId == Ministries.MVD) {
-                            StudentLines.fetchClientStudentLines(login = it.login, date = r.date).map {
-                                val isUvNka = (if (it.attended == "0" || it.attended == null) {
-                                    null
-                                } else if (it.attended == "1") {
-                                    false
-                                } else {
-                                    true
-                                })
-                                MinistryLesson(
-                                    reportId = it.reportId,
-                                    subjectName = it.subjectName,
-                                    groupName = it.groupName,
-                                    time = it.time,
-                                    isUvNka = isUvNka,
-                                    lateTime = it.lateTime,
-                                    isLiked = it.isLiked
-                                )
-                            }
-                        } else {
-                            listOf()
-                        }
-
-                        val stups = Stups.fetchForUser(login = it.login).filter {
-                            if (r.ministryId == Ministries.MVD) it.reason.subSequence(0, 3) == "!ds"
-                            else if (r.ministryId == Ministries.DressCode) it.reason.subSequence(0, 3) == "!zd"
-                            else false
-                        }
-
-                        val dayStups: List<MinistryStup> = stups.filter { it.date == r.date }.map {
-                            MinistryStup(
-                                reason = it.reason,
-                                content = it.content,
+                    val lessons: List<MinistryLesson> = if (r.ministryId == Ministries.MVD) {
+                        StudentLines.fetchClientStudentLines(login = it.login, date = r.date).map {
+                            val isUvNka = (if (it.attended == "0" || it.attended == null) {
+                                null
+                            } else if (it.attended == "1") {
+                                false
+                            } else {
+                                true
+                            })
+                            MinistryLesson(
                                 reportId = it.reportId,
-                                custom = it.custom
+                                subjectName = it.subjectName,
+                                groupName = it.groupName,
+                                time = it.time,
+                                isUvNka = isUvNka,
+                                lateTime = it.lateTime,
+                                isLiked = it.isLiked
                             )
                         }
+                    } else {
+                        listOf()
+                    }
 
-                        val weekStupsCount =
-                            stups.filter { it.date in getWeekDays() }.sumOf { it.content.toIntOrNull() ?: 0 }
-                        val moduleStupsCount = stups.filter { it.part == currentModule.num.toString() }
-                            .sumOf { it.content.toIntOrNull() ?: 0 }
-                        val yearStupsCount = stups.sumOf { it.content.toIntOrNull() ?: 0 }
-                        kids.add(
-                            MinistryKid(
-                                login = it.login,
-                                formId = formId,
-                                formTitle = "${form.classNum}-${form.shortTitle}",
-                                fio = FIO(
-                                    name = it.name,
-                                    surname = it.surname,
-                                    praname = it.praname
-                                ),
-                                lessons = lessons,
-                                dayStups = dayStups,
-                                weekStupsCount = weekStupsCount,
-                                moduleStupsCount = moduleStupsCount,
-                                yearStupsCount = yearStupsCount
-                            )
+                    val stups = Stups.fetchForUser(login = it.login).filter {
+                        if (r.ministryId == Ministries.MVD) it.reason.subSequence(0, 3) == "!ds"
+                        else if (r.ministryId == Ministries.DressCode) it.reason.subSequence(0, 3) == "!zd"
+                        else false
+                    }
+
+                    val dayStups: List<MinistryStup> = stups.filter { it.date == r.date }.map {
+                        MinistryStup(
+                            reason = it.reason,
+                            content = it.content,
+                            reportId = it.reportId,
+                            custom = it.custom
                         )
                     }
 
-                    call.respond(
-                        RMinistryListResponse(
-                            kids = kids
+                    val weekStupsCount =
+                        stups.filter { it.date in getWeekDays() }.sumOf { it.content.toIntOrNull() ?: 0 }
+                    val moduleStupsCount = stups.filter { it.part == currentModule.num.toString() }
+                        .sumOf { it.content.toIntOrNull() ?: 0 }
+                    val yearStupsCount = stups.sumOf { it.content.toIntOrNull() ?: 0 }
+                    kids.add(
+                        MinistryKid(
+                            login = it.login,
+                            formId = formId,
+                            formTitle = "${form.classNum}-${form.shortTitle}",
+                            fio = FIO(
+                                name = it.name,
+                                surname = it.surname,
+                                praname = it.praname
+                            ),
+                            lessons = lessons,
+                            dayStups = dayStups,
+                            weekStupsCount = weekStupsCount,
+                            moduleStupsCount = moduleStupsCount,
+                            yearStupsCount = yearStupsCount
                         )
                     )
-                } else {
-                    call.respond(HttpStatusCode.Conflict, "MINISTRY LIST AVAILABLE KIDS == NUll")
                 }
+
+                call.respond(
+                    RMinistryListResponse(
+                        kids = kids,
+                        forms = if (r.formId == null) {
+                            forms.map {
+                                Form(
+                                    id = it.formId,
+                                    form = FormInit(
+                                        title = it.title,
+                                        shortTitle = it.shortTitle,
+                                        mentorLogin = it.mentorLogin,
+                                        classNum = it.classNum
+                                    ),
+                                    isActive = true
+                                )
+                            }
+                        } else null
+                    )
+                )
+
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
             } catch (e: Throwable) {
@@ -328,7 +371,7 @@ class SchoolController {
     suspend fun fetchMinistryHeaderInit(call: ApplicationCall) {
         if (call.isMember) {
             try {
-                val pickedMinistry = StudentMinistry.fetchMinistryWithLogin(call.login) ?: "0"
+                val pickedMinistry = StudentMinistry.fetchMinistryWithLogin(call.login)?.ministry ?: "0"
                 call.respond(
                     RFetchMinistryHeaderInitResponse(
                         isMultiMinistry = call.moderation != Moderation.nothing,
@@ -358,11 +401,16 @@ class SchoolController {
                         surname = fioParts[0],
                         name = fioParts[1],
                         praname = fioParts.getOrNull(2)
-                    ), itShouldBeStudent = true
+                    ), itShouldBeStudent = r.reason == MinistrySettingsReason.Form
                 )!!
-                StudentMinistry.set(login = login, ministry = r.ministryId)
+                StudentMinistry.set(
+                    StudentMinistryDTO(
+                        login = login, ministry = r.ministryId,
+                        lvl = r.lvl
+                    )
+                )
 
-                fetchMinistrySettings(call, isChecked = true)
+                fetchMinistrySettings(call, reason = r.reason)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")
             } catch (e: Throwable) {
@@ -376,39 +424,68 @@ class SchoolController {
         }
     }
 
-    suspend fun fetchMinistrySettings(call: ApplicationCall, isChecked: Boolean = false) {
-        if (isChecked || (call.moderation in listOf(Moderation.mentor, Moderation.both))) {
+    suspend fun fetchMinistrySettings(call: ApplicationCall, reason: MinistrySettingsReason? = null) {
+        if (reason != null || (call.isMember)) {
             try {
-                val forms = Forms.getAllForms().filter { it.mentorLogin == call.login }
-
+                val tReason = reason ?: call.receive<RFetchMinistryStudentsReceive>().reason
                 val studentsForMinistry: MutableList<MinistryStudent> = mutableListOf()
-
-                forms.forEach { form ->
-                    val studentLogins = StudentsInForm.fetchStudentsLoginsByFormId(form.formId)
-                    studentLogins.forEach { login ->
-                        val ministryId = StudentMinistry.fetchMinistryWithLogin(login)
-                        if (ministryId != null) {
-                            val user = Users.fetchUser(login)
-                            if (user != null && user.isActive) {
-                                studentsForMinistry.add(
-                                    MinistryStudent(
-                                        ministryId = ministryId,
-                                        fio = FIO(
-                                            name = user.name,
-                                            surname = user.surname,
-                                            praname = user.praname
-                                        ),
-                                        form = "${form.classNum}-${form.shortTitle}",
-                                        login = login
+                if (tReason == MinistrySettingsReason.Form) {
+                    val forms = Forms.getAllForms().filter { it.mentorLogin == call.login }
+                    forms.forEach { form ->
+                        val studentLogins = StudentsInForm.fetchStudentsLoginsByFormId(form.formId)
+                        studentLogins.forEach { login ->
+                            val ministry = StudentMinistry.fetchMinistryWithLogin(login)
+                            if (ministry != null) {
+                                val user = Users.fetchUser(login)
+                                if (user != null && user.isActive) {
+                                    studentsForMinistry.add(
+                                        MinistryStudent(
+                                            ministryId = ministry.ministry,
+                                            fio = FIO(
+                                                name = user.name,
+                                                surname = user.surname,
+                                                praname = user.praname
+                                            ),
+                                            form = "${form.classNum}-${form.shortTitle}",
+                                            login = login,
+                                            lvl = ministry.lvl
+                                        )
                                     )
-                                )
+                                }
                             }
+                        }
+                    }
+                } else {
+                    val dtos = StudentMinistry.fetchAll()
+                    dtos.forEach { dto ->
+                        val user = Users.fetchUser(dto.login)
+                        val formId = StudentsInForm.fetchFormIdOfLoginNullable(dto.login)
+                        val formTitle = if (formId != null) {
+                            val form = Forms.fetchById(formId)
+                            "${form.classNum}-${form.shortTitle}"
+                        } else ""
+                        if (user != null && user.isActive) {
+                            studentsForMinistry.add(
+                                MinistryStudent(
+                                    ministryId = dto.ministry,
+                                    fio = FIO(
+                                        name = user.name,
+                                        surname = user.surname,
+                                        praname = user.praname
+                                    ),
+                                    form = formTitle,
+                                    login = dto.login,
+                                    lvl = dto.lvl
+                                )
+                            )
                         }
                     }
                 }
                 call.respond(
                     RFetchMinistrySettingsResponse(
-                        studentsForMinistry
+                        studentsForMinistry.filter {
+                            it.lvl == "1" || tReason != MinistrySettingsReason.School
+                        }
                     )
                 )
             } catch (e: ExposedSQLException) {
@@ -582,11 +659,12 @@ class SchoolController {
         val r = call.receive<RFetchSchoolDataReceive>()
         if (call.isMember) {
             try {
+                val role = Users.getRole(r.login)
                 var formName: String? = null
                 var formNum: Int? = null
                 var formId: Int? = null
                 var top: Int? = null
-                if (call.isStudent) {
+                if (role == Roles.student) {
                     formId =
                         StudentsInForm.fetchFormIdOfLogin(r.login)
                     val form = Forms.fetchById(formId)
@@ -597,7 +675,7 @@ class SchoolController {
                         formName = "$formNum-${form.title.uppercase()}"
                     }
                     top = RatingWeek0Table.fetchRatingOf(r.login, -1)?.top
-                } else if (call.isMentor) {
+                } else if (role != Moderation.nothing) {
                     val form = Forms.fetchMentorForms(r.login).firstOrNull()
                     println("TESTIRUEM: ${r.login} ${form}")
                     if (form != null) {
@@ -607,7 +685,7 @@ class SchoolController {
                     }
                 }
 
-                val ministryId = StudentMinistry.fetchMinistryWithLogin(r.login) ?: "0"
+                val ministryId = StudentMinistry.fetchMinistryWithLogin(r.login)?.ministry ?: "0"
                 val weekStups = Stups.fetchForAWeek(login = r.login) //, date = getCurrentDate().second
 
                 call.respond(

@@ -15,6 +15,7 @@ import groups.subjects.SubjectsStore.Intent
 import groups.subjects.SubjectsStore.Label
 import groups.subjects.SubjectsStore.State
 import groups.subjects.SubjectsStore.Message
+import journal.init.RFetchStudentsInGroupReceive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -184,9 +185,14 @@ class SubjectsExecutor(
             scope.launch(CDispatcher) {
                 nGroupInterface.nStartLoading()
                 try {
-                    val students = mainRepository.fetchStudentsInGroup(groupId).students
+                    val students = mainRepository.fetchStudentsInGroup(
+                        RFetchStudentsInGroupReceive(
+                            groupId = groupId,
+                            null, null
+                        )
+                    ).students
                     val newMap = state().students.toMutableMap()
-                    newMap[groupId] = students
+                    newMap[groupId] = students.map { it.p }
                     scope.launch {
                         dispatch(Message.StudentsFetched(newMap.toMap(HashMap())))
                         nGroupInterface.nSuccess()

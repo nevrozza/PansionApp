@@ -1,5 +1,6 @@
 package school
 
+import JournalRepository
 import MainRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
@@ -19,11 +20,13 @@ class SchoolComponent(
     private val login: String,
     private val role: String,
     private val moderation: String,
+    val isSecondScreen: Boolean,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()\
     val nInterfaceName = "MainSchoolNInterface"
     val nDutyInterfaceName = "DutySchoolNInterface"
+    val ministryBottomSheetComponentName = "MinistrySchoolNInterface"
 
     val nInterface = NetworkInterface(
         childContext(nInterfaceName + "CONTEXT"),
@@ -36,6 +39,12 @@ class SchoolComponent(
         nDutyInterfaceName
     )
 
+    val ministryOverviewComponent = CBottomSheetComponent(
+        componentContext = childContext(ministryBottomSheetComponentName+"CONTEXT"),
+        storeFactory = storeFactory,
+        name = "ministryBottomSheetComponentName"
+    )
+
     val ministrySettingsCBottomSheetComponent = CBottomSheetComponent(
         componentContext = childContext("ministrySettingsCBottomSheetComponentCONTEXT"),
         storeFactory = storeFactory,
@@ -44,6 +53,7 @@ class SchoolComponent(
 
 
     private val mainRepository: MainRepository = Inject.instance()
+    private val journalRepository: JournalRepository = Inject.instance()
     private val schoolStore =
         instanceKeeper.getStore {
             SchoolStoreFactory(
@@ -54,7 +64,9 @@ class SchoolComponent(
                 nInterface = nInterface,
                 mainRepository = mainRepository,
                 openMinSettingsBottom = ministrySettingsCBottomSheetComponent,
-                nDutyInterface = nDutyInterface
+                nDutyInterface = nDutyInterface,
+                ministryOverview = ministryOverviewComponent,
+                journalRepository = journalRepository
 //                authRepository = authRepository
             ).create()
         }
@@ -78,6 +90,7 @@ class SchoolComponent(
     }
 
     sealed class Output {
+        data object NavigateBack : Output()
         data object NavigateToRating : Output()
         data class NavigateToFormRating(
             val login: String,
@@ -91,5 +104,6 @@ class SchoolComponent(
         ) : Output()
 
         data object NavigateToMinistry : Output()
+        data object NavigateToAchievements : Output()
     }
 }

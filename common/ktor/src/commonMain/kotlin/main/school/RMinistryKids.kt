@@ -1,6 +1,8 @@
 package main.school
 
 import FIO
+import admin.groups.forms.Form
+import admin.groups.forms.FormGroup
 import kotlinx.serialization.Serializable
 import report.StudentNka
 
@@ -50,11 +52,20 @@ data class MinistryKid(
 data class RMinistryListResponse(
 //    val date: String,
 //    val ministryId: String,
-    val kids: List<MinistryKid>
+    val kids: List<MinistryKid>,
+    val forms: List<Form>?
 )
 
 @Serializable
 data class RMinistryListReceive(
     val date: String,
     val ministryId: String,
+    val login: String?,
+    val formId: Int?
+)
+
+data class MinistryListItem(
+    val date: String,
+    val ministryId: String,
+    val kids: List<MinistryKid>
 )

@@ -19,6 +19,7 @@ import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
+import com.nevrozq.pansion.features.lessons.fetchSchedule
 import com.nevrozq.pansion.utils.createLogin
 import com.nevrozq.pansion.utils.isMember
 import com.nevrozq.pansion.utils.isMentor
@@ -107,7 +108,8 @@ class MentoringController {
                         } else null
                     }
                         .sortedWith(
-                            compareBy({ getLocalDate(it.deployDate).toEpochDays() },
+                            compareBy(
+                                { getLocalDate(it.deployDate).toEpochDays() },
                                 { it.deployTime.toMinutes() })
                         )
                 }
@@ -121,7 +123,12 @@ class MentoringController {
                                 null,
                                 "0"
                             )
-                        ) StudentNka(date = it.date, isUv = it.attended == "2", groupId = g, module = it.module) else null
+                        ) StudentNka(
+                            date = it.date,
+                            isUv = it.attended == "2",
+                            groupId = g,
+                            module = it.module
+                        ) else null
                     }
                 }
             }
@@ -405,14 +412,27 @@ class MentoringController {
                 val subjects = Subjects.fetchAllSubjectsAsMap()
                 val groups = StudentGroups.fetchGroupsOfStudent(r.studentLogin)
                 val ids = groups.mapNotNull { if (it.isActive) it.id else null }
-                val schedule = Schedule.getOnDate(r.date).mapNotNull { s ->
-                    if (s.groupId in ids) {
-                        val group = groups.first { it.id == s.groupId }
-                        if (group.isActive) {
+                val schedule = fetchSchedule(
+                    isTeacher = false,
+                    day = r.date,
+                    dayOfWeek = r.dayOfWeek,
+                    login = r.studentLogin
+                ).mapNotNull { s ->
+                    if (s.groupId in (ids + (-11) + (-6) + (0))) {
+                        val group = groups.firstOrNull { it.id == s.groupId }
+                        if (group?.isActive == true || s.groupId in listOf(-11, -6, 0)) {
                             ScheduleForAttendance(
                                 groupId = s.groupId,
-                                subjectName = subjects[group.subjectId].toString(),
-                                groupName = group.name,
+                                subjectName = if (group != null) subjects[group.subjectId].toString() else when (s.groupId) {
+                                    -11 -> "Приём пищи"
+                                    -6 -> "Доп занятие"
+                                    else -> s.custom
+                                },
+                                groupName = group?.name ?: when (s.groupId) {
+                                    -11 -> ""
+                                    -6 -> s.teacherLogin
+                                    else -> ""
+                                },
                                 start = s.t.start,
                                 end = s.t.end
                             )

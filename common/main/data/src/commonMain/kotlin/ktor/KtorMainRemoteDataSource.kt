@@ -79,11 +79,12 @@ class KtorMainRemoteDataSource(
         }.body()
     }
 
-    suspend fun fetchMinistrySettings() : RFetchMinistrySettingsResponse {
+    suspend fun fetchMinistrySettings(r: RFetchMinistryStudentsReceive) : RFetchMinistrySettingsResponse {
         return httpClient.post {
             url {
                 bearer()
                 path(RequestPaths.Main.FetchMinistrySettings)
+                setBody(r)
             }
         }.body()
     }

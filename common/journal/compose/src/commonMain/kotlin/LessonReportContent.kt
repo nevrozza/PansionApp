@@ -128,21 +128,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.compose.ui.util.fastSumBy
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedElevatedButton
-import components.AppBar
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.CustomTextField
-import components.ErrorAnimation
-import components.MarkContent
-import components.ReportTitle
-import components.SaveAnimation
-import components.ScrollBaredBox
-import components.TeacherTime
+import components.*
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
-import components.cClickable
-import components.hazeUnder
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkState
@@ -2166,52 +2154,6 @@ fun PrisutCheckBox(
             }
         }
 
-    }
-}
-
-@Composable
-fun Stepper(
-    count: Int,
-    isEditable: Boolean,
-    maxCount: Int,
-    minCount: Int,
-    height: Dp = 25.dp,
-    modifier: Modifier = Modifier,
-    onChangeCount: (Int) -> Unit
-) {
-    val animatedAllAlpha by animateFloatAsState(if (count != 0) 1f else .2f)
-    Row(
-        modifier = modifier.height(height).border(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outline.copy(if (count != 0) 1f else .2f),
-            shape = RoundedCornerShape(30)
-        ).clip(RoundedCornerShape(30)).alpha(animatedAllAlpha),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (isEditable) {
-//            val animatedAlpha by animateFloatAsState(if (count != minCount) 1f else .2f)
-            IconButton(
-                onClick = {
-                    onChangeCount(count - 1)
-                },
-                enabled = count != minCount
-            ) {
-                Icon(Icons.Rounded.Remove, null)
-            }
-        }
-        AnimatedContent(
-            count
-        ) {
-            Text(it.toString())
-        }
-        if (isEditable) {
-            IconButton(
-                onClick = { onChangeCount(count + 1) },
-                enabled = count != maxCount
-            ) {
-                Icon(Icons.Rounded.Add, null)
-            }
-        }
     }
 }
 

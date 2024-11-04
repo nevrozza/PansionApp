@@ -75,6 +75,8 @@ import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.reportHeaders.ReportHeadersDTO
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.schedule.ScheduleDTO
+import com.nevrozq.pansion.database.scheduleConflicts.ScheduleConflicts
+import com.nevrozq.pansion.database.scheduleConflicts.ScheduleConflictsDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroupDTO
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
@@ -95,6 +97,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import journal.init.PersonForGroup
 import journal.init.RFetchStudentsInGroupReceive
 import journal.init.RFetchStudentsInGroupResponse
 import journal.init.RFetchTeacherGroupsResponse
@@ -112,11 +115,7 @@ import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
 import rating.RatingItem
 import report.UserMark
-import schedule.PersonScheduleItem
-import schedule.RFetchPersonScheduleReceive
-import schedule.RFetchScheduleDateReceive
-import schedule.RPersonScheduleList
-import schedule.RScheduleList
+import schedule.*
 import server.Roles
 import server.getLocalDate
 import server.toMinutes
@@ -353,7 +352,8 @@ class LessonsController() {
         if (call.isMember) {
             try {
                 val calendar = Calendar.getAllModules()
-                call.respond(RFetchCalendarResponse(
+                call.respond(
+                    RFetchCalendarResponse(
                     items = calendar.map {
                         CalendarModuleItem(
                             num = it.num,
@@ -412,6 +412,7 @@ class LessonsController() {
                         2 -> RatingYear2Table
                         else -> RatingYear0Table
                     }
+
                     3 -> when (r.forms) { //Year
                         1 -> RatingPreviousWeek1Table
                         2 -> RatingPreviousWeek2Table
@@ -427,31 +428,32 @@ class LessonsController() {
                 val allItems = table.fetchAllRatings()
                 val items = allItems.filter { it.subjectId == r.subjectId }
                 val me = items.firstOrNull { it.login == r.login }
-                call.respond(RFetchSubjectRatingResponse(
-                    hashMapOf(
-                        r.subjectId to items.map {
-                            RatingItem(
-                                login = it.login,
-                                fio = FIO(
-                                    name = it.name,
-                                    surname = it.surname,
-                                    praname = it.praname
-                                ),
-                                avatarId = it.avatarId,
-                                stups = it.stups,
-                                top = it.top,
-                                groupName = it.groupName,
-                                formNum = it.formNum,
-                                formShortTitle = it.formShortTitle,
-                                avg = it.avg
-                            )
-                        }
-                    ),
-                    me = hashMapOf(
-                        r.subjectId to if (me != null) Pair(me.top, me.stups) else null
-                    ),
-                    lastTimeEdit = lastTimeRatingUpdate
-                ))
+                call.respond(
+                    RFetchSubjectRatingResponse(
+                        hashMapOf(
+                            r.subjectId to items.map {
+                                RatingItem(
+                                    login = it.login,
+                                    fio = FIO(
+                                        name = it.name,
+                                        surname = it.surname,
+                                        praname = it.praname
+                                    ),
+                                    avatarId = it.avatarId,
+                                    stups = it.stups,
+                                    top = it.top,
+                                    groupName = it.groupName,
+                                    formNum = it.formNum,
+                                    formShortTitle = it.formShortTitle,
+                                    avg = it.avg
+                                )
+                            }
+                        ),
+                        me = hashMapOf(
+                            r.subjectId to if (me != null) Pair(me.top, me.stups) else null
+                        ),
+                        lastTimeEdit = lastTimeRatingUpdate
+                    ))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -491,13 +493,39 @@ class LessonsController() {
         if (call.isMember) {
             val r = call.receive<RFetchScheduleDateReceive>()
             try {
-                var items = Schedule.getOnDate(r.day)
+                val items = Schedule.getOnDate(r.day)
+                val conflictItems = ScheduleConflicts.fetchByDate(r.day)
 //                println(items.isEmpty())
-                if (items.isEmpty()) {
-                    items = Schedule.getOnDate(r.dayOfWeek)
+//                if (items.isEmpty()) {
+//                    items = Schedule.getOnDate(r.dayOfWeek)
+//                }
+                val map = mutableMapOf(
+                    r.day to items
+                )
+                val conflictMap = mutableMapOf(
+                    r.day to conflictItems.associate { it.lessonIndex to it.logins }.toMutableMap()
+                )
+                if (r.isFirstTime) {
+                    //DayOfWeek.MONDAY -> 1
+//                    DayOfWeek.TUESDAY -> 2
+//                    DayOfWeek.WEDNESDAY -> 3
+//                    DayOfWeek.THURSDAY -> 4
+//                    DayOfWeek.FRIDAY -> 5
+//                    DayOfWeek.SATURDAY -> 6
+//                    DayOfWeek.SUNDAY -> 7
+                    for (i in (1..5)) {
+                        map[i.toString()] = Schedule.getOnDate(i.toString())
+                        conflictMap[i.toString()] =
+                            ScheduleConflicts.fetchByDate(i.toString()).associate { it.lessonIndex to it.logins }
+                                .toMutableMap()
+                    }
                 }
+                println("Checkay ${conflictMap}")
                 call.respond(
-                    RScheduleList(hashMapOf(r.day to items))
+                    RScheduleList(
+                        map.toMap(HashMap()),
+                        conflictList = conflictMap.toMap(HashMap())
+                    )
                 )
             } catch (e: Throwable) {
                 call.respond(
@@ -518,25 +546,12 @@ class LessonsController() {
             val alreadyGroups = mutableListOf<Int>()
             val isTeacher = Users.getRole(r.login) != Roles.student
             try {
-                var items = Schedule.getOnDate(r.day)
-                if (items.isEmpty()) {
-                    items = Schedule.getOnDate(r.dayOfWeek)
-                }
-
-                items = if (isTeacher) {
-                    items.filter { it.teacherLogin == r.login }
-                } else {
-                    val formId = StudentsInForm.fetchFormIdOfLogin(r.login)
-                    val idList = StudentGroups.fetchGroupsOfStudent(r.login)
-
-//                    val parts = r.day.split(".")
-//                    val date = "${parts[0]}.${parts[1]}.${parts[2]}"
-//                    val marks = Marks.fetchUserByDate(login = call.login, date = date)
-//                    val stups = Stups.fetchUserByDate(login = call.login, date = date)
-                    items.filter { (it.groupId in idList.filter { it.isActive }.map { it.id }) ||
-                                   (it.groupId == -6 && it.custom.contains(r.login)) ||
-                                   (it.groupId in listOf(-11, 0) && it.formId == formId)}
-                }
+                val items = com.nevrozq.pansion.features.lessons.fetchSchedule(
+                    isTeacher = isTeacher,
+                    day = r.day,
+                    dayOfWeek = r.dayOfWeek,
+                    login = r.login
+                )
 
                 val subjects = Subjects.fetchAllSubjects()
                 val groups = Groups.getAllGroups()
@@ -574,23 +589,24 @@ class LessonsController() {
                                 teacherFio = fio,
                                 marks = if ((alreadyGroups.find { x -> x == it.groupId }
                                         ?: 0) > 1) listOf() else marks.mapNotNull {
-                                            if (it.groupId != null && it.reportId != null) {
-                                                UserMark(
-                                                    id = it.id,
-                                                    content = it.content,
-                                                    reason = it.reason,
-                                                    isGoToAvg = it.isGoToAvg,
-                                                    groupId = it.groupId,
-                                                    date = it.date,
-                                                    reportId = it.reportId,
-                                                    module = it.part
-                                                )
-                                            } else {
-                                                null
-                                            }
-                                                                           },
+                                    if (it.groupId != null && it.reportId != null) {
+                                        UserMark(
+                                            id = it.id,
+                                            content = it.content,
+                                            reason = it.reason,
+                                            isGoToAvg = it.isGoToAvg,
+                                            groupId = it.groupId,
+                                            date = it.date,
+                                            reportId = it.reportId,
+                                            module = it.part
+                                        )
+                                    } else {
+                                        null
+                                    }
+                                },
                                 stupsSum = stups.sumOf { it.content.toInt() },
-                                isSwapped = it.teacherLoginBefore != it.teacherLogin
+                                isSwapped = it.teacherLoginBefore != it.teacherLogin,
+                                lessonIndex = it.index
                             )
                         } else {
                             null
@@ -598,7 +614,7 @@ class LessonsController() {
                     } else {
                         if (it.groupId == -6) {
                             val dopFio = if (!isTeacher) fio
-                                else {
+                            else {
                                 val user = Users.fetchUser(it.custom)
                                 FIO(
                                     name = "",
@@ -616,7 +632,8 @@ class LessonsController() {
                                 teacherFio = dopFio,
                                 marks = listOf(),
                                 stupsSum = 0,
-                                isSwapped = it.teacherLoginBefore != it.teacherLogin
+                                isSwapped = it.teacherLoginBefore != it.teacherLogin,
+                                lessonIndex = it.index
                             )
                         } else if (it.groupId == -11) {
                             PersonScheduleItem(
@@ -629,7 +646,8 @@ class LessonsController() {
                                 teacherFio = FIO("", "", ""),
                                 marks = listOf(),
                                 stupsSum = 0,
-                                isSwapped = it.teacherLoginBefore != it.teacherLogin
+                                isSwapped = it.teacherLoginBefore != it.teacherLogin,
+                                lessonIndex = it.index
                             )
                         } else {
                             PersonScheduleItem(
@@ -642,7 +660,8 @@ class LessonsController() {
                                 teacherFio = FIO("", "", ""),
                                 marks = listOf(),
                                 stupsSum = 0,
-                                isSwapped = it.teacherLoginBefore != it.teacherLogin
+                                isSwapped = it.teacherLoginBefore != it.teacherLogin,
+                                lessonIndex = it.index
                             )
                         }
                     }
@@ -684,6 +703,16 @@ class LessonsController() {
                         )
                     }
                 }
+                val conflictList = r.conflictList.map { item ->
+                    val date = item.key
+                    item.value.map {
+                        ScheduleConflictsDTO(
+                            date = date,
+                            lessonIndex = it.key,
+                            logins = it.value
+                        )
+                    }
+                }
                 transaction {
                     val dates: List<String> = list.flatMap { it.map { it.date } }
                     Schedule.deleteWhere {
@@ -691,6 +720,15 @@ class LessonsController() {
                     }
                     list.forEach {
                         Schedule.insertList(
+                            it
+                        )
+                    }
+                    val conflictDates: List<String> = conflictList.flatMap { it.map { it.date } }
+                    ScheduleConflicts.deleteWhere {
+                        (date.inList(conflictDates))
+                    }
+                    conflictList.forEach {
+                        ScheduleConflicts.insertList(
                             it
                         )
                     }
@@ -731,8 +769,9 @@ class LessonsController() {
             try {
                 val teachers = Users.fetchAllTeachers()
 
-                call.respond(RFetchTeachersResponse(
-                    teachers.filter { it.isActive }.map {
+                call.respond(
+                    RFetchTeachersResponse(
+                        teachers.filter { it.isActive }.map {
                         TeacherPerson(
                             login = it.login,
                             fio = FIO(
@@ -933,7 +972,8 @@ class LessonsController() {
         if (call.isMember) {
             try {
                 val cabinets = Cabinets.getAllCabinets()
-                call.respond(RFetchCabinetsResponse(
+                call.respond(
+                    RFetchCabinetsResponse(
                     cabinets.map {
                         CabinetItem(
                             login = it.login,
@@ -1304,7 +1344,19 @@ class LessonsController() {
                 val students = StudentGroups.fetchStudentsOfGroup(
                     groupId = r.groupId
                 ).filter { it.isActive }
-                call.respond(RFetchStudentsInGroupResponse(students))
+                val deletedLogins = if (r.date != null && r.lessonId != null) {
+                    ScheduleConflicts.fetchByDateAndLessonId(r.date!!, r.lessonId!!)?.logins ?: listOf()
+                } else listOf()
+
+                call.respond(
+                    RFetchStudentsInGroupResponse(
+                    students.map {
+                        PersonForGroup(
+                            p = it,
+                            isDeleted = it.login in deletedLogins
+                        )
+                    }
+                ))
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -1431,6 +1483,38 @@ class LessonsController() {
             }
         } else {
             call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
+}
+
+fun fetchSchedule(
+    isTeacher: Boolean, day: String, dayOfWeek : String,
+    login: String
+): List<ScheduleItem> {
+    var items = Schedule.getOnDate(day)
+    if (items.isEmpty()) {
+        items = Schedule.getOnDate(dayOfWeek)
+    }
+
+    var deletedItems = ScheduleConflicts.fetchByDate(day)
+    if (deletedItems.isEmpty()) {
+        deletedItems = ScheduleConflicts.fetchByDate(dayOfWeek)
+    }
+
+    return if (isTeacher) {
+        items.filter { it.teacherLogin == login }
+    } else {
+        val formId = StudentsInForm.fetchFormIdOfLogin(login)
+        val idList = StudentGroups.fetchGroupsOfStudent(login)
+//                    val parts = r.day.split(".")
+//                    val date = "${parts[0]}.${parts[1]}.${parts[2]}"
+//                    val marks = Marks.fetchUserByDate(login = call.login, date = date)
+//                    val stups = Stups.fetchUserByDate(login = call.login, date = date)
+        items.filter {
+            ((it.groupId in idList.filter { it.isActive }.map { it.id }) ||
+                    (it.groupId == -6 && it.custom.contains(login)) ||
+                    (it.groupId in listOf(-11, 0) && it.formId == formId)) &&
+                    it.index !in deletedItems.filter { login in it.logins }.map { it.lessonIndex }
         }
     }
 }

@@ -216,7 +216,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 Box(Modifier.animateContentSize().fillMaxWidth()) {
                     AnimatedVisibility(
 
-                        visible = isBottomBarShowing(childStack.active.configuration as Config) && ((isVertical && (component.secondLogin == null)) || component.isMentoring == false),
+                        visible = isBottomBarShowing(childStack.active.configuration as Config) &&
+                                  ((isVertical && (component.secondLogin == null))), //was ((isVertical && (component.secondLogin == null)) || component.isMentoring == false)
                         enter = fadeIn(animationSpec = tween(300)) +
                                 slideInVertically { it },
                         exit = fadeOut(animationSpec = tween(300)) + slideOutVertically { it },
@@ -462,7 +463,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                             null
                                         )
                                         Spacer(Modifier.width(10.dp))
-                                        Text("Расписание")
+                                        Text("Расписание БЕТА")
                                     }
                                 }
                             ) {

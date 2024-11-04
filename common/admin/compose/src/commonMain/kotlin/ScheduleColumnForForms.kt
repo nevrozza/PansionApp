@@ -19,11 +19,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
@@ -38,10 +40,7 @@ import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
-import schedule.ScheduleComponent
-import schedule.ScheduleItem
-import schedule.ScheduleStore
-import schedule.ScheduleTiming
+import schedule.*
 import server.cut
 import server.isTimeFormat
 import server.toMinutes
@@ -319,19 +318,22 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                                     with(
                                                                                         component
                                                                                     ) {
-                                                                                        onEvent(
-                                                                                            ScheduleStore.Intent.ciChooseTime(
-                                                                                                ScheduleTiming(
-                                                                                                    start = parts[0],
-                                                                                                    end = parts[1]
-                                                                                                )
-                                                                                            )
-                                                                                        )
-                                                                                        onEvent(
-                                                                                            ScheduleStore.Intent.ciPreview
-                                                                                        )
+//                                                                                        onEvent(
+//                                                                                            ScheduleStore.Intent.ciChooseTime(
+//                                                                                                ScheduleTiming(
+//                                                                                                    start = parts[0],
+//                                                                                                    end = parts[1]
+//                                                                                                )
+//                                                                                            )
+//                                                                                        )
+//                                                                                        onEvent(
+//                                                                                            ScheduleStore.Intent.ciPreview
+//                                                                                        )
                                                                                         component.onEvent(
-                                                                                            ScheduleStore.Intent.ciCreate
+                                                                                            ScheduleStore.Intent.ciCreate(ScheduleTiming(
+                                                                                                start = parts[0],
+                                                                                                end = parts[1]
+                                                                                            ))
                                                                                         )
                                                                                     }
                                                                                 }
@@ -355,22 +357,41 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                             ErrorsTooltip(
                                                                                 cabinetErrorSubject = cabinetErrorSubject,
                                                                                 cabinetErrorGroup = cabinetErrorGroup,
-                                                                                studentErrors = studentErrors
+                                                                                studentErrors = studentErrors,
+                                                                                cabinetErrorGroupId = model.ciTiming!!.cabinetErrorGroupId,
+                                                                                component = component,
+                                                                                niFormId = model.ciFormId ?: 0,
+                                                                                niGroupId = model.ciId ?: 0,
+                                                                                niCustom = model.ciCustom,
+                                                                                niTeacherLogin = model.ciLogin ?: model.login,
+                                                                                classicStudentErrors = model.ciTiming!!.studentErrors,
+                                                                                niOnClick = {
+                                                                                    component.onEvent(
+                                                                                        ScheduleStore.Intent.ciCreate( ScheduleTiming(
+                                                                                            start = parts[0],
+                                                                                            end = parts[1]
+                                                                                        ))
+                                                                                    )
+                                                                                },
+                                                                                niIndex = (model.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1
                                                                             )
                                                                         }
                                                                     } else {
                                                                         IconButton(
                                                                             onClick = {
+//                                                                                component.onEvent(
+//                                                                                    ScheduleStore.Intent.ciChooseTime(
+//                                                                                        ScheduleTiming(
+//                                                                                            start = parts[0],
+//                                                                                            end = parts[1]
+//                                                                                        )
+//                                                                                    )
+//                                                                                )
                                                                                 component.onEvent(
-                                                                                    ScheduleStore.Intent.ciChooseTime(
-                                                                                        ScheduleTiming(
-                                                                                            start = parts[0],
-                                                                                            end = parts[1]
-                                                                                        )
-                                                                                    )
-                                                                                )
-                                                                                component.onEvent(
-                                                                                    ScheduleStore.Intent.ciCreate
+                                                                                    ScheduleStore.Intent.ciCreate(ScheduleTiming(
+                                                                                        start = parts[0],
+                                                                                        end = parts[1]
+                                                                                    ))
                                                                                 )
                                                                             }
                                                                         ) {
@@ -428,7 +449,24 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                 ErrorsTooltip(
                                                                     cabinetErrorSubject = cabinetErrorSubject,
                                                                     cabinetErrorGroup = cabinetErrorGroup,
-                                                                    studentErrors = studentErrors
+                                                                    studentErrors = studentErrors,
+                                                                    cabinetErrorGroupId = t.cabinetErrorGroupId,
+                                                                    component = component,
+                                                                    niCustom = model.ciCustom,
+                                                                    niFormId = model.ciFormId ?: 0,
+                                                                    niGroupId = model.ciId ?: 0,
+                                                                    niTeacherLogin = model.ciLogin ?: model.login,
+                                                                    classicStudentErrors = t.studentErrors,
+                                                                    niOnClick = {
+                                                                            with(
+                                                                                component
+                                                                            ) {
+                                                                                onEvent(
+                                                                                    ScheduleStore.Intent.ciCreate(t)
+                                                                                )
+                                                                            }
+                                                                    },
+                                                                    niIndex = (model.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1
                                                                 )
                                                             }
                                                                        },
@@ -457,7 +495,7 @@ fun LazyItemScope.ScheduleColumnForForms(
 
                                         model.ciPreview -> {
                                             component.onEvent(
-                                                ScheduleStore.Intent.ciCreate
+                                                ScheduleStore.Intent.ciCreate(null)
                                             )
                                             component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
                                         }
@@ -527,7 +565,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                                     nModel = nModel,
                                     isInPopup = false,
                                     form = form,
-                                    coItemsCount = coItems.size
+                                    coItemsCount = coItems.size,
+                                    key = key
                                 ) {
                                     component.onEvent(ScheduleStore.Intent.eiDelete(e.index))
                                 }
@@ -610,18 +649,40 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                             trueItems = trueItems,
                                                             nModel = nModel,
                                                             coItemsCount = coItems.size,
-                                                            form = form
+                                                            form = form,
+                                                            key = key
                                                         ) {
-                                                            component.onEvent(ScheduleStore.Intent.eiDelete(e.index))
+                                                            component.onEvent(ScheduleStore.Intent.eiDelete(item.index))
                                                         }
                                                     }
-                                                    val kids = model.students.filter { it.login in form.logins }
-                                                        .filter { item.groupId in it.groups.map { it.first } }
+                                                    val logins = fetchLoginsOfLesson(
+                                                        trueItems = trueItems,
+                                                        solvedConflictsItems = model.solveConflictItems[key],
+                                                        students = model.students,
+                                                        forms = model.forms,
+                                                        lessonIndex = item.index,
+                                                        state = model
+                                                    )
+                                                    val okKids = logins?.okLogins?.mapNotNull { l ->
+                                                        model.students.firstOrNull { it.login == l}
+                                                    } ?: listOf()
+                                                    val deletedKids = logins?.deletedLogins?.mapNotNull { l ->
+                                                        model.students.firstOrNull { it.login == l}
+                                                    } ?: listOf()
                                                     Column(Modifier.padding(horizontal = 10.dp, vertical = 5.dp)) {
                                                         Text("В этой группе:")
-                                                        if (kids.isNotEmpty()) {
-                                                            kids.forEach {
+                                                        if (okKids.isNotEmpty()) {
+                                                            okKids.forEach {
                                                                 Text("${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}.")
+                                                            }
+                                                        }
+                                                        if (deletedKids.isNotEmpty()) {
+                                                            deletedKids.forEach {
+                                                                Text(
+                                                                    "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}.",
+                                                                    textDecoration = TextDecoration.LineThrough,
+                                                                    modifier = Modifier.alpha(.5f)
+                                                                )
                                                             }
                                                         }
 
@@ -653,6 +714,7 @@ private fun BoxScope.ScheduleForFormsContent(
     trueItems: List<ScheduleItem>,
     coItemsCount: Int,
     form: ScheduleFormValue,
+    key: String,
     onDeleteClick: () -> Unit
 ) {
     if (e.groupId == -11) {
@@ -851,6 +913,20 @@ private fun BoxScope.ScheduleForFormsContent(
         }
     }
     else {
+        val logins = fetchLoginsOfLesson(
+            trueItems = trueItems,
+            solvedConflictsItems = model.solveConflictItems[key],
+            students = model.students,
+            forms = model.forms,
+            lessonIndex = e.index,
+            state = model
+        )
+        val okKids = logins?.okLogins?.mapNotNull { l ->
+            model.students.firstOrNull { it.login == l}
+        } ?: listOf()
+        val deletedKids = logins?.deletedLogins?.mapNotNull { l ->
+            model.students.firstOrNull { it.login == l}
+        } ?: listOf()
         EditPopup(
             model = model,
             e = e,
@@ -858,8 +934,10 @@ private fun BoxScope.ScheduleForFormsContent(
             nModel = nModel,
             trueItems = trueItems,
             tLogin = null,
-            kids = if (coItemsCount == 1) model.students.filter { it.login in form.logins }
-                .filter { e.groupId in it.groups.map { it.first } } else listOf()
+            okKids = okKids,
+            deletedKids = deletedKids
+//            kids = if (coItemsCount == 1) model.students.filter { it.login in form.logins }
+//                .filter { e.groupId in it.groups.map { it.first } } else listOf()
         )
     }
 }

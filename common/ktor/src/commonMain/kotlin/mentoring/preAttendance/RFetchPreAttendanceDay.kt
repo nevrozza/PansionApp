@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RFetchPreAttendanceDayReceive(
     val studentLogin: String,
-    val date: String
+    val date: String,
+    val dayOfWeek: String,
 )
 
 @Serializable

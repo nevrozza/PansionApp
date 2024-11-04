@@ -27,7 +27,8 @@ data class PersonScheduleItem(
     val groupName: String,
     val marks: List<UserMark>,
     val stupsSum: Int,
-    val isSwapped: Boolean
+    val isSwapped: Boolean,
+    val lessonIndex: Int
 )
 
 
@@ -43,7 +44,8 @@ data class PersonScheduleItemWithNum(
     val marks: List<UserMark>,
     val stupsSum: Int,
     val isSwapped: Boolean,
-    val num: Int
+    val num: Int,
+    val lessonIndex: Int
 )
 
 @Serializable
@@ -57,5 +59,7 @@ data class ScheduleTiming(
 @Serializable
 data class StudentError(
     val groupId: Int,
-    val logins: List<String>
+    val logins: List<String>,
+    val teacherLogin: String,
+    val id: Int
 )

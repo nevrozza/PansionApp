@@ -51,7 +51,8 @@ class HomeTasksExecutor(
                     nInitInterface.nSuccess()
                 }
             }
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            print("ht: ${e}")
             nInitInterface.nError(text = "Не удалось загрузить данные\nоб уроках") {
                 init()
             }

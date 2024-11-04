@@ -58,8 +58,8 @@ class MainRepositoryImpl(
         return remoteDataSource.createMinistryStudent(r)
     }
 
-    override suspend fun fetchMinistrySettings(): RFetchMinistrySettingsResponse {
-        return remoteDataSource.fetchMinistrySettings()
+    override suspend fun fetchMinistrySettings(r: RFetchMinistryStudentsReceive): RFetchMinistrySettingsResponse {
+        return remoteDataSource.fetchMinistrySettings(r)
     }
 
     override suspend fun fetchSchoolData(r: RFetchSchoolDataReceive): RFetchSchoolDataResponse {
@@ -124,11 +124,9 @@ class MainRepositoryImpl(
         return remoteDataSource.fetchTeacherGroups()
     }
 
-    override suspend fun fetchStudentsInGroup(groupId: Int): RFetchStudentsInGroupResponse {
+    override suspend fun fetchStudentsInGroup(r: RFetchStudentsInGroupReceive): RFetchStudentsInGroupResponse {
         return remoteDataSource.fetchStudentInGroup(
-            RFetchStudentsInGroupReceive(
-                groupId = groupId
-            )
+            r
         )
     }
 

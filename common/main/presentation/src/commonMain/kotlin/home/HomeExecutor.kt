@@ -283,7 +283,8 @@ class HomeExecutor(
                             marks = item.marks,
                             stupsSum = item.stupsSum,
                             isSwapped = item.isSwapped,
-                            num = num
+                            num = num,
+                            lessonIndex = item.lessonIndex
                         )
                     }
                     newList[it.key] = items

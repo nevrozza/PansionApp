@@ -6,6 +6,7 @@ import com.arkivanov.mvikotlin.core.store.Store
 import journal.JournalStore.Intent
 import journal.JournalStore.Label
 import journal.JournalStore.State
+import journal.init.PersonForGroup
 import journal.init.TeacherGroup
 import report.ReportHeader
 import server.getPreviousWeekDays
@@ -16,7 +17,7 @@ interface JournalStore : Store<Intent, State, Label> {
     data class State(
         val isMentor: Boolean,
         val childrenGroupIds: List<Int> = emptyList(),
-        val studentsInGroup: List<Person> = emptyList(),
+        val studentsInGroup: List<PersonForGroup> = emptyList(),
         val currentGroupId: Int = 0,
         val teacherGroups: List<TeacherGroup> = emptyList(),
         val headers: List<ReportHeader> = emptyList(),
@@ -36,7 +37,7 @@ interface JournalStore : Store<Intent, State, Label> {
 
     sealed interface Intent {
         data object Init : Intent
-        data class OnGroupClicked(val groupId: Int, val time: String) : Intent
+        data class OnGroupClicked(val groupId: Int, val time: String, val date: String?, val lessonId: Int?) : Intent
 
         data object Refresh : Intent
 
@@ -56,7 +57,7 @@ interface JournalStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
-        data class StudentsInGroupUpdated(val students: List<Person>, val groupId: Int) : Message
+        data class StudentsInGroupUpdated(val students: List<PersonForGroup>, val groupId: Int) : Message
         data class HeadersUpdated(val headers: List<ReportHeader>, val currentModule: String) : Message
         data class TeacherGroupsUpdated(val teacherGroups: List<TeacherGroup>) : Message
         data class ReportCreated(val id: Int) : Message

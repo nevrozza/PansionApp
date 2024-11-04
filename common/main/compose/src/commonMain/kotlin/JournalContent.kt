@@ -50,6 +50,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -62,6 +63,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -469,7 +471,7 @@ fun StudentsPreviewDialog(
     ) {
         Column {
             LazyColumn {
-                items(model.studentsInGroup) {
+                items(model.studentsInGroup.sortedBy { it.isDeleted }) {
 //                            TextButton(
 //                                modifier = Modifier.fillMaxWidth(),
 //                                onClick = {},
@@ -480,9 +482,10 @@ fun StudentsPreviewDialog(
 //                                shape = RoundedCornerShape(15.dp)
 //                            ) {
                     Text(
-                        "${it.fio.surname} ${it.fio.name} ${it.fio.praname}",
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                        textAlign = TextAlign.Center
+                        "${it.p.fio.surname} ${it.p.fio.name} ${it.p.fio.praname}",
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp).alpha(if (it.isDeleted) .5f else 1f),
+                        textAlign = TextAlign.Center,
+                        textDecoration = if(it.isDeleted) TextDecoration.LineThrough else TextDecoration.None
                     )
 //                            }
 

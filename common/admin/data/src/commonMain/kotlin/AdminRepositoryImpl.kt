@@ -368,11 +368,12 @@ class AdminRepositoryImpl(
         return remoteDataSource.performFetchMentorsForGroups()
     }
 
-    override suspend fun fetchSchedule(dayOfWeek: String, date: String): RScheduleList {
+    override suspend fun fetchSchedule(dayOfWeek: String, date: String, isFirstTime: Boolean): RScheduleList {
         return remoteDataSource.fetchSchedule(
             RFetchScheduleDateReceive(
                 dayOfWeek = dayOfWeek,
-                day = date
+                day = date,
+                isFirstTime = isFirstTime
             )
         )
     }
