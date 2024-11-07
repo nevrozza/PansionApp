@@ -32,10 +32,12 @@ interface JournalStore : Store<Intent, State, Label> {
         val filterMyChildren: Boolean = isMentor,
         val weekDays: List<String> = getWeekDays(),
         val previousWeekDays: List<String> = getPreviousWeekDays(),
-        val login: String
+        val login: String,
+        val lessonId: Int? = null
     )
 
     sealed interface Intent {
+        
         data object Init : Intent
         data class OnGroupClicked(val groupId: Int, val time: String, val date: String?, val lessonId: Int?) : Intent
 
@@ -61,6 +63,7 @@ interface JournalStore : Store<Intent, State, Label> {
         data class HeadersUpdated(val headers: List<ReportHeader>, val currentModule: String) : Message
         data class TeacherGroupsUpdated(val teacherGroups: List<TeacherGroup>) : Message
         data class ReportCreated(val id: Int) : Message
+        data class LessonIdChanged(val lessonId: Int?) : Message
 
         data object CreatingIdReseted : Message
 

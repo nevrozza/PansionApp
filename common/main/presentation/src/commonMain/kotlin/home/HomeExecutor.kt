@@ -2,6 +2,7 @@ package home
 
 import AuthRepository
 import CDispatcher
+import JournalRepository
 import MainRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
@@ -17,6 +18,7 @@ import main.RChangeToUv
 import main.RDeleteMainNotificationsReceive
 import main.RFetchMainHomeTasksCountReceive
 import main.RFetchMainNotificationsReceive
+import report.RMarkLessonReceive
 import schedule.PersonScheduleItemWithNum
 import server.Roles
 import server.toMinutes
@@ -24,6 +26,7 @@ import server.toMinutes
 class HomeExecutor(
     private val authRepository: AuthRepository,
     private val mainRepository: MainRepository,
+    private val journalRepository: JournalRepository,
     private val quickTabNInterface: NetworkInterface,
     private val teacherNInterface: NetworkInterface,
     private val gradesNInterface: NetworkInterface,
@@ -92,6 +95,36 @@ class HomeExecutor(
             }
 
             is Intent.ChangeToUv -> changeToUv(intent.reportId, intent.login, intent.isDeep)
+
+            is Intent.MarkLesson -> markLesson(intent.lessonId)
+        }
+    }
+
+
+    private fun markLesson(lessonId: Int) {
+        scope.launch(CDispatcher) {
+            try {
+
+                journalRepository.toMarkLesson(
+                    RMarkLessonReceive(
+                        date = state().currentDate.second,
+                        lessonId = lessonId
+                    )
+                )
+                val newSchedule = state().items.toMutableMap()
+                newSchedule[state().currentDate.second] = newSchedule[state().currentDate.second]?.map {
+                    if (it.lessonIndex == lessonId) {
+                        it.copy(isMarked = true)
+                    } else it
+                } ?: listOf()
+                scope.launch {
+                    dispatch(
+                        Message.ItemsUpdated(newSchedule.toMap(HashMap()))
+                    )
+                }
+            } catch (e: Throwable) {
+                println(e)
+            }
         }
     }
 
@@ -284,7 +317,8 @@ class HomeExecutor(
                             stupsSum = item.stupsSum,
                             isSwapped = item.isSwapped,
                             num = num,
-                            lessonIndex = item.lessonIndex
+                            lessonIndex = item.lessonIndex,
+                            isMarked = item.isMarked
                         )
                     }
                     newList[it.key] = items

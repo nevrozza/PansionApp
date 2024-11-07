@@ -37,12 +37,13 @@ class JournalExecutor(
             Intent.Init -> initComponent()
             is Intent.OnGroupClicked -> {
                 dispatch(Message.TimeChanged(intent.time))
+                dispatch(Message.LessonIdChanged(intent.lessonId))
                 groupListComponent.onEvent(ListDialogStore.Intent.HideDialog)
                 studentsInGroupCAlertDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
                 fetchStudentsInGroup(intent.groupId, date = intent.date, lessonId = intent.lessonId)
             }
 
-            Intent.CreateReport -> {
+            is Intent.CreateReport -> {
                 scope.launch(CDispatcher) {
                     try {
                         studentsInGroupCAlertDialogComponent.nInterface.nStartLoading()
@@ -50,7 +51,8 @@ class JournalExecutor(
                             groupId = state().currentGroupId,
                             date = getDate(),
                             time = state().time,
-                            studentLogins = state().studentsInGroup.filter { !it.isDeleted }.map { it.p.login }
+                            studentLogins = state().studentsInGroup.filter { !it.isDeleted }.map { it.p.login },
+                            lessonId = state().lessonId
                         )).reportId
                         scope.launch {
                             dispatch(Message.ReportCreated(id))

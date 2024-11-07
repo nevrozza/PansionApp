@@ -13,7 +13,8 @@ object JournalReducer : Reducer<State, Message> {
             }
 
             is Message.TeacherGroupsUpdated -> copy(teacherGroups = msg.teacherGroups)
-            is Message.ReportCreated -> copy(creatingReportId = msg.id)
+            is Message.ReportCreated -> copy(creatingReportId = msg.id, lessonId = null)
+            is Message.LessonIdChanged -> copy(lessonId = null)
             Message.CreatingIdReseted -> copy(creatingReportId = -1)
             Message.ReportDataReseted -> copy(openingReportData = null)
             is Message.ReportDataFetched -> copy(openingReportData = msg.reportData)

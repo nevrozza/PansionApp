@@ -3,8 +3,10 @@ package components
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -34,12 +36,13 @@ fun Stepper(
 ) {
     val animatedAllAlpha by animateFloatAsState(if (count != 0) 1f else .2f)
     Row(
-        modifier = modifier.height(height).border(
+        modifier = modifier.sizeIn(minWidth = 50.dp).height(height).border(
             width = 1.dp,
             color = MaterialTheme.colorScheme.outline.copy(if (count != 0) 1f else .2f),
             shape = RoundedCornerShape(30)
         ).clip(RoundedCornerShape(30)).alpha(animatedAllAlpha),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
         if (isEditable) {
 //            val animatedAlpha by animateFloatAsState(if (count != minCount) 1f else .2f)
@@ -55,7 +58,11 @@ fun Stepper(
         AnimatedContent(
             count
         ) {
-            Text(it.toString())
+            val mark = it.toString()
+            Text(
+                (if (!mark.contains("-") && !mark.contains("+")
+                ) "+" else "") + mark
+            )
         }
         if (isEditable) {
             IconButton(

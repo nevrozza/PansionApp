@@ -31,6 +31,8 @@ import com.nevrozq.pansion.database.pickedGIA.PickedGIADTO
 import com.nevrozq.pansion.database.secondLogins.SecondLogins
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
+import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
+import com.nevrozq.pansion.database.studentMinistry.StudentMinistryDTO
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import io.ktor.http.*
@@ -78,6 +80,7 @@ class AuthController {
             val r = call.receive<RFetchAboutMeReceive>()
             try {
                 val form = Forms.fetchById(StudentsInForm.fetchFormIdOfLogin(r.studentLogin))
+                val ministry = StudentMinistry.fetchMinistryWithLogin(r.studentLogin) ?: StudentMinistryDTO(login = r.studentLogin, "0", "0")
                 val groups =
                     StudentGroups.fetchGroupsOfStudent(r.studentLogin).filter { it.isActive }
                 val subjects =
@@ -126,7 +129,9 @@ class AuthController {
                         )),
                         likes = likes,
                         dislikes = dislikes,
-                        giaSubjects = PickedGIA.fetchByStudent(r.studentLogin)
+                        giaSubjects = PickedGIA.fetchByStudent(r.studentLogin),
+                        ministryId = ministry.ministry,
+                        ministryLevel = ministry.lvl
                     ))
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict when get about me")

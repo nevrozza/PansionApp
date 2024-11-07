@@ -248,6 +248,7 @@ object Users : Table() {
         }
     }
 
+
     fun fetchByLoginsActivated(logins: List<String>) : List<UserDTO> {
         return transaction {
             Users.select { Users.login inList logins }.mapNotNull {

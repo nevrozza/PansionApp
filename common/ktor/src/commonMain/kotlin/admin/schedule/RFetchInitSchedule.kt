@@ -17,6 +17,7 @@ data class RFetchInitScheduleResponse(
 data class SchedulePerson(
     val login: String,
     val fio: FIO,
+    val subjectId: Int?,
     val groups: List<Pair<Int, Boolean>>
 )
 

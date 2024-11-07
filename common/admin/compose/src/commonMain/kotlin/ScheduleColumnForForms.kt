@@ -512,7 +512,7 @@ fun LazyItemScope.ScheduleColumnForForms(
         Box(Modifier.padding(top = headerP)) {
             val trueItems =
                 model.items[key]?.filter { it.groupId in groups.map { it.id } + (-11) + (0) + (-6) }
-                    ?.filter { (it.formId == null || it.formId == formId) && (it.groupId != -6 || it.custom in form.logins) }
+                    ?.filter { (it.formId == null || it.formId == formId) && (it.groupId != -6 || form.logins.filter { x -> it.custom.contains(x)  }.isNotEmpty()) }
             trueItems?.forEach { e ->
 //                val index = trueItems.indexOf(e)
                 val aState = remember {
@@ -748,13 +748,22 @@ private fun BoxScope.ScheduleForFormsContent(
         )
 
     } else if (e.groupId == -6) {
-        val studentFio = model.students.first { it.login == e.custom }.fio
+        val studentFio = model.students.filter { e.custom.contains(it.login) }
         Text(
             modifier = Modifier.align(Alignment.Center),
             textAlign = TextAlign.Center,
-            text = "Доп с\n${studentFio.surname} ${studentFio.name}",
+            text = "Доп с\n${studentFio.map { "${it.fio.surname} ${it.fio.name[0]}" }}",
             lineHeight = 14.sp,
             fontSize = 14.sp,
+        )
+        Text(
+            model.subjects.firstOrNull { it.id == e.subjectId }?.name.toString(),
+            modifier = Modifier.align(
+                Alignment.TopCenter
+            ),
+            lineHeight = 13.sp,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center
         )
 
         Text(

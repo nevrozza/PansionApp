@@ -16,7 +16,9 @@ data class ScheduleDTO(
     val cabinet: String,
     val formId: Int?,
     val custom: String,
-    val id: Int
+    val subjectId: Int?,
+    val id: Int,
+    val isMarked: Boolean
 )
 
 
@@ -32,6 +34,8 @@ fun ScheduleDTO.mapToItem() =
             teacherLoginBefore = this.teacherLoginBefore,
             formId = this.formId,
             custom = this.custom,
-            index = this.id
+            index = this.id,
+            subjectId = this.subjectId,
+            isMarked = this.isMarked
         )
 

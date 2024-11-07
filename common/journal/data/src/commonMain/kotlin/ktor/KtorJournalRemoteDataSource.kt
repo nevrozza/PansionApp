@@ -27,28 +27,20 @@ import main.school.RUploadMinistryStup
 import rating.RFetchFormRatingReceive
 import rating.RFetchFormRatingResponse
 import rating.RFetchFormsForFormResponse
-import report.RFetchAllGroupMarksReceive
-import report.RFetchAllGroupMarksResponse
-import report.RFetchDetailedStupsReceive
-import report.RFetchDetailedStupsResponse
-import report.RFetchDnevnikRuMarksReceive
-import report.RFetchDnevnikRuMarksResponse
-import report.RFetchFullReportData
-import report.RFetchReportStudentsReceive
-import report.RFetchReportStudentsResponse
-import report.RFetchStudentLinesReceive
-import report.RFetchStudentLinesResponse
-import report.RFetchStudentReportReceive
-import report.RFetchStudentReportResponse
-import report.RFetchSubjectQuarterMarksReceive
-import report.RFetchSubjectQuarterMarksResponse
-import report.RIsQuartersReceive
-import report.RIsQuartersResponse
-import report.RUpdateReportReceive
+import report.*
 
 class KtorJournalRemoteDataSource(
     private val httpClient: HttpClient
 ) {
+    suspend fun markLesson(r: RMarkLessonReceive) {
+        return httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.Reports.MarkLesson)
+            }
+        }.status.value.checkOnNoOk()
+    }
     suspend fun uploadMinistryStup(r: RUploadMinistryStup) {
         return httpClient.post {
             url {

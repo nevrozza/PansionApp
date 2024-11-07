@@ -21,7 +21,7 @@ class LessonReportStoreFactory(
     private val journalRepository: JournalRepository,
     private val authRepository: AuthRepository,
     private val data: ReportData,
-    private val marksDialogComponent: CAlertDialogComponent,
+    private val marksDialogComponent: CAlertDialogComponent
 ) {
 
 
@@ -36,7 +36,8 @@ class LessonReportStoreFactory(
             name = "LessonReportStore",
             initialState = LessonReportStore.State(
                 lessonReportId = data.header.reportId,
-                isEditable = true,
+                isEditable = data.header.teacherLogin == authRepository.fetchLogin()
+                             || authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator),
                 subjectName = data.header.subjectName,
                 groupName = data.header.groupName,
                 groupId = data.header.groupId,

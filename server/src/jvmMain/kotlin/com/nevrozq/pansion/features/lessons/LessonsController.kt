@@ -114,6 +114,7 @@ import rating.RFetchScheduleSubjectsResponse
 import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
 import rating.RatingItem
+import report.RMarkLessonReceive
 import report.UserMark
 import schedule.*
 import server.Roles
@@ -122,6 +123,24 @@ import server.toMinutes
 
 class LessonsController() {
 
+    suspend fun markLesson(call: ApplicationCall) {
+        val r = call.receive<RMarkLessonReceive>()
+        if (call.isTeacher) {
+            try {
+                Schedule.markLesson(lessonId = r.lessonId, lessonDate = r.date)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict!")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't mark lesson: ${e.localizedMessage}"
+                )
+            }
+        } else {
+            call.respond(HttpStatusCode.Forbidden, "No permission")
+        }
+    }
     suspend fun addStudentToGroupFromSubject(call: ApplicationCall) {
         if (call.isModer) {
             try {
@@ -557,6 +576,8 @@ class LessonsController() {
                 val groups = Groups.getAllGroups()
                 val teachers = Users.fetchAllTeachers()
 
+                val students = Users.fetchAllStudents().filter { it.isActive }
+
                 val personItems = items.mapNotNull {
                     val teacher =
                         teachers.firstOrNull { teacher -> teacher.login == it.teacherLogin }
@@ -584,7 +605,7 @@ class LessonsController() {
                                 cabinet = it.cabinet,
                                 start = it.t.start,
                                 end = it.t.end,
-                                subjectName = subjects.first { it.id == group.subjectId }.name,
+                                subjectName = subjects.firstOrNull { it.id == group.subjectId }?.name.toString(),
                                 groupName = group.name,
                                 teacherFio = fio,
                                 marks = if ((alreadyGroups.find { x -> x == it.groupId }
@@ -606,7 +627,8 @@ class LessonsController() {
                                 },
                                 stupsSum = stups.sumOf { it.content.toInt() },
                                 isSwapped = it.teacherLoginBefore != it.teacherLogin,
-                                lessonIndex = it.index
+                                lessonIndex = it.index,
+                                isMarked = it.isMarked
                             )
                         } else {
                             null
@@ -615,11 +637,11 @@ class LessonsController() {
                         if (it.groupId == -6) {
                             val dopFio = if (!isTeacher) fio
                             else {
-                                val user = Users.fetchUser(it.custom)
+                                val users = students.filter { x -> it.custom.contains(x.login) }
                                 FIO(
                                     name = "",
                                     praname = null,
-                                    surname = "${user?.surname}"
+                                    surname = "${users.map { "${it.surname} ${it.name[0]}" }}".replace("[", "").replace("]", "")
                                 )
                             }
                             PersonScheduleItem(
@@ -627,13 +649,14 @@ class LessonsController() {
                                 cabinet = it.cabinet,
                                 start = it.t.start,
                                 end = it.t.end,
-                                subjectName = "Занятие",
+                                subjectName = subjects.firstOrNull { x -> x.id == it.subjectId }?.name.toString(),
                                 groupName = "Доп с",
                                 teacherFio = dopFio,
                                 marks = listOf(),
                                 stupsSum = 0,
                                 isSwapped = it.teacherLoginBefore != it.teacherLogin,
-                                lessonIndex = it.index
+                                lessonIndex = it.index,
+                                isMarked = it.isMarked
                             )
                         } else if (it.groupId == -11) {
                             PersonScheduleItem(
@@ -647,7 +670,8 @@ class LessonsController() {
                                 marks = listOf(),
                                 stupsSum = 0,
                                 isSwapped = it.teacherLoginBefore != it.teacherLogin,
-                                lessonIndex = it.index
+                                lessonIndex = it.index,
+                                isMarked = it.isMarked
                             )
                         } else {
                             PersonScheduleItem(
@@ -661,7 +685,8 @@ class LessonsController() {
                                 marks = listOf(),
                                 stupsSum = 0,
                                 isSwapped = it.teacherLoginBefore != it.teacherLogin,
-                                lessonIndex = it.index
+                                lessonIndex = it.index,
+                                isMarked = it.isMarked
                             )
                         }
                     }
@@ -699,7 +724,9 @@ class LessonsController() {
                             teacherLoginBefore = it.teacherLoginBefore,
                             formId = it.formId,
                             custom = it.custom,
-                            id = it.index
+                            id = it.index,
+                            subjectId = it.subjectId,
+                            isMarked = it.isMarked
                         )
                     }
                 }
@@ -863,7 +890,8 @@ class LessonsController() {
                                 surname = t.surname,
                                 praname = t.praname
                             ),
-                            groups = groups
+                            groups = groups,
+                            subjectId = t.subjectId
                         )
                     )
                 }
@@ -889,7 +917,8 @@ class LessonsController() {
                                 surname = s.surname,
                                 praname = s.praname
                             ),
-                            groups = groups
+                            groups = groups,
+                            subjectId = s.subjectId
                         )
                     )
                 }

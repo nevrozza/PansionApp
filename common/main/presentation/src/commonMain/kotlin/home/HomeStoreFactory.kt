@@ -1,6 +1,7 @@
 package home
 
 import AuthRepository
+import JournalRepository
 import MainRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -30,6 +31,7 @@ class HomeStoreFactory(
     private val role: String,
     private val moderation: String,
     private val isParent: Boolean,
+    private val journalRepository: JournalRepository,
 ) {
 
     fun create(): HomeStore {
@@ -58,7 +60,8 @@ class HomeStoreFactory(
                 teacherNInterface = teacherNInterface,
                 gradesNInterface = gradesNInterface,
                 scheduleNInterface = scheduleNInterface,
-                journalComponent = journalComponent
+                journalComponent = journalComponent,
+                journalRepository = journalRepository
             ) },
             reducer = HomeReducer
         )

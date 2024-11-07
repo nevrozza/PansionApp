@@ -50,7 +50,8 @@ object ScheduleReducer : Reducer<State, Message> {
                 ciCabinet = if (ciIsPair) ciCabinet else 0,
                 ciIsPair = false,
                 ciCustom = "",
-                ciFormId = null
+                ciFormId = null,
+                ciSubjectId = null
             )
 
             is Message.ciTimeChosed -> copy(ciTiming = msg.t)
@@ -152,6 +153,7 @@ object ScheduleReducer : Reducer<State, Message> {
             )
 
             is Message.IsEditItemCouldBeBLABLABLAChanged -> copy(isEditItemCouldBeSavedWithDeletedLogins = msg.isEditItemCouldBeSavedWithDeletedLogins)
+            is Message.ciSubjectIdChanged -> copy(ciSubjectId = msg.subjectId)
         }
     }
 }

@@ -1,9 +1,6 @@
 package com.nevrozq.pansion.database.schedule
 
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import schedule.ScheduleItem
 import server.getLocalDate
@@ -11,7 +8,7 @@ import server.toMinutes
 
 
 object Schedule : Table() {
-    private val id = Schedule.integer("id")//.autoIncrement().uniqueIndex()
+    val id = Schedule.integer("id")//.autoIncrement().uniqueIndex()
     val date = Schedule.varchar("date", 10) //12.45.78
     private val teacherLogin = Schedule.varchar("teacherLogin", 30)
     private val teacherLoginBefore = Schedule.varchar("teacherLoginBefore", 30)
@@ -20,7 +17,20 @@ object Schedule : Table() {
     private val end = Schedule.varchar("end", 5)
     private val cabinet = Schedule.varchar("cabinet", 3)
     private val formId = Schedule.integer("formId").nullable()
-    private val custom = Schedule.varchar("custom", length = 60)
+    private val custom = Schedule.text("custom")
+    private val subjectId = Schedule.integer("subjectId").nullable()
+    val isMarked = Schedule.bool("isMarked")
+
+    fun markLesson(lessonId: Int?, lessonDate: String) {
+        if (lessonId != null) {
+            transaction {
+                Schedule.update({ (Schedule.id eq (lessonId ?: -1)) and (Schedule.date eq lessonDate)}) {
+                    it[Schedule.isMarked] = true
+                }
+            }
+        }
+    }
+
 
     fun insert(dto: ScheduleDTO) {
         try {
@@ -36,6 +46,8 @@ object Schedule : Table() {
                     it[formId] = dto.formId
                     it[custom] = dto.custom
                     it[Schedule.id] = dto.id
+                    it[subjectId] = dto.subjectId
+                    it[isMarked] = dto.isMarked
                 }
             }
         } catch (e: Throwable) {
@@ -77,7 +89,9 @@ object Schedule : Table() {
                         teacherLoginBefore = it[teacherLoginBefore],
                         formId = it[formId],
                         custom = it[custom],
-                        id = it[Schedule.id]
+                        id = it[Schedule.id],
+                        subjectId = it[Schedule.subjectId],
+                        isMarked = it[isMarked]
                     )
                 }
             }
@@ -100,7 +114,9 @@ object Schedule : Table() {
                     teacherLoginBefore = it[teacherLoginBefore],
                     formId = it[formId],
                     custom = it[custom],
-                    id = it[Schedule.id]
+                    id = it[Schedule.id],
+                    subjectId = it [Schedule.subjectId],
+                    isMarked = it[isMarked]
                 ).mapToItem()
             }
         }

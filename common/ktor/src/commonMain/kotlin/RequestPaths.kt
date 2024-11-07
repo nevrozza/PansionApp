@@ -1,6 +1,6 @@
 object RequestPaths {
 //    val ip = "pansionapp-test-server.ru:${ if (deviceType != DeviceTypex.web) 8080 else 8443}"//"109.172.88.2:8443"//""//"192.168.0.107:8081"
-    val ip = "0.0.0.0:8080"
+    val ip = "127.0.0.1:8080"
 //    val ip = "192.168.0.112:8080"
     object Parents {
         const val FetchParents = "server/admin/parents/fetch"
@@ -105,6 +105,8 @@ object RequestPaths {
         const val FetchIsQuarters = "server/reports/user/fetchIsQuarters"
         const val FetchStudentLines = "server/reports/user/fetchStudentLines"
         const val FetchStudentReport = "server/reports/fetchStudentReport"
+
+        const val MarkLesson = "server/reports/markLesson"
     }
 
     object Auth {

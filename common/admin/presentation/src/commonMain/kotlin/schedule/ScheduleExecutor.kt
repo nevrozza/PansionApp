@@ -133,7 +133,9 @@ class ScheduleExecutor(
                         teacherLoginBefore = oldItem.teacherLoginBefore,
                         formId = null,
                         custom = "",
-                        index = oldItem.index
+                        index = oldItem.index,
+                        subjectId = oldItem.subjectId,
+                        isMarked = oldItem.isMarked
                     )
                     newItems.remove(oldItem)
                     newItems.add(newItem)
@@ -197,7 +199,7 @@ class ScheduleExecutor(
             is Intent.eiChangeLogin -> dispatch(Message.eiLoginChanged(intent.login))
             is Intent.ciChangeCustom -> dispatch(Message.ciCustomChanged(intent.custom))
             is Intent.CopyFromStandart -> copyFromStandart()
-            is Intent.StartConflict -> dispatch(
+            is Intent.StartConflict -> {dispatch(
                 Message.ConflictStarted(
                     niFormId = intent.niFormId,
                     niGroupId = intent.niGroupId,
@@ -209,9 +211,11 @@ class ScheduleExecutor(
                         intent.niOnClick()
                         dispatch(Message.NiOnClicked)
                     }
-                ))
+                )) }
 
             is Intent.SolveConflict -> solveConflict(lessonId = intent.lessonId, studentLogins = intent.studentLogins)
+
+            is Intent.ciChangeSubjectId -> dispatch(Message.ciSubjectIdChanged(intent.subjectId))
         }
     }
 
@@ -508,7 +512,9 @@ class ScheduleExecutor(
             teacherLoginBefore = state().ciLogin ?: state().login,
             formId = state().ciFormId,
             custom = state().ciCustom,
-            index = (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1
+            index = (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1,
+            subjectId = state().ciSubjectId,
+            isMarked = false
         )
         scope.launch(CDispatcher) {
             val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
@@ -847,7 +853,9 @@ fun fetchLoginsOfLesson(
         teacherLoginBefore = state.ciLogin ?: state.login,
         formId = state.ciFormId,
         custom = state.ciCustom,
-        index = (state.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1
+        index = (state.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1,
+        subjectId = state.ciSubjectId,
+        isMarked = false
     )
     return if (item != null) {
         val minusLogins = solvedConflictsItems?.get(lessonIndex) ?: listOf()

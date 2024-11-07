@@ -207,49 +207,51 @@ fun LessonReportContent(
                 LessonReportTopBar(component, isFullView) //, scrollBehavior
             },
             floatingActionButton = {
-                Row(
-                    modifier = Modifier.animateContentSize(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AnimatedContent(if (model.status) "Заполнен" else "В процессе") {
-                        Text(it)
-                    }
-                    Checkbox(
-                        checked = model.status,
-                        onCheckedChange = {
-                            component.onEvent(LessonReportStore.Intent.ChangeStatus(it))
+                if (model.isEditable) {
+                    Row(
+                        modifier = Modifier.animateContentSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AnimatedContent(if (model.status) "Заполнен" else "В процессе") {
+                            Text(it)
                         }
-                    )
-                    val isUpdateNeeded =
-                        model.isUpdateNeeded || model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }
-                    AnimatedVisibility(isUpdateNeeded) {
-                        Crossfade(nModel.state) {
-                            SmallFloatingActionButton(
-                                onClick = {
-                                    if (it != NetworkState.Loading && isUpdateNeeded) {
-                                        if (model.isUpdateNeeded) {
-                                            component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
+                        Checkbox(
+                            checked = model.status,
+                            onCheckedChange = {
+                                component.onEvent(LessonReportStore.Intent.ChangeStatus(it))
+                            }
+                        )
+                        val isUpdateNeeded =
+                            model.isUpdateNeeded || model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }
+                        AnimatedVisibility(isUpdateNeeded) {
+                            Crossfade(nModel.state) {
+                                SmallFloatingActionButton(
+                                    onClick = {
+                                        if (it != NetworkState.Loading && isUpdateNeeded) {
+                                            if (model.isUpdateNeeded) {
+                                                component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
+                                            }
+                                            if (model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }) {
+                                                component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
+                                            }
                                         }
-                                        if (model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }) {
-                                            component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
+                                    }
+                                ) {
+                                    when (it) {
+                                        NetworkState.None -> {
+                                            Icon(
+                                                Icons.Rounded.Save,
+                                                null
+                                            )
                                         }
-                                    }
-                                }
-                            ) {
-                                when (it) {
-                                    NetworkState.None -> {
-                                        Icon(
-                                            Icons.Rounded.Save,
-                                            null
-                                        )
-                                    }
 
-                                    NetworkState.Loading -> {
-                                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                                    }
+                                        NetworkState.Loading -> {
+                                            CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                                        }
 
-                                    NetworkState.Error -> {
-                                        Text("Попробовать ещё раз")
+                                        NetworkState.Error -> {
+                                            Text("Попробовать ещё раз")
+                                        }
                                     }
                                 }
                             }
@@ -446,7 +448,8 @@ fun LessonReportContent(
                                                         nHomeTasksModel.onFixErrorClick()
                                                     }
                                                 }
-                                                if (model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew }) {
+
+                                                if ((model.homeTasksToEditIds.isNotEmpty() || true in model.hometasks.map { it.isNew })  && model.isEditable ) {
                                                     IconButton(
                                                         onClick = {
                                                             component.onEvent(LessonReportStore.Intent.SaveHomeTasks)
@@ -502,22 +505,24 @@ fun LessonReportContent(
                                     null
                                 )
                             }
-                            FilledTonalIconToggleButton(
-                                checked = model.settingsTab == LessonReportStore.SettingsTab.MarksTab,
-                                onCheckedChange = {
-                                    if (it) {
-                                        component.onEvent(
-                                            LessonReportStore.Intent.ChangeSettingsTab(
-                                                LessonReportStore.SettingsTab.MarksTab
+                            if (component.model.value.isEditable) {
+                                FilledTonalIconToggleButton(
+                                    checked = model.settingsTab == LessonReportStore.SettingsTab.MarksTab,
+                                    onCheckedChange = {
+                                        if (it) {
+                                            component.onEvent(
+                                                LessonReportStore.Intent.ChangeSettingsTab(
+                                                    LessonReportStore.SettingsTab.MarksTab
+                                                )
                                             )
-                                        )
+                                        }
                                     }
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.ViewWeek,
+                                        null
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    Icons.Rounded.ViewWeek,
-                                    null
-                                )
                             }
                             FilledTonalIconToggleButton(
                                 checked = model.settingsTab == LessonReportStore.SettingsTab.HomeWorkTab,
@@ -743,23 +748,25 @@ private fun HomeWorkTabContent(
                                 },
                                 modifier = Modifier.width(
                                     (((this@BoxWithConstraints.maxWidth / tabs.count()
-                                        .toFloat()) - 1.dp) - (80.dp / tabs.count())).coerceAtLeast(
+                                        .toFloat()) - 1.dp) - ( (if(component.model.value.isEditable) 80.dp else 0.dp) / tabs.count())).coerceAtLeast(
                                         200.dp
                                     )
                                 )
                             )
                         }
                     }
-                    IconButton(
-                        onClick = {
-                            component.homeTasksTabDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                            component.onEvent(LessonReportStore.Intent.UpdateTabLoginsId(null))
+                    if(component.model.value.isEditable) {
+                        IconButton(
+                            onClick = {
+                                component.homeTasksTabDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                component.onEvent(LessonReportStore.Intent.UpdateTabLoginsId(null))
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.Add,
+                                null
+                            )
                         }
-                    ) {
-                        Icon(
-                            Icons.Rounded.Add,
-                            null
-                        )
                     }
                 }
             }
@@ -771,7 +778,7 @@ private fun HomeWorkTabContent(
                     component = component
                 )
             }
-            if (tasks.none { it.type == "" || it.text == "" }) {
+            if (tasks.none { it.type == "" || it.text == "" } && component.model.value.isEditable) {
                 TextButton(
                     onClick = {
                         component.onEvent(
@@ -809,7 +816,7 @@ private fun HomeWorkTabContent(
                     val isChecked = s.login in model.newTabLogins
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.cClickable {
+                        modifier = Modifier.cClickable(component.model.value.isEditable) {
                             if (!isChecked && s.login !in model.newTabLogins) {
                                 component.onEvent(LessonReportStore.Intent.AddLoginToNewTab(s.login))
                             } else if (isChecked && s.login in model.newTabLogins) {
@@ -877,28 +884,30 @@ private fun ReportHomeTaskItem(
                             shape = RoundedCornerShape(15.dp)
                         )
                         // menu
-                        ExposedDropdownMenu(
-                            expanded = expandedType,
-                            onDismissRequest = {
-                                expandedType = false
-                            },
-                        ) {
-                            // menu items
-                            typesList.forEach { selectionOption ->
-                                DropdownMenuItem(
-                                    text = { Text(selectionOption.value) },
-                                    onClick = {
-                                        component.onEvent(
-                                            LessonReportStore.Intent.ChangeHomeTaskType(
-                                                id = task.id,
-                                                type = selectionOption.key,
-                                                isNew = task.isNew
+                        if (component.model.value.isEditable) {
+                            ExposedDropdownMenu(
+                                expanded = expandedType,
+                                onDismissRequest = {
+                                    expandedType = false
+                                                   },
+                                ) {
+                                // menu items
+                                typesList.forEach { selectionOption ->
+                                    DropdownMenuItem(
+                                        text = { Text(selectionOption.value) },
+                                        onClick = {
+                                            component.onEvent(
+                                                LessonReportStore.Intent.ChangeHomeTaskType(
+                                                    id = task.id,
+                                                    type = selectionOption.key,
+                                                    isNew = task.isNew
+                                                )
                                             )
+                                            expandedType = false
+                                                  },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                                         )
-                                        expandedType = false
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                )
+                                }
                             }
                         }
                     }
@@ -908,13 +917,15 @@ private fun ReportHomeTaskItem(
                         CustomTextField(
                             value = if (task.stups == 0) "" else task.stups.toString(),
                             onValueChange = {
-                                component.onEvent(
-                                    LessonReportStore.Intent.ChangeHomeTaskAward(
-                                        id = task.id,
-                                        award = if (it == "") 0 else it.toInt(),
-                                        isNew = task.isNew
+                                if(component.model.value.isEditable) {
+                                    component.onEvent(
+                                        LessonReportStore.Intent.ChangeHomeTaskAward(
+                                            id = task.id,
+                                            award = if (it == "") 0 else it.toInt(),
+                                            isNew = task.isNew
+                                        )
                                     )
-                                )
+                                }
                             },
                             text = "Награда",
                             supText = "макс: ${getMaxStupsCount(task.type)}",
@@ -934,13 +945,15 @@ private fun ReportHomeTaskItem(
                 CustomTextField(
                     value = task.text,
                     onValueChange = {
-                        component.onEvent(
-                            LessonReportStore.Intent.ChangeHomeTaskText(
-                                id = task.id,
-                                text = it,
-                                isNew = task.isNew
+                        if (component.model.value.isEditable) {
+                            component.onEvent(
+                                LessonReportStore.Intent.ChangeHomeTaskText(
+                                    id = task.id,
+                                    text = it,
+                                    isNew = task.isNew
+                                )
                             )
-                        )
+                        }
                     },
                     isEnabled = true,
                     text = "Задание",
@@ -956,7 +969,7 @@ private fun ReportHomeTaskItem(
                     FilesButton()
                 }
                 Spacer(Modifier.height(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable(isEnabled = component.model.value.isEditable) {
                     component.onEvent(
                         LessonReportStore.Intent.ChangeHomeTaskIsNec(
                             id = task.id,
@@ -1034,7 +1047,9 @@ private fun SetupTabContent(
         CustomTextField(
             value = model.topic,
             onValueChange = {
-                component.onEvent(LessonReportStore.Intent.ChangeTopic(it))
+                if (component.model.value.isEditable) {
+                    component.onEvent(LessonReportStore.Intent.ChangeTopic(it))
+                }
                 //component.onEvent(UsersStore.Intent.ChangeESurname(it))
             },
             text = "Тема урока",
@@ -1097,7 +1112,9 @@ private fun SetupTabContent(
         CustomTextField(
             value = model.description,
             onValueChange = {
-                component.onEvent(LessonReportStore.Intent.ChangeDescription(it))
+                if (component.model.value.isEditable) {
+                    component.onEvent(LessonReportStore.Intent.ChangeDescription(it))
+                }
                 //component.onEvent(UsersStore.Intent.ChangeESurname(it))
             },
             text = "Примечания",
@@ -1116,7 +1133,7 @@ private fun SetupTabContent(
         Spacer(Modifier.height(10.dp))
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             val isChecked = model.isMentorWas
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable(component.model.value.isEditable) {
                 component.onEvent(LessonReportStore.Intent.ChangeIsMentorWas)
             }) {
                 Text("Наставник")
@@ -1131,12 +1148,14 @@ private fun SetupTabContent(
                 }
             }
             //MAKE BUTTON FOR RETRY
-            AnimatedElevatedButton(
-                text = if (nModel.state != NetworkState.Error) "Сохранить" else "Ещё раз",
-                isEnabled = nModel.state != NetworkState.Error && model.isUpdateNeeded,
-//                modifier = Modifier.height(48.dp)
-            ) {
-                component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
+            if(component.model.value.isEditable) {
+                AnimatedElevatedButton(
+                    text = if (nModel.state != NetworkState.Error) "Сохранить" else "Ещё раз",
+                    isEnabled = nModel.state != NetworkState.Error && model.isUpdateNeeded,
+                    //                modifier = Modifier.height(48.dp)
+                    ) {
+                    component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
+                }
             }
         }
         Spacer(Modifier.height(30.dp))
@@ -1407,7 +1426,7 @@ private fun ColumnsSettingsItem(
                 val isInProcess = remember { mutableStateOf(false) }
                 val isChecked = (i.title in currentList.map { it.title })
                 Row(
-                    Modifier.cClickable {
+                    Modifier.cClickable(component.model.value.isEditable) {
                         if (!isInProcess.value) {
                             if (!isChecked) {
                                 isInProcess.value = true
@@ -1737,7 +1756,7 @@ fun LessonTable(
                                                                         model.time.toMinutes()
                                                                     val currentMinutes =
                                                                         getSixTime().toMinutes()
-                                                                    if (model.date == getDate() && lessonMinutes <= currentMinutes && currentMinutes - lessonMinutes <= 40) {
+                                                                    if ((model.date == getDate() && lessonMinutes <= currentMinutes && currentMinutes - lessonMinutes <= 40) && model.isEditable) {
                                                                         FilledTonalButton(
                                                                             contentPadding = PaddingValues(
                                                                                 horizontal = 5.dp
@@ -1752,41 +1771,43 @@ fun LessonTable(
                                                                             Text("Опозд.")
                                                                         }
                                                                     }
-                                                                    Box() {
-                                                                        IconButton(
-                                                                            modifier = Modifier.width(
-                                                                                30.dp
-                                                                            )
-//                                                                            .onGloballyPositioned {
-//                                                                            x =
-//                                                                                it.positionInRoot().x - 110f - (viewManager.size!!.maxWidth - currentParentWidth).value// it.positionInParent().x
-//                                                                            y =
-//                                                                                it.positionInRoot().y - 50f
-//
-//                                                                        }
-                                                                            , onClick = {
-                                                                                component.onEvent(
-                                                                                    LessonReportStore.Intent.OpenSetLateTimeMenu(
-                                                                                        student.login,
-                                                                                        x = 0f,
-                                                                                        y = 0f
-                                                                                    )
+                                                                    if (component.model.value.isEditable) {
+                                                                        Box() {
+                                                                            IconButton(
+                                                                                modifier = Modifier.width(
+                                                                                    30.dp
                                                                                 )
-                                                                            }) {
-                                                                            Icon(
-                                                                                Icons.Rounded.MoreVert,
-                                                                                null
-                                                                            )
-                                                                        }
-                                                                        if (model.selectedLogin == student.login) {
-                                                                            ListDialogDesktopContent(
-                                                                                component.setLateTimeMenuComponent,
-                                                                                offset = DpOffset(
-                                                                                    x = 27.dp,
-                                                                                    y = -18.dp
-                                                                                ),
-                                                                                isFullHeight = true
-                                                                            )
+                                                                                //                                                                            .onGloballyPositioned {
+                                                                                //                                                                            x =
+                                                                                //                                                                                it.positionInRoot().x - 110f - (viewManager.size!!.maxWidth - currentParentWidth).value// it.positionInParent().x
+                                                                                //                                                                            y =
+                                                                                //                                                                                it.positionInRoot().y - 50f
+                                                                                //
+                                                                                //                                                                        }
+                                                                                , onClick = {
+                                                                                    component.onEvent(
+                                                                                        LessonReportStore.Intent.OpenSetLateTimeMenu(
+                                                                                            student.login,
+                                                                                            x = 0f,
+                                                                                            y = 0f
+                                                                                        )
+                                                                                    )
+                                                                                }) {
+                                                                                Icon(
+                                                                                    Icons.Rounded.MoreVert,
+                                                                                    null
+                                                                                )
+                                                                            }
+                                                                            if (model.selectedLogin == student.login) {
+                                                                                ListDialogDesktopContent(
+                                                                                    component.setLateTimeMenuComponent,
+                                                                                    offset = DpOffset(
+                                                                                        x = 27.dp,
+                                                                                        y = -18.dp
+                                                                                    ),
+                                                                                    isFullHeight = true
+                                                                                )
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
@@ -1800,22 +1821,24 @@ fun LessonTable(
                                                                         it,
                                                                         fontWeight = FontWeight.Bold
                                                                     )
-                                                                    IconButton(
-                                                                        modifier = Modifier.width(
-                                                                            30.dp
-                                                                        ),
-                                                                        onClick = {
-                                                                            component.onEvent(
-                                                                                LessonReportStore.Intent.SetLateTime(
-                                                                                    student.login,
-                                                                                    "0"
+                                                                    if (component.model.value.isEditable) {
+                                                                        IconButton(
+                                                                            modifier = Modifier.width(
+                                                                                30.dp
+                                                                            ),
+                                                                            onClick = {
+                                                                                component.onEvent(
+                                                                                    LessonReportStore.Intent.SetLateTime(
+                                                                                        student.login,
+                                                                                        "0"
+                                                                                    )
                                                                                 )
+                                                                            }) {
+                                                                            Icon(
+                                                                                Icons.Rounded.Close,
+                                                                                null
                                                                             )
-                                                                        }) {
-                                                                        Icon(
-                                                                            Icons.Rounded.Close,
-                                                                            null
-                                                                        )
+                                                                        }
                                                                     }
                                                                 }
                                                             }
@@ -1881,7 +1904,7 @@ fun LessonTable(
                                                                     )
                                                                 },
                                                                 addModifier = Modifier
-                                                                    .clickable {
+                                                                    .clickable(enabled = model.isEditable) {
                                                                         component.onEvent(
                                                                             LessonReportStore.Intent.OpenDeleteMarkMenu(
                                                                                 reasonId = column.type,
@@ -1910,7 +1933,7 @@ fun LessonTable(
                                                         }
                                                     }
 
-                                                    if (marks.size != 4) {
+                                                    if (marks.size != 4 && model.isEditable) {
                                                         Box() {
                                                             Box(
                                                                 Modifier.offset(y = -2.dp)
@@ -2059,25 +2082,27 @@ private fun LikeDislikeRow(
     component: LessonReportComponent,
     student: StudentLine
 ) {
-    IconButton(onClick = {
-        component.onEvent(LessonReportStore.Intent.LikeStudent(student.login))
-    }, modifier = Modifier.size(20.dp)) {
-        Icon(
-            Icons.Rounded.ThumbDown, null,
-            modifier = Modifier.rotate(180f)
-        )
-    }
-    Spacer(Modifier.width(7.dp))
-    IconButton(onClick = {
-        component.onEvent(
-            LessonReportStore.Intent.DislikeStudent(
-                student.login
+    if (component.model.value.isEditable) {
+        IconButton(onClick = {
+            component.onEvent(LessonReportStore.Intent.LikeStudent(student.login))
+                             }, modifier = Modifier.size(20.dp)) {
+            Icon(
+                Icons.Rounded.ThumbDown, null,
+                modifier = Modifier.rotate(180f)
             )
-        )
-    }, modifier = Modifier.size(20.dp)) {
-        Icon(
-            Icons.Rounded.ThumbDown, null
-        )
+        }
+        Spacer(Modifier.width(7.dp))
+        IconButton(onClick = {
+            component.onEvent(
+                LessonReportStore.Intent.DislikeStudent(
+                    student.login
+                )
+            )
+                             }, modifier = Modifier.size(20.dp)) {
+            Icon(
+                Icons.Rounded.ThumbDown, null
+            )
+        }
     }
 }
 
@@ -2237,7 +2262,7 @@ private fun backAB(
 ) {
     IconButton(
         onClick = {
-            if (component.state.value.isUpdateNeeded || component.state.value.homeTasksToEditIds.isNotEmpty() || true in component.state.value.hometasks.map { it.isNew }) {
+            if ((component.state.value.isUpdateNeeded || component.state.value.homeTasksToEditIds.isNotEmpty() || true in component.state.value.hometasks.map { it.isNew }) && component.model.value.isEditable) {
                 component.saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
             } else {
                 component.onOutput(LessonReportComponent.Output.Back)

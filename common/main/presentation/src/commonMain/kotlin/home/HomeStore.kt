@@ -67,6 +67,9 @@ interface HomeStore : Store<Intent, State, Label> {
     )
 
     sealed interface Intent {
+
+        data class MarkLesson(val lessonId: Int) : Intent
+
         data object Init : Intent
         data class ChangeToUv(val reportId: Int, val login: String, val isDeep: Boolean) : Intent
         data object ChangeIsDatesShown : Intent

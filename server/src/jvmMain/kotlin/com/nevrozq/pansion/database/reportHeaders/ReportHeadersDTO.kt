@@ -18,7 +18,8 @@ data class ReportHeadersDTO(
     val status: Boolean,
     val ids: Int,
     val editTime: String,
-    val module: String
+    val module: String,
+    val lessonId: Int?
 )
 
 //fun GroupDTO.mapToGroup() =

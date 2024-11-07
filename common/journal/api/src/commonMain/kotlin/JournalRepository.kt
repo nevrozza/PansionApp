@@ -17,20 +17,12 @@ import main.school.RUploadMinistryStup
 import rating.RFetchFormRatingReceive
 import rating.RFetchFormRatingResponse
 import rating.RFetchFormsForFormResponse
-import report.RFetchAllGroupMarksResponse
-import report.RFetchDetailedStupsResponse
-import report.RFetchDnevnikRuMarksResponse
-import report.RFetchReportStudentsReceive
-import report.RFetchReportStudentsResponse
-import report.RFetchStudentLinesReceive
-import report.RFetchStudentLinesResponse
-import report.RFetchStudentReportReceive
-import report.RFetchStudentReportResponse
-import report.RFetchSubjectQuarterMarksResponse
-import report.RIsQuartersResponse
-import report.RUpdateReportReceive
+import report.*
 
 interface JournalRepository {
+
+
+    suspend fun toMarkLesson(r: RMarkLessonReceive)
 
     suspend fun uploadMinistryStup(r: RUploadMinistryStup)
 

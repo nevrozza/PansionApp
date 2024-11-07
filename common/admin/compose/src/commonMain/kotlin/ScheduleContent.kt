@@ -19,31 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
-import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -85,6 +66,7 @@ import server.toMinutes
 import server.weekPairs
 import view.LocalViewManager
 import view.LockScreenOrientation
+import view.blend
 import view.rememberImeState
 
 
@@ -297,7 +279,7 @@ fun ScheduleContent(
                     val headerP = 55.dp //55
                     val maxHeight = this.maxHeight - headerP
                     val minuteHeight =
-                        if (isStatic.value) maxHeight / ("20:00".toMinutes() - dayStartTime.toMinutes()) else (1.35f).dp
+                        if (isStatic.value) maxHeight / ("20:00".toMinutes() - dayStartTime.toMinutes()) else (1.7f).dp
 
                     val timings = listOf(
                         "08:45",
@@ -661,6 +643,7 @@ private fun LazyItemScope.ScheduleColumn(
                                     null
                                 } else {
                                     {
+                                        component.onEvent(ScheduleStore.Intent.ciChangeCustom(""))
                                         component.onEvent(ScheduleStore.Intent.ciNullGroupId)
                                     }
                                 },
@@ -1096,7 +1079,7 @@ private fun LazyItemScope.ScheduleColumn(
                                             val trueItems =
                                                 model.items[key]?.filter { it.groupId in model.groups.map { it.id } + (-11) + (0) + (-6) }
                                                     ?: emptyList()
-//                                                    ?.filter { (it.formId == null ) && (it.groupId != -6 || it.custom in form.logins) }
+                                            //                                                    ?.filter { (it.formId == null ) && (it.groupId != -6 || it.custom in form.logins) }
                                             val coItems =
                                                 (trueItems).filter {
                                                     // ! (закончилось раньше чем началось наше) или (началось позже чем началось наше)
@@ -1106,9 +1089,16 @@ private fun LazyItemScope.ScheduleColumn(
                                                                     it.t.start.toMinutes() >= model.ciTiming!!.end.toMinutes())) && it.groupId == -11))
                                                 }
 
+                                            val studentErrors = schedule.getStudentErrors(
+                                                coItems = coItems,
+                                                students = model.students,//logins?.okLogins?.mapNotNull { l ->
+                                                //                                                    model.students.firstOrNull { it.login == l }
+                                                //                                                                                                } ?: listOf(),
+                                                state = model
+                                            )
+
                                             val filterStudents = remember { mutableStateOf("") }
                                             Row {
-
                                                 IconButton(
                                                     onClick = {
                                                         component.onEvent(
@@ -1121,63 +1111,169 @@ private fun LazyItemScope.ScheduleColumn(
                                                         null
                                                     )
                                                 }
-                                                CustomTextField(
-                                                    value = filterStudents.value,
-                                                    onValueChange = {
-                                                        filterStudents.value = it
+                                                Column {
+                                                    var expandedGSubjects by remember {
+                                                        mutableStateOf(
+                                                            false
+                                                        )
+                                                    }
+                                                    val subjectsMap =
+                                                        model.subjects.filter { it.isActive }
+                                                            .sortedBy { it.id != c.subjectId }
+                                                            .associate { it.id to "${it.name}" }
 
-                                                    },
-                                                    text = "ФИО ученика",
-                                                    isEnabled = nModel.state == NetworkState.None,
-                                                    isMoveUpLocked = true,
-                                                    autoCorrect = false,
-                                                    keyboardType = KeyboardType.Text
-                                                )
+                                                    ExposedDropdownMenuBox(
+                                                        expanded = expandedGSubjects,
+                                                        onExpandedChange = {
+                                                            expandedGSubjects =
+                                                                !expandedGSubjects
+                                                        }
+                                                    ) {
+                                                        // textfield
+                                                        val gSubject =
+                                                            model.subjects.find { it.id == model.ciSubjectId }
+
+                                                        OutlinedTextField(
+                                                            modifier = Modifier
+                                                                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                                                                .defaultMinSize(
+                                                                    minWidth = 5.dp
+                                                                ), // menuAnchor modifier must be passed to the text field for correctness.
+                                                            readOnly = true,
+                                                            value = (gSubject?.name)
+                                                                ?: "",
+                                                            placeholder = {
+                                                                Text(
+                                                                    "Выберите"
+                                                                )
+                                                            },
+                                                            onValueChange = {},
+                                                            label = { Text("Предмет") },
+                                                            trailingIcon = {
+                                                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                                                    expanded = expandedGSubjects
+                                                                )
+                                                            },
+                                                            shape = RoundedCornerShape(
+                                                                15.dp
+                                                            ),
+                                                            enabled = true//!model.isCreatingFormInProcess
+                                                        )
+                                                        // menu
+
+                                                        ExposedDropdownMenu(
+                                                            expanded = expandedGSubjects,
+                                                            onDismissRequest = {
+                                                                expandedGSubjects =
+                                                                    false
+                                                            },
+                                                        ) {
+                                                            // menu items
+                                                            subjectsMap.forEach { selectionOption ->
+                                                                DropdownMenuItem(
+                                                                    text = {
+                                                                        Text(
+                                                                            selectionOption.value,
+                                                                            //color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selectionOption.key in sortedList) 0.3f else 1f)
+                                                                        )
+                                                                    },
+                                                                    onClick = {
+                                                                        component.onEvent(
+                                                                            ScheduleStore.Intent.ciChangeSubjectId(
+                                                                                selectionOption.key
+                                                                            )
+                                                                        )
+                                                                        expandedGSubjects =
+                                                                            false
+                                                                    },
+                                                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+
+
+                                                    CustomTextField(
+                                                        value = filterStudents.value,
+                                                        onValueChange = {
+                                                            filterStudents.value = it
+
+                                                        },
+                                                        text = "ФИО ученика",
+                                                        isEnabled = nModel.state == NetworkState.None,
+                                                        isMoveUpLocked = true,
+                                                        autoCorrect = false,
+                                                        keyboardType = KeyboardType.Text
+                                                    )
+                                                }
+
+
+
+                                                AnimatedVisibility(
+                                                    model.ciCustom.isNotBlank() && model.ciSubjectId != null
+                                                ) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            val erroredItems = studentErrors.filter {
+                                                                it.logins.filter {
+                                                                    model.ciCustom.contains(it)
+                                                                }.isNotEmpty()
+                                                            }.map {
+                                                                it.copy(
+                                                                    logins = it.logins.filter {
+                                                                        model.ciCustom.contains(
+                                                                            it
+                                                                        )
+                                                                    }
+                                                                )
+                                                            }
+                                                            if (erroredItems.isEmpty()) {
+                                                                component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+                                                                component.onEvent(
+                                                                    ScheduleStore.Intent.ciCreate(null)
+                                                                )
+                                                            } else {
+    //                                                            val item = coItems.first { it.index == erroredItem.id }
+                                                                component.onEvent(
+                                                                    ScheduleStore.Intent.StartConflict(
+                                                                        niFormId = model.ciFormId ?: 0,
+                                                                        niGroupId = model.ciId!!,
+                                                                        niCustom = model.ciCustom,
+                                                                        niTeacherLogin = model.ciLogin ?: model.login,
+                                                                        niErrors = erroredItems,
+                                                                        niId = (model.items.flatMap { it.value.map { it.index } }
+                                                                            .maxByOrNull { it } ?: 1) + 1,
+                                                                        niOnClick = {
+                                                                            component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+                                                                            component.onEvent(
+                                                                                ScheduleStore.Intent.ciCreate(null)
+                                                                            )
+                                                                        }
+                                                                    ))
+                                                                component.chooseConflictDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                                            }
+                                                        }
+                                                    ) {
+                                                        Icon(Icons.Rounded.Done, null)
+                                                    }
+                                                }
                                             }
 
-//
-//                                            val okStudents = logins?.okLogins?.mapNotNull { l ->
-//                                                state().students.firstOrNull { it.login == l }
-//                                            } ?: listOf()
-//                                            val allStudents =
-//                                                ((((logins?.deletedLogins ?: listOf()) + (logins?.okLogins)) ?: listOf())).mapNotNull { l ->
-//                                                    state().students.firstOrNull { it.login == l }
-//                                                } ?: listOf()
-//
-//                                            val okErrors = getStudentErrors(
-//                                                coItems = coItems,
-//                                                students = okStudents,
-//                                                state = state()
-//                                            )
 
-//                                            val logins = fetchLoginsOfLesson(
-//                                                trueItems = coItems,
-//                                                solvedConflictsItems = model.solveConflictItems[key],
-//                                                students = model.students,
-//                                                forms = model.forms,
-//                                                lessonIndex = (model.items.flatMap { it.value.map { it.index } }
-//                                                    .maxByOrNull { it } ?: 1) + 1,
-//                                                state = model,
-//                                                timing = model.ciTiming
-//                                            )
+                                            //
 
-                                            val studentErrors = schedule.getStudentErrors(
-                                                coItems = coItems,
-                                                students = model.students,//logins?.okLogins?.mapNotNull { l ->
-//                                                    model.students.firstOrNull { it.login == l }
-//                                                                                                } ?: listOf(),
-                                                state = model
-                                            )
-
-//
-
-
+                                            //                                            Column(Modifier.verticalScroll(rememberScrollState())) {
                                             model.students.filter {
                                                 "${it.fio.surname} ${it.fio.name} ${it.fio.praname}".lowercase()
                                                     .contains(filterStudents.value.lowercase())
-                                            }.forEach { s ->
-//                                                val cabinetErros = coItems.filter { it.cabinet  }
-//                                                val isErrored = s.login in studentErrors.flatMap { it.logins }
+                                            }.sortedWith(
+                                                compareBy(
+                                                    { !model.ciCustom.contains(it.login) },
+                                                    { it.fio.surname })
+                                            ).forEach { s ->
+                                                val isPicked = model.ciCustom.contains(s.login)
+                                                //                                                val cabinetErros = coItems.filter { it.cabinet  }
+                                                //                                                val isErrored = s.login in studentErrors.flatMap { it.logins }
                                                 val erroredItem =
                                                     studentErrors.firstOrNull { s.login in it.logins }?.copy(
                                                         logins = listOf(s.login)
@@ -1186,46 +1282,35 @@ private fun LazyItemScope.ScheduleColumn(
                                                     text = {
                                                         Text(
                                                             text = "${s.fio.surname} ${s.fio.name} ${s.fio.praname}",
-                                                            color = if (erroredItem == null) MaterialTheme.colorScheme.onBackground
-                                                            else MaterialTheme.colorScheme.error
+                                                            color = MaterialTheme.colorScheme
+                                                                .onSurface.blend(
+                                                                    when {
+                                                                        isPicked -> Color.Green
+                                                                        erroredItem == null -> MaterialTheme.colorScheme
+                                                                            .onSurface
+
+                                                                        else -> Color.Red
+                                                                    }
+                                                                )
                                                         )
                                                     },
                                                     onClick = {
-                                                        if (erroredItem == null) {
-                                                            component.onEvent(ScheduleStore.Intent.ciChangeCustom(s.login))
-                                                            component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
-                                                            component.onEvent(
-                                                                ScheduleStore.Intent.ciCreate(null)
+                                                        component.onEvent(
+                                                            ScheduleStore.Intent.ciChangeCustom(
+                                                                if (isPicked) model.ciCustom.replace(
+                                                                    s.login,
+                                                                    ""
+                                                                ) else model.ciCustom + s.login
                                                             )
-                                                        } else {
-//                                                            val item = coItems.first { it.index == erroredItem.id }
-                                                            component.onEvent(
-                                                                ScheduleStore.Intent.StartConflict(
-                                                                    niFormId = model.ciFormId ?: 0,
-                                                                    niGroupId = model.ciId!!,
-                                                                    niCustom = model.ciCustom,
-                                                                    niTeacherLogin = model.ciLogin ?: model.login,
-                                                                    niErrors = listOf(erroredItem),
-                                                                    niId = (model.items.flatMap { it.value.map { it.index } }
-                                                                        .maxByOrNull { it } ?: 1) + 1,
-                                                                    niOnClick = {
-                                                                        component.onEvent(
-                                                                            ScheduleStore.Intent.ciChangeCustom(
-                                                                                s.login
-                                                                            )
-                                                                        )
-                                                                        component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
-                                                                        component.onEvent(
-                                                                            ScheduleStore.Intent.ciCreate(null)
-                                                                        )
-                                                                    }
-                                                                ))
-                                                            component.chooseConflictDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                                                        }
+                                                        )
+                                                        filterStudents.value = ""
+
+                                                        
                                                     },
                                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                                                 )
                                             }
+//                                            }
                                         }
                                     }
                                 }
@@ -1308,15 +1393,23 @@ private fun LazyItemScope.ScheduleColumn(
                                     )
 
                                 } else if (e.groupId == -6) {
-                                    val studentFio = model.students.first { it.login == e.custom }.fio
+                                    val studentFio = model.students.filter { e.custom.contains(it.login) }
                                     Text(
                                         modifier = Modifier.align(Alignment.Center),
                                         textAlign = TextAlign.Center,
-                                        text = "Доп с\n${studentFio.surname} ${studentFio.name}",
+                                        text = "Доп с\n${studentFio.map { "${it.fio.surname} ${it.fio.name[0]}" }}",
                                         lineHeight = 14.sp,
                                         fontSize = 14.sp,
                                     )
-
+                                    Text(
+                                        model.subjects.firstOrNull { it.id == e.subjectId }?.name.toString(),
+                                        modifier = Modifier.align(
+                                            Alignment.TopEnd
+                                        ),
+                                        lineHeight = 13.sp,
+                                        fontSize = 13.sp,
+                                        textAlign = TextAlign.Center
+                                    )
                                     Text(
                                         e.t.start,
                                         modifier = Modifier.align(

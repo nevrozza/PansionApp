@@ -13,7 +13,9 @@ data class ScheduleItem(
     val teacherLoginBefore: String,
     val formId: Int?,
     val custom: String,
-    val index: Int
+    val index: Int,
+    val subjectId: Int?,
+    val isMarked: Boolean
 )
 
 @Serializable
@@ -28,7 +30,8 @@ data class PersonScheduleItem(
     val marks: List<UserMark>,
     val stupsSum: Int,
     val isSwapped: Boolean,
-    val lessonIndex: Int
+    val lessonIndex: Int,
+    val isMarked: Boolean
 )
 
 
@@ -45,7 +48,8 @@ data class PersonScheduleItemWithNum(
     val stupsSum: Int,
     val isSwapped: Boolean,
     val num: Int,
-    val lessonIndex: Int
+    val lessonIndex: Int,
+    val isMarked: Boolean
 )
 
 @Serializable

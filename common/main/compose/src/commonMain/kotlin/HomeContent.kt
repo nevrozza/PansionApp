@@ -336,8 +336,9 @@ fun TeacherHomeContent(
 
         val childrenNotsItems =
             2 + if (!(model.notChildren.isEmpty()
-                      && nQuickTabModel.state == NetworkState.None)
-                    && itHotsShouldBe) model.childrenNotifications.values.flatMap { it.map { it } }.size else 0
+                        && nQuickTabModel.state == NetworkState.None)
+                && itHotsShouldBe
+            ) model.childrenNotifications.values.flatMap { it.map { it } }.size else 0
 
         val isMainView =
             lazyListState.firstVisibleItemIndex in (0..(groupsItems + childrenNotsItems + 1)).toList()
@@ -633,7 +634,8 @@ private fun RaspisanieTable(
                                     marks = it.marks,
                                     stupsSum = it.stupsSum,
                                     isSwapped = it.isSwapped,
-                                    lessonIndex = it.lessonIndex
+                                    lessonIndex = it.lessonIndex,
+                                    isMarked = it.isMarked
                                 )
                                 Spacer(Modifier.padding(10.dp))
                             }
@@ -764,7 +766,7 @@ fun StudentHomeContent(
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
-                            AnimatedVisibility (isMainView) {
+                            AnimatedVisibility(isMainView && component.onBackButtonPress != null) {
                                 IconButton(onClick = {
                                     component.onOutput(HomeComponent.Output.NavigateToSchool)
                                 }) {
@@ -976,7 +978,8 @@ fun Lesson(
     model: HomeStore.State,
     journalModel: JournalStore.State?,
     isSwapped: Boolean,
-    lessonIndex: Int
+    lessonIndex: Int,
+    isMarked: Boolean
 ) {
 
     val isSurnameShown = remember { mutableStateOf(groupId == -6) }
@@ -1115,7 +1118,7 @@ fun Lesson(
                 }
 
 
-                if (role == Roles.student || groupId <= 0) {
+                if (role == Roles.student) {
                     if (
                         isEnded || today == date
                     ) {
@@ -1131,7 +1134,7 @@ fun Lesson(
                                     Spacer(Modifier.width(5.dp))
                                 }
                                 val hours = (minutesOst / 60)
-                                val finalMinutes = (minutesOst - hours*60)
+                                val finalMinutes = (minutesOst - hours * 60)
                                 Text(
                                     if (notNow) if (hours >= 1 && finalMinutes != 0) "$hours ч $finalMinutes мин" else "$minutesOst мин."
                                     else if (!isEnded) "Уже идёт!"
@@ -1161,45 +1164,54 @@ fun Lesson(
                             }
                         }
                     }
-                } else if (journalModel != null && groupId > 0) {
+                } else if (journalModel != null) {
                     if (isEnded || today == date) {
                         val headers = journalModel.headers.filter {
                             it.date == model.currentDate.second &&
                                     it.groupId == groupId &&
                                     (it.time.toMinutes() >= start.toMinutes() && it.time.toMinutes() < end.toMinutes())
                         }
-                        val isCreated = headers.isNotEmpty()
+                        val isCreated = headers.isNotEmpty() || isMarked
                         FilledTonalButton(
                             onClick = {
-                                with(component.journalComponent!!) {
-                                    if (isCreated) {
-                                        if (headers.size == 1) {
-                                            onEvent(JournalStore.Intent.FetchReportData(headers.first()))
-                                        } else {
-                                            component.onEvent(
-                                                HomeStore.Intent.UpdateSomeHeaders(
-                                                    headers
+                                if (groupId > 0) {
+                                    with(component.journalComponent!!) {
+                                        if (isCreated) {
+                                            if (headers.size == 1) {
+                                                onEvent(JournalStore.Intent.FetchReportData(headers.first()))
+                                            } else {
+                                                component.onEvent(
+                                                    HomeStore.Intent.UpdateSomeHeaders(
+                                                        headers
+                                                    )
+                                                )
+                                                component.reportsDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                            }
+                                        } else if (!isEnded) {
+
+                                            onEvent(
+                                                JournalStore.Intent.OnGroupClicked(
+                                                    groupId,
+                                                    start,
+                                                    date = date,
+                                                    lessonId = lessonIndex
                                                 )
                                             )
-                                            component.reportsDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
                                         }
-                                    } else if (!isEnded) {
-                                        onEvent(
-                                            JournalStore.Intent.OnGroupClicked(
-                                                groupId,
-                                                start,
-                                                date = date,
-                                                lessonId = lessonIndex
-                                            )
-                                        )
                                     }
+                                } else if (!isCreated && !isEnded) {
+                                    component.onEvent(HomeStore.Intent.MarkLesson(lessonIndex))
                                 }
                             },
                             enabled = !isEnded || isCreated,
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
                         ) {
                             Text(
-                                if (isCreated) "Посмотреть отчёт" else if (isEnded) "Отчёт не найден" else "Создать отчёт",
+                                if (groupId > 0) {
+                                    if (isCreated) "Посмотреть отчёт" else if (isEnded) "Отчёт не найден" else "Создать отчёт"
+                                } else {
+                                    if (isCreated) "Готово" else if (isEnded) "Пропуск" else "Отметить"
+                                },
                                 lineHeight = 10.sp
                             )
                         }
@@ -1403,7 +1415,7 @@ fun RecentMarkContent(
             modifier = Modifier.padding(5.dp).padding(horizontal = 2.dp).offset(y = -2.dp)
         ) {
             Text(
-                (if (!isNotStups && mark.toInt() > 0 && !mark.contains("+") 
+                (if (!isNotStups && mark.toInt() > 0 && !mark.contains("+")
                 ) "+" else "") + mark,
                 fontSize = 18.sp,
                 modifier = Modifier.fillMaxWidth().offset(y = 4.dp),

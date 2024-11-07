@@ -5,19 +5,10 @@
 
 import admin.groups.Group
 import admin.groups.Subject
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,11 +38,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CheckCircleOutline
-import androidx.compose.material.icons.rounded.LocalFireDepartment
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Save
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -99,6 +86,7 @@ import dev.chrisbanes.haze.HazeState
 import profile.ProfileComponent
 import profile.ProfileStore
 import resources.Images
+import server.Ministries
 import view.GlobalHazeState
 import view.LocalViewManager
 
@@ -120,7 +108,8 @@ fun SharedTransitionScope.ProfileContent(
     val hazeState = remember { HazeState() }
 
     LaunchedEffect(lazyListState.firstVisibleItemScrollOffset) {
-        isFullHeader = (!lazyListState.lastScrolledForward) && lazyListState.firstVisibleItemScrollOffset == 0 || model.tabIndex == 2
+        isFullHeader =
+            (!lazyListState.lastScrolledForward) && lazyListState.firstVisibleItemScrollOffset == 0 || model.tabIndex == 2
     }
 
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
@@ -131,97 +120,98 @@ fun SharedTransitionScope.ProfileContent(
     Scaffold(
         Modifier.fillMaxSize(),
         topBar = {
-                Column(
-                    Modifier
-                        .hazeHeader(viewManager, hazeState = hazeState) //, isActivated = isSharedVisible
-                        .clickable(
-                            interactionSource = MutableInteractionSource(),
-                            indication = null
+            Column(
+                Modifier
+                    .hazeHeader(viewManager, hazeState = hazeState) //, isActivated = isSharedVisible
+                    .clickable(
+                        interactionSource = MutableInteractionSource(),
+                        indication = null
+                    ) {
+                        isFullHeader = true
+                    }
+            ) {
+                AppBar(
+                    navigationRow = {
+                        IconButton(
+                            onClick = { component.onOutput(ProfileComponent.Output.Back) }
                         ) {
-                            isFullHeader = true
+                            Icon(
+                                Icons.Rounded.ArrowBackIosNew, null
+                            )
                         }
-                ) {
-                    AppBar(
-                        navigationRow = {
-                            IconButton(
-                                onClick = { component.onOutput(ProfileComponent.Output.Back) }
+                    },
+                    title = {
+                        Box(modifier = Modifier.fillMaxWidth().padding(end = 10.dp)) {
+                            AnimatedContent(
+                                if (!isFullHeader) model.fio.name else if (model.isOwner) "Профиль" else "Просмотр",
+                                modifier = Modifier.align(Alignment.CenterStart)
                             ) {
-                                Icon(
-                                    Icons.Rounded.ArrowBackIosNew, null
+                                Text(
+                                    it,//"Успеваемость",
+                                    fontSize = 25.sp,
+                                    fontWeight = FontWeight.Black,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
-                        },
-                        title = {
-                            Box(modifier = Modifier.fillMaxWidth().padding(end = 10.dp)) {
-                                AnimatedContent(
-                                    if (!isFullHeader) model.fio.name else if (model.isOwner) "Профиль" else "Просмотр",
-                                    modifier = Modifier.align(Alignment.CenterStart)
-                                ) {
-                                    Text(
-                                        it,//"Успеваемость",
-                                        fontSize = 25.sp,
-                                        fontWeight = FontWeight.Black,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                this@Column.AnimatedVisibility(
-                                    !isFullHeader,
-                                    enter = fadeIn() + expandVertically(
-                                        expandFrom = Alignment.Top, clip = false
-                                    ),
-                                    exit = fadeOut() + shrinkVertically(
-                                        shrinkTowards = Alignment.Top, clip = false
-                                    ),
-                                    modifier = Modifier.align(Alignment.Center)
-                                        .offset(x = -17.5.dp, y = 2.dp)
-                                ) {
-                                    GetAvatar(
-                                        avatarId = headerAvatar,
-                                        name = model.fio.name,
-                                        size = 40.dp,
-                                        textSize = 15.sp
-                                    )
-                                }
-                                this@Column.AnimatedVisibility(
-                                    !isFullHeader,
-                                    enter = fadeIn() + expandVertically(
-                                        expandFrom = Alignment.Top, clip = false
-                                    ),
-                                    exit = fadeOut() + shrinkVertically(
-                                        shrinkTowards = Alignment.Top, clip = false
-                                    ),
-                                    modifier = Modifier.align(Alignment.CenterEnd)
-                                        .offset(x = -17.5.dp, y = 2.dp)
-                                ) {
-                                    Text(
-                                        buildAnnotatedString {
-                                            withStyle(SpanStyle(Color.Green)) {
-                                                append("+${model.likes}")
-                                            }
-                                            append("/")
-                                            withStyle(SpanStyle(Color.Red)) {
-                                                append("-${model.dislikes}")
-                                            }
-                                        }
-                                    )
-                                }
-
+                            this@Column.AnimatedVisibility(
+                                !isFullHeader,
+                                enter = fadeIn() + expandVertically(
+                                    expandFrom = Alignment.Top, clip = false
+                                ),
+                                exit = fadeOut() + shrinkVertically(
+                                    shrinkTowards = Alignment.Top, clip = false
+                                ),
+                                modifier = Modifier.align(Alignment.Center)
+                                    .offset(x = -17.5.dp, y = 2.dp)
+                            ) {
+                                GetAvatar(
+                                    avatarId = headerAvatar,
+                                    name = model.fio.name,
+                                    size = 40.dp,
+                                    textSize = 15.sp
+                                )
                             }
-                        },
-                        hazeState = null,
-                        isTransparentHaze = true,
-                        isHazeActivated = false
-                    )
-                    AnimatedVisibility(
-                        isFullHeader,
-                        enter = fadeIn() + expandVertically(clip = false) + scaleIn(),
-                        exit = fadeOut() + shrinkVertically(clip = false) + scaleOut(),
+                            this@Column.AnimatedVisibility(
+                                !isFullHeader,
+                                enter = fadeIn() + expandVertically(
+                                    expandFrom = Alignment.Top, clip = false
+                                ),
+                                exit = fadeOut() + shrinkVertically(
+                                    shrinkTowards = Alignment.Top, clip = false
+                                ),
+                                modifier = Modifier.align(Alignment.CenterEnd)
+                                    .offset(x = -17.5.dp, y = 2.dp)
+                            ) {
+                                Text(
+                                    buildAnnotatedString {
+                                        withStyle(SpanStyle(Color.Green)) {
+                                            append("+${model.likes}")
+                                        }
+                                        append("/")
+                                        withStyle(SpanStyle(Color.Red)) {
+                                            append("-${model.dislikes}")
+                                        }
+                                    }
+                                )
+                            }
+
+                        }
+                    },
+                    hazeState = null,
+                    isTransparentHaze = true,
+                    isHazeActivated = false
+                )
+                AnimatedVisibility(
+                    isFullHeader,
+                    enter = fadeIn() + expandVertically(clip = false) + scaleIn(),
+                    exit = fadeOut() + shrinkVertically(clip = false) + scaleOut(),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                        Box() {
                             GetAvatar(
                                 avatarId = headerAvatar,
                                 name = model.fio.name,
@@ -232,67 +222,118 @@ fun SharedTransitionScope.ProfileContent(
                                     visible = isSharedVisible
                                 )
                             )
-                            Spacer(Modifier.height(15.dp))
-                            Text(
-                                text = "${model.fio.surname} ${model.fio.name} ${if (model.fio.praname.isNullOrEmpty()) "" else "\n${model.fio.praname}"}",
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
-                                fontWeight = FontWeight.Black,
-                                fontSize = 25.sp
-                            )
-
-                            Spacer(Modifier.height(5.dp)) //3.dp
-                            Text(
-                                buildAnnotatedString {
-                                    withStyle(SpanStyle(Color.Green)) {
-                                        append("+${model.likes}")
-                                    }
-                                    append("/")
-                                    withStyle(SpanStyle(Color.Red)) {
-                                        append("-${model.dislikes}")
-                                    }
-                                }
-                            )
-                            Spacer(Modifier.height(5.dp))
-//            HorizontalDivider(Modifier.width(340.dp).height(1.dp).padding(vertical = 15.dp, horizontal = 30.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = .1f))
-                        }
-                    }
-
-                    TabRow( //Scrollable
-                        selectedTabIndex = model.tabIndex,
-                        containerColor = Color.Transparent
-                    ) {
-                        for (i in if (model.isOwner && model.isCanEdit) (0..2) else (0..1)) {
-                            val text = when (i) {
-                                0 -> "Обо мне"
-                                1 -> "Статистика"
-                                else -> "Аватарки"
+                            val delay = 300
+                            this@Column.AnimatedVisibility(
+                                visible = model.ministryLvl != "0",
+                                enter = expandIn(expandFrom = Alignment.TopEnd, animationSpec = tween(delayMillis = delay)) + scaleIn(animationSpec = tween(delayMillis = delay)),
+                                exit = fadeOut() + scaleOut(),
+                                modifier = Modifier.offset(x = -5.dp, y = -5.dp)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.RocketLaunch,
+                                    null,
+                                    modifier = Modifier.size(50.dp)
+                                )
                             }
-                            Tab(
-                                selected = model.tabIndex == i,
-                                onClick = {
-                                    component.onEvent(ProfileStore.Intent.ChangeTab(i))
-                                    if (i == 2) {
-                                        isFullHeader = true
-                                    }
-                                },
-                                text = {
-                                    Text(
-                                        text = text,
-                                        maxLines = 1
-                                    )
-                                }
-                            )
+                            this@Column.AnimatedVisibility(
+                                visible = model.ministryId != "0",
+                                enter = fadeIn(animationSpec = tween(delayMillis = delay)) + scaleIn(animationSpec = tween(delayMillis = delay)),
+                                exit = fadeOut() + scaleOut(),
+                                modifier = Modifier.align(Alignment.BottomEnd)
+                            ) {
+                                Icon(
+                                    when(model.ministryId) {
+                                        Ministries.MVD -> {
+                                            Icons.Rounded.LocalPolice
+                                        }
+                                        Ministries.Culture -> {
+                                            Icons.Rounded.Celebration
+                                        }
+                                        Ministries.DressCode -> {
+                                            Icons.Rounded.Checkroom
+                                        }
+                                        Ministries.Education -> {
+                                            Icons.Rounded.School
+                                        }
+                                        Ministries.Print -> {
+                                            Icons.Rounded.Newspaper
+                                        }
+                                        Ministries.Social -> {
+                                            Icons.Rounded.QuestionAnswer
+                                        }
+                                        Ministries.Sport -> {
+                                            Icons.Rounded.SportsSoccer
+                                        }
+                                        else -> {
+                                            Icons.Rounded.QuestionMark
+                                        }
+                                    },
+                                    null,
+                                    modifier = Modifier.size(50.dp)
+                                )
+                            }
                         }
+                        Spacer(Modifier.height(15.dp))
+                        Text(
+                            text = "${model.fio.surname} ${model.fio.name} ${if (model.fio.praname.isNullOrEmpty()) "" else "\n${model.fio.praname}"}",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
+                            fontWeight = FontWeight.Black,
+                            fontSize = 25.sp
+                        )
+
+                        Spacer(Modifier.height(5.dp)) //3.dp
+                        Text(
+                            buildAnnotatedString {
+                                withStyle(SpanStyle(Color.Green)) {
+                                    append("+${model.likes}")
+                                }
+                                append("/")
+                                withStyle(SpanStyle(Color.Red)) {
+                                    append("-${model.dislikes}")
+                                }
+                            }
+                        )
+                        Spacer(Modifier.height(5.dp))
+//            HorizontalDivider(Modifier.width(340.dp).height(1.dp).padding(vertical = 15.dp, horizontal = 30.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = .1f))
                     }
                 }
+
+                TabRow( //Scrollable
+                    selectedTabIndex = model.tabIndex,
+                    containerColor = Color.Transparent
+                ) {
+                    for (i in if (model.isOwner && model.isCanEdit) (0..2) else (0..1)) {
+                        val text = when (i) {
+                            0 -> "Обо мне"
+                            1 -> "Статистика"
+                            else -> "Аватарки"
+                        }
+                        Tab(
+                            selected = model.tabIndex == i,
+                            onClick = {
+                                component.onEvent(ProfileStore.Intent.ChangeTab(i))
+                                if (i == 2) {
+                                    isFullHeader = true
+                                }
+                            },
+                            text = {
+                                Text(
+                                    text = text,
+                                    maxLines = 1
+                                )
+                            }
+                        )
+                    }
+                }
+            }
 
             //LessonReportTopBar(component, isFullView) //, scrollBehavior
         },
         floatingActionButton = {
             AnimatedVisibility(
                 visible =
-                model.avatarId != model.newAvatarId,
+                    model.avatarId != model.newAvatarId,
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
                 exit = slideOutVertically(targetOffsetY = { it * 2 }),
             ) {
@@ -445,10 +486,13 @@ fun SharedTransitionScope.ProfileContent(
                                                         .defaultMinSize(minHeight = 80.dp),
                                                     verticalArrangement = Arrangement.SpaceBetween
                                                 ) {
-                                                    Box(Modifier.fillMaxWidth().sharedElementWithCallerManagedVisibility(
-                                                        sharedContentState = rememberSharedContentState(key = "EventsTitle"),
-                                                        visible = isSharedVisible
-                                                    )) {
+                                                    Box(
+                                                        Modifier.fillMaxWidth()
+                                                            .sharedElementWithCallerManagedVisibility(
+                                                                sharedContentState = rememberSharedContentState(key = "EventsTitle"),
+                                                                visible = isSharedVisible
+                                                            )
+                                                    ) {
                                                         Text(
                                                             "События",
                                                             fontSize = 17.sp,
@@ -562,7 +606,8 @@ fun SharedTransitionScope.ProfileContent(
                 finalSubjects,
                 key = { it.first }) { s ->
                 Column(
-                    modifier = Modifier.animateItem()) {
+                    modifier = Modifier.animateItem()
+                ) {
                     Spacer(Modifier.height(15.dp))
                     SubjectItem(
                         title = s.second,

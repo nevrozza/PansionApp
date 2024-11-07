@@ -46,6 +46,7 @@ object ReportHeaders : Table() {
     private val status = ReportHeaders.bool("status")
     private val ids = ReportHeaders.integer("ids")
     private val module = ReportHeaders.varchar("module", 1)
+    private val lessonId = ReportHeaders.integer("lessonId").nullable()
 
 
     private fun deleteReportHeader(reportId: Int) {
@@ -92,7 +93,8 @@ object ReportHeaders : Table() {
                     groupName = it[groupName],
                     teacherLogin = it[ReportHeaders.teacherLogin],
                     teacherName = it[teacherName],
-                    module = it[module]
+                    module = it[module],
+                    lessonId = it[lessonId]
                 )
             }
 
@@ -128,6 +130,7 @@ object ReportHeaders : Table() {
                 it[ReportHeaders.teacherLogin] = teacherLogin
                 it[teacherName] = tN
                 it[ReportHeaders.module] = module
+                it[ReportHeaders.lessonId] = r.lessonId
             }[ReportHeaders.id]
 
             r.studentLogins.forEach {
@@ -285,7 +288,8 @@ object ReportHeaders : Table() {
                     groupName = it[groupName],
                     teacherName = it[teacherName],
                     teacherLogin = it[teacherLogin],
-                    module = it[module]
+                    module = it[module],
+                    lessonId = it[lessonId]
                 )
             }.first()
         }

@@ -59,7 +59,9 @@ class ProfileExecutor(
                         teachers = aboutMe.teachers,
                         likes = aboutMe.likes,
                         dislikes = aboutMe.dislikes,
-                        giaSubjects = aboutMe.giaSubjects
+                        giaSubjects = aboutMe.giaSubjects,
+                        ministryId = aboutMe.ministryId,
+                        ministryLvl = aboutMe.ministryLevel
                     ))
                     nAboutMeInterface.nSuccess()
                 }

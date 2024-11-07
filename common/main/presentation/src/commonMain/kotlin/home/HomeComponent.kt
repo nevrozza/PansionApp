@@ -2,6 +2,7 @@ package home
 
 import AuthRepository
 import FIO
+import JournalRepository
 import MainRepository
 import admin.AdminComponent
 import asValue
@@ -73,6 +74,7 @@ class HomeComponent(
 
     private val authRepository: AuthRepository = Inject.instance()
     private val mainRepository: MainRepository = Inject.instance()
+    private val journalRepository: JournalRepository = Inject.instance()
     private val homeStore =
         instanceKeeper.getStore {
             HomeStoreFactory(
@@ -91,7 +93,8 @@ class HomeComponent(
                 praname = praname,
                 role = role,
                 isParent = isParent,
-                moderation = moderation
+                moderation = moderation,
+                journalRepository = journalRepository
             ).create()
         }
 

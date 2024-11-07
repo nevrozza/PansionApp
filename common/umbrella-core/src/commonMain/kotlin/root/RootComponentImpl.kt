@@ -10,6 +10,7 @@ import achievements.HomeAchievementsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
 import allGroupMarks.AllGroupMarksComponent
+import allGroupMarks.AllGroupMarksStore
 import applicationVersion
 import asValue
 import cabinets.CabinetsComponent
@@ -27,6 +28,8 @@ import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.webhistory.WebHistoryController
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.essenty.statekeeper.StateKeeper
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
@@ -154,6 +157,11 @@ class RootComponentImpl(
 //        ) //if (authRepository.isUserLoggedIn()) Config.MainHome else
     }
 
+    val backCallback = BackCallback {
+        onBackClicked()
+    }
+
+
     override fun onBackClicked() {
         when (val child = childStack.active.instance) {
             is Child.HomeSettings -> onHomeSettingsOutput(SettingsComponent.Output.Back)
@@ -220,6 +228,8 @@ class RootComponentImpl(
         childFactory = ::child,
         key = if (secondLogin == null) "MAIN" else "SECOND"
     )
+
+
     override val childStack: Value<ChildStack<*, Child>> = stack
 
     private var mainHomeComponent: HomeComponent? = null
@@ -251,8 +261,9 @@ class RootComponentImpl(
             mainJournalComponent = JournalComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
-                output = ::onJournalOutput
+                output = { onJournalOutput(it) }
             )
+
             mainJournalComponent!!
         }
     }
@@ -285,8 +296,8 @@ class RootComponentImpl(
                 storeFactory = storeFactory,
                 output = ::onMainSchoolOutput,
                 login = secondLogin ?: authRepository.fetchLogin(),
-                role = if(secondLogin != null) Roles.student else authRepository.fetchRole(),
-                moderation = if(secondLogin != null) Moderation.nothing else authRepository.fetchModeration(),
+                role = if (secondLogin != null) Roles.student else authRepository.fetchRole(),
+                moderation = if (secondLogin != null) Moderation.nothing else authRepository.fetchModeration(),
                 isSecondScreen = secondLogin != null
             )
             mainSchoolComponent!!
@@ -677,7 +688,7 @@ class RootComponentImpl(
 
     private fun onMainSchoolOutput(output: SchoolComponent.Output): Unit =
         when (output) {
-            SchoolComponent.Output.NavigateBack ->  popOnce(Child.MainSchool::class)
+            SchoolComponent.Output.NavigateBack -> popOnce(Child.MainSchool::class)
 
             SchoolComponent.Output.NavigateToRating -> {
                 mainRatingComponent?.onEvent(RatingStore.Intent.Init)
@@ -762,10 +773,21 @@ class RootComponentImpl(
 
     private fun onLessonReportOutput(output: LessonReportComponent.Output): Unit =
         when (output) {
-            LessonReportComponent.Output.Back -> {
-                mainJournalComponent?.onEvent(JournalStore.Intent.Refresh)
-                popOnce(Child.LessonReport::class)
+            is LessonReportComponent.Output.Back -> {
+                if (Child.LessonReport::class.isInstance(stack.active.instance)) {
+                    if (stack.value.items.size == 1 && onBackButtonPress != null) onBackButtonPress.invoke()
+                    else navigation.pop {
+                        (stack.active.instance as? Child.HomeAllGroupMarks)?.allGroupMarksComponent?.onEvent(
+                            AllGroupMarksStore.Intent.Init)
+                    }
+                } else {
+
+                }
             }
+//            {
+//                mainJournalComponent?.onEvent(JournalStore.Intent.Refresh)
+//                popOnce(Child.LessonReport::class)
+//            }
         }
 
     private fun onAllGroupMarksOutput(output: AllGroupMarksComponent.Output): Unit =
@@ -1043,6 +1065,7 @@ class RootComponentImpl(
 
 
     init {
+        backHandler.register(backCallback)
 //        authRepository.deleteToken()
         webHistoryController?.attach(
             navigator = navigation,

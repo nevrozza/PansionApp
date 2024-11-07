@@ -40,7 +40,7 @@ class LessonReportExecutor(
     private val journalRepository: JournalRepository,
     private val authRepository: AuthRepository,
     private val marksDialogComponent: CAlertDialogComponent,
-    private val header: ReportHeader,
+    private val header: ReportHeader
 ) :
     CoroutineExecutor<Intent, Unit, LessonReportStore.State, LessonReportStore.Message, LessonReportStore.Label>() {
     @OptIn(DelicateCoroutinesApi::class)
@@ -667,7 +667,7 @@ class LessonReportExecutor(
         scope.launch(CDispatcher) {
             while (true) {
                 delay(1000 * 60 * 3)
-                if (state().isUpdateNeeded) {
+                if (state().isUpdateNeeded && state().isEditable) {
                     updateWholeReport()
                 }
             }

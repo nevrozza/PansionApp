@@ -15,6 +15,7 @@ import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingEntities.mapToServerRatingUnit
 import com.nevrozq.pansion.database.ratingTable.getModuleDays
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
+import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
@@ -346,7 +347,7 @@ class ReportsController() {
         if (call.isTeacher) {
             try {
                 val id = ReportHeaders.createReport(r, call.login)
-
+                Schedule.markLesson(lessonId = r.lessonId, lessonDate = r.date)
                 call.respond(RCreateReportResponse(id))
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict!")

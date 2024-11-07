@@ -35,6 +35,8 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val ciPreview: Boolean = false,
         val ciIsPair: Boolean = false,
         val ciFormId: Int? = null,
+
+        val ciSubjectId: Int? = null,
         val ciCustom: String = "",
 
 
@@ -119,6 +121,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data class ciChooseTime(val t: ScheduleTiming) : Intent
         data class ciChangeCabinet(val cabinet: Int) : Intent
         data class ciChangeCustom(val custom: String) : Intent
+        data class ciChangeSubjectId(val subjectId: Int) : Intent
 
         data object ciPreview : Intent
 
@@ -207,6 +210,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data class ciCabinetChanged(val cabinet: Int) : Message
 
         data class ciTimeChosed(val t: ScheduleTiming) : Message
+        data class ciSubjectIdChanged(val subjectId: Int) : Message
 
         data object ciPreviewed : Message
 

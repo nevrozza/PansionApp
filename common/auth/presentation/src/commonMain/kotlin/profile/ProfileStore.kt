@@ -24,7 +24,10 @@ interface ProfileStore : Store<Intent, State, Label> {
         val form: Form? = null,
         val likes: Int = 0,
         val dislikes: Int = 0,
-        val giaSubjects: List<Int> = emptyList()
+        val giaSubjects: List<Int> = emptyList(),
+
+        val ministryId: String = "0",
+        val ministryLvl: String = "0"
     )
 
     sealed interface Intent {
@@ -52,7 +55,10 @@ interface ProfileStore : Store<Intent, State, Label> {
             val form: Form,
             val groups: List<Group>,
             val subjects: List<Subject>,
-            val teachers: HashMap<String, String>
+            val teachers: HashMap<String, String>,
+
+            val ministryId: String,
+            val ministryLvl: String
         ) : Message
     }
 

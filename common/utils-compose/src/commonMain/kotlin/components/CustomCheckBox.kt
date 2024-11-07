@@ -60,4 +60,4 @@ fun CustomCheckbox(
 }
 
 @Composable
-fun Modifier.cClickable(onClick: () -> Unit) = Modifier.clip(RoundedCornerShape(30)).clickable { onClick() }
+fun Modifier.cClickable(isEnabled: Boolean = true, onClick: () -> Unit) = Modifier.clip(RoundedCornerShape(30)).clickable(enabled = isEnabled) { onClick() }

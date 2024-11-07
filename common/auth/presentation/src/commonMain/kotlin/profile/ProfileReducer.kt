@@ -17,7 +17,9 @@ object ProfileReducer : Reducer<State, Message> {
                 form = msg.form,
                 likes = msg.likes,
                 dislikes = msg.dislikes,
-                giaSubjects = msg.giaSubjects
+                giaSubjects = msg.giaSubjects,
+                ministryId = msg.ministryId,
+                ministryLvl = msg.ministryLvl
             )
 
             is Message.GIASubjectsUpdated -> copy(giaSubjects = msg.giaSubjects)

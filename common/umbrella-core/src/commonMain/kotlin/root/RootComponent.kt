@@ -13,6 +13,7 @@ import cabinets.CabinetsComponent
 import calendar.CalendarComponent
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
@@ -49,6 +50,7 @@ interface RootComponent : BackHandlerOwner {
     val model: Value<RootStore.State>
 
     val checkNInterface: NetworkInterface
+
 
     sealed class Child {
         class AuthLogin(val component: LoginComponent) : Child()
@@ -102,7 +104,8 @@ interface RootComponent : BackHandlerOwner {
         //        class AdminStudents(val adminComponent: AdminComponent, val studentsComponent: StudentsComponent) : Child()
         class LessonReport(
             val lessonReport: LessonReportComponent,
-            val journalComponent: JournalComponent
+            val journalComponent: JournalComponent,
+            val onBackPressed: (() -> Unit)? = null
         ) : Child()
 
         class HomeDnevnikRuMarks(
