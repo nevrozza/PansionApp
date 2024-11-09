@@ -161,8 +161,7 @@ fun SharedTransitionScope.RatingContent(
                         }
                     }
                 },
-                hazeState = hazeState,
-                isHazeActivated = isSharedVisible
+                hazeState = hazeState
             )
 
         },
@@ -320,9 +319,9 @@ fun SharedTransitionScope.RatingContent(
             }
 
 
-            ListDialogMobileContent(component.subjectsListComponent, title = "Предмет", hazeState = hazeState)
-            ListDialogMobileContent(component.periodListComponent, title = "Период", hazeState = hazeState)
-            ListDialogMobileContent(component.formsListComponent, title = "Классы", hazeState = hazeState)
+            ListDialogMobileContent(component.subjectsListComponent, title = "Предмет")
+            ListDialogMobileContent(component.periodListComponent, title = "Период")
+            ListDialogMobileContent(component.formsListComponent, title = "Классы")
             PullRefreshIndicator(
                 modifier = Modifier.align(alignment = Alignment.TopCenter),
                 refreshing = nModel.state == NetworkState.Loading && model.items[model.currentSubject].isNullOrEmpty(),

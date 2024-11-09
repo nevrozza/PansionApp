@@ -1,12 +1,7 @@
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -25,13 +20,16 @@ import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import androidx.compose.ui.window.CanvasBasedWindow
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.PredictiveBackGestureOverlay
 import com.arkivanov.decompose.router.stack.webhistory.DefaultWebHistoryController
+import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
+import dev.chrisbanes.haze.HazeState
 import di.Inject
 import forks.colorPicker.toHex
 import forks.splitPane.SplitPaneState
@@ -39,7 +37,6 @@ import js.core.asList
 import org.jetbrains.skiko.wasm.onWasmReady
 import root.RootComponentImpl
 import server.DeviceTypex
-import view.WindowType
 import kotlinx.browser.window
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
@@ -49,11 +46,7 @@ import org.jetbrains.skiko.wasm.onWasmReady
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLMetaElement
-import view.AppTheme
-import view.LocalViewManager
-import view.ViewManager
-import view.toRGB
-import view.toTint
+import view.*
 import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.events.EventType
@@ -71,11 +64,12 @@ fun main() {
         )
     )
     val lifecycle = LifecycleRegistry()
-
+    val backDispatcher = BackDispatcher()
     val root =
         RootComponentImpl(
             componentContext = DefaultComponentContext(
-                lifecycle = lifecycle
+                lifecycle = lifecycle,
+                backHandler = backDispatcher
             ),
             deepLink = RootComponentImpl.DeepLink.None,//RootComponentImpl.DeepLink.Web(path = window.location.pathname),
             webHistoryController = null,//DefaultWebHistoryController(),
@@ -125,11 +119,18 @@ fun main() {
             ) {
                 PageLoadNotify()
                 AppTheme {
-                    Root(
-                        root = root,
-                        device = WindowType.PC,
-                        isJs = true
-                    )
+                    PredictiveBackGestureOverlay(
+                        backDispatcher = backDispatcher,
+                        backIcon = { _, _ -> },
+                        endEdgeEnabled = true,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        Root(
+                            root = root,
+                            device = WindowType.PC,
+                            isJs = true
+                        )
+                    }
                     val hex = MaterialTheme.colorScheme.background.toHex()
                     changeThemeColor(hex)
 //                    println("2")

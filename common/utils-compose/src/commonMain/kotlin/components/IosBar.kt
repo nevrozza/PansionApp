@@ -21,7 +21,7 @@ fun AppBar(
     hazeState: HazeState?,
     isTransparentHaze: Boolean = false,
     isTopPadding: Boolean = true,
-    isHazeActivated: Boolean
+//    isHazeActivated: Boolean
 ) {
     val viewManager = LocalViewManager.current
     Box(

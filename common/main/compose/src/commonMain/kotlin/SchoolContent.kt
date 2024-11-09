@@ -116,8 +116,7 @@ fun SchoolContent(
                         )
                     }
                 },
-                hazeState = hazeState,
-                isHazeActivated = true
+                hazeState = hazeState
             )
         }
     ) { padding ->

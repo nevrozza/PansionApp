@@ -66,7 +66,7 @@ import view.LocalViewManager
 fun StudentsContent(
     component: StudentsComponent,
     topPadding: Dp,
-    hazeState: HazeState
+//    hazeState: HazeState
 ) {
     val gModel by component.groupModel.subscribeAsState()
     val model by component.model.subscribeAsState()
@@ -89,7 +89,7 @@ fun StudentsContent(
                 NetworkState.None -> {
                     if (model.studentsInForm.isNotEmpty()) {
 
-                        CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = hazeState) { // + 45.dp
+                        CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = null) { // + 45.dp
                             item {
                                 Spacer(Modifier.height(7.dp))
                             }
@@ -328,8 +328,7 @@ fun StudentsContent(
             }
         }
         ListDialogMobileContent(
-            component.formsListComponent,
-            hazeState = hazeState
+            component.formsListComponent
         )
     }
 }

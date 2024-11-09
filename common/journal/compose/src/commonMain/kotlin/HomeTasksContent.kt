@@ -83,11 +83,6 @@ fun HomeTasksContent(
 ) {
     val model by component.model.subscribeAsState()
     val nInitModel by component.nInitInterface.networkModel.subscribeAsState()
-    val coroutineScope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
-    val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val hazeState = remember { HazeState() }
 
@@ -97,11 +92,8 @@ fun HomeTasksContent(
         }
     }
 
-    //PullToRefresh
-//    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     Scaffold(
         Modifier.fillMaxSize(),
-//                .nestedScroll(scrollBehavior.nestedScrollConnection)
         topBar = {
             AppBar(
                 navigationRow = {
@@ -131,10 +123,8 @@ fun HomeTasksContent(
                         modifier = Modifier.padding(end = 10.dp)
                     )
                 },
-                hazeState = hazeState,
-                isHazeActivated = isVisible
+                hazeState = hazeState
             )
-            //LessonReportTopBar(component, isFullView) //, scrollBehavior
         }
     ) { padding ->
         Column(Modifier.fillMaxSize()) {

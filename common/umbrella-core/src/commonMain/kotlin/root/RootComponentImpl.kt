@@ -34,6 +34,7 @@ import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.essenty.statekeeper.StateKeeper
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
 import di.Inject
@@ -47,6 +48,7 @@ import journal.JournalComponent
 import journal.JournalStore
 import lessonReport.LessonReportComponent
 import lessonReport.LessonReportComponent.Output
+import lessonReport.LessonReportStore
 import login.LoginComponent
 import mentoring.MentoringComponent
 import mentoring.MentoringStore
@@ -86,6 +88,7 @@ class RootComponentImpl(
     override val secondAvatarId: Int? = null,
     override val secondFIO: FIO? = null,
     override val isMentoring: Boolean? = null,
+//    override val backHandler: BackHandler,
     private val firstScreen: Config = Config.AuthActivation,
     val onBackButtonPress: (() -> Unit)? = null,
 //    override val stateKeeper: StateKeeper,
@@ -773,12 +776,18 @@ class RootComponentImpl(
 
     private fun onLessonReportOutput(output: LessonReportComponent.Output): Unit =
         when (output) {
-            is LessonReportComponent.Output.Back -> {
+            is Output.Back -> {
                 if (Child.LessonReport::class.isInstance(stack.active.instance)) {
-                    if (stack.value.items.size == 1 && onBackButtonPress != null) onBackButtonPress.invoke()
-                    else navigation.pop {
-                        (stack.active.instance as? Child.HomeAllGroupMarks)?.allGroupMarksComponent?.onEvent(
-                            AllGroupMarksStore.Intent.Init)
+                    val component = (stack.active.instance as? Child.LessonReport)?.lessonReport!!
+                    if ((component.state.value.isUpdateNeeded || component.state.value.homeTasksToEditIds.isNotEmpty() || true in component.state.value.hometasks.map { it.isNew }) && component.model.value.isEditable) {
+                        component.saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                    } else {
+                        if (stack.value.items.size == 1 && onBackButtonPress != null) onBackButtonPress.invoke()
+                        else navigation.pop {
+                            (stack.active.instance as? Child.HomeAllGroupMarks)?.allGroupMarksComponent?.onEvent(
+                                AllGroupMarksStore.Intent.Init)
+                            mainJournalComponent?.onEvent(JournalStore.Intent.Refresh)
+                        }
                     }
                 } else {
 
@@ -788,6 +797,7 @@ class RootComponentImpl(
 //                mainJournalComponent?.onEvent(JournalStore.Intent.Refresh)
 //                popOnce(Child.LessonReport::class)
 //            }
+            Output.BackAtAll -> popOnce(Child.LessonReport::class)
         }
 
     private fun onAllGroupMarksOutput(output: AllGroupMarksComponent.Output): Unit =

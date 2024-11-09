@@ -44,7 +44,6 @@ fun AlphaTestZatichka(
                             )
                         }
                     },
-                    isHazeActivated = false,
                     hazeState = null
                 )
             }

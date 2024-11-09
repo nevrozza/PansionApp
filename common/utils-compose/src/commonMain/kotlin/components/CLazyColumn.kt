@@ -23,7 +23,7 @@ import view.WindowScreen
 fun CLazyColumn(
     padding: PaddingValues,
     modifier: Modifier = Modifier,
-    isCustomExpanded: Boolean? = null,
+//    isCustomExpanded: Boolean? = null,
     isBottomPaddingNeeded: Boolean = false,
     state: LazyListState = rememberLazyListState(),
     hazeState: HazeState?,

@@ -88,7 +88,7 @@ fun FormsContent(
     component: FormsComponent,
     topPadding: Dp,
     padding: PaddingValues,
-    hazeState: HazeState
+//    hazeState: HazeState
 ) {
     val gModel by component.groupModel.subscribeAsState()
     val model by component.model.subscribeAsState()
@@ -100,7 +100,7 @@ fun FormsContent(
             when {
                 gModel.forms.isNotEmpty() && it != NetworkState.Error -> {
                     Spacer(Modifier.height(7.dp))
-                    CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = hazeState) {
+                    CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = null) {
                         items(gModel.forms) { form ->
                             val mentor =
                                 model.mentors.find { it.login == form.form.mentorLogin }
@@ -113,7 +113,7 @@ fun FormsContent(
                             Column(
                                 Modifier
                                     //.padding(horizontal = 10.dp)
-                                    .padding(bottom = 7.dp + padding.calculateBottomPadding()) //if (form.id != gModel.forms.last().id) 7.dp else 80.dp
+                                    .padding(bottom = 7.dp) //if (form.id != gModel.forms.last().id) 7.dp else 80.dp
                                     .clip(CardDefaults.elevatedShape)
                                     .animateContentSize()
                                     .background(
@@ -336,7 +336,8 @@ fun FormsContent(
                                     exported.value = true
                                 }
                             }
-                            Spacer(Modifier.height(80.dp))
+                            Spacer(Modifier.height(80.dp + padding.calculateBottomPadding()))
+
                         }
                     }
                 }

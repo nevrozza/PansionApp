@@ -58,16 +58,11 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun StudentLinesContent(
-    component: StudentLinesComponent,
-    isVisible: Boolean
+    component: StudentLinesComponent
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
-    val coroutineScope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
-    val viewManager = LocalViewManager.current
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
+
     val hazeState = remember { HazeState() }
 
     Scaffold(
@@ -93,8 +88,7 @@ fun StudentLinesContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                hazeState = hazeState,
-                isHazeActivated = isVisible
+                hazeState = hazeState
             )
         }
     ) { padding ->

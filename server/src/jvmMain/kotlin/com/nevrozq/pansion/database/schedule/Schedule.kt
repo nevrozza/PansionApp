@@ -1,5 +1,7 @@
 package com.nevrozq.pansion.database.schedule
 
+import com.nevrozq.pansion.utils.toList
+import com.nevrozq.pansion.utils.toStr
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import schedule.ScheduleItem
@@ -44,7 +46,7 @@ object Schedule : Table() {
                     it[date] = dto.date
                     it[teacherLoginBefore] = dto.teacherLoginBefore
                     it[formId] = dto.formId
-                    it[custom] = dto.custom
+                    it[custom] = dto.custom.toStr() ?: ""
                     it[Schedule.id] = dto.id
                     it[subjectId] = dto.subjectId
                     it[isMarked] = dto.isMarked
@@ -88,7 +90,7 @@ object Schedule : Table() {
                         cabinet = it[cabinet],
                         teacherLoginBefore = it[teacherLoginBefore],
                         formId = it[formId],
-                        custom = it[custom],
+                        custom = it[custom].toList() ?: emptyList(),
                         id = it[Schedule.id],
                         subjectId = it[Schedule.subjectId],
                         isMarked = it[isMarked]
@@ -113,7 +115,7 @@ object Schedule : Table() {
                     cabinet = it[cabinet],
                     teacherLoginBefore = it[teacherLoginBefore],
                     formId = it[formId],
-                    custom = it[custom],
+                    custom = it[custom].toList() ?: listOf(),
                     id = it[Schedule.id],
                     subjectId = it [Schedule.subjectId],
                     isMarked = it[isMarked]

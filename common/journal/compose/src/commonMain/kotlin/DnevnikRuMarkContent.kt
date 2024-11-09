@@ -93,20 +93,13 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun DnevnikRuMarkContent(
-    component: DnevnikRuMarksComponent,
-    isVisible: Boolean
+    component: DnevnikRuMarksComponent
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val coroutineScope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
     val hazeState = remember { HazeState() }
-    //PullToRefresh
-//    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
         Modifier.fillMaxSize(),
@@ -164,7 +157,6 @@ fun DnevnikRuMarkContent(
                         }
                     },
                     isTransparentHaze = isHaze,
-                    isHazeActivated = isVisible,
                     hazeState = null
                 )
                 AnimatedVisibility(

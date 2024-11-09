@@ -1,8 +1,10 @@
 package lessonReport
 
+import ReportData
 import com.arkivanov.mvikotlin.core.store.Store
 import homework.CreateReportHomeworkItem
 import report.Attended
+import report.ReportHeader
 import report.UserMark
 
 interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.State, LessonReportStore.Label> {
@@ -24,7 +26,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         val dislikedList: List<String> = emptyList(),
         val students: List<StudentLine> = emptyList(),
         val columnNames: List<ReportColumn>,
-        val settingsTab : SettingsTab = SettingsTab.SetupTab,
+        val settingsTab: SettingsTab = SettingsTab.SetupTab,
         val deletingReportColumn: ReportColumn? = null,
         val selectedLogin: String = "",
         val selectedMarkReason: String = "",
@@ -56,7 +58,6 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
     )
 
 
-
     sealed interface SettingsTab {
         data object MarksTab : SettingsTab
         data object SetupTab : SettingsTab
@@ -79,13 +80,13 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         data class ChangeHomeTaskText(val id: Int, val text: String, val isNew: Boolean) : Intent
         data class ChangeHomeTaskAward(val id: Int, val award: Int, val isNew: Boolean) : Intent
 
-        data object Init: Intent
+        data object Init : Intent
 
-        data class IsSavedAnimation(val isSaved: Boolean): Intent
-        data class IsErrorAnimation(val isError: Boolean): Intent
+        data class IsSavedAnimation(val isSaved: Boolean) : Intent
+        data class IsErrorAnimation(val isError: Boolean) : Intent
 
-        data class IsHomeTasksSavedAnimation(val isSaved: Boolean): Intent
-        data class IsHomeTasksErrorAnimation(val isError: Boolean): Intent
+        data class IsHomeTasksSavedAnimation(val isSaved: Boolean) : Intent
+        data class IsHomeTasksErrorAnimation(val isError: Boolean) : Intent
 
         data class CreateColumn(val columnName: String, val reasonId: String) : Intent
 
@@ -100,11 +101,17 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
 
         data class ChangeStups(val login: String, val value: Int, val columnReason: String) : Intent
 
-        data class OpenDeleteMarkMenu(val reasonId: String, val studentLogin: String, val markValue: Int, val selectedDeploy: String) :
+        data class OpenDeleteMarkMenu(
+            val reasonId: String,
+            val studentLogin: String,
+            val markValue: Int,
+            val selectedDeploy: String
+        ) :
             Intent
 
         data class OpenSetLateTimeMenu(val studentLogin: String, val x: Float, val y: Float) :
             Intent
+
         data object ClearSelection : Intent
         data class SetMark(val mark: String) : Intent
         data class ChangeSettingsTab(val settingsTab: SettingsTab) : Intent
@@ -118,7 +125,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         data class ChangeAttendance(val studentLogin: String, val attendedType: String) : Intent
 
         data object ChangeInfoShowing : Intent
-        data object ChangeIsMentorWas: Intent
+        data object ChangeIsMentorWas : Intent
         data class ChangeStatus(val status: Boolean) : Intent
 
         data object UpdateWholeReport : Intent
@@ -130,7 +137,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
     }
 
     sealed interface Message {
-        data object InvisibleStupAdd: Message
+        data object InvisibleStupAdd : Message
 
         data class TabLoginsIdUpdated(val tabLogins: List<String>?) : Message
         data class NewTabsLoginsUpdated(val logins: List<String>) : Message
@@ -138,22 +145,35 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
 
         data class HomeTasksUpdated(val homeTasks: List<CreateReportHomeworkItem>) : Message
         data class HomeTasksToEditIdsUpdated(val homeTasksToEditIds: Set<Int>) : Message
-        data class IsSavedAnimation(val isSaved: Boolean): Message
-        data class IsErrorAnimation(val isError: Boolean): Message
+        data class IsSavedAnimation(val isSaved: Boolean) : Message
+        data class IsErrorAnimation(val isError: Boolean) : Message
 
-        data class IsHomeTasksSavedAnimation(val isSaved: Boolean): Message
-        data class IsHomeTasksErrorAnimation(val isError: Boolean): Message
-        data class Inited(val students: List<StudentLine>, val likedList: List<String>, val dislikedList: List<String>):
+        data class IsHomeTasksSavedAnimation(val isSaved: Boolean) : Message
+        data class IsHomeTasksErrorAnimation(val isError: Boolean) : Message
+        data class Inited(
+            val students: List<StudentLine>,
+            val likedList: List<String>,
+            val dislikedList: List<String>,
+            val newTopic: String,
+            val newStatus: Boolean
+        ) :
             Message
 
-//        data class HeaderUpdated(val header: ReportHeader) : Message
+        //        data class HeaderUpdated(val header: ReportHeader) : Message
         data class ColumnsUpdated(val columns: List<ReportColumn>) : Message
         data class DeleteColumnInited(val reportColumn: ReportColumn) : Message
 
-        data class MarksMenuOpened(val reasonId: String, val studentLogin: String, val markValue: String, val selectedDeploy: String) :
+        data class MarksMenuOpened(
+            val reasonId: String,
+            val studentLogin: String,
+            val markValue: String,
+            val selectedDeploy: String
+        ) :
             Message
+
         data class LateTimeMenuOpened(val studentLogin: String) : Message
-//        data class DeleteMarkMenuOpened(val reasonId: String, val studentLogin: String, val markValue: Int) : Message
+
+        //        data class DeleteMarkMenuOpened(val reasonId: String, val studentLogin: String, val markValue: Int) : Message
         data object SelectionCleared : Message
         data class StudentsUpdated(val students: List<StudentLine>) : Message
 

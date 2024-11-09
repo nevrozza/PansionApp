@@ -15,7 +15,7 @@ data class ScheduleDTO(
     val end: String,
     val cabinet: String,
     val formId: Int?,
-    val custom: String,
+    val custom: List<String>,
     val subjectId: Int?,
     val id: Int,
     val isMarked: Boolean

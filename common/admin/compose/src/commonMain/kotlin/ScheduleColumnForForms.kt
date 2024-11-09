@@ -6,10 +6,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
@@ -72,7 +74,7 @@ fun LazyItemScope.ScheduleColumnForForms(
 
 
     Box(
-        Modifier.width(200.dp).padding(end = 5.dp).animateItem(fadeInSpec = null, fadeOutSpec = null)
+        Modifier.width(200.dp).fillMaxHeight().padding(end = 5.dp).animateItem(fadeInSpec = null, fadeOutSpec = null)
     ) {
         val headerState = remember {
             MutableTransitionState(false).apply {
@@ -84,10 +86,10 @@ fun LazyItemScope.ScheduleColumnForForms(
             visibleState = headerState,
             enter = fadeIn() + scaleIn(),
             modifier = Modifier.zIndex(1000f)
+                .offset(y = with(density) { scrollState.value.toDp() })
         ) {
             Box(
-                Modifier.zIndex(1000f).height(headerP)
-                    .offset(y = with(density) { scrollState.value.toDp() }).zIndex(1000f)
+                Modifier.height(headerP)
             ) {
 //                Column(
 //                    modifier = Modifier.fillMaxSize()
@@ -143,12 +145,12 @@ fun LazyItemScope.ScheduleColumnForForms(
                                 ) {
                                     when {
                                         model.ciId == null -> {
-
+                                            val value = model.ciCustom.firstOrNull() ?: ""
                                             Row {
                                                 CustomTextField(
-                                                    value = model.ciCustom,
+                                                    value = value,
                                                     onValueChange = {
-                                                        component.onEvent(ScheduleStore.Intent.ciChangeCustom(it))
+                                                        component.onEvent(ScheduleStore.Intent.ciChangeCustom(listOf(it)))
                                                                     },
                                                     text = "Событие",
                                                     isEnabled = nModel.state == NetworkState.None,
@@ -159,7 +161,7 @@ fun LazyItemScope.ScheduleColumnForForms(
 
                                                 IconButton(
                                                     onClick = {
-                                                        if (model.ciCustom.isNotBlank()) {
+                                                        if (value.isNotBlank()) {
                                                             component.onEvent(
                                                                 ScheduleStore.Intent.ciChooseGroup(
                                                                     0
@@ -167,7 +169,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                             )
                                                         }
                                                               },
-                                                    enabled = model.ciCustom.isNotBlank()
+                                                    enabled = value.isNotBlank()
                                                 ) {
                                                     Icon(
                                                         Icons.Rounded.Done, null
@@ -637,10 +639,10 @@ fun LazyItemScope.ScheduleColumnForForms(
                                         ),
                                         isCanBeOpened = true
                                     ) {
-                                        Row {
+                                        Row(Modifier.horizontalScroll(rememberScrollState())) {
                                             coItems.toSet().forEach { item ->
                                                 Column {
-                                                    Box(Modifier.width(200.dp).height(60.dp)) {
+                                                    Box(Modifier.width(200.dp).height(80.dp)) {
                                                         ScheduleForFormsContent(
                                                             e = item,
                                                             model = model,
@@ -811,7 +813,7 @@ private fun BoxScope.ScheduleForFormsContent(
         Text(
             modifier = Modifier.align(Alignment.Center),
             textAlign = TextAlign.Center,
-            text = e.custom,
+            text = e.custom.firstOrNull() ?: "",
             lineHeight = 14.sp,
             fontSize = 14.sp,
         )

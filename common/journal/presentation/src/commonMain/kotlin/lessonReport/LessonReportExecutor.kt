@@ -653,7 +653,9 @@ class LessonReportExecutor(
                     LessonReportStore.Message.Inited(
                         students = students,
                         likedList = likedList,
-                        dislikedList = dislikedList
+                        dislikedList = dislikedList,
+                        newStatus = studentsData.newStatus,
+                        newTopic = studentsData.newTopic
                     )
                 )
                 nInterface.nSuccess()

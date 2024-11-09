@@ -199,8 +199,7 @@ fun SharedTransitionScope.ProfileContent(
                         }
                     },
                     hazeState = null,
-                    isTransparentHaze = true,
-                    isHazeActivated = false
+                    isTransparentHaze = true
                 )
                 AnimatedVisibility(
                     isFullHeader,

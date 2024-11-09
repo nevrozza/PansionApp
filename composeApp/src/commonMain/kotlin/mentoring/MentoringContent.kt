@@ -88,7 +88,7 @@ import view.rememberImeState
 @Composable
 fun MentoringContent(
     component: MentoringComponent,
-    isVisible: Boolean
+//    isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -152,8 +152,7 @@ fun MentoringContent(
                     }
 
                 },
-                hazeState = hazeState,
-                isHazeActivated = isVisible
+                hazeState = hazeState
             )
         }
     ) { padding ->

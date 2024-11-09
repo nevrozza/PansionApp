@@ -88,7 +88,7 @@ fun SubjectsContent(
     sComponent: StudentsComponent,
     coroutineScope: CoroutineScope,
     topPadding: Dp,
-    hazeState: HazeState
+//    hazeState: HazeState
 ) {
     val gModel by component.groupModel.subscribeAsState()
     val model by component.model.subscribeAsState()
@@ -117,7 +117,7 @@ fun SubjectsContent(
                 else -> {
                     if (model.groups.isNotEmpty()) {
                         Spacer(Modifier.height(7.dp))
-                        CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = hazeState) {
+                        CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = null) {
                             items(model.groups.sortedByDescending { it.isActive }) { group ->
                                 if (model.groups.any { !it.isActive }) {
                                     Box(

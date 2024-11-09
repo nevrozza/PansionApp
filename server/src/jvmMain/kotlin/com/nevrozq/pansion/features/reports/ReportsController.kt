@@ -15,6 +15,7 @@ import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingEntities.mapToServerRatingUnit
 import com.nevrozq.pansion.database.ratingTable.getModuleDays
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
+import com.nevrozq.pansion.database.reportHeaders.ReportHeadersDTO
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
@@ -914,6 +915,7 @@ class ReportsController() {
         val r = call.receive<RFetchReportStudentsReceive>()
         if (call.isTeacher || call.isModer || call.isMentor) {
             try {
+                val report = ReportHeaders.fetchHeader(r.reportId)
                 val students = StudentLines.fetchStudentLinesOfReport(r.reportId)
                 val marks = Marks.fetchForReport(r.reportId).sortedWith(
                     compareBy({ getLocalDate(it.deployDate).toEpochDays() },
@@ -960,7 +962,9 @@ class ReportsController() {
                             )
                         },
                         marks = marks.mapToServerRatingUnit(),
-                        stups = stups.mapToServerRatingUnit()
+                        stups = stups.mapToServerRatingUnit(),
+                        newStatus = report.status,
+                        newTopic = report.topic
                     )
                 )
             } catch (e: ExposedSQLException) {

@@ -93,8 +93,7 @@ fun SharedTransitionScope.HomeAchievementsContent(
                         )
                     )
                 },
-                hazeState = hazeState,
-                isHazeActivated = isVisible
+                hazeState = hazeState
             )
         }
     ) { padding ->

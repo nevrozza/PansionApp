@@ -79,11 +79,14 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.plus
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.androidPredictiveBackAnimatable
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.materialPredictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.essenty.backhandler.BackEvent
 import components.CustomTextButton
 import components.hazeHeader
 import components.hazeUnder
@@ -95,6 +98,7 @@ import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
 import groups.GroupsContent
 import home.HomeStore
+import io.ktor.util.reflect.*
 import journal.JournalComponent
 import journal.JournalStore
 import kotlinx.datetime.Clock
@@ -122,10 +126,7 @@ import root.RootComponent.RootCategories.Mentoring
 import root.RootComponent.RootCategories.School
 import root.store.RootStore
 import school.SchoolComponent
-import server.Moderation
-import server.Roles
-import server.cut
-import server.getDate
+import server.*
 import view.GlobalHazeState
 import view.LocalViewManager
 import view.ViewManager
@@ -217,7 +218,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     AnimatedVisibility(
 
                         visible = isBottomBarShowing(childStack.active.configuration as Config) &&
-                                  ((isVertical && (component.secondLogin == null))), //was ((isVertical && (component.secondLogin == null)) || component.isMentoring == false)
+                                ((isVertical && (component.secondLogin == null))), //was ((isVertical && (component.secondLogin == null)) || component.isMentoring == false)
                         enter = fadeIn(animationSpec = tween(300)) +
                                 slideInVertically { it },
                         exit = fadeOut(animationSpec = tween(300)) + slideOutVertically { it },
@@ -237,7 +238,12 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 ) 80.dp else 0.dp
             )
             SharedTransitionLayout(
-                modifier = Modifier.fillMaxSize().then(if(component.secondLogin == null) Modifier.hazeUnder(viewManager, GlobalHazeState.current) else Modifier).padding(
+                modifier = Modifier.fillMaxSize().then(
+                    if (component.secondLogin == null) Modifier.hazeUnder(
+                        viewManager,
+                        GlobalHazeState.current
+                    ) else Modifier
+                ).padding(
                     top = 0.dp,
                     start = 0.dp,// padding.calculateStartPadding(LocalLayoutDirection.current),
                     end = 0.dp,//padding.calculateEndPadding(LocalLayoutDirection.current),
@@ -258,32 +264,49 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         onBack = component::onBackClicked,
                         fallbackAnimation = stackAnimation { child ->
                             when (child.instance) {
-                                is MainJournal -> fade()
-                                is MainSchool -> fade()
-                                is MainHome -> fade()
-                                is MainAdmin -> fade()
-                                is MainMentoring -> fade()
-                                is LessonReport -> iosSlide() + fade()
-                                is HomeSettings -> iosSlide() + fade()
-                                is Child.AdminSchedule -> iosSlide() + fade()
-                                is Child.QRScanner -> iosSlide() + fade()
-                                is Child.HomeProfile -> fade()
-                                is Child.HomeAchievements -> fade()
-                                else -> if (isExpanded) fade() else iosSlide() + fade()
+                                is RootComponent.Child.MainJournal -> fade()
+                                is RootComponent.Child.MainSchool -> fade()
+                                is RootComponent.Child.MainHome -> fade()
+                                is RootComponent.Child.MainAdmin -> fade()
+                                is RootComponent.Child.MainMentoring -> fade()
+                                is RootComponent.Child.LessonReport -> iosSlide() + fade()
+                                is RootComponent.Child.HomeSettings -> iosSlide() + fade()
+                                is RootComponent.Child.AdminSchedule -> iosSlide() + fade()
+                                is RootComponent.Child.QRScanner -> iosSlide() + fade()
+                                is RootComponent.Child.HomeProfile -> fade()
+                                is RootComponent.Child.HomeAchievements -> fade()
+                                else -> iosSlide() //if (isExpanded) fade() else iosSlide() + fade()
                             }
                         },
-                        selector = { initialBackEvent, _, _ ->
-                            predictiveBackAnimatable(
-                                initialBackEvent = initialBackEvent,
-                                exitModifier = { progress, _ -> Modifier.slideExitModifier(progress = progress) },
-                                enterModifier = { progress, _ ->
-                                    Modifier.slideEnterModifier(
-                                        progress = progress
-                                    )
-                                },
-                            )
+                        selector = { initialBackEvent, exit, enter ->
+                            if (
+                                initialBackEvent.swipeEdge == BackEvent.SwipeEdge.RIGHT ||
+                                (
+                                        exit.instance is Child.MainAdmin ||
+                                                exit.instance is Child.MainHome ||
+                                                exit.instance is MainJournal ||
+                                                exit.instance is MainMentoring ||
+                                                exit.instance is MainSchool
+                                        )
+                            ) {
+
+                                materialPredictiveBackAnimatable(initialBackEvent = initialBackEvent)
+
+                            } else {
+                                predictiveBackAnimatable(
+                                    initialBackEvent = initialBackEvent,
+                                    exitModifier = { progress, _ -> Modifier.slideExitModifier(progress = progress) },
+                                    enterModifier = { progress, _ ->
+                                        Modifier.slideEnterModifier(
+                                            progress = progress
+                                        )
+                                    },
+                                )
+                            }
+
                         },
-                    )
+
+                        )//backAnimation(component)
                 ) {
                     when (val child = it.instance) {
                         is Child.AuthLogin -> LoginContent(child.component)
@@ -371,7 +394,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     DnevnikRuMarkContent(
                                         child.dnevnikRuMarksComponent,
-                                        isVisible = stack.active.instance is Child.HomeDnevnikRuMarks
+//                                        isVisible = stack.active.instance is Child.HomeDnevnikRuMarks
                                     )
                                 },
                                 firstScreen = {
@@ -384,7 +407,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     DnevnikRuMarkContent(
                                         child.dnevnikRuMarksComponent,
-                                        isVisible = stack.active.instance is Child.HomeDnevnikRuMarks
+//                                        isVisible = stack.active.instance is Child.HomeDnevnikRuMarks
                                     )
                                 }
                             )
@@ -397,7 +420,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     StudentLinesContent(
                                         child.studentLinesComponent,
-                                        isVisible = stack.active.instance is Child.HomeStudentLines
+//                                        isVisible = stack.active.instance is Child.HomeStudentLines
                                     )
                                 },
                                 firstScreen = {
@@ -410,7 +433,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     StudentLinesContent(
                                         child.studentLinesComponent,
-                                        isVisible = stack.active.instance is Child.HomeStudentLines
+//                                        isVisible = stack.active.instance is Child.HomeStudentLines
                                     )
                                 }
                             )
@@ -423,7 +446,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     DetailedStupsContent(
                                         child.detailedStups,
-                                        isVisible = stack.active.instance is Child.HomeDetailedStups
+//                                        isVisible = stack.active.instance is Child.HomeDetailedStups
                                     )
                                 },
                                 firstScreen = {
@@ -436,7 +459,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     DetailedStupsContent(
                                         child.detailedStups,
-                                        isVisible = stack.active.instance is Child.HomeDetailedStups
+//                                        isVisible = stack.active.instance is Child.HomeDetailedStups
                                     )
                                 }
                             )
@@ -524,7 +547,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     GroupsContent(
                                         child.groupsComponent,
-                                        isVisible = stack.active.instance is Child.AdminGroups
+//                                        isVisible = stack.active.instance is Child.AdminGroups
                                     )
                                 }
                             )
@@ -554,13 +577,13 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     AllGroupMarksContent(
                                         child.allGroupMarksComponent,
-                                        isVisible = stack.active.instance is Child.HomeAllGroupMarks
+//                                        isVisible = stack.active.instance is Child.HomeAllGroupMarks
                                     )
                                 },
                                 firstScreen = {
                                     AllGroupMarksContent(
                                         child.allGroupMarksComponent,
-                                        isVisible = stack.active.instance is Child.HomeAllGroupMarks
+//                                        isVisible = stack.active.instance is Child.HomeAllGroupMarks
                                     )
                                 },
                                 secondScreen = {
@@ -606,7 +629,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = {
                                 CabinetsContent(
                                     child.cabinetsComponent,
-                                    isVisible = stack.active.instance is Child.AdminCabinets
+//                                    isVisible = stack.active.instance is Child.AdminCabinets
                                 )
                             }
                         )
@@ -658,7 +681,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = {
                                 CalendarContent(
                                     child.calendarComponent,
-                                    isVisible = stack.active.instance is Child.AdminCalendar
+//                                    isVisible = stack.active.instance is Child.AdminCalendar
                                 )
                             }
                         )
@@ -698,12 +721,12 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
                         }
 
-                        is Child.AdminAchievements ->{
-                            val previousScreen = stack.items.getOrNull(stack.items.size-2)?.instance
+                        is Child.AdminAchievements -> {
+                            val previousScreen = stack.items.getOrNull(stack.items.size - 2)?.instance
                             if (previousScreen is Child.MainMentoring || stack.active.instance is Child.MainMentoring) {
                                 AdminAchievementsContent(
                                     child.adminAchievementsComponent,
-                                    isVisible = stack.active.instance is Child.AdminAchievements
+//                                    isVisible = stack.active.instance is Child.AdminAchievements
                                 )
                             } else {
                                 MultiPaneAdmin(
@@ -714,7 +737,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     secondScreen = {
                                         AdminAchievementsContent(
                                             child.adminAchievementsComponent,
-                                            isVisible = stack.active.instance is Child.AdminAchievements
+//                                            isVisible = stack.active.instance is Child.AdminAchievements
                                         )
                                     }
                                 )
@@ -734,7 +757,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 firstScreen = {
                                     HomeContent(
                                         child.homeComponent,
-                                    sharedTransitionScope = this@SharedTransitionLayout,
+                                        sharedTransitionScope = this@SharedTransitionLayout,
                                         isSharedVisible = stack.active.instance is Child.MainHome
                                     )
                                 },
@@ -755,7 +778,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     AdminParentsContent(
                                         child.parentsComponent,
-                                        isVisible = stack.active.instance is Child.AdminParents
+//                                        isVisible = stack.active.instance is Child.AdminParents
                                     )
                                 }
                             )
@@ -795,6 +818,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 )
                             }
                         )
+
                         is Child.SchoolMinistry -> MultiPaneSchool(
                             isExpanded = isExpanded,
                             schoolComponent = child.schoolComponent,
@@ -935,7 +959,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 hazeState = GlobalHazeState.current,
                 isProgressive = false
             ),
-            containerColor = if(viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor
+            containerColor = if (viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor
 
         )
     }
@@ -959,7 +983,7 @@ fun MultiPaneMentoring(
         if (cfState) {
             MentoringContent(
                 mentoringComponent!!,
-                isVisible = isVisible
+//                isVisible = isVisible
             )
         } else {
             MultiPaneSplit(
@@ -968,7 +992,7 @@ fun MultiPaneMentoring(
                 currentScreen = {
                     if (rootComponent == null && mentoringComponent != null) MentoringContent(
                         mentoringComponent,
-                        isVisible = isVisible
+//                        isVisible = isVisible
                     )
                     else if (rootComponent != null) Box {
                         val model by mentoringComponent!!.model.subscribeAsState()
@@ -989,7 +1013,7 @@ fun MultiPaneMentoring(
                 firstScreen = {
                     if (mentoringComponent != null) MentoringContent(
                         mentoringComponent,
-                        isVisible = isVisible
+//                        isVisible = isVisible
                     ) else Text(
                         "IDK"
                     )
@@ -1155,7 +1179,7 @@ fun CustomNavigationBar(
                 GlobalHazeState.current,
                 style = LocalHazeStyle.current
             ) {
-                  progressive = view.hazeProgressive.copy(endIntensity = 1f, startIntensity = 0f)
+                progressive = view.hazeProgressive.copy(endIntensity = 1f, startIntensity = 0f)
             }
             else Modifier
         ).fillMaxWidth(),

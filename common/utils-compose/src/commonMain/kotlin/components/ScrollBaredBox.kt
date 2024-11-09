@@ -21,3 +21,15 @@ expect fun ScrollBaredBox(
 
     content: @Composable () -> Unit,
 )
+
+@Composable
+expect fun ScrollBaredBox(
+    vState: ScrollState,
+    hState: LazyListState,
+    modifier: Modifier = Modifier.fillMaxSize(),
+
+    height: MutableState<Dp> = mutableStateOf(0.dp),
+    width: MutableState<Dp> = mutableStateOf(0.dp),
+
+    content: @Composable () -> Unit,
+)

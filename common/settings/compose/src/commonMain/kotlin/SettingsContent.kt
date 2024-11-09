@@ -93,7 +93,7 @@ fun SettingsContent(
             splitPaneState = viewManager.splitPaneState
         ) {
             first(minSize = 400.dp) {
-                SettingsView(settingsComponent, viewManager, isVisible = isVisible)
+                SettingsView(settingsComponent, viewManager)
             }
             dSplitter()
             second(minSize = 500.dp) {
@@ -108,7 +108,7 @@ fun SettingsContent(
             }
         }
     } else {
-        SettingsView(settingsComponent, viewManager, isVisible)
+        SettingsView(settingsComponent, viewManager)
     }
 }
 
@@ -116,8 +116,7 @@ fun SettingsContent(
 @Composable
 fun SettingsView(
     component: SettingsComponent,
-    viewManager: ViewManager,
-    isVisible: Boolean
+    viewManager: ViewManager
 ) {
 
 
@@ -163,7 +162,6 @@ fun SettingsView(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                isHazeActivated = isVisible,
                 hazeState = hazeState
             )
         }
@@ -397,8 +395,7 @@ fun SettingsView(
 
         ListDialogMobileContent(
             component = component.colorModeListComponent,
-            title = "Цветовой режим",
-            hazeState = hazeState
+            title = "Цветовой режим"
         )
 
 

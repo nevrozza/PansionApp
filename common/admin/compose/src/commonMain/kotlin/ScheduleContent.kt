@@ -4,19 +4,12 @@ import admin.schedule.ScheduleSubject
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -35,22 +28,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.CustomTextField
-import components.DateButton
-import components.SaveAnimation
+import components.*
 import components.cAlertDialog.CAlertDialogStore
-import components.cClickable
 import components.listDialog.ListDialogStore
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
@@ -79,14 +62,11 @@ fun ScheduleContent(
     val model by component.model.subscribeAsState()
     val mpModel by component.mpCreateItem.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
-    val viewManager = LocalViewManager.current
     val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
     val density = LocalDensity.current
 //    val hazeState = remember { HazeState() }
-
-    val isStatic = remember { mutableStateOf(true) }
+    val lazyListState = remember { LazyListState() }
+    val isStatic = remember { mutableStateOf(false) }
 
 
     val dayStartTime = "8:30"
@@ -230,7 +210,6 @@ fun ScheduleContent(
                     }
                 },
                 hazeState = null//hazeState
-                , isHazeActivated = false
             )
         },
         floatingActionButton = {
@@ -277,169 +256,177 @@ fun ScheduleContent(
             when (nState) {
                 NetworkState.None -> BoxWithConstraints(modifier = Modifier.padding(padding)) {
                     val headerP = 55.dp //55
-                    val maxHeight = this.maxHeight - headerP
-                    val minuteHeight =
-                        if (isStatic.value) maxHeight / ("20:00".toMinutes() - dayStartTime.toMinutes()) else (1.7f).dp
+                        val maxHeight = this.maxHeight - headerP
+                        val minuteHeight =
+                            if (isStatic.value) maxHeight / ("20:00".toMinutes() - dayStartTime.toMinutes()) else (1.7f).dp
 
-                    val timings = listOf(
-                        "08:45",
-                        "09:00",
-                        "09:40",
-                        "10:25",
-                        "11:15",
-                        "12:00",
-                        "12:20",
-                        "13:00",
-                        "13:45",
-                        "14:30",
-                        "15:15",
-                        "16:00",
-                        "16:20",
-                        "17:00",
-                        "17:50",
-                        "18:35",
-                        "19:25"
-                    )
+                        val timings = listOf(
+                            "08:45",
+                            "09:00",
+                            "09:40",
+                            "10:25",
+                            "11:15",
+                            "12:00",
+                            "12:20",
+                            "13:00",
+                            "13:45",
+                            "14:30",
+                            "15:15",
+                            "16:00",
+                            "16:20",
+                            "17:00",
+                            "17:50",
+                            "18:35",
+                            "19:25"
+                        )
 
-                    remember {
-                        isStatic.value = minuteHeight >= 0.8f.dp
+                        //                    remember {
+                        //                        isStatic.value = minuteHeight >= 0.8f.dp
+                        //                    }
+                    val widthCount = if (model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty()) {
+                        model.activeTeachers[key]?.size ?: 0
+                    } else {
+                        model.forms.toList().size
                     }
-
-
-                    Box(
-                        modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
+                    ScrollBaredBox(
+                        vState = scrollState,
+                        hState = lazyListState,
+                        height =  mutableStateOf(minuteHeight * ("20:00".toMinutes() -  "08:45".toMinutes())),
+                        width = mutableStateOf(12.dp +
+                                               widthCount*200.dp)
                     ) {
-                        //TIMINGS
-                        Box(Modifier.padding(top = headerP)) {
-                            timings.forEach {
-                                Row(Modifier.padding(top = minuteHeight * (it.toMinutes() - dayStartTime.toMinutes()))) {
-                                    Text(
-                                        text = it,
-                                        fontSize = 14.sp,
-                                        lineHeight = 14.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = .0f),
-                                        modifier = Modifier.offset(y = (-10).dp),
-                                        textAlign = TextAlign.Center
-                                    )
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.outline.copy(
-                                            alpha = .4f
+
+                        Box(
+                            modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
+                        ) {
+                            //TIMINGS
+                            Box(Modifier.padding(top = headerP)) {
+                                timings.forEach {
+                                    Row(Modifier.padding(top = minuteHeight * (it.toMinutes() - dayStartTime.toMinutes()))) {
+                                        Text(
+                                            text = it,
+                                            fontSize = 14.sp,
+                                            lineHeight = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .0f),
+                                            modifier = Modifier.offset(y = (-10).dp),
+                                            textAlign = TextAlign.Center
                                         )
-                                    )
-                                }
-                            }
-                        }
-                        //ADD TEACHER
-                        if (model.isTeachersView && component.isCanBeEdited) {
-                            Box() {
-                                IconButton(
-                                    onClick = {
-                                        component.listCreateTeacher.onEvent(ListDialogStore.Intent.ShowDialog)
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outline.copy(
+                                                alpha = .4f
+                                            )
+                                        )
                                     }
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.PersonAdd,
-                                        "addTeacher"
-                                    )
                                 }
-                                ListDialogDesktopContent(
-                                    component = component.listCreateTeacher,
-                                    offset = DpOffset(x = 40.dp, y = -25.dp)
-                                )
-
                             }
+                            //ADD TEACHER
+                            if (model.isTeachersView && component.isCanBeEdited) {
+                                Box() {
+                                    IconButton(
+                                        onClick = {
+                                            component.listCreateTeacher.onEvent(ListDialogStore.Intent.ShowDialog)
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.PersonAdd,
+                                            "addTeacher"
+                                        )
+                                    }
+                                    ListDialogDesktopContent(
+                                        component = component.listCreateTeacher,
+                                        offset = DpOffset(x = 40.dp, y = -25.dp)
+                                    )
+
+                                }
+                            }
+                            //LINES FOR TIMINGS
+                            Box(Modifier.zIndex(3f).padding(top = headerP)) {
+                                timings.forEach {
+                                    Row(Modifier.padding(top = minuteHeight * (it.toMinutes() - dayStartTime.toMinutes()))) {
+                                        Text(
+                                            text = it,
+                                            fontSize = 14.sp,
+                                            lineHeight = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
+                                            modifier = Modifier.offset(y = (-10).dp),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty()) {
+                                val trueTeachers =
+                                    model.activeTeachers[key]
+                                LazyRow(Modifier.padding(start = 38.dp).fillMaxSize(), state = lazyListState) {
+                                    item { Spacer(Modifier.width(12.dp)) }
+                                    items(
+                                        trueTeachers?.reversed() ?: emptyList(),
+                                        key = { it }) { login ->
+                                        Box(Modifier.height(minuteHeight * ("20:00".toMinutes() -  "08:45".toMinutes()) + headerP)) {
+                                            ScheduleColumn(
+                                                component = component,
+                                                model = model,
+                                                nModel,
+                                                mpModel,
+                                                scrollState,
+                                                minuteHeight,
+                                                dayStartTime,
+                                                login,
+                                                key,
+                                                headerP,
+                                                density
+                                            )
+                                        }
+                                    }
+                                    item { Spacer(Modifier.width(200.dp)) }
+                                }
+                            } else if (!model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty() && model.forms.isNotEmpty()) {
+                                LazyRow(Modifier.padding(start = 38.dp).fillMaxSize(), state = lazyListState) {
+                                    item { Spacer(Modifier.width(12.dp)) }
+                                    items(
+                                        items = model.forms.toList().sortedWith(
+                                            compareBy({ it.second.num }, { it.second.shortTitle })
+                                        ).reversed(),
+                                        key = { it.first }) { form ->
+                                        Box(Modifier.height(minuteHeight * ("20:00".toMinutes() -  "08:45".toMinutes()) + headerP)) {
+                                            ScheduleColumnForForms(
+                                                component = component,
+                                                model = model,
+                                                nModel,
+                                                mpModel,
+                                                scrollState,
+                                                minuteHeight,
+                                                dayStartTime,
+                                                form = form.second,
+                                                formId = form.first,
+                                                key = key,
+                                                headerP,
+                                                density
+                                            )
+                                        }
+                                    }
+                                    item { Spacer(Modifier.width(200.dp)) }
+                                }
+                            }
+
+
                         }
-                        //LINES FOR TIMINGS
-                        Box(Modifier.zIndex(3f).padding(top = headerP)) {
-                            timings.forEach {
-                                Row(Modifier.padding(top = minuteHeight * (it.toMinutes() - dayStartTime.toMinutes()))) {
-                                    Text(
-                                        text = it,
-                                        fontSize = 14.sp,
-                                        lineHeight = 14.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
-                                        modifier = Modifier.offset(y = (-10).dp),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                        }
-
-                        if (model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty()) {
-                            val trueTeachers =
-                                model.activeTeachers[key]
-                            LazyRow(Modifier.padding(start = 38.dp).fillMaxSize()) {
-                                item { Spacer(Modifier.width(12.dp)) }
-                                items(
-                                    trueTeachers?.reversed() ?: emptyList(),
-                                    key = { it }) { login ->
-                                    ScheduleColumn(
-                                        component = component,
-                                        model = model,
-                                        nModel,
-                                        mpModel,
-                                        scrollState,
-                                        minuteHeight,
-                                        dayStartTime,
-                                        login,
-                                        key,
-                                        headerP,
-                                        density
-                                    )
-                                }
-                                item { Spacer(Modifier.width(200.dp)) }
-                            }
-                        } else if (!model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty() && model.forms.isNotEmpty()) {
-                            LazyRow(Modifier.padding(start = 38.dp).fillMaxSize()) {
-                                item { Spacer(Modifier.width(12.dp)) }
-                                items(
-                                    items = model.forms.toList().sortedWith(
-                                        compareBy({ it.second.num }, { it.second.shortTitle })
-                                    ).reversed(),
-                                    key = { it.first }) { form ->
-                                    ScheduleColumnForForms(
-                                        component = component,
-                                        model = model,
-                                        nModel,
-                                        mpModel,
-                                        scrollState,
-                                        minuteHeight,
-                                        dayStartTime,
-                                        form = form.second,
-                                        formId = form.first,
-                                        key = key,
-                                        headerP,
-                                        density
-                                    )
-                                }
-                                item { Spacer(Modifier.width(200.dp)) }
-                            }
-                        }
-
-
-                    }
-
-//            Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-//                Column {
-//                    (0..99).forEach {
-//                        Text("it")
-//                    }
-//                }
-//            }
-                    AnimatedVisibility(
-                        visible = model.items[key].isNullOrEmpty(),
-                        modifier = Modifier.align(
-                            Alignment.Center
-                        ),
-                        enter = fadeIn() + scaleIn(),
-                        exit = fadeOut() + scaleOut()
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Здесь пока нет предметов")
-                            Spacer(Modifier.height(7.dp))
-                            AnimatedVisibility(!model.isDefault && model.items[model.currentDate.first.toString()]?.isNotEmpty() == true && component.isCanBeEdited) {
-                                CustomTextButton("Копировать из\nстандартного расписания") {
-                                    component.onEvent(ScheduleStore.Intent.CopyFromStandart)
+                        AnimatedVisibility(
+                            visible = model.items[key].isNullOrEmpty(),
+                            modifier = Modifier.align(
+                                Alignment.Center
+                            ),
+                            enter = fadeIn() + scaleIn(),
+                            exit = fadeOut() + scaleOut()
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Здесь пока нет предметов")
+                                Spacer(Modifier.height(7.dp))
+                                AnimatedVisibility(!model.isDefault && model.items[model.currentDate.first.toString()]?.isNotEmpty() == true && component.isCanBeEdited) {
+                                    CustomTextButton("Копировать из\nстандартного расписания") {
+                                        component.onEvent(ScheduleStore.Intent.CopyFromStandart)
+                                    }
                                 }
                             }
                         }
@@ -470,8 +457,7 @@ fun ScheduleContent(
     }
     ListDialogMobileContent(
         component = component.listCreateTeacher,
-        title = "Добавить учителя",
-        hazeState = null
+        title = "Добавить учителя"
     )
 
     if (model.niErrors.isNotEmpty()) {
@@ -490,43 +476,38 @@ fun ScheduleContent(
                             }?",
                             textAlign = TextAlign.Center
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        val prevText = getNameOfConflictLesson(
+                            groupId = e.groupId,
+                            teacherLogin = e.teacherLogin,
+                            model = model,
+                            id = e.id
+                        )
+                        val nextText = getNameOfConflictLesson(
+                            groupId = model.niGroupId!!,
+                            teacherLogin = model.niTeacherLogin!!,
+                            model = model,
+                            id = model.niId!!
+                        )
+                        CustomTextButton(
+                            text = prevText
                         ) {
-
-                            val prevText = getNameOfConflictLesson(
-                                groupId = e.groupId,
-                                teacherLogin = e.teacherLogin,
-                                model = model,
-                                id = e.id
-                            )
-                            val nextText = getNameOfConflictLesson(
-                                groupId = model.niGroupId!!,
-                                teacherLogin = model.niTeacherLogin!!,
-                                model = model,
-                                id = model.niId!!
-                            )
-                            CustomTextButton(
-                                text = prevText
-                            ) {
-                                component.onEvent(
-                                    ScheduleStore.Intent.SolveConflict(
-                                        lessonId = model.niId!!,
-                                        studentLogins = e.logins
-                                    )
+                            component.onEvent(
+                                ScheduleStore.Intent.SolveConflict(
+                                    lessonId = model.niId!!,
+                                    studentLogins = e.logins
                                 )
-                            }
-                            CustomTextButton(
-                                text = nextText
-                            ) {
-                                component.onEvent(
-                                    ScheduleStore.Intent.SolveConflict(
-                                        lessonId = e.id,
-                                        studentLogins = e.logins
-                                    )
+                            )
+                        }
+                        Text("ИЛИ")
+                        CustomTextButton(
+                            text = nextText
+                        ) {
+                            component.onEvent(
+                                ScheduleStore.Intent.SolveConflict(
+                                    lessonId = e.id,
+                                    studentLogins = e.logins
                                 )
-                            }
+                            )
                         }
                         Spacer(Modifier.height(5.dp))
                     }
@@ -546,9 +527,9 @@ private fun getNameOfConflictLesson(groupId: Int, teacherLogin: String, id: Int,
         if ((model.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1 != id) {
             val key = if (model.isDefault) model.defaultDate.toString() else model.currentDate.second
             val trueItems = model.items[key]?.firstOrNull { it.index == id }
-            "${trueItems?.custom}"
+            "${trueItems?.custom?.firstOrNull()}"
         } else {
-            model.ciCustom
+            model.ciCustom.firstOrNull().toString()
         }
     } else {
         val groupx =
@@ -579,7 +560,7 @@ private fun LazyItemScope.ScheduleColumn(
 
 
     Box(
-        Modifier.width(200.dp).padding(end = 5.dp).animateItem(fadeInSpec = null, fadeOutSpec = null)
+        Modifier.width(200.dp).fillMaxHeight().padding(end = 5.dp).animateItem(fadeInSpec = null, fadeOutSpec = null)
     ) {
         val headerState = remember {
             MutableTransitionState(false).apply {
@@ -589,11 +570,12 @@ private fun LazyItemScope.ScheduleColumn(
         }
         AnimatedVisibility(
             visibleState = headerState,
-            enter = fadeIn() + scaleIn()
+            enter = fadeIn() + scaleIn(),
+            modifier = Modifier.zIndex(1f)
+                .offset(y = with(density) { scrollState.value.toDp() })
         ) {
             Box(
-                Modifier.zIndex(1f).height(headerP)
-                    .offset(y = with(density) { scrollState.value.toDp() })
+                Modifier.height(headerP)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize()
@@ -643,7 +625,7 @@ private fun LazyItemScope.ScheduleColumn(
                                     null
                                 } else {
                                     {
-                                        component.onEvent(ScheduleStore.Intent.ciChangeCustom(""))
+                                        component.onEvent(ScheduleStore.Intent.ciChangeCustom(listOf("")))
                                         component.onEvent(ScheduleStore.Intent.ciNullGroupId)
                                     }
                                 },
@@ -1210,13 +1192,13 @@ private fun LazyItemScope.ScheduleColumn(
 
 
                                                 AnimatedVisibility(
-                                                    model.ciCustom.isNotBlank() && model.ciSubjectId != null
+                                                    model.ciCustom.isNotEmpty() && model.ciSubjectId != null
                                                 ) {
                                                     IconButton(
                                                         onClick = {
                                                             val erroredItems = studentErrors.filter {
                                                                 it.logins.filter {
-                                                                    model.ciCustom.contains(it)
+                                                                    it in model.ciCustom
                                                                 }.isNotEmpty()
                                                             }.map {
                                                                 it.copy(
@@ -1297,10 +1279,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                     onClick = {
                                                         component.onEvent(
                                                             ScheduleStore.Intent.ciChangeCustom(
-                                                                if (isPicked) model.ciCustom.replace(
-                                                                    s.login,
-                                                                    ""
-                                                                ) else model.ciCustom + s.login
+                                                                if (isPicked) (model.ciCustom - s.login) else model.ciCustom + s.login
                                                             )
                                                         )
                                                         filterStudents.value = ""
@@ -1869,7 +1848,7 @@ fun BoxScope.EditPopup(
                                                 studentErrors = studentErrors,
                                                 cabinetErrorGroupId = model.eiCabinetErrorGroupId,
                                                 component = component,
-                                                niCustom = "",
+                                                niCustom = listOf(""),
                                                 niFormId = model.eiFormId ?: 0,
                                                 niGroupId = groupId,
                                                 niTeacherLogin = login,
@@ -2218,7 +2197,7 @@ fun ErrorsTooltip(
     component: ScheduleComponent,
     niFormId: Int,
     niGroupId: Int,
-    niCustom: String,
+    niCustom: List<String>,
     niTeacherLogin: String,
     niIndex: Int,
     niOnClick: () -> Unit

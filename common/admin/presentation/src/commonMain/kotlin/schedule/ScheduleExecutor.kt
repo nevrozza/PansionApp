@@ -132,7 +132,7 @@ class ScheduleExecutor(
                         cabinet = intent.cabinet,
                         teacherLoginBefore = oldItem.teacherLoginBefore,
                         formId = null,
-                        custom = "",
+                        custom = oldItem.custom,
                         index = oldItem.index,
                         subjectId = oldItem.subjectId,
                         isMarked = oldItem.isMarked
@@ -257,7 +257,6 @@ class ScheduleExecutor(
                         null
                     } else it
                 }
-
                 scope.launch {
                     dispatch(
                         Message.SolveConflictItemsUpdated(
@@ -269,6 +268,20 @@ class ScheduleExecutor(
 
                         println("SADD: ${state().niOnClick}")
                         state().niOnClick()
+                    }
+                    val lessons = state().items[key]!!.toMutableList()
+                    val lesson = lessons.firstOrNull { it.index == lessonId }
+                    if (lesson != null) {
+                        if (lesson.groupId == -6) {
+                            val newList = lesson.custom- studentLogins.toSet()
+                            lessons.remove(lesson)
+                            lessons.add(lesson.copy(custom = newList))
+                            dispatch(
+                                Message.ItemsUpdated(
+                                    items = lessons
+                                )
+                            )
+                        }
                     }
                 }
 
@@ -797,10 +810,13 @@ fun getStudentErrors(
     students: List<SchedulePerson>,
     state: ScheduleStore.State
 ): MutableList<StudentError> {
+    val key = if (state.isDefault) state.defaultDate.toString() else state.currentDate.second
     val studentErrors: MutableList<StudentError> = mutableListOf()
     val studentErrorItems =
         coItems.filter { coItem ->
-            coItem.groupId in students.flatMap { student -> student.groups.map { it.first } } ||
+            coItem.groupId in students.filter {
+               it.login !in (state.solveConflictItems[key]?.get(coItem.index) ?: listOf())
+            }.flatMap { student -> student.groups.map { it.first } } ||
                     (students.map { student -> student.login }).any { coItem.custom.contains(it) }
                     ||
                     coItem.formId in students.flatMap { student ->
@@ -815,10 +831,11 @@ fun getStudentErrors(
         val error = StudentError(
             groupId = item.groupId,
             logins = students.filter { s ->
+                (
                 item.groupId in s.groups.map { it.first }
-                        || (item.custom.contains(s.login))
-                        || item.formId == (state.forms.toList()
-                    .firstOrNull { s.login in it.second.logins }?.first)
+                || (item.custom.contains(s.login))
+                || item.formId == (state.forms.toList().firstOrNull { s.login in it.second.logins }?.first)
+                        ) && (s.login !in (state.solveConflictItems[key]?.get(item.index) ?: listOf()))
             }.map { it.login },
             teacherLogin = item.teacherLogin,
             id = item.index

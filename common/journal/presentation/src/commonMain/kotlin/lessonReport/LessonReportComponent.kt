@@ -82,11 +82,11 @@ class LessonReportComponent(
             onEvent(LessonReportStore.Intent.SaveHomeTasks)
         }
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
-        onOutput(Output.Back)
+        onOutput(Output.BackAtAll)
     }
     private fun onSaveQuitDeclineClick() {
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
-        onOutput(Output.Back)
+        onOutput(Output.BackAtAll)
     }
 
     val marksDialogComponent = CAlertDialogComponent(
@@ -273,6 +273,7 @@ class LessonReportComponent(
 //        data object NavigateToGroups : Output()
 //        data object NavigateToStudents : Output()
         data object Back : Output()
+        data object BackAtAll : Output()
 
     }
 }

@@ -37,3 +37,28 @@ actual fun ScrollBaredBox(
         }
     }
 }
+
+@NoLiveLiterals
+@Composable
+actual fun ScrollBaredBox(
+    vState: ScrollState,
+    hState: LazyListState,
+    modifier: Modifier,
+
+    height: MutableState<Dp>,
+    width: MutableState<Dp>,
+
+    content: @Composable () -> Unit,
+) {
+
+    Box(modifier) {
+        Box(
+            Modifier.clip(RoundedCornerShape(15.dp)).border(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+            RoundedCornerShape(15.dp)
+        )) {
+            content()
+        }
+    }
+}

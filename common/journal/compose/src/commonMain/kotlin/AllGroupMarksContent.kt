@@ -103,19 +103,13 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun AllGroupMarksContent(
-    component: AllGroupMarksComponent,
-    isVisible: Boolean
+    component: AllGroupMarksComponent
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val nOpenReportModel by component.nOpenReportInterface.networkModel.subscribeAsState()
     val coroutineScope = rememberCoroutineScope()
     val hazeState = remember { HazeState() }
-    val focusManager = LocalFocusManager.current
-    val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
 
     if (model.reportData != null) {
         val reportData = model.reportData
@@ -233,8 +227,7 @@ fun AllGroupMarksContent(
                                 null
                             )
                         }
-                    },
-                    isHazeActivated = isVisible
+                    }
                 )
                 //LessonReportTopBar(component, isFullView) //, scrollBehavior
             }

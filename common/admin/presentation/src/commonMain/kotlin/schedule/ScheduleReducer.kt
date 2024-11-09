@@ -49,7 +49,7 @@ object ScheduleReducer : Reducer<State, Message> {
                 ciId = if (ciIsPair) ciId else null,
                 ciCabinet = if (ciIsPair) ciCabinet else 0,
                 ciIsPair = false,
-                ciCustom = "",
+                ciCustom = listOf(),
                 ciFormId = null,
                 ciSubjectId = null
             )
@@ -147,10 +147,13 @@ object ScheduleReducer : Reducer<State, Message> {
             )
 
             is Message.NiOnClicked -> copy(isNiCreated = true)
-            is Message.SolveConflictItemsUpdated -> copy(
-                solveConflictItems = msg.solveConflictItems,
-                niErrors = msg.niErrors ?: niErrors
-            )
+            is Message.SolveConflictItemsUpdated -> {
+                val solveConflictItems = msg.solveConflictItems
+                copy(
+                    solveConflictItems = msg.solveConflictItems,
+                    niErrors = msg.niErrors ?: niErrors
+                )
+            }
 
             is Message.IsEditItemCouldBeBLABLABLAChanged -> copy(isEditItemCouldBeSavedWithDeletedLogins = msg.isEditItemCouldBeSavedWithDeletedLogins)
             is Message.ciSubjectIdChanged -> copy(ciSubjectId = msg.subjectId)

@@ -335,7 +335,6 @@ fun UsersContent(
                         }
                     }
                 },
-                isHazeActivated = false,
                 hazeState = hazeState
             )
         }

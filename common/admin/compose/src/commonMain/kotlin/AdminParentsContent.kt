@@ -54,19 +54,12 @@ import view.rememberImeState
 )
 @Composable
 fun AdminParentsContent(
-    component: AdminParentsComponent,
-    isVisible: Boolean
+    component: AdminParentsComponent
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
 
     val hazeState = remember { HazeState() }
-
-    val viewManager = LocalViewManager.current
-    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
-    val density = LocalDensity.current
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -114,8 +107,7 @@ fun AdminParentsContent(
                         )
                     }
                 },
-                hazeState = hazeState,
-                isHazeActivated = isVisible
+                hazeState = hazeState
             )
         }
     ) { padding ->
@@ -216,13 +208,11 @@ fun AdminParentsContent(
 
 
         ListDialogMobileContent(
-            component = component.parentEditPicker,
-            hazeState = hazeState
+            component = component.parentEditPicker
         )
 
         ListDialogMobileContent(
-            component = component.childCreatePicker,
-            hazeState = hazeState
+            component = component.childCreatePicker
         )
     }
 }

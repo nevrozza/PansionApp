@@ -1,10 +1,5 @@
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -78,16 +73,15 @@ import view.LocalViewManager
 import view.WindowScreen
 import view.toColor
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun FormRatingContent(
+fun SharedTransitionScope.FormRatingContent(
     component: FormRatingComponent,
     isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val nFormPickerModel by component.formPickerDialog.nInterface.networkModel.subscribeAsState()
-    val lazyListState = rememberLazyListState()
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
     val coroutineScope = rememberCoroutineScope()
@@ -183,8 +177,7 @@ fun FormRatingContent(
                         }
                     }
                 },
-                hazeState = hazeState,
-                isHazeActivated = isVisible
+                hazeState = hazeState
             )
         }
     ) { padding ->
@@ -232,7 +225,8 @@ fun FormRatingContent(
                                         meLogin = model.login,
                                         topMark = page.topMarks.filterValues { student in it }.keys.first() + 1,
                                         topStup = page.topStups.filterValues { student in it }.keys.first() + 1,
-                                        component = component
+                                        component = component,
+                                        isVisible = isVisible
                                     )
                                 }
                             }
@@ -248,7 +242,8 @@ fun FormRatingContent(
                                     meLogin = model.login,
                                     topMark = 0,
                                     topStup = 0,
-                                    component = component
+                                    component = component,
+                                    isVisible = isVisible
                                 )
                             }
 
@@ -280,8 +275,7 @@ fun FormRatingContent(
     }
     ListDialogMobileContent(
         component = component.formPickerDialog,
-        title = "Классы",
-        hazeState = hazeState
+        title = "Классы"
     )
 
     val detailedStupsStudent =
@@ -314,13 +308,15 @@ fun FormRatingContent(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun FormRatingCard(
+private fun SharedTransitionScope.FormRatingCard(
     item: FormRatingStudent,
     topEd: Int,
     topMark: Int,
     topStup: Int,
     meLogin: String,
+    isVisible: Boolean,
     component: FormRatingComponent
 ) {
     Surface(
@@ -376,7 +372,11 @@ private fun FormRatingCard(
                 avatarId = item.avatarId,
                 name = item.fio.name,
                 size = 40.dp,
-                textSize = 20.sp
+                textSize = 20.sp,
+                modifier = Modifier.sharedElementWithCallerManagedVisibility(
+                    sharedContentState = rememberSharedContentState(key = item.login + "avatar"),
+                    visible = isVisible
+                )
             )
 
             Spacer(modifier = Modifier.width(16.dp))

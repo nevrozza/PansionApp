@@ -68,17 +68,10 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun DetailedStupsContent(
-    component: DetailedStupsComponent,
-    isVisible: Boolean
+    component: DetailedStupsComponent
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
-    val coroutineScope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
-    val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
 
     val hazeState = remember { HazeState() }
     //PullToRefresh
@@ -123,8 +116,7 @@ fun DetailedStupsContent(
                         }
                     }
                 },
-                hazeState = hazeState,
-                isHazeActivated = isVisible
+                hazeState = hazeState
             )
             //LessonReportTopBar(component, isFullView) //, scrollBehavior
         }

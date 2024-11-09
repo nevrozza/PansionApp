@@ -12,7 +12,7 @@ data class ScheduleItem(
     val cabinet: Int,
     val teacherLoginBefore: String,
     val formId: Int?,
-    val custom: String,
+    val custom: List<String>,
     val index: Int,
     val subjectId: Int?,
     val isMarked: Boolean

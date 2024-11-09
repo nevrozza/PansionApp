@@ -90,10 +90,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AppBar
-import components.CustomTextField
-import components.LoadingAnimation
+import components.*
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
@@ -119,8 +116,7 @@ import view.rememberImeState
 @ExperimentalLayoutApi
 @Composable
 fun GroupsContent(
-    component: GroupsComponent,
-    isVisible: Boolean
+    component: GroupsComponent
 ) {
 
     val model by component.model.subscribeAsState()
@@ -161,7 +157,7 @@ fun GroupsContent(
                     if (isHaze) Modifier.hazeChild(
                         state = hazeState,
                         style = LocalHazeStyle.current
-                    )   {
+                    ) {
                         progressive = hazeProgressive
                     }
                     else Modifier
@@ -246,8 +242,7 @@ fun GroupsContent(
 
                     },
                     isTransparentHaze = isHaze,
-                    isHazeActivated = isVisible,
-                    hazeState = hazeState
+                    hazeState = null
                 )
                 AnimatedVisibility(
                     model.view == GroupsStore.Views.Students
@@ -351,10 +346,12 @@ fun GroupsContent(
                                     title = it.name,
                                     isChosen = it.id == subjectsModel.chosenSubjectId,
                                     onEditClick = {
-                                        component.subjectsComponent.onEvent(SubjectsStore.Intent.EditSubjectInit(
-                                            text = it.name,
-                                            subjectId = it.id
-                                        ))
+                                        component.subjectsComponent.onEvent(
+                                            SubjectsStore.Intent.EditSubjectInit(
+                                                text = it.name,
+                                                subjectId = it.id
+                                            )
+                                        )
                                         component.subjectsComponent.editSubjectDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
                                     }
                                 ) {
@@ -366,7 +363,7 @@ fun GroupsContent(
                             }
                             Spacer(Modifier.width(5.dp))
                         }
-                        if(model.subjects.any { !it.isActive }) {
+                        if (model.subjects.any { !it.isActive }) {
                             item {
                                 FilledTonalIconButton(
                                     onClick = {
@@ -477,8 +474,16 @@ fun GroupsContent(
 
     )
     { padding ->
-        Crossfade(isInited) {
-            Box(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()), contentAlignment = Alignment.Center) {
+        Crossfade(
+            targetState = isInited,
+            modifier = Modifier.hazeUnder(
+                viewManager = viewManager, hazeState = hazeState
+            )
+        ) {
+            Box(
+                Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()),
+                contentAlignment = Alignment.Center
+            ) {
                 if (nModel.state == NetworkState.Error && !it) {
                     DefaultGroupsErrorScreen(
                         component.nGroupsInterface
@@ -506,7 +511,7 @@ fun GroupsContent(
                                         sComponent = component.studentsComponent,
                                         coroutineScope = coroutineScope,
                                         topPadding = padding.calculateTopPadding(),
-                                        hazeState = hazeState
+//                                        hazeState = hazeState
                                     )
                                 }
 
@@ -514,13 +519,13 @@ fun GroupsContent(
                                     component = component.formsComponent,
                                     topPadding = padding.calculateTopPadding(),
                                     padding = padding,
-                                    hazeState = hazeState
+//                                    hazeState = hazeState
                                 )
 
                                 GroupsStore.Views.Students -> StudentsContent(
                                     component = component.studentsComponent,
                                     topPadding = padding.calculateTopPadding(),
-                                    hazeState = hazeState
+//                                    hazeState = hazeState
                                 )
                             }
                         }
@@ -542,14 +547,17 @@ fun GroupsContent(
             component = component.subjectsComponent.inactiveSubjectsDialog,
             isCustomButtons = true
         ) {
-            if(model.subjects.none { !it.isActive }) {
+            if (model.subjects.none { !it.isActive }) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Здесь пусто")
                 }
             } else {
                 LazyColumn(Modifier.padding(10.dp)) {
                     items(model.subjects.filter { !it.isActive }) { s ->
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(s.name)
                             IconButton(
                                 onClick = {
@@ -611,7 +619,7 @@ fun GroupsContent(
                     } else Modifier,
                     text = "Название урока",
                     isEnabled =
-                    !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading),
+                        !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading),
                     onEnterClicked = {
 //                    focusManager.moveFocus(FocusDirection.Next)
                         if (isButtonEnabled) {
@@ -917,7 +925,12 @@ fun GroupsContent(
                     Spacer(Modifier.height(7.dp))
 
                     val teachersMap =
-                        model.teachers.sortedWith(compareBy({ it.subjectId != subjectsModel.chosenSubjectId }, {it.fio.surname})) .associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}." }
+                        model.teachers.sortedWith(
+                            compareBy(
+                                { it.subjectId != subjectsModel.chosenSubjectId },
+                                { it.fio.surname })
+                        )
+                            .associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}." }
 
                     ExposedDropdownMenuBox(
                         expanded = expandedTeachers,
@@ -1035,7 +1048,7 @@ fun SubjectItem(
     FilledTonalButton(
         onClick = { if (!isChosen) onClick() },
         modifier = Modifier.fillMaxHeight(),
-        contentPadding = PaddingValues(start = 10.dp, end = if(isEditable) 0.dp else 10.dp),
+        contentPadding = PaddingValues(start = 10.dp, end = if (isEditable) 0.dp else 10.dp),
         colors = ButtonDefaults.filledTonalButtonColors(
             containerColor = if (isChosen) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
                 2.dp

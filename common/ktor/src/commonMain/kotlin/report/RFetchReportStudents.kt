@@ -1,5 +1,6 @@
 package report
 
+import ReportData
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,7 +15,9 @@ data class RFetchReportStudentsReceive(
 data class RFetchReportStudentsResponse(
     val students: List<AddStudentLine>,
     val marks: List<ServerRatingUnit>,
-    val stups: List<ServerRatingUnit>
+    val stups: List<ServerRatingUnit>,
+    val newTopic: String,
+    val newStatus: Boolean
 )
 
 @Serializable

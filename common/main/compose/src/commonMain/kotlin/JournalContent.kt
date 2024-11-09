@@ -213,8 +213,7 @@ private fun TrueJournalContent(
                     }
 
                 },
-                hazeState = hazeState,
-                isHazeActivated = true
+                hazeState = hazeState
             )
         }
     ) { padding ->
@@ -434,11 +433,11 @@ private fun TrueJournalContent(
                 state = refreshState,
                 topPadding = padding.calculateTopPadding()
             )
-            ListDialogMobileContent(component.groupListComponent, hazeState = hazeState)
-            ListDialogMobileContent(component.fGroupListComponent, hazeState = hazeState)
-            ListDialogMobileContent(component.fStatusListComponent, hazeState = hazeState)
-            ListDialogMobileContent(component.fDateListComponent, hazeState = hazeState)
-            ListDialogMobileContent(component.fTeachersListComponent, hazeState = hazeState)
+            ListDialogMobileContent(component.groupListComponent)
+            ListDialogMobileContent(component.fGroupListComponent)
+            ListDialogMobileContent(component.fStatusListComponent)
+            ListDialogMobileContent(component.fDateListComponent)
+            ListDialogMobileContent(component.fTeachersListComponent)
             StudentsPreviewDialog(
                 component, model
             )

@@ -71,16 +71,11 @@ import view.rememberImeState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarContent(
-    component: CalendarComponent,
-    isVisible: Boolean
+    component: CalendarComponent
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
-    val viewManager = LocalViewManager.current
-    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
-    val density = LocalDensity.current
+
     val hazeState = remember { HazeState() }
     var datePickerState = rememberDatePickerState()
 
@@ -107,8 +102,7 @@ fun CalendarContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                hazeState = hazeState,
-                isHazeActivated = isVisible
+                hazeState = hazeState
             )
         },
         floatingActionButton = {

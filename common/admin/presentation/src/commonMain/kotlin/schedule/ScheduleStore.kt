@@ -37,7 +37,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val ciFormId: Int? = null,
 
         val ciSubjectId: Int? = null,
-        val ciCustom: String = "",
+        val ciCustom: List<String> = emptyList(),
 
 
         val eiState: EditState = EditState.Preview,
@@ -53,7 +53,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         val niFormId: Int? = null,
         val niId: Int? = null,
         val niGroupId: Int? = null,
-        val niCustom: String? = null,
+        val niCustom: List<String> = emptyList(),
         val niTeacherLogin: String? = null,
         val niErrors: List<StudentError> = emptyList(),
         val isNiCreated: Boolean = false,
@@ -120,7 +120,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
 
         data class ciChooseTime(val t: ScheduleTiming) : Intent
         data class ciChangeCabinet(val cabinet: Int) : Intent
-        data class ciChangeCustom(val custom: String) : Intent
+        data class ciChangeCustom(val custom: List<String>) : Intent
         data class ciChangeSubjectId(val subjectId: Int) : Intent
 
         data object ciPreview : Intent
@@ -142,7 +142,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data class StartConflict(
             val niFormId: Int,
             val niGroupId: Int,
-            val niCustom: String,
+            val niCustom: List<String>,
             val niTeacherLogin: String,
             val niErrors: List<StudentError>,
             val niId: Int,
@@ -161,7 +161,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
         data class ConflictStarted(
             val niFormId: Int,
             val niGroupId: Int,
-            val niCustom: String,
+            val niCustom: List<String>,
             val niTeacherLogin: String,
             val niErrors: List<StudentError>,
             val niId: Int,
@@ -206,7 +206,7 @@ interface ScheduleStore : Store<Intent, State, Label> {
 
         data class ciGroupChosed(val groupId: Int) : Message
 
-        data class ciCustomChanged(val custom: String) : Message
+        data class ciCustomChanged(val custom: List<String>) : Message
         data class ciCabinetChanged(val cabinet: Int) : Message
 
         data class ciTimeChosed(val t: ScheduleTiming) : Message

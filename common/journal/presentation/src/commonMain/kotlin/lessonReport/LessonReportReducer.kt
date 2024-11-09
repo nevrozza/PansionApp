@@ -77,7 +77,9 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
                 likedList = msg.likedList,
                 dislikedList = msg.dislikedList,
                 isUpdateNeeded = false,
-                columnNames = getColumns(columnNames)
+                columnNames = getColumns(columnNames),
+                topic = msg.newTopic,
+                status = msg.newStatus
             )
 
             is LessonReportStore.Message.DetailedMarksFetched -> copy(detailedMarks = msg.marks)

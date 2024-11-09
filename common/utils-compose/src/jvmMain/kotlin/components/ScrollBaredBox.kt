@@ -67,3 +67,46 @@ actual fun ScrollBaredBox(
         )
     }
 }
+
+@Composable
+actual fun ScrollBaredBox(
+    vState: ScrollState,
+    hState: LazyListState,
+    modifier: Modifier,
+    height: MutableState<Dp>,
+    width: MutableState<Dp>,
+    content: @Composable () -> Unit,
+) {
+    val l = LocalScrollbarStyle.current
+    val style = ScrollbarStyle(
+        minimalHeight = l.minimalHeight,
+        thickness = l.thickness,
+        shape = l.shape,
+        hoverDurationMillis = l.hoverDurationMillis,
+        unhoverColor = MaterialTheme.colorScheme.surfaceColorAtElevation((10).dp),
+        hoverColor = MaterialTheme.colorScheme.surfaceColorAtElevation(40.dp)
+    )
+    Box(modifier) {
+        Box(
+            Modifier.padding(end = 14.dp, bottom = 14.dp).clip(RoundedCornerShape(15.dp)).border(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+            RoundedCornerShape(15.dp)
+        )) {
+            content()
+        }
+        VerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd)
+                .height(height.value).padding(end = 2.dp),
+            adapter = rememberScrollbarAdapter(vState),
+            style = style
+        )
+        HorizontalScrollbar(
+            modifier = Modifier.align(Alignment.BottomStart)
+                .width(width.value)
+                .padding(bottom = 2.dp),
+            adapter = rememberScrollbarAdapter(hState),
+            style = style
+        )
+    }
+}

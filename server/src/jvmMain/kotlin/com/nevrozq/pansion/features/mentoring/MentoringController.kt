@@ -426,7 +426,7 @@ class MentoringController {
                                 subjectName = if (group != null) subjects[group.subjectId].toString() else when (s.groupId) {
                                     -11 -> "Приём пищи"
                                     -6 -> "Доп занятие"
-                                    else -> s.custom
+                                    else -> s.custom.firstOrNull().toString()
                                 },
                                 groupName = group?.name ?: when (s.groupId) {
                                     -11 -> ""

@@ -13,11 +13,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.PredictiveBackGestureOverlay
 import com.arkivanov.decompose.router.stack.webhistory.DefaultWebHistoryController
+import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
@@ -38,7 +41,8 @@ import kotlin.random.Random
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class
+@OptIn(
+    ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class
 )
 fun main() {
 
@@ -51,11 +55,12 @@ fun main() {
         )
     )
     val lifecycle = LifecycleRegistry()
-
+    val backDispatcher = BackDispatcher()
     val root =
         RootComponentImpl(
             componentContext = DefaultComponentContext(
-                lifecycle = lifecycle
+                lifecycle = lifecycle,
+                backHandler = backDispatcher
             ),
             deepLink = RootComponentImpl.DeepLink.None,//RootComponentImpl.DeepLink.Web(path = window.location.pathname),
             webHistoryController = null, //DefaultWebHistoryController(),
@@ -94,11 +99,18 @@ fun main() {
         ) {
             PageLoadNotify()
             AppTheme {
-                Root(
-                    root = root,
-                    device = WindowType.PC,
-                    isJs = true
-                )
+                PredictiveBackGestureOverlay(
+                    backDispatcher = backDispatcher,
+                    backIcon = { _, _ -> },
+                    endEdgeEnabled = true,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    Root(
+                        root = root,
+                        device = WindowType.PC,
+                        isJs = true
+                    )
+                }
                 val hex = MaterialTheme.colorScheme.background.toHex()
                 changeThemeColor(hex)
             }
@@ -107,6 +119,7 @@ fun main() {
 
     }
 }
+
 fun changeThemeColor(newColor: String) {
     val metaTags = document.head?.querySelectorAll("meta[name=theme-color]")?.asList()
     val themeColorMetaTag = metaTags?.get(0) as HTMLMetaElement?

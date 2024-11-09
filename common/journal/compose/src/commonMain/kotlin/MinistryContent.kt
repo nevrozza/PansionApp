@@ -63,11 +63,9 @@ fun SharedTransitionScope.MinistryContent(
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val nUploadModel by component.nUploadInterface.networkModel.subscribeAsState()
-//    val coroutineScope = rememberCoroutineScope()
-//    val focusManager = LocalFocusManager.current
+
     val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-//    val imeState = rememberImeState()
+
     val lazyListState = rememberLazyListState()
     val hazeState = remember { HazeState() }
 
@@ -166,7 +164,6 @@ fun SharedTransitionScope.MinistryContent(
 
                     },
                     isTransparentHaze = isHaze,
-                    isHazeActivated = true,
                     hazeState = null
                 )
                 DatesLine(
@@ -295,19 +292,16 @@ fun SharedTransitionScope.MinistryContent(
 
     ListDialogMobileContent(
         component = component.ministriesListComponent,
-        title = "Министерства",
-        hazeState = null
+        title = "Министерства"
     )
 
     ListDialogMobileContent(
         component = component.ds1ListComponent,
-        title = "Готовность",
-        hazeState = null
+        title = "Готовность"
     )
     ListDialogMobileContent(
         component = component.ds2ListComponent,
-        title = "Поведение",
-        hazeState = null
+        title = "Поведение"
     )
 
 

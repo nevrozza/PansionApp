@@ -65,8 +65,7 @@ fun AdminContent(
                         fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
                 },
-                hazeState = hazeState,
-                isHazeActivated = true
+                hazeState = hazeState
             )
         }
     ) { padding ->

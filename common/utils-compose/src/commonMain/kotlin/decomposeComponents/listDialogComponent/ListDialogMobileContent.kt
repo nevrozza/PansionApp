@@ -25,7 +25,7 @@ fun ListDialogMobileContent(
     component: ListComponent,
     title: String = "Выберите",
     modifier: Modifier = Modifier,
-    hazeState: HazeState?
+//    hazeState: HazeState?
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()

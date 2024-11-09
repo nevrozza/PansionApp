@@ -679,7 +679,7 @@ class LessonsController() {
                                 cabinet = it.cabinet,
                                 start = it.t.start,
                                 end = it.t.end,
-                                subjectName = it.custom,
+                                subjectName = it.custom.firstOrNull().toString(),
                                 groupName = "",
                                 teacherFio = FIO("", "", ""),
                                 marks = listOf(),

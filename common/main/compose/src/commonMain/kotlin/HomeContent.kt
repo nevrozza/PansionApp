@@ -274,8 +274,7 @@ fun OtherHomeContent(
                     }
 
                 },
-                hazeState = hazeState,
-                isHazeActivated = true
+                hazeState = hazeState
             )
         }
     ) { padding ->
@@ -322,12 +321,8 @@ fun TeacherHomeContent(
         val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
         val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
 
-        val focusManager = LocalFocusManager.current
         val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-        val imeState = rememberImeState()
         val lazyListState = rememberLazyListState()
-        val coroutineScope = rememberCoroutineScope()
 
         val itHotsShouldBe = (model.isMentor || model.isParent)
 
@@ -439,7 +434,6 @@ fun TeacherHomeContent(
 
                         },
                         isTransparentHaze = isHaze,
-                        isHazeActivated = true,
                         hazeState = hazeState
                     )
                     AnimatedVisibility(model.isDatesShown && !isMainView) {
@@ -687,10 +681,7 @@ fun StudentHomeContent(
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
 
-    val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -802,7 +793,6 @@ fun StudentHomeContent(
 
                     },
                     isTransparentHaze = isHaze,
-                    isHazeActivated = true,
                     hazeState = hazeState
                 )
                 AnimatedVisibility(model.isDatesShown && !isMainView) {
