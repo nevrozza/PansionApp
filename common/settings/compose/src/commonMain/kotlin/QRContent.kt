@@ -59,7 +59,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.CustomTextButton
@@ -80,6 +79,7 @@ import qr.isCameraAvailable
 import server.DeviceTypex
 import server.twoNums
 import view.LocalViewManager
+import view.esp
 
 @Composable
 expect fun QRContent(component: QRComponent, snackBarHostState: SnackbarHostState)
@@ -250,14 +250,14 @@ private fun createUserSheet(
                         withStyle(
                             SpanStyle(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize
                             )
                         ) {
                             append("${model.formName} ")
                         }
                         withStyle(
                             SpanStyle(
-                                fontSize = 15.sp,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -514,14 +514,14 @@ private fun createUserSheet(
                 Text(
                     "${model.cSurname} ${model.cName} ${model.cPraname}",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     textAlign = TextAlign.Center
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         model.cLogin,
                         fontWeight = FontWeight.Black,
-                        fontSize = 19.sp,
+                        fontSize = 19.esp,
                         textAlign = TextAlign.Center
                     )
                 }

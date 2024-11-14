@@ -27,7 +27,9 @@ class SettingsStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "SettingsStore",
             initialState = State(
-                login = authRepository.fetchLogin()
+                login = authRepository.fetchLogin(),
+                isMarkTableDefault = settingsRepository.fetchIsMarkTable(),
+                isPlusDsStupsEnabled = settingsRepository.fetchIsShowingPlusDS()
             ),
             executorFactory = { SettingsExecutor(
                 settingsRepository = settingsRepository,

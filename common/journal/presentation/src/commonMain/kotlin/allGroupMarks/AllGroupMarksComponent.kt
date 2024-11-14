@@ -3,6 +3,7 @@ package allGroupMarks
 import AuthRepository
 import JournalRepository
 import ReportData
+import SettingsRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
@@ -39,6 +40,7 @@ class AllGroupMarksComponent(
     )
 
     private val authRepository: AuthRepository = Inject.instance()
+    val setingsRepository: SettingsRepository = Inject.instance()
 
     val nInterface =
         NetworkInterface(componentContext, storeFactory, "AllGroupMarksComponent")
@@ -67,7 +69,8 @@ class AllGroupMarksComponent(
                 stupsDialogComponent = stupsDialogComponent,
                 nOpenReportInterface = nOpenReportInterface,
                 login = login,
-                isModer = authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator)
+                isModer = authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator),
+                settingsRepository = Inject.instance()
             ).create()
         }
 

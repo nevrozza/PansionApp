@@ -19,13 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.HourglassBottom
 import androidx.compose.material.icons.rounded.ThumbDown
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -40,7 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -82,7 +75,7 @@ fun StudentLinesContent(
                     Text(
                         "Прошедшие занятия",
 //                        modifier = Modifier.padding(start = 10.dp),
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -102,7 +95,7 @@ fun StudentLinesContent(
                                 if (i != 0) {
                                     Spacer(Modifier.height(15.dp))
                                 }
-                                Text(sl.date, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 10.dp))
+                                Text(sl.date, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 10.dp))
                             }
                             ClientStudentLineContent(sl = sl) {
                                 component.studentReportDialog.onEvent(
@@ -163,14 +156,14 @@ private fun ClientStudentLineContent(
                 buildAnnotatedString {
                     append(sl.subjectName)
                     append(" ")
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.titleMedium.fontSize)) {
                         append(sl.groupName)
                         withStyle(SpanStyle()) {
                             append(" в ${sl.time}")
                         }
                     }
                 },
-                fontWeight = FontWeight.Black, fontSize = 20.sp
+                fontWeight = FontWeight.Black, fontSize = MaterialTheme.typography.titleLarge.fontSize
             )
             Text(
                 text = if (sl.topic.isNotBlank()) sl.topic else "Тема не выставлена"
@@ -205,99 +198,3 @@ private fun ClientStudentLineContent(
         }
     }
 }
-
-//modifier: Modifier = ,
-//    viewManager: ViewManager,
-//    onDismissClick: (String) -> Unit
-//val data = not.reason.split(".")
-//    val textColor =  if (viewManager.colorMode.value == "3") Color.White else MaterialTheme.colorScheme.onBackground
-//    val type = data[0]
-//    val backColor = getColor(type, data[1])
-//    Surface(
-//        modifier,
-//        shape = RoundedCornerShape(15.dp),
-//        color = if (viewManager.colorMode.value == "3") MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp).blend(backColor, .6f) else MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
-//    ) {
-//        Box() {
-//            Column(Modifier.padding(horizontal = 10.dp, vertical = 5.dp)) {
-//                Text(
-//                    buildAnnotatedString {
-//                        append(not.subjectName)
-//                        withStyle(SpanStyle(color = textColor.copy(alpha = .5f), fontSize = 17.sp)) {
-//                            append(" ${not.date}")
-//                        }
-//                    },
-//                    fontWeight = FontWeight.Black, fontSize = 20.sp, color = textColor
-//                )
-//                if (type != "A") { //groupName + time
-//                    Text(
-//                        buildAnnotatedString {
-//                            append(not.groupName)
-//                            withStyle(SpanStyle()) {
-//                                append(" в ${not.reportTime}")
-//                            }
-//
-//                        },
-//                        fontWeight = FontWeight.Black, fontSize = 18.sp, color = textColor
-//                    )
-//                }
-//                if (type == "A") {
-//                    val text = data[1]
-//                    val stups = data[2]
-//                    Text(
-//                        buildAnnotatedString {
-//                            append(text)
-//                            if (stups.toInt() != 0) {
-//                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-//                                    append(" +${stups}")
-//                                }
-//                            }
-//                        },
-//                        fontWeight = FontWeight.Black, fontSize = 18.sp, color = textColor
-//                    )
-//                } else if (type == "N") {
-//                    val isGood = data[1] == "2"
-//                    Text(
-//                        "Отсутствие по ${if (!isGood) "не" else ""}уважительной причине",
-//                        fontWeight = FontWeight.Black, fontSize = 18.sp, color = textColor
-//                    )
-//                } else if (type == "Op") {
-//                    val lateTime = data[1].removeSuffix(" мин").removePrefix("0")
-//                    Text(
-//                        buildAnnotatedString {
-//                            append("Опоздание на ")
-//                            withStyle(SpanStyle(fontSize = 18.sp)) {
-//                                append("$lateTime мин.")
-//                            }
-//                        },
-//                        fontWeight = FontWeight.Black, fontSize = (16.5).sp, color = textColor
-//                    )
-//                }
-//            }
-//            Row(Modifier.padding(top = 5.dp, end = 10.dp).align(Alignment.TopEnd), verticalAlignment = Alignment.CenterVertically) {
-//                if (viewManager.colorMode.value !in listOf("2", "3", "4")) {
-//                    Box(
-//                        Modifier.size(5.dp).clip(
-//                            CircleShape
-//                        ).background(backColor ?: Color.Transparent) //MaterialTheme.colorScheme.primary
-//                    )
-//                    Spacer(Modifier.width(2.5.dp))
-//                }
-//                IconButton(
-//                    onClick = {
-//                        onDismissClick(not.key)
-//                    },
-//                    modifier = Modifier
-//                        .size(15.dp)
-//                ) {
-//                    Icon(
-//                        Icons.Rounded.Close,
-//                        null,
-//                        modifier = Modifier.background(
-//                            MaterialTheme.colorScheme.surfaceColorAtElevation(15.dp).copy(.3f)
-//                        )
-//                    )
-//                }
-//            }
-//        }
-//    }

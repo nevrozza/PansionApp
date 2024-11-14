@@ -4,6 +4,10 @@ enum class ThemeTint {
     Auto, Dark, Light
 }
 
+enum class FontTypes {
+    Default, Cursive, Monospace, SansSerif, Serif, Geologica
+}
+
 fun String.toTint(): ThemeTint {
     return when (this) {
         ThemeTint.Dark.name -> ThemeTint.Dark

@@ -13,25 +13,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import resources.getAvatarImageVector
 import view.LocalViewManager
 import view.ThemeTint
+import view.esp
 
 @Composable
-fun GetAvatar(avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit = 30.sp, modifier: Modifier = Modifier) {
+fun GetAvatar(
+    avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit = 30.esp, modifier: Modifier = Modifier, isHighQuality: Boolean = true, imageBitmap: ImageBitmap? = null) {
     val viewManager = LocalViewManager.current
     val isDark = if (viewManager.tint.value == ThemeTint.Auto) isSystemInDarkTheme()
     else viewManager.tint.value == ThemeTint.Dark
+    val image = imageBitmap ?: getAvatarImageVector(avatarId)
+    image?.prepareToDraw()
     Box(
         modifier = modifier.size(size).clip(CircleShape).background(
             brush = Brush.verticalGradient(
@@ -48,7 +48,7 @@ fun GetAvatar(avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit 
         ),
         contentAlignment = Alignment.Center
     ) {
-        if (avatarId in listOf(0, 1)) { //avatarId in listOf(0, 1) TODOIK
+        if (image == null) { //avatarId in listOf(0, 1) TODOIK
             Text(
                 name[0].toString(),
                 fontSize = textSize,
@@ -56,13 +56,12 @@ fun GetAvatar(avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit 
                 color = Color.White
             )
         } else {
-
             Image(
-                getAvatarImageVector(avatarId),
+                image,
                 null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
-                filterQuality = FilterQuality.High
+                filterQuality = if (isHighQuality) FilterQuality.High else FilterQuality.Low
             )
         }
 

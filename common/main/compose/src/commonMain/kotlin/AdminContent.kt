@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -61,7 +60,7 @@ fun AdminContent(
                     Text(
                         "Администрация",
                         modifier = Modifier.padding(start = 10.dp),
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
                 },
@@ -102,7 +101,7 @@ fun AdminItemCompose(title: String, isEnabled: Boolean, isActive: Boolean, onCli
         colors = ButtonDefaults.filledTonalButtonColors(containerColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp), contentColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface)
     ) {
         Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null)
         }
     }

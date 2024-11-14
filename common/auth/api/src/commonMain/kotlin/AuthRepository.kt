@@ -28,7 +28,7 @@ interface AuthRepository {
 
     suspend fun checkConnection(): RCheckConnectionResponse
 
-    suspend fun changeAvatarId(avatarId: Int)
+    suspend fun changeAvatarId(avatarId: Int, price: Int)
 
     fun updateAfterFetch(r: RCheckConnectionResponse)
 

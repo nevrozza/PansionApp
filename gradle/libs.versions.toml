@@ -3,7 +3,7 @@
 excelkt = "1.0.2"
 mpfilepicker = "3.1.0"
 plugin-android = "8.3.0"
-plugin-compose = "1.7.0"#"1.7.0-rc01"
+plugin-compose = "1.7.1"#"1.7.0-rc01"
 
 # Multiplatform
 kotlin = "2.0.21"
@@ -24,7 +24,7 @@ moko = "0.24.0-alpha-4"
 mokographics = "0.9.0"
 
 # Compose Libraries
-haze = "0.9.0-rc02"
+haze = "1.0.0"
 materialKolor = "1.4.4"
 
 # Android

@@ -27,10 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import main.ClientMainNotification
 import view.ViewManager
 import view.blend
+import view.esp
 
 @Composable
 fun NotificationItem(
@@ -109,13 +109,13 @@ fun NotificationItem(
                                 withStyle(
                                     SpanStyle(
                                         color = textColor.copy(alpha = .5f),
-                                        fontSize = 17.sp
+                                        fontSize = MaterialTheme.typography.titleMedium.fontSize
                                     )
                                 ) {
                                     append(" ${not.date}")
                                 }
                                                  },
-                            fontWeight = FontWeight.Bold, fontSize = 20.sp, color = textColor
+                            fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.titleLarge.fontSize, color = textColor
                         )
                         if (type != "A") { //groupName + time
                             Text(
@@ -126,7 +126,7 @@ fun NotificationItem(
                                     }
 
                                                      },
-                                fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor
+                                fontWeight = FontWeight.Bold, fontSize = 18.esp, color = textColor
                             )
                         }
                         if (type == "A") {
@@ -141,14 +141,14 @@ fun NotificationItem(
                                         }
                                     }
                                                      },
-                                fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
+                                fontWeight = FontWeight.SemiBold, fontSize = 18.esp, color = textColor
                             )
                         }
                         else if (type == "N") {
                             val isGood = data[1] == "2"
                             Text(
                                 "Отсутствие по ${if (isGood) "уважительной" else "н-ой"} причине",
-                                fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
+                                fontWeight = FontWeight.SemiBold, fontSize = 18.esp, color = textColor
                             )
                         }
                         else if (type == "Op") {
@@ -156,17 +156,17 @@ fun NotificationItem(
                             Text(
                                 buildAnnotatedString {
                                     append("Опоздание на ")
-                                    withStyle(SpanStyle(fontSize = 18.sp)) {
+                                    withStyle(SpanStyle(fontSize = 18.esp)) {
                                         append("$lateTime мин.")
                                     }
                                                      },
-                                fontWeight = FontWeight.SemiBold, fontSize = (16.5).sp, color = textColor
+                                fontWeight = FontWeight.SemiBold, fontSize = (16.5f).esp, color = textColor
                             )
                         }
                         else if (type == "L") {
                             Text(
                                 "Отмечено ${if(data[1] == "T") "хорошее" else "плохое"} поведение",
-                                fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = textColor
+                                fontWeight = FontWeight.SemiBold, fontSize = 18.esp, color = textColor
                             )
                         }
                         if (isChangeToUvButton) {

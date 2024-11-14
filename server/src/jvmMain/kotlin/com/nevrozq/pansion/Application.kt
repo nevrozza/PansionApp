@@ -1,5 +1,6 @@
 package com.nevrozq.pansion
 
+import AvatarsShop
 import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.cabinets.Cabinets
 import com.nevrozq.pansion.database.calendar.Calendar
@@ -13,6 +14,7 @@ import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.homework.HomeTasks
 import com.nevrozq.pansion.database.homework.HomeTasksDone
+import com.nevrozq.pansion.database.pansCoins.PansCoins
 import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.pickedGIA.PickedGIA
 import com.nevrozq.pansion.database.preAttendance.PreAttendance
@@ -55,11 +57,7 @@ import com.nevrozq.pansion.plugins.configureCORS
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.plugins.configureSerialization
 import io.ktor.server.application.Application
-import io.ktor.server.engine.ApplicationEngine
-import io.ktor.server.engine.ConfigKeys
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.engine.sslConnector
+import io.ktor.server.engine.*
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -68,6 +66,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 import server.getSixTime
 import java.io.File
 import java.io.FileInputStream
@@ -127,7 +126,9 @@ fun main() {
             Duty,
             DutySettings,
             DutyCount,
-            ScheduleConflicts
+            ScheduleConflicts,
+            PansCoins,
+            AvatarsShop
         )
 
     }
@@ -144,20 +145,20 @@ fun main() {
 
     embeddedServer(
         factory = Netty,
-        port = h_port,
-//        environment = applicationEnvironment {
-//            log = LoggerFactory.getLogger("ktor.application")
-//        },
-//        configure = {
-//            configureSSLConnectors(
-//                host = "0.0.0.0",
-//                sslPort = https_port.toString(),
-//                sslKeyStorePath = "keystore.jks",
-//                sslPrivateKeyPassword = sslPass,
-//                sslKeyStorePassword = sslPass,
-//                sslKeyAlias = sslAlias
-//            )
-//        },
+//        port = h_port,
+        environment = applicationEnvironment {
+            log = LoggerFactory.getLogger("ktor.application")
+        },
+        configure = {
+            configureSSLConnectors(
+                host = "0.0.0.0",
+                sslPort = https_port.toString(),
+                sslKeyStorePath = "keystore.jks",
+                sslPrivateKeyPassword = sslPass,
+                sslKeyStorePassword = sslPass,
+                sslKeyAlias = sslAlias
+            )
+        },
         module = Application::module
     )
         .start(wait = true)

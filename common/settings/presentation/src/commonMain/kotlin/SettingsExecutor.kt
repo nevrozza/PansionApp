@@ -31,6 +31,16 @@ class SettingsExecutor(
             is Intent.TerminateDevice -> terminate(intent.id)
             is Intent.ESecondLogin -> dispatch(Message.ESecondLogin(intent.secondLogin))
             Intent.SaveSecondLogin -> saveSecondLogin()
+
+
+            Intent.ChangeIsMarkTableDefault -> {
+                settingsRepository.saveIsMarkTable(!state().isMarkTableDefault)
+                dispatch(Message.IsMarkTableDefaultChanged(!state().isMarkTableDefault))
+            }
+            Intent.ChangeIsPlusDsStupsEnabled -> {
+                settingsRepository.saveIsShowingPlusDs(!state().isPlusDsStupsEnabled)
+                dispatch(Message.IsPlusDsStupsEnabledChanged(!state().isPlusDsStupsEnabled))
+            }
         }
     }
     private fun saveSecondLogin() {

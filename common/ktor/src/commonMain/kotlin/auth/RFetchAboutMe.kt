@@ -21,4 +21,6 @@ data class RFetchAboutMeResponse(
     val giaSubjects: List<Int>,
     val ministryId: String,
     val ministryLevel: String,
+    val pansCoins: Int,
+    val avatars: List<Int>
 )

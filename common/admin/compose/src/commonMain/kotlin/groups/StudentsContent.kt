@@ -44,7 +44,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CLazyColumn
 import components.CustomTextButton
@@ -128,7 +127,7 @@ fun StudentsContent(
                                         ) {
                                             Text(
                                                 "${student.fio.surname} ${student.fio.name} ${student.fio.praname ?: ""}",
-                                                fontSize = 20.sp,
+                                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                                 fontWeight = FontWeight.SemiBold
                                             )
                                             Box() {

@@ -66,8 +66,8 @@ class AuthRepositoryImpl(
         return remoteDataSource.checkConnection()
     }
 
-    override suspend fun changeAvatarId(avatarId: Int) {
-        remoteDataSource.changeAvatarId(RChangeAvatarIdReceive(avatarId = avatarId))
+    override suspend fun changeAvatarId(avatarId: Int, price: Int) {
+        remoteDataSource.changeAvatarId(RChangeAvatarIdReceive(avatarId = avatarId, price = price))
     }
 
     override fun updateAfterFetch(r: RCheckConnectionResponse) {

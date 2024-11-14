@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import components.CustomTextField
 import components.cClickable
@@ -46,6 +45,7 @@ import schedule.*
 import server.cut
 import server.isTimeFormat
 import server.toMinutes
+import view.esp
 
 
 //data class ScheduleForFormsItem(
@@ -59,6 +59,7 @@ fun LazyItemScope.ScheduleColumnForForms(
     model: ScheduleStore.State,
     nModel: NetworkInterface.NetworkModel,
     mpModel: MpChoseStore.State,
+    mpEditModel: MpChoseStore.State,
     scrollState: ScrollState,
     minuteHeight: Dp,
     dayStartTime: String,
@@ -82,6 +83,10 @@ fun LazyItemScope.ScheduleColumnForForms(
                 targetState = true
             }
         }
+
+        val trueItems =
+            model.items[key]?.filter { it.groupId in groups.map { it.id } + (-11) + (0) + (-6) }
+                ?.filter { (it.formId == null || it.formId == formId) && (it.groupId != -6 || form.logins.filter { x -> it.custom.contains(x)  }.isNotEmpty()) }
         AnimatedVisibility(
             visibleState = headerState,
             enter = fadeIn() + scaleIn(),
@@ -103,8 +108,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                         modifier = Modifier.align(Alignment.Center),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp,
-                        lineHeight = 15.sp
+                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
+//                        lineHeight = 15.sp
                     )
                     Text(
                         text = "${form.logins.size}",
@@ -512,9 +517,6 @@ fun LazyItemScope.ScheduleColumnForForms(
             }
         }
         Box(Modifier.padding(top = headerP)) {
-            val trueItems =
-                model.items[key]?.filter { it.groupId in groups.map { it.id } + (-11) + (0) + (-6) }
-                    ?.filter { (it.formId == null || it.formId == formId) && (it.groupId != -6 || form.logins.filter { x -> it.custom.contains(x)  }.isNotEmpty()) }
             trueItems?.forEach { e ->
 //                val index = trueItems.indexOf(e)
                 val aState = remember {
@@ -607,7 +609,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                     textAlign = TextAlign.Center,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
-                                    fontSize = 12.sp,
+                                    fontSize = 12.esp,
                                     modifier = Modifier.align(Alignment.BottomCenter)
                                 )
                                 Text(
@@ -616,8 +618,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                                         Alignment.TopStart
                                     )
                                         .padding(start = 5.dp),
-                                    lineHeight = 13.sp,
-                                    fontSize = 13.sp,
+                                    lineHeight = 13.esp,
+                                    fontSize = 13.esp,
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
@@ -626,8 +628,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                                         Alignment.TopEnd
                                     )
                                         .padding(end = 5.dp),
-                                    lineHeight = 13.sp,
-                                    fontSize = 13.sp,
+                                    lineHeight = 13.esp,
+                                    fontSize = 13.esp,
                                     textAlign = TextAlign.Center
                                 )
                                 if (model.eiIndex == e.index && model.eiFormId == formId) {
@@ -703,6 +705,45 @@ fun LazyItemScope.ScheduleColumnForForms(
                 }
             }
         }
+
+        val tStart = remember { mutableStateOf("") }
+            val tEnd = remember { mutableStateOf("") }
+            AnimatedVisibility(
+                (model.ciFormId == formId && model.ciTiming != null && mpModel.isDialogShowing) ||
+                 (((trueItems?.firstOrNull { it.index == model.eiIndex }?.groupId) in groups.map { it.id } && model.eiTiming != null) && mpEditModel.isDialogShowing),
+                enter = fadeIn() + scaleIn()
+            ) {
+                val t = if (mpEditModel.isDialogShowing) ScheduleTiming(
+                    start = model.eiTiming?.first ?: "00:01",
+                    end = model.eiTiming?.second ?: "00:02"
+                ) else model.ciTiming ?: ScheduleTiming(
+                    start = tStart.value,
+                    end = tEnd.value
+                )
+                if (model.ciTiming != null) {
+                    tStart.value = t.start
+                    tEnd.value = t.end
+                }
+                val tPadding by animateDpAsState((minuteHeight * (t.start.toMinutes() - dayStartTime.toMinutes())).coerceAtLeast(0.dp))
+                val height by animateDpAsState((minuteHeight * (t.end.toMinutes() - t.start.toMinutes())).coerceAtLeast(0.dp))
+
+                Card(
+                    Modifier.padding(top = tPadding)
+                        .fillMaxWidth()
+                        .height(height),
+                    colors = CardDefaults.cardColors(
+                        containerColor =
+                            if (t.cabinetErrorGroupId == 0 && t.studentErrors.isEmpty())
+                                MaterialTheme.colorScheme.primaryContainer.copy(
+                                    alpha = .3f
+                                )
+                            else
+                                MaterialTheme.colorScheme.errorContainer.copy(
+                                    alpha = .3f
+                                )
+                    )
+                ) { }
+            }
     }
 }
 
@@ -724,8 +765,8 @@ private fun BoxScope.ScheduleForFormsContent(
             modifier = Modifier.align(Alignment.Center),
             textAlign = TextAlign.Center,
             text = "Приём пищи",
-            lineHeight = 14.sp,
-            fontSize = 14.sp,
+            lineHeight = MaterialTheme.typography.titleSmall.fontSize,
+            fontSize = MaterialTheme.typography.titleSmall.fontSize,
         )
 
         Text(
@@ -734,8 +775,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.BottomStart
             )
                 .padding(start = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
         Text(
@@ -744,8 +785,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.BottomEnd
             )
                 .padding(end = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
 
@@ -755,16 +796,16 @@ private fun BoxScope.ScheduleForFormsContent(
             modifier = Modifier.align(Alignment.Center),
             textAlign = TextAlign.Center,
             text = "Доп с\n${studentFio.map { "${it.fio.surname} ${it.fio.name[0]}" }}",
-            lineHeight = 14.sp,
-            fontSize = 14.sp,
+            lineHeight = MaterialTheme.typography.titleSmall.fontSize,
+            fontSize = MaterialTheme.typography.titleSmall.fontSize,
         )
         Text(
             model.subjects.firstOrNull { it.id == e.subjectId }?.name.toString(),
             modifier = Modifier.align(
                 Alignment.TopCenter
             ),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = MaterialTheme.typography.bodySmall.fontSize,
+            fontSize = MaterialTheme.typography.bodySmall.fontSize,
             textAlign = TextAlign.Center
         )
 
@@ -774,8 +815,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.BottomStart
             )
                 .padding(start = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
         Text(
@@ -784,8 +825,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.BottomEnd
             )
                 .padding(end = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
 
@@ -794,8 +835,8 @@ private fun BoxScope.ScheduleForFormsContent(
             modifier = Modifier.align(
                 Alignment.TopStart
             ).padding(start = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
         Text(
@@ -803,8 +844,8 @@ private fun BoxScope.ScheduleForFormsContent(
             modifier = Modifier.align(
                 Alignment.TopEnd
             ).padding(start = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
 
@@ -814,8 +855,8 @@ private fun BoxScope.ScheduleForFormsContent(
             modifier = Modifier.align(Alignment.Center),
             textAlign = TextAlign.Center,
             text = e.custom.firstOrNull() ?: "",
-            lineHeight = 14.sp,
-            fontSize = 14.sp,
+            lineHeight = 14.esp,
+            fontSize = 14.esp,
         )
 
         Text(
@@ -824,8 +865,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.BottomStart
             )
                 .padding(start = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
         Text(
@@ -834,8 +875,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.BottomEnd
             )
                 .padding(end = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
 
@@ -844,8 +885,8 @@ private fun BoxScope.ScheduleForFormsContent(
             modifier = Modifier.align(
                 Alignment.TopStart
             ).padding(start = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
     } else {
@@ -862,8 +903,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 }
                 append("\n" + group.name)
             },
-            lineHeight = 14.sp,
-            fontSize = 14.sp,
+            lineHeight = 14.esp,
+            fontSize = 14.esp,
             modifier = Modifier.align(
                 Alignment.Center
             ),
@@ -875,8 +916,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.BottomStart
             )
                 .padding(start = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
         Text(
@@ -885,8 +926,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.BottomEnd
             )
                 .padding(end = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
         Text(
@@ -895,8 +936,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 Alignment.TopEnd
             )
                 .padding(end = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
         Text(
@@ -904,8 +945,8 @@ private fun BoxScope.ScheduleForFormsContent(
             modifier = Modifier.align(
                 Alignment.TopStart
             ).padding(start = 5.dp),
-            lineHeight = 13.sp,
-            fontSize = 13.sp,
+            lineHeight = 13.esp,
+            fontSize = 13.esp,
             textAlign = TextAlign.Center
         )
     }

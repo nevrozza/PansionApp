@@ -24,15 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarOutline
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -46,7 +38,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BorderStup
@@ -98,7 +89,7 @@ fun DetailedStupsContent(
                     Text(
                         "Ступени",
 //                        modifier = Modifier.padding(start = 10.dp),
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -216,7 +207,7 @@ private fun DetailedStupsSubjectItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(title, fontWeight = FontWeight.Bold, fontSize = 25.sp)
+                    Text(title, fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineSmall.fontSize)
                     StupsButtons(
                         stups = stups.map {
                             Pair(it.content.toInt(), it.reason)

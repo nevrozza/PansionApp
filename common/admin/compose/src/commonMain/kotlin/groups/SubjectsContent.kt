@@ -58,7 +58,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.CLazyColumn
@@ -164,7 +163,7 @@ fun SubjectsContent(
                                                     group.group.name,
                                                     modifier = Modifier
                                                         .padding(start = 5.dp),
-                                                    fontSize = 25.sp,
+                                                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                                     fontWeight = FontWeight.SemiBold
                                                 )
                                                 Row {
@@ -371,14 +370,14 @@ fun SubjectsContent(
                     withStyle(
                         SpanStyle(
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize
                         )
                     ) {
                         append("${model.groups.first { it.id == model.eGroupId }.group.name} ")
                     }
                     withStyle(
                         SpanStyle(
-                            fontSize = 15.sp,
+                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )

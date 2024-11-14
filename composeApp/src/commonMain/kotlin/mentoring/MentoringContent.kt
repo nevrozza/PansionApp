@@ -1,6 +1,7 @@
 package mentoring
 
 import MentorPerson
+import SettingsRepository
 import allGroupMarks.DatesFilter
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -55,7 +56,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.AnimatedElevatedButton
@@ -72,6 +72,7 @@ import components.MarkTable
 import components.cClickable
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
+import di.Inject
 import io.github.alexzhirkevich.qrose.options.QrBallShape
 import io.github.alexzhirkevich.qrose.options.QrFrameShape
 import io.github.alexzhirkevich.qrose.options.QrPixelShape
@@ -82,6 +83,7 @@ import registration.RegistrationRequest
 import root.RootComponent.Config
 import view.LocalViewManager
 import view.WindowScreen
+import view.esp
 import view.rememberImeState
 
 @ExperimentalLayoutApi
@@ -109,7 +111,7 @@ fun MentoringContent(
                         Text(
                             "Ученики",
                             modifier = Modifier.padding(start = 10.dp),
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -246,10 +248,14 @@ fun MentoringContent(
                                             Spacer(Modifier.width(5.dp))
                                         }
                                     }
+                                    val settingsRepository: SettingsRepository = remember {
+                                        Inject.instance()
+                                    }
                                     MarkTable(
                                         fields = model.filteredStudents.associate { s -> s.login to "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}" },
                                         dms = model.filteredDateMarks,
-                                        nki = model.filteredNki
+                                        nki = model.filteredNki,
+                                        isDs1Init = settingsRepository.fetchIsShowingPlusDS()
                                     )
                                 }
                             }
@@ -313,7 +319,7 @@ private fun FormsItem(
                 modifier = Modifier.padding(start = 7.dp).cClickable {
                     isExpanded.value = !isExpanded.value
                 },
-                fontSize = 19.sp,
+                fontSize = 19.esp,
                 fontWeight = FontWeight.Bold
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -395,7 +401,7 @@ private fun FormsItem(
                                     avatarId = r.avatarId,
                                     name = r.name,
                                     size = 55.dp,
-                                    textSize = 22.sp
+                                    textSize = 22.esp
                                 )
                                 Spacer(Modifier.width(10.dp))
                                 Column {
@@ -493,7 +499,7 @@ private fun FormsItem(
                                 avatarId = s.avatarId,
                                 name = s.fio.name,
                                 size = 40.dp,
-                                textSize = 22.sp
+                                textSize = 22.esp
                             )
                             Spacer(Modifier.width(7.dp))
                             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {

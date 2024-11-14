@@ -9,6 +9,8 @@ object SettingsReducer : Reducer<State, Message> {
             is Message.DevicesFetched -> copy(deviceList = msg.devices)
             is Message.SecondLoginChanged -> copy(secondLogin = msg.secondLogin, eSecondLogin = msg.secondLogin ?: "")
             is Message.ESecondLogin -> copy(eSecondLogin = msg.secondLogin)
+            is Message.IsMarkTableDefaultChanged -> copy(isMarkTableDefault = msg.isDefault)
+            is Message.IsPlusDsStupsEnabledChanged -> copy(isPlusDsStupsEnabled = msg.isEnabled)
         }
     }
 }

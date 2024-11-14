@@ -9,10 +9,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.EaseIn
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,8 +30,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.School
@@ -61,7 +58,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -69,7 +69,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -86,9 +85,11 @@ import dev.chrisbanes.haze.HazeState
 import profile.ProfileComponent
 import profile.ProfileStore
 import resources.Images
+import resources.PricedAvatar
 import server.Ministries
 import view.GlobalHazeState
 import view.LocalViewManager
+import view.esp
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @ExperimentalMaterial3Api
@@ -113,7 +114,35 @@ fun SharedTransitionScope.ProfileContent(
     }
 
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
-
+    val avatarsList = listOf(
+        "Символы" to Images.symbolsCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+            .sortedBy { it.second.price }
+            .filter { it.first != Images.Avatars.Symbols.pansionPrint.first || model.ministryId == Ministries.Print } + (0 to PricedAvatar(
+            image = Images.MGU,
+            price = 0
+        )),
+        "Картины" to Images.picturesCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+            .sortedBy { it.second.price },
+        "Котики" to Images.catsCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+            .sortedBy { it.second.price },
+        "Котяо" to Images.catsMCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+            .sortedBy { it.second.price },
+        "Смешарики" to Images.smesharikiCostedAvatars.map {
+            it.key to it.value.copy(
+                price = if (model.avatars?.contains(
+                        it.key
+                    ) == true
+                ) 0 else it.value.price
+            )
+        }.sortedBy { it.second.price },
+        "Аниме?.." to Images.animeCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+            .sortedBy { it.second.price },
+        "Другое" to Images.othersCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+            .sortedBy { it.second.price }
+    ) + if (model.fio.name == "Артём" && model.fio.surname == "Маташков") listOf(
+        "nevrozq" to Images.nevrozqCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+            .sortedBy { it.second.price }
+    ) else listOf()
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -122,7 +151,11 @@ fun SharedTransitionScope.ProfileContent(
         topBar = {
             Column(
                 Modifier
-                    .hazeHeader(viewManager, hazeState = hazeState) //, isActivated = isSharedVisible
+                    .hazeHeader(
+                        viewManager,
+                        hazeState = hazeState,
+                        isMasked = false
+                    ) //, isActivated = isSharedVisible
                     .clickable(
                         interactionSource = MutableInteractionSource(),
                         indication = null
@@ -148,7 +181,7 @@ fun SharedTransitionScope.ProfileContent(
                             ) {
                                 Text(
                                     it,//"Успеваемость",
-                                    fontSize = 25.sp,
+                                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                     fontWeight = FontWeight.Black,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -169,7 +202,7 @@ fun SharedTransitionScope.ProfileContent(
                                     avatarId = headerAvatar,
                                     name = model.fio.name,
                                     size = 40.dp,
-                                    textSize = 15.sp
+                                    textSize = MaterialTheme.typography.titleSmall.fontSize
                                 )
                             }
                             this@Column.AnimatedVisibility(
@@ -198,6 +231,18 @@ fun SharedTransitionScope.ProfileContent(
 
                         }
                     },
+                    actionRow = {
+                        AnimatedVisibility(
+                            visible = model.tabIndex !in listOf(0, 1),
+                            enter = fadeIn() + scaleIn(),
+                            exit = fadeOut() + scaleOut(),
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.Toll, null)
+                                Text(": ${model.pansCoins.toString()}", fontSize = 17.esp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    },
                     hazeState = null,
                     isTransparentHaze = true
                 )
@@ -215,7 +260,7 @@ fun SharedTransitionScope.ProfileContent(
                                 avatarId = headerAvatar,
                                 name = model.fio.name,
                                 size = 150.dp,
-                                textSize = 75.sp,
+                                textSize = 75.esp,
                                 modifier = Modifier.sharedElementWithCallerManagedVisibility(
                                     sharedContentState = rememberSharedContentState(key = model.studentLogin + "avatar"),
                                     visible = isSharedVisible
@@ -224,51 +269,67 @@ fun SharedTransitionScope.ProfileContent(
                             val delay = 300
                             this@Column.AnimatedVisibility(
                                 visible = model.ministryLvl != "0",
-                                enter = expandIn(expandFrom = Alignment.TopEnd, animationSpec = tween(delayMillis = delay)) + scaleIn(animationSpec = tween(delayMillis = delay)),
+                                enter = expandIn(
+                                    expandFrom = Alignment.TopEnd,
+                                    animationSpec = tween(delayMillis = delay)
+                                ) + scaleIn(animationSpec = tween(delayMillis = delay)),
                                 exit = fadeOut() + scaleOut(),
                                 modifier = Modifier.offset(x = -5.dp, y = -5.dp)
                             ) {
                                 Icon(
                                     Icons.Rounded.RocketLaunch,
                                     null,
-                                    modifier = Modifier.size(50.dp)
+                                    modifier = Modifier.size(50.dp),
+                                    tint = MaterialTheme.colorScheme.inversePrimary.hv()
                                 )
                             }
                             this@Column.AnimatedVisibility(
                                 visible = model.ministryId != "0",
-                                enter = fadeIn(animationSpec = tween(delayMillis = delay)) + scaleIn(animationSpec = tween(delayMillis = delay)),
+                                enter = fadeIn(animationSpec = tween(delayMillis = delay)) + scaleIn(
+                                    animationSpec = tween(
+                                        delayMillis = delay
+                                    )
+                                ),
                                 exit = fadeOut() + scaleOut(),
                                 modifier = Modifier.align(Alignment.BottomEnd)
                             ) {
                                 Icon(
-                                    when(model.ministryId) {
+                                    when (model.ministryId) {
                                         Ministries.MVD -> {
                                             Icons.Rounded.LocalPolice
                                         }
+
                                         Ministries.Culture -> {
                                             Icons.Rounded.Celebration
                                         }
+
                                         Ministries.DressCode -> {
                                             Icons.Rounded.Checkroom
                                         }
+
                                         Ministries.Education -> {
                                             Icons.Rounded.School
                                         }
+
                                         Ministries.Print -> {
                                             Icons.Rounded.Newspaper
                                         }
+
                                         Ministries.Social -> {
                                             Icons.Rounded.QuestionAnswer
                                         }
+
                                         Ministries.Sport -> {
                                             Icons.Rounded.SportsSoccer
                                         }
+
                                         else -> {
                                             Icons.Rounded.QuestionMark
                                         }
                                     },
                                     null,
-                                    modifier = Modifier.size(50.dp)
+                                    modifier = Modifier.size(50.dp),
+                                    tint = MaterialTheme.colorScheme.inversePrimary.hv()
                                 )
                             }
                         }
@@ -278,7 +339,7 @@ fun SharedTransitionScope.ProfileContent(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
                             fontWeight = FontWeight.Black,
-                            fontSize = 25.sp
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize
                         )
 
                         Spacer(Modifier.height(5.dp)) //3.dp
@@ -294,7 +355,7 @@ fun SharedTransitionScope.ProfileContent(
                             }
                         )
                         Spacer(Modifier.height(5.dp))
-//            HorizontalDivider(Modifier.width(340.dp).height(1.dp).padding(vertical = 15.dp, horizontal = 30.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = .1f))
+                        //            HorizontalDivider(Modifier.width(340.dp).height(1.dp).padding(vertical = 15.dp, horizontal = 30.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = .1f))
                     }
                 }
 
@@ -332,24 +393,52 @@ fun SharedTransitionScope.ProfileContent(
         floatingActionButton = {
             AnimatedVisibility(
                 visible =
-                    model.avatarId != model.newAvatarId,
+                    model.avatarId != model.newAvatarId && model.avatars != null && model.tabIndex !in listOf(0, 1),
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
                 exit = slideOutVertically(targetOffsetY = { it * 2 }),
             ) {
+
+                val price = avatarsList.flatMap { it.second }
+                    .firstOrNull { it.first == model.newAvatarId }?.second?.price?.toString() ?: "???"
                 Crossfade(nAvatarModel.state) {
                     SmallFloatingActionButton(
                         onClick = {
-                            if (it != NetworkState.Loading && model.avatarId != model.newAvatarId) {
-                                component.onEvent(ProfileStore.Intent.SaveAvatarId)
+                            if (it != NetworkState.Loading && model.avatarId != model.newAvatarId && model.avatars != null && (price.toIntOrNull()
+                                    ?: 0) <= model.pansCoins
+                            ) {
+                                component.onEvent(
+                                    ProfileStore.Intent.SaveAvatarId(
+                                        avatarId = model.newAvatarId,
+                                        price = price.toIntOrNull() ?: 0
+                                    )
+                                )
                             }
-                        }
+                        },
+                        containerColor = if ((price.toIntOrNull()
+                                ?: 0) <= model.pansCoins
+                        ) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
                     ) {
                         when (it) {
                             NetworkState.None -> {
-                                Icon(
-                                    Icons.Rounded.Save,
-                                    null
-                                )
+                                AnimatedContent(price) {
+                                    if (model.avatars?.contains(model.newAvatarId) == true || it == "0") {
+                                        Icon(
+                                            Icons.Rounded.Save,
+                                            null
+                                        )
+                                    } else {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 5.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                if ((price.toIntOrNull()
+                                                        ?: 0) <= model.pansCoins
+                                                ) "Купить за $it" else "Не хватает ${(price.toIntOrNull() ?: 0) - model.pansCoins}"
+                                            )
+                                        }
+                                    }
+                                }
                             }
 
                             NetworkState.Loading -> {
@@ -429,7 +518,7 @@ fun SharedTransitionScope.ProfileContent(
                                                         ) {
                                                             Text(
                                                                 "Класс",
-                                                                fontSize = 17.sp,
+                                                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                                                 fontWeight = FontWeight.Bold
                                                             )
                                                             Spacer(Modifier.height(2.dp))
@@ -494,7 +583,7 @@ fun SharedTransitionScope.ProfileContent(
                                                     ) {
                                                         Text(
                                                             "События",
-                                                            fontSize = 17.sp,
+                                                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                                             fontWeight = FontWeight.Bold,
                                                         )
                                                         Spacer(Modifier.height(5.dp))
@@ -527,7 +616,7 @@ fun SharedTransitionScope.ProfileContent(
                                             ) {
                                                 Text(
                                                     "Предметы",
-                                                    fontSize = 17.sp,
+                                                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                                     fontWeight = FontWeight.Bold
                                                 )
 //                                                Spacer(Modifier.height(2.dp))
@@ -560,21 +649,15 @@ fun SharedTransitionScope.ProfileContent(
                 }
 
                 else -> {
-                    item {
-                        FlowRow(
-                            Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 30.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            for (i in Images.Avatars.avatarIds) {
-                                AvatarButton(
-                                    currentAvatar = headerAvatar,
-                                    i = i,
-                                    name = model.fio.name
-                                ) {
-                                    component.onEvent(ProfileStore.Intent.SetNewAvatarId(i))
-                                }
-                            }
-                        }
+                    items(
+                        avatarsList
+                    ) {
+                        AvatarsBlock(
+                            title = it.first,
+                            avatars = it.second,
+                            model = model,
+                            component = component
+                        )
                     }
                 }
             }
@@ -626,6 +709,37 @@ fun SharedTransitionScope.ProfileContent(
             }
             item {
                 Spacer(Modifier.height(40.dp))
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AvatarsBlock(
+    title: String,
+    avatars: List<Pair<Int, PricedAvatar>>,
+    model: ProfileStore.State,
+    component: ProfileComponent
+) {
+    val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
+    Text(title, fontSize = 24.esp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        FlowRow(
+            Modifier.padding(vertical = 10.dp),
+            //        horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            for (a in avatars) {
+                AvatarButton(
+                    currentAvatar = headerAvatar,
+                    i = a.first,
+                    image = if (a.second.image != Images.MGU) a.second.image else null,
+                    name = model.fio.name,
+                    price = a.second.price
+                ) {
+                    component.onEvent(ProfileStore.Intent.SetNewAvatarId(a.first))
+                }
             }
         }
     }
@@ -722,21 +836,47 @@ private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String
                 null,
                 modifier = Modifier.size(30.dp)
             )
-            Text(group.group.difficult, fontSize = 19.sp)
+            Text(group.group.difficult, fontSize = 19.esp)
         }
     }
 }
 
 
 @Composable
-private fun AvatarButton(currentAvatar: Int, i: Int, name: String, onClick: () -> Unit) {
+private fun AvatarButton(
+    currentAvatar: Int,
+    i: Int,
+    image: ImageBitmap?,
+    price: Int,
+    name: String,
+    onClick: () -> Unit
+) {
     Box() {
         GetAvatar(
             avatarId = i,
             name = name,
-            modifier = Modifier.padding(5.dp).clip(CircleShape).clickable { onClick() }
+            modifier = Modifier.padding(5.dp).padding(top = 5.dp).clip(CircleShape).clickable { onClick() },
+            isHighQuality = false,
+            imageBitmap = image
         )
-        if (currentAvatar == i) {
+        if (price != 0) {
+            Box(
+                modifier = Modifier.rotate(-30f).align(Alignment.BottomEnd)
+                    .padding(5.dp).background(
+                        if (currentAvatar == i) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                        shape = RoundedCornerShape(15.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("11", modifier = Modifier.alpha(0f).padding(horizontal = 10.dp))
+                Text(
+                    price.toString(),
+                    fontSize = 15.esp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (currentAvatar == i) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary
+                )
+            }
+        } else if (currentAvatar == i) {
             Icon(
                 Icons.Rounded.CheckCircleOutline,
                 null,

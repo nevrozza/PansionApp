@@ -73,7 +73,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BorderStup
@@ -88,6 +87,7 @@ import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import dev.chrisbanes.haze.HazeState
+import di.Inject
 import homeTasksDialog.HomeTasksDialogStore
 import kotlinx.coroutines.CoroutineScope
 import report.UserMarkPlus
@@ -95,6 +95,7 @@ import server.fetchReason
 import server.getLocalDate
 import server.roundTo
 import view.LocalViewManager
+import view.esp
 import view.handy
 import view.rememberImeState
 
@@ -137,8 +138,8 @@ fun AllGroupMarksContent(
                         }
                     },
                     title = {
-                        val bigTextSize = 20.sp// if (!isLarge) else 40.sp
-                        val smallTextSize = 14.sp//if (!isLarge)  else 28.sp
+                        val bigTextSize = MaterialTheme.typography.titleLarge.fontSize// if (!isLarge) else 40.sp
+                        val smallTextSize = MaterialTheme.typography.titleSmall.fontSize//if (!isLarge)  else 28.sp
 
                         Column(
                             Modifier.padding(horizontal = 3.dp)
@@ -336,7 +337,8 @@ fun AllGroupMarksContent(
                                                             else -> false
                                                         }
                                                     }
-                                                }
+                                                },
+                                                isDs1Init = component.setingsRepository.fetchIsShowingPlusDS()
                                             )
                                         }
                                     }
@@ -517,7 +519,7 @@ private fun AllGroupMarksStudentItem(
                     Text(
                         title,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         modifier = Modifier.weight(2f, false),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -622,14 +624,14 @@ private fun HalfYearRow(
             Text(
                 "$num полугодие",
                 fontWeight = FontWeight.Bold,
-                fontSize = 21.sp
+                fontSize = 21.esp
             ) //is Quarters None ${if(isQuarters) "модуль" else "полугодие"} TODO
             Text(
                 text = if (value.isNaN()) {
                     "NaN"
                 } else {
                     value.roundTo(2).toString()
-                }, fontWeight = FontWeight.SemiBold, fontSize = 20.sp
+                }, fontWeight = FontWeight.SemiBold, fontSize = MaterialTheme.typography.titleLarge.fontSize
             )
         }
     }
@@ -659,14 +661,14 @@ private fun ModuleView(
             Text(
                 "$moduleNum модуль",
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+                fontSize = MaterialTheme.typography.titleLarge.fontSize
             ) //is Quarters None ${if(isQuarters) "модуль" else "полугодие"} TODO
             Text(
                 text = if (value.isNaN()) {
                     "NaN"
                 } else {
                     value.roundTo(2).toString()
-                }, fontWeight = FontWeight.SemiBold, fontSize = 20.sp
+                }, fontWeight = FontWeight.SemiBold, fontSize = MaterialTheme.typography.titleLarge.fontSize
             )
         }
         FlowRow(rowModifier) {

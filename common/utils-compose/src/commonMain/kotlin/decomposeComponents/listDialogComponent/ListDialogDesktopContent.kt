@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.listDialog.ListComponent
+import components.listDialog.ListItem
 import kotlinx.coroutines.launch
 import view.LocalViewManager
 import view.WindowScreen
@@ -28,7 +29,8 @@ fun ListDialogDesktopContent(
     isFullHeight: Boolean = false,
     offset: DpOffset = DpOffset(x = 40.dp, y = -25.dp),
     modifier: Modifier = Modifier,
-    title: String? = null
+    title: String? = null,
+    onClick: (ListItem) -> Unit = {}
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
@@ -59,7 +61,8 @@ fun ListDialogDesktopContent(
                             focusRequester.requestFocus()
                         }
                 ),
-                title = title
+                title = title,
+                onClick = onClick
             )
         }
 

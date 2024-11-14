@@ -47,10 +47,7 @@ import schedule.ScheduleStore.EditState
 import server.isTimeFormat
 import server.toMinutes
 import server.weekPairs
-import view.LocalViewManager
-import view.LockScreenOrientation
-import view.blend
-import view.rememberImeState
+import view.*
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -61,6 +58,7 @@ fun ScheduleContent(
     LockScreenOrientation(-1)
     val model by component.model.subscribeAsState()
     val mpModel by component.mpCreateItem.model.subscribeAsState()
+    val mpEditModel by component.mpEditItem.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val scrollState = rememberScrollState()
     val density = LocalDensity.current
@@ -98,7 +96,7 @@ fun ScheduleContent(
                         ) { text ->
                             CustomTextButton(
                                 text = text,
-                                fontSize = 25.sp
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize
 
                             ) {
                                 component.onEvent(ScheduleStore.Intent.ChangeEditMode)
@@ -150,7 +148,7 @@ fun ScheduleContent(
                                                     Text(
                                                         text = item.value,
                                                         fontWeight = FontWeight.Bold,
-                                                        fontSize = 20.sp,
+                                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                                         modifier = Modifier.fillMaxWidth(),
                                                         textAlign = TextAlign.Center
                                                     )
@@ -256,44 +254,47 @@ fun ScheduleContent(
             when (nState) {
                 NetworkState.None -> BoxWithConstraints(modifier = Modifier.padding(padding)) {
                     val headerP = 55.dp //55
-                        val maxHeight = this.maxHeight - headerP
-                        val minuteHeight =
-                            if (isStatic.value) maxHeight / ("20:00".toMinutes() - dayStartTime.toMinutes()) else (1.7f).dp
+                    val maxHeight = this.maxHeight - headerP
+                    val minuteHeight =
+                        if (isStatic.value) maxHeight / ("20:00".toMinutes() - dayStartTime.toMinutes()) else (1.7f).dp
 
-                        val timings = listOf(
-                            "08:45",
-                            "09:00",
-                            "09:40",
-                            "10:25",
-                            "11:15",
-                            "12:00",
-                            "12:20",
-                            "13:00",
-                            "13:45",
-                            "14:30",
-                            "15:15",
-                            "16:00",
-                            "16:20",
-                            "17:00",
-                            "17:50",
-                            "18:35",
-                            "19:25"
-                        )
+                    val timings = listOf(
+                        "08:45",
+                        "09:00",
+                        "09:40",
+                        "10:25",
+                        "11:15",
+                        "12:00",
+                        "12:20",
+                        "13:00",
+                        "13:45",
+                        "14:30",
+                        "15:15",
+                        "16:00",
+                        "16:20",
+                        "17:00",
+                        "17:50",
+                        "18:35",
+                        "19:25"
+                    )
 
-                        //                    remember {
-                        //                        isStatic.value = minuteHeight >= 0.8f.dp
-                        //                    }
-                    val widthCount = if (model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty()) {
-                        model.activeTeachers[key]?.size ?: 0
-                    } else {
-                        model.forms.toList().size
-                    }
+                    //                    remember {
+                    //                        isStatic.value = minuteHeight >= 0.8f.dp
+                    //                    }
+                    val widthCount =
+                        if (model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty()) {
+                            model.activeTeachers[key]?.size ?: 0
+                        } else {
+                            model.forms.toList().size
+                        }
                     ScrollBaredBox(
                         vState = scrollState,
                         hState = lazyListState,
-                        height =  mutableStateOf(minuteHeight * ("20:00".toMinutes() -  "08:45".toMinutes())),
-                        width = mutableStateOf(12.dp +
-                                               widthCount*200.dp)
+                        height = mutableStateOf(minuteHeight * ("20:00".toMinutes() - "08:45".toMinutes())),
+                        width = mutableStateOf(
+                            12.dp +
+                                    widthCount * 200.dp
+                        )
                     ) {
 
                         Box(
@@ -305,8 +306,8 @@ fun ScheduleContent(
                                     Row(Modifier.padding(top = minuteHeight * (it.toMinutes() - dayStartTime.toMinutes()))) {
                                         Text(
                                             text = it,
-                                            fontSize = 14.sp,
-                                            lineHeight = 14.sp,
+                                            fontSize = 14.esp,
+                                            lineHeight = 14.esp,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = .0f),
                                             modifier = Modifier.offset(y = (-10).dp),
                                             textAlign = TextAlign.Center
@@ -345,8 +346,8 @@ fun ScheduleContent(
                                     Row(Modifier.padding(top = minuteHeight * (it.toMinutes() - dayStartTime.toMinutes()))) {
                                         Text(
                                             text = it,
-                                            fontSize = 14.sp,
-                                            lineHeight = 14.sp,
+                                            fontSize = 14.esp,
+                                            lineHeight = 14.esp,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
                                             modifier = Modifier.offset(y = (-10).dp),
                                             textAlign = TextAlign.Center
@@ -363,12 +364,13 @@ fun ScheduleContent(
                                     items(
                                         trueTeachers?.reversed() ?: emptyList(),
                                         key = { it }) { login ->
-                                        Box(Modifier.height(minuteHeight * ("20:00".toMinutes() -  "08:45".toMinutes()) + headerP)) {
+                                        Box(Modifier.height(minuteHeight * ("20:00".toMinutes() - "08:45".toMinutes()) + headerP)) {
                                             ScheduleColumn(
                                                 component = component,
                                                 model = model,
                                                 nModel,
                                                 mpModel,
+                                                mpEditModel = mpEditModel,
                                                 scrollState,
                                                 minuteHeight,
                                                 dayStartTime,
@@ -389,12 +391,13 @@ fun ScheduleContent(
                                             compareBy({ it.second.num }, { it.second.shortTitle })
                                         ).reversed(),
                                         key = { it.first }) { form ->
-                                        Box(Modifier.height(minuteHeight * ("20:00".toMinutes() -  "08:45".toMinutes()) + headerP)) {
+                                        Box(Modifier.height(minuteHeight * ("20:00".toMinutes() - "08:45".toMinutes()) + headerP)) {
                                             ScheduleColumnForForms(
                                                 component = component,
                                                 model = model,
                                                 nModel,
                                                 mpModel,
+                                                mpEditModel,
                                                 scrollState,
                                                 minuteHeight,
                                                 dayStartTime,
@@ -547,6 +550,7 @@ private fun LazyItemScope.ScheduleColumn(
     model: ScheduleStore.State,
     nModel: NetworkInterface.NetworkModel,
     mpModel: MpChoseStore.State,
+    mpEditModel: MpChoseStore.State,
     scrollState: ScrollState,
     minuteHeight: Dp,
     dayStartTime: String,
@@ -588,13 +592,13 @@ private fun LazyItemScope.ScheduleColumn(
                         modifier = Modifier,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp,
-                        lineHeight = 15.sp
+                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                        lineHeight = MaterialTheme.typography.titleSmall.fontSize
                     )
                     if (cabinet != null) {
                         Text(
                             cabinet.cabinet.toString(),
-                            fontSize = 11.sp,
+                            fontSize = 11.esp,
                             modifier = Modifier.offset(y = (-7).dp)
                         )
                     }
@@ -989,7 +993,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                     Text(
                                                         "Создать урок?",
                                                         fontWeight = FontWeight.Bold,
-                                                        fontSize = 18.sp
+                                                        fontSize = 18.esp
                                                     )
                                                     Text(
                                                         subject.name,
@@ -1215,7 +1219,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                                     ScheduleStore.Intent.ciCreate(null)
                                                                 )
                                                             } else {
-    //                                                            val item = coItems.first { it.index == erroredItem.id }
+                                                                //                                                            val item = coItems.first { it.index == erroredItem.id }
                                                                 component.onEvent(
                                                                     ScheduleStore.Intent.StartConflict(
                                                                         niFormId = model.ciFormId ?: 0,
@@ -1284,7 +1288,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                         )
                                                         filterStudents.value = ""
 
-                                                        
+
                                                     },
                                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                                                 )
@@ -1346,8 +1350,8 @@ private fun LazyItemScope.ScheduleColumn(
                                         modifier = Modifier.fillMaxSize(),
                                         textAlign = TextAlign.Center,
                                         text = "Обед",
-                                        lineHeight = 14.sp,
-                                        fontSize = 14.sp,
+                                        lineHeight = 14.esp,
+                                        fontSize = 14.esp,
                                     )
 
                                     Text(
@@ -1356,8 +1360,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             Alignment.BottomStart
                                         )
                                             .padding(start = 5.dp),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
                                     Text(
@@ -1366,8 +1370,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             Alignment.BottomEnd
                                         )
                                             .padding(end = 5.dp),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
 
@@ -1377,16 +1381,16 @@ private fun LazyItemScope.ScheduleColumn(
                                         modifier = Modifier.align(Alignment.Center),
                                         textAlign = TextAlign.Center,
                                         text = "Доп с\n${studentFio.map { "${it.fio.surname} ${it.fio.name[0]}" }}",
-                                        lineHeight = 14.sp,
-                                        fontSize = 14.sp,
+                                        lineHeight = 14.esp,
+                                        fontSize = 14.esp,
                                     )
                                     Text(
                                         model.subjects.firstOrNull { it.id == e.subjectId }?.name.toString(),
                                         modifier = Modifier.align(
                                             Alignment.TopEnd
                                         ),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
                                     Text(
@@ -1395,8 +1399,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             Alignment.BottomStart
                                         )
                                             .padding(start = 5.dp),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
                                     Text(
@@ -1405,8 +1409,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             Alignment.BottomEnd
                                         )
                                             .padding(end = 5.dp),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
 
@@ -1415,8 +1419,8 @@ private fun LazyItemScope.ScheduleColumn(
                                         modifier = Modifier.align(
                                             Alignment.TopStart
                                         ).padding(start = 5.dp),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
                                 } else {
@@ -1434,8 +1438,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             }
                                             append("\n" + group.name)
                                         },
-                                        lineHeight = 14.sp,
-                                        fontSize = 14.sp,
+                                        lineHeight = 14.esp,
+                                        fontSize = 14.esp,
                                         modifier = Modifier.align(
                                             Alignment.Center
                                         ),
@@ -1447,8 +1451,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             Alignment.BottomStart
                                         )
                                             .padding(start = 5.dp),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
                                     Text(
@@ -1457,8 +1461,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             Alignment.BottomEnd
                                         )
                                             .padding(end = 5.dp),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
                                     Text(
@@ -1467,8 +1471,8 @@ private fun LazyItemScope.ScheduleColumn(
                                             Alignment.TopEnd
                                         )
                                             .padding(end = 5.dp),
-                                        lineHeight = 13.sp,
-                                        fontSize = 13.sp,
+                                        lineHeight = 13.esp,
+                                        fontSize = 13.esp,
                                         textAlign = TextAlign.Center
                                     )
                                 }
@@ -1507,10 +1511,14 @@ private fun LazyItemScope.ScheduleColumn(
             val tStart = remember { mutableStateOf("") }
             val tEnd = remember { mutableStateOf("") }
             AnimatedVisibility(
-                model.ciLogin == c.login && model.ciTiming != null && mpModel.isDialogShowing,
+                (model.ciLogin == c.login && model.ciTiming != null && mpModel.isDialogShowing) ||
+                 (((model.eiNewLogin ?: trueItems?.firstOrNull { it.index == model.eiIndex }?.teacherLogin) == c.login && model.eiTiming != null) && mpEditModel.isDialogShowing),
                 enter = fadeIn() + scaleIn()
             ) {
-                val t = model.ciTiming ?: ScheduleTiming(
+                val t = if (mpEditModel.isDialogShowing) ScheduleTiming(
+                    start = model.eiTiming?.first ?: "00:01",
+                    end = model.eiTiming?.second ?: "00:02"
+                ) else model.ciTiming ?: ScheduleTiming(
                     start = tStart.value,
                     end = tEnd.value
                 )
@@ -1518,8 +1526,8 @@ private fun LazyItemScope.ScheduleColumn(
                     tStart.value = t.start
                     tEnd.value = t.end
                 }
-                val tPadding by animateDpAsState(minuteHeight * (t.start.toMinutes() - dayStartTime.toMinutes()))
-                val height by animateDpAsState(minuteHeight * (t.end.toMinutes() - t.start.toMinutes()))
+                val tPadding by animateDpAsState((minuteHeight * (t.start.toMinutes() - dayStartTime.toMinutes())).coerceAtLeast(0.dp))
+                val height by animateDpAsState((minuteHeight * (t.end.toMinutes() - t.start.toMinutes())).coerceAtLeast(0.dp))
 
                 Card(
                     Modifier.padding(top = tPadding)
@@ -1618,7 +1626,7 @@ fun BoxScope.EditPopup(
                             Text(
                                 if (component.isCanBeEdited) "Редактировать" else "Урок",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
+                                fontSize = 18.esp
                             )
                             Spacer(
                                 Modifier.height(
@@ -1630,7 +1638,7 @@ fun BoxScope.EditPopup(
                                     withStyle(
                                         ParagraphStyle(
                                             TextAlign.Center,
-                                            lineHeight = 17.sp
+                                            lineHeight = MaterialTheme.typography.titleMedium.fontSize
                                         )
                                     ) {
                                         withStyle(
@@ -1666,7 +1674,7 @@ fun BoxScope.EditPopup(
                                     withStyle(
                                         ParagraphStyle(
                                             TextAlign.Center,
-                                            lineHeight = 17.sp
+                                            lineHeight = MaterialTheme.typography.titleMedium.fontSize
                                         )
                                     ) {
                                         append(

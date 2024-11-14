@@ -41,7 +41,6 @@ import androidx.compose.ui.res.useResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
@@ -248,7 +247,7 @@ fun main() {
 //                                            title = { Text("Закрыть приложение?") },
                                         text = {
                                             Column {
-                                                Text("Закрыть приложение", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                                Text("Закрыть приложение", fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Bold)
                                                 Spacer(Modifier.height(4.dp))
                                                 Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)")
                                             }
@@ -256,7 +255,7 @@ fun main() {
                                         modifier = Modifier.clip(MaterialTheme.shapes.large).hazeHeader(
                                                    viewManager = viewManager,
                                                    hazeState = GlobalHazeState.current,
-                                                   isProgressive = false
+                                                   isMasked = false
                                                ),
                                         containerColor = if(viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor,
 

@@ -64,7 +64,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.CLazyColumn
@@ -80,6 +79,7 @@ import dev.chrisbanes.haze.HazeState
 import excel.exportForms
 import groups.forms.FormsComponent
 import groups.forms.FormsStore
+import view.esp
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -145,12 +145,12 @@ fun FormsContent(
                                                 Text(
                                                     text = "${form.form.classNum}${if (form.form.title.length < 2) "-" else " "}${form.form.title.lowercase()} класс",
                                                     fontWeight = FontWeight.Bold,
-                                                    fontSize = 17.sp
+                                                    fontSize = MaterialTheme.typography.titleMedium.fontSize
                                                 )
                                                 Spacer(Modifier.padding(start = 4.dp))
                                                 Text(
                                                     "${form.form.classNum}${if (form.form.shortTitle.length < 2) "-" else " "}${form.form.shortTitle}",
-                                                    fontSize = 10.sp,
+                                                    fontSize = 10.esp,
                                                     color = MaterialTheme.colorScheme.onSurface.copy(
                                                         alpha = 0.6f
                                                     ),
@@ -386,7 +386,7 @@ fun FormsContent(
                     withStyle(
                         SpanStyle(
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize
                         )
                     ) {
                         val form = gModel.forms.firstOrNull { it.id == model.eFormId }?.form
@@ -395,7 +395,7 @@ fun FormsContent(
                     }
                     withStyle(
                         SpanStyle(
-                            fontSize = 15.sp,
+                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )

@@ -48,7 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import calendar.CalendarComponent
 import calendar.CalendarStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -66,6 +65,7 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 import server.twoNums
 import view.LocalViewManager
+import view.esp
 import view.rememberImeState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,7 +96,7 @@ fun CalendarContent(
                 title = {
                     Text(
                         "Календарь",
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -165,7 +165,7 @@ fun CalendarContent(
                             text = "1 полугодие",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
-                            fontSize = 18.sp,
+                            fontSize = 18.esp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(5.dp))
@@ -206,7 +206,7 @@ fun CalendarContent(
                             text = "2 полугодие",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
-                            fontSize = 18.sp,
+                            fontSize = 18.esp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(5.dp))
@@ -390,16 +390,16 @@ private fun ModuleButton(
                         ) {
                             Text(
                                 text = num.toString(),
-                                fontSize = 16.sp,
-                                lineHeight = 17.sp,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                lineHeight = MaterialTheme.typography.titleMedium.fontSize,
                                 fontWeight = FontWeight.Bold
                             )
-                            Text(text = "модуль", fontSize = 14.sp, lineHeight = 15.sp)
+                            Text(text = "модуль", fontSize = MaterialTheme.typography.titleSmall.fontSize, lineHeight = MaterialTheme.typography.titleSmall.fontSize)
                             Text(
                                 text = startDate,
-                                fontSize = 14.sp,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                 fontStyle = FontStyle.Italic,
-                                lineHeight = 15.sp
+                                lineHeight = MaterialTheme.typography.titleSmall.fontSize
                             )
 //Day Of Week?
                         }

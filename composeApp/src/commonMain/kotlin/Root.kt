@@ -30,14 +30,15 @@ fun Root(
 ) {
     val viewManager = LocalViewManager.current
 
-    setHaze(viewManager)
+    setViewManager(viewManager)
+
 
     BoxWithConstraints() {
         viewManager.size = this
         viewManager.orientation.value =
             WindowCalculator.calculateScreen(size = DpSize(this.maxWidth, this.maxHeight), device)
         CompositionLocalProvider(
-            LocalHazeStyle provides HazeMaterials.thin(),
+            LocalHazeStyle provides HazeMaterials.regular(),
         ) {
 //            AppTheme() {
                 Surface(Modifier.fillMaxSize()) {

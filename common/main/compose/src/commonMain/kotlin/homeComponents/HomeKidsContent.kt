@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import components.CustomTextButton
 import components.GetAvatar
 import components.LoadingAnimation
@@ -51,7 +50,7 @@ fun LazyListScope.homeKidsContent(
                 Text(
                     "Дети",
                     modifier = Modifier.fillMaxWidth(),
-                    fontSize = 20.sp,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )

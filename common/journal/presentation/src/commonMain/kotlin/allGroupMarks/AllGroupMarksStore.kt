@@ -34,7 +34,7 @@ interface AllGroupMarksStore : Store<Intent, State, Label> {
         val detailedStupsLogin: String = "",
         val reportData: ReportData? = null,
         val login: String,
-        val isTableView: Boolean = true,
+        val isTableView: Boolean,
         val dates: List<DateModule> = emptyList(),
         val modules: List<String> = emptyList(),
 

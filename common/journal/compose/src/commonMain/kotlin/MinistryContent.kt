@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -30,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.listDialog.ListComponent
@@ -50,8 +50,7 @@ import ministry.MinistryStore
 import server.Ministries
 import server.headerTitlesForMinistry
 import view.LocalViewManager
-
-
+import view.esp
 
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -82,7 +81,8 @@ fun SharedTransitionScope.MinistryContent(
                         state = hazeState,
                         style = LocalHazeStyle.current
                     ) {
-                        progressive = view.hazeProgressive
+                        mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+//                        progressive = view.hazeProgressive
                     }
                     else Modifier
                 )
@@ -110,7 +110,7 @@ fun SharedTransitionScope.MinistryContent(
                             Box(contentAlignment = Alignment.BottomEnd) {
                                 Text(
                                     text,
-                                    fontSize = 25.sp,
+                                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                     fontWeight = FontWeight.Black,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -205,7 +205,7 @@ fun SharedTransitionScope.MinistryContent(
                                     )
                                     Text(
                                         "${form.form.classNum}-${form.form.shortTitle}",
-                                        fontSize = 22.sp,
+                                        fontSize = 22.esp,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.cClickable {
                                             if(kidList.isEmpty()) {

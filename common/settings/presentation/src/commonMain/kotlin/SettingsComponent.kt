@@ -8,6 +8,7 @@ import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import di.Inject
+import view.FontTypes
 
 class SettingsComponent(
     componentContext: ComponentContext,
@@ -19,6 +20,7 @@ class SettingsComponent(
     private val authRepository: AuthRepository = Inject.instance()
 
     private val colorModeListDialogComponentName = "ColorModeSettingsListDialogComponentName"
+    private val fontTypeListDialogComponentName = "FontTypeSettingsListDialogComponentName"
 
 
     val changeLoginDialog = CAlertDialogComponent(
@@ -37,6 +39,15 @@ class SettingsComponent(
         name = colorModeListDialogComponentName,
         onItemClick = {
             onChangeColorModeClick(it.id)
+        }
+    )
+
+    val fontTypeListComponent = ListComponent(
+        componentContext = childContext(fontTypeListDialogComponentName + "CONTEXT"),
+        storeFactory = storeFactory,
+        name = fontTypeListDialogComponentName,
+        onItemClick = {
+//            onChangeColorModeClick(it.id)
         }
     )
 
@@ -121,6 +132,17 @@ class SettingsComponent(
                     id = "3",
                     text = colorModes["3"].toString()
                 ),
+            )
+        ))
+
+        fontTypeListComponent.onEvent(ListDialogStore.Intent.InitList(
+            listOf(
+                ListItem(FontTypes.Geologica.ordinal.toString(), "Geologica"),
+//                ListItem(FontTypes.Cursive.ordinal.toString(), "Cursive"),
+                ListItem(FontTypes.Default.ordinal.toString(), "Обычный"),
+                ListItem(FontTypes.Monospace.ordinal.toString(), "Monospace"),
+                ListItem(FontTypes.SansSerif.ordinal.toString(), "SansSerif"),
+//                ListItem(FontTypes.Serif.ordinal.toString(), "Serif"),
             )
         ))
 

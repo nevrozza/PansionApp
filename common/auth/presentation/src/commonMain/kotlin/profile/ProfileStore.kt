@@ -25,15 +25,17 @@ interface ProfileStore : Store<Intent, State, Label> {
         val likes: Int = 0,
         val dislikes: Int = 0,
         val giaSubjects: List<Int> = emptyList(),
-
         val ministryId: String = "0",
-        val ministryLvl: String = "0"
+        val ministryLvl: String = "0",
+
+        val pansCoins: Int = 0,
+        val avatars: List<Int>? = null
     )
 
     sealed interface Intent {
         data class ChangeTab(val index: Int) : Intent
         data class SetNewAvatarId(val avatarId: Int) : Intent
-        data object SaveAvatarId : Intent
+        data class SaveAvatarId(val avatarId: Int, val price: Int) : Intent
 
         data class ClickOnGIASubject(val subjectId: Int, val isChecked: Boolean) : Intent
 
@@ -44,7 +46,7 @@ interface ProfileStore : Store<Intent, State, Label> {
         data class TabChanged(val index: Int) : Message
         data class NewAvatarIdChanged(val avatarId: Int) : Message
 
-        data object AvatarIdSaved : Message
+        data class AvatarIdSaved(val price: Int, val avatarId: Int) : Message
 
 
         data class GIASubjectsUpdated(val giaSubjects: List<Int>) : Message
@@ -58,7 +60,10 @@ interface ProfileStore : Store<Intent, State, Label> {
             val teachers: HashMap<String, String>,
 
             val ministryId: String,
-            val ministryLvl: String
+            val ministryLvl: String,
+
+            val pansCoins: Int,
+            val avatars: List<Int>
         ) : Message
     }
 

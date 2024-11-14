@@ -54,7 +54,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BottomThemePanel
@@ -133,7 +132,7 @@ fun LoginContent(
                 modifier = Modifier.widthIn(max = 450.dp).padding(top = 10.dp)
                     .padding(horizontal = 5.dp),
                 title = {
-                    Text("Вход", fontSize = 20.sp, fontWeight = FontWeight.Black)
+                    Text("Вход", fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Black)
                 },
                 navigationRow = {
                     IconButton(

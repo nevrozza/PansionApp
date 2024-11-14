@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.listDialog.ListComponent
@@ -82,7 +81,7 @@ fun MinistryKidItem(
             Text(
                 "${item.fio.surname} ${item.fio.name} ${item.fio.praname ?: ""}",
                 fontWeight = FontWeight.Bold,
-                fontSize = 17.sp
+                fontSize = MaterialTheme.typography.titleMedium.fontSize
             )
             Row {
                 Text(

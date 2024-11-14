@@ -1,9 +1,11 @@
 package components
 
+import androidVersion
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.LocalHazeStyle
@@ -32,20 +34,24 @@ fun Modifier.hazeHeader(
     viewManager: ViewManager,
     hazeState: HazeState?,
     isTransparentHaze: Boolean = true,
-    isProgressive: Boolean = true,
+    isMasked: Boolean = true,
 //    isActivated: Boolean,
     elseColor: Color = MaterialTheme.colorScheme.background
 ) =
-    if (hazeState != null && viewManager.hazeHardware.value) {
-//        val alpha = if (isActivated) 1f else 0f
-        this.hazeChild(
-            state = hazeState,
-            style = if (isProgressive) LocalHazeStyle.current else HazeMaterials.ultraThin()
-        ) {
-            if (isProgressive) {
-                progressive = view.hazeProgressive
-            }
-//            this.
-        }
-            .background(Color.Transparent)
-    } else this.background(if (isTransparentHaze) Color.Transparent else elseColor)
+    if (
+        (isMasked || androidVersion > 30)) {
+        if (hazeState != null && viewManager.hazeHardware.value
+            ) {
+            //        val alpha = if (isActivated) 1f else 0f
+            this.hazeChild(
+                state = hazeState,
+                style = if (isMasked) LocalHazeStyle.current else HazeMaterials.ultraThin()
+            ) {
+                if (isMasked) {
+                    mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                //                progressive = view.hazeProgressive
+                }
+            //            this.
+            }.background(Color.Transparent)
+        } else this.background(if (isTransparentHaze) Color.Transparent else elseColor)
+    } else this.background(elseColor)

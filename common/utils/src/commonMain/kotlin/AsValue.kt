@@ -24,3 +24,7 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
     }
 
 const val applicationVersion = 4
+
+
+
+expect val androidVersion: Int

@@ -1,4 +1,3 @@
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -21,6 +20,23 @@ fun changeColorSeed(viewManager: ViewManager, colorSeed: String) {
     repository.saveSeedColor(colorSeed)
 }
 
+fun changeIsTransitionsEnabled(viewManager: ViewManager, isEnabled: Boolean) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.isTransitionsEnabled.value = isEnabled
+    repository.saveIsTransitionsEnabled(isEnabled)
+}
+
+fun changeFontSize(viewManager: ViewManager, fontSize: Float) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.fontSize.value = fontSize
+    repository.saveFontSize(fontSize)
+}
+fun changeFontType(viewManager: ViewManager, fontType: Int) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.fontType.value = fontType
+    repository.saveFontType(fontType)
+}
+
 
 fun changeColorMode(viewManager: ViewManager, colorMode: String) {
     val repository: SettingsRepository = Inject.instance()
@@ -30,7 +46,7 @@ fun changeColorMode(viewManager: ViewManager, colorMode: String) {
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
-fun setHaze(viewManager: ViewManager) {
+fun setViewManager(viewManager: ViewManager) {
     val repository: SettingsRepository = Inject.instance()
     if (repository.fetchIsHaze()) {
         AppTheme {
@@ -38,6 +54,9 @@ fun setHaze(viewManager: ViewManager) {
             viewManager.hazeHardware.value = true
         }
     }
+    viewManager.hazeHardware.value = repository.fetchIsTransitionsEnabled()
+    viewManager.fontSize.value = repository.fetchFontSize()
+    viewManager.fontType.value = repository.fetchFontType()
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)

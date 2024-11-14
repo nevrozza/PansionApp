@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -24,40 +23,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.Android
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Autorenew
-import androidx.compose.material.icons.rounded.Computer
-import androidx.compose.material.icons.rounded.DeviceUnknown
-import androidx.compose.material.icons.rounded.Language
-import androidx.compose.material.icons.rounded.PhoneIphone
-import androidx.compose.material.icons.rounded.QrCodeScanner
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.cAlertDialog.CAlertDialogStore
@@ -72,9 +54,7 @@ import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
 import server.DeviceTypex
-import view.LocalViewManager
-import view.ViewManager
-import view.handy
+import view.*
 
 
 @ExperimentalSplitPaneApi
@@ -101,7 +81,11 @@ fun SettingsContent(
                     Modifier.fillMaxSize().padding(50.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Предпросмотр", fontWeight = FontWeight.Black, fontSize = 20.sp)
+                    Text(
+                        "Предпросмотр",
+                        fontWeight = FontWeight.Black,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize
+                    )
                     Spacer(Modifier.height(20.dp))
                     ThemePreview()
                 }
@@ -129,6 +113,7 @@ fun SettingsView(
         isHazeNeedToUpdate.value = false
     }
 
+    val isColorMenuOpened = remember { mutableStateOf(false) }
 
     val model by component.model.subscribeAsState()
     val nDevicesModel by component.nDevicesInterface.networkModel.subscribeAsState()
@@ -156,7 +141,7 @@ fun SettingsView(
                     Text(
                         "Настройки",
 
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -177,12 +162,13 @@ fun SettingsView(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    AnimatedContent(model.secondLogin ?: model.login,
+                    AnimatedContent(
+                        model.secondLogin ?: model.login,
                         transitionSpec = { fadeIn().togetherWith(fadeOut()) }) {
                         Text(
                             it,
                             fontWeight = FontWeight.Black,
-                            fontSize = 30.sp,
+                            fontSize = 30.esp,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -193,7 +179,17 @@ fun SettingsView(
                         component.changeLoginDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
                     }
                 }
-                Text("Персонализация", fontSize = 23.sp, fontWeight = FontWeight.Black)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Text("Персонализация", fontSize = 23.esp, fontWeight = FontWeight.Black)
+                    IconButton(
+                        onClick = {
+                            isColorMenuOpened.value = !isColorMenuOpened.value
+                        },
+                        modifier = Modifier.size(25.dp)
+                    ) {
+                        Icon(Icons.Rounded.Palette, null)
+                    }
+                }
                 Spacer(Modifier.height(7.dp))
                 Row(
                     Modifier.fillMaxWidth(),
@@ -202,7 +198,7 @@ fun SettingsView(
                 ) {
                     Text(
                         text = "Цветовой режим",
-                        fontSize = 17.sp,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.SemiBold
                     )
                     Box() {
@@ -212,7 +208,8 @@ fun SettingsView(
                             component.colorModeListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
                         }
                         ListDialogDesktopContent(
-                            component = component.colorModeListComponent
+                            component = component.colorModeListComponent,
+                            isFullHeight = true
                         )
                     }
                 }
@@ -224,7 +221,7 @@ fun SettingsView(
                 ) {
                     Text(
                         text = "Прозрачность элементов",
-                        fontSize = 17.sp,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.SemiBold
                     )
                     Switch(
@@ -240,14 +237,133 @@ fun SettingsView(
                         modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
                     )
                 }
-
                 Spacer(Modifier.height(15.dp))
                 Row(
                     Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Устройства", fontSize = 23.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        text = "Анимированные переходы",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Switch(
+                        checked = viewManager.isTransitionsEnabled.value,
+                        onCheckedChange = {
+                            changeIsTransitionsEnabled(viewManager, it)
+                        },
+                        modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
+                    )
+                }
+                Spacer(Modifier.height(20.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Шрифт", fontSize = 23.esp, fontWeight = FontWeight.Black)
+                    Box {
+                        val fontName = when (viewManager.fontType.value) {
+                            FontTypes.Geologica.ordinal -> "Geologica"
+                            FontTypes.Default.ordinal -> "Обычный"
+                            FontTypes.Monospace.ordinal -> "Monospace"
+                            FontTypes.SansSerif.ordinal -> "SansSerif"
+                            else -> "???"
+                        }
+                        //ListItem(FontTypes.Geologica.ordinal.toString(), "Geologica"),
+                        //                ListItem(FontTypes.Cursive.ordinal.toString(), "Cursive"),
+//                                        ListItem(FontTypes.Default.ordinal.toString(), "Обычный"),
+//                                        ListItem(FontTypes.Monospace.ordinal.toString(), "Monospace"),
+//                                        ListItem(FontTypes.SansSerif.ordinal.toString(), "SansSerif"),
+                        AnimatedContent(fontName) { aText ->
+                            CustomTextButton(
+                                text = aText
+                            ) {
+                                component.fontTypeListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                            }
+                        }
+
+
+                        ListDialogDesktopContent(
+                            component = component.fontTypeListComponent,
+                            isFullHeight = true,
+                            offset = DpOffset(x = 40.dp, y = 0.dp)
+                        ) {
+                            changeFontType(
+                                viewManager = viewManager,
+                                fontType = it.id.toInt()
+                            )
+                            component.fontTypeListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+                        }
+                    }
+                }
+                Slider(
+                    value = viewManager.fontSize.value,
+                    onValueChange = {
+                        changeFontSize(
+                            viewManager,
+                            fontSize = it
+                        )
+                    },
+                    valueRange = 0.75f..1.25f,
+                    steps = 9
+                )
+                Text(
+                    text = "Возможны визуальные баги",
+                    modifier = Modifier.fillMaxWidth().alpha(.5f),
+                    textAlign = TextAlign.Center,
+                    fontSize = 10.esp
+                )
+
+
+                Spacer(Modifier.height(10.dp))
+
+                Text("Таблицы", fontSize = 23.esp, fontWeight = FontWeight.Black)
+
+                Spacer(Modifier.height(7.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Использовать по умолчанию",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Switch(
+                        checked = model.isMarkTableDefault,
+                        onCheckedChange = {
+                            component.onEvent(SettingsStore.Intent.ChangeIsMarkTableDefault)
+                        },
+                        modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Отображать +1 за МВД",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Switch(
+                        checked = model.isPlusDsStupsEnabled,
+                        onCheckedChange = {
+                            component.onEvent(SettingsStore.Intent.ChangeIsPlusDsStupsEnabled)
+                        },
+                        modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
+                    )
+                }
+
+
+                Spacer(Modifier.height(14.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Устройства", fontSize = 23.esp, fontWeight = FontWeight.Black)
                     IconButton(
                         onClick = { component.onOutput(SettingsComponent.Output.GoToScanner) }
                     ) {
@@ -300,13 +416,13 @@ fun SettingsView(
                                             Text(
                                                 device.deviceName ?: "Неизвестное устройство",
                                                 fontWeight = FontWeight.SemiBold,
-                                                fontSize = 16.sp,
-                                                lineHeight = 16.sp
+                                                fontSize = 16.esp,
+                                                lineHeight = 16.esp
                                             )
                                             Text(
                                                 device.time,
-                                                fontSize = 16.sp,
-                                                lineHeight = 16.sp,
+                                                fontSize = 16.esp,
+                                                lineHeight = 16.esp,
                                                 color = MaterialTheme.colorScheme.onBackground.copy(
                                                     alpha = .5f
                                                 )
@@ -359,7 +475,7 @@ fun SettingsView(
                         Text(
                             "Выйти из аккаунта",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 17.sp,
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
                             color = colorRed
                         )
                     }
@@ -372,7 +488,9 @@ fun SettingsView(
                 viewManager,
                 onThemeClick = {
                     changeTint(viewManager, it)
-                }
+                },
+                isColorMenuOpened = isColorMenuOpened,
+                isShowBottomBar = false
             ) {
                 changeColorSeed(viewManager, it.toHex())
             }
@@ -398,6 +516,17 @@ fun SettingsView(
             title = "Цветовой режим"
         )
 
+        ListDialogMobileContent(
+            component = component.fontTypeListComponent,
+            title = "Выберите шрифт"
+        ) {
+            changeFontType(
+                viewManager = viewManager,
+                fontType = it.id.toInt()
+            )
+            component.fontTypeListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+        }
+
 
         CAlertDialogContent(
             component = component.changeLoginDialog
@@ -408,7 +537,7 @@ fun SettingsView(
             Column(Modifier.padding(6.dp)) {
                 Text(
                     "Смена логина", fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp, modifier = Modifier.padding(start = 5.dp)
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize, modifier = Modifier.padding(start = 5.dp)
                 )
                 Spacer(Modifier.height(5.dp))
                 CustomTextField(

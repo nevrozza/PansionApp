@@ -18,12 +18,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -33,7 +28,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -46,6 +40,7 @@ import dev.chrisbanes.haze.HazeState
 import parents.AdminParentsComponent
 import parents.AdminParentsStore
 import view.LocalViewManager
+import view.esp
 import view.rememberImeState
 
 @OptIn(
@@ -77,7 +72,7 @@ fun AdminParentsContent(
                 title = {
                     Text(
                         "Родители",
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -122,7 +117,7 @@ fun AdminParentsContent(
 
                             val parents = model.lines.filter { it.studentLogin == s }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("${p.fio.surname} ${p.fio.name} ${p.fio.praname} ($s)", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                Text("${p.fio.surname} ${p.fio.name} ${p.fio.praname} ($s)", fontWeight = FontWeight.Bold, fontSize = 18.esp)
                                 Spacer(Modifier.width(5.dp))
                                 if (parents.size < 2) {
                                     Box {

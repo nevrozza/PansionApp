@@ -48,7 +48,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import cGrade
 import components.CustomTextButton
 import components.GetAvatar
@@ -83,7 +82,8 @@ fun LazyListScope.homeStudentBar(
         ElevatedCard(Modifier.fillMaxWidth()) {
             Box() {
                 Row(
-                    Modifier.padding(10.dp)
+                    Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier.clip(CircleShape).clickable {
@@ -122,7 +122,7 @@ fun LazyListScope.homeStudentBar(
                         ) {
                             Text(
                                 model.name,
-                                fontSize = 20.sp,
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                 fontWeight = FontWeight.Bold,
                             )
                             AnimatedContent(
@@ -229,7 +229,7 @@ fun LazyListScope.homeStudentBar(
                 ) {
                     Text(
                         "Оценки",
-                        fontSize = 17.sp,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(5.dp))
@@ -267,7 +267,7 @@ fun LazyListScope.homeStudentBar(
                 ) {
                     Text(
                         "Домашние задания",
-                        fontSize = 17.sp,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(5.dp))

@@ -1,6 +1,7 @@
 package com.nevrozq.pansion.database.reportHeaders
 
 import com.nevrozq.pansion.database.groups.Groups
+import com.nevrozq.pansion.database.pansCoins.PansCoins
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.RatingEntityDTO
 import com.nevrozq.pansion.database.ratingEntities.Stups
@@ -240,7 +241,10 @@ object ReportHeaders : Table() {
                 for (i in toDelete) {
                     db.delete(id = i.id, reportId = r.lessonReportId)
                 }
-                for (i in toAdd.filter { abs(it.content.toInt()) > 0 }) {
+                for (i in toAdd.filter { it.content.toInt() != 0 }) { //abs(it.content.toInt()) > 0
+                    if (i.reason.subSequence(0,3) == "!st" && i.content.toInt() > 0) {
+                        PansCoins.add(i.login, i.content.toInt())
+                    }
                     db.insert(
                         r = RatingEntityDTO(
                             groupId = pHeader.groupId,

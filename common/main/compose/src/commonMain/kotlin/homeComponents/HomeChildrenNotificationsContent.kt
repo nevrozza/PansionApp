@@ -10,13 +10,13 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import components.CustomTextButton
 import components.NotificationItem
 import components.networkInterface.NetworkInterface
@@ -39,7 +39,7 @@ fun LazyListScope.homeChildrenNotificationsContent(
             Text(
                 "Уведомления",
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 24.sp,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
@@ -103,7 +103,7 @@ fun LazyListScope.homeChildrenNotificationsContent(
                         Text(
                             "${s.fio.surname} ${s.fio.name}",
                             modifier = Modifier.padding(start = 12.dp),
-                            fontSize = 20.sp,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             fontWeight = FontWeight.Bold
                         )
                     }

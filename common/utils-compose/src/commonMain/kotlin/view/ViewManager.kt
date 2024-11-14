@@ -3,23 +3,17 @@ package view
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.State
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.chrisbanes.haze.HazeState
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
@@ -34,8 +28,16 @@ class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
     var orientation: MutableState<WindowScreen> = mutableStateOf(WindowScreen.Vertical),
     var colorMode: MutableState<String>,
     val splitPaneState: SplitPaneState,
-    val isFullScreen: MutableState<Boolean> = mutableStateOf(true)
+    val isFullScreen: MutableState<Boolean> = mutableStateOf(true),
+    val isTransitionsEnabled: MutableState<Boolean> = mutableStateOf(true),
+    val fontSize: MutableState<Float> = mutableFloatStateOf(1f),
+    val fontType: MutableState<Int> = mutableStateOf(0),
 )
+
+
+
+
+
 val LocalViewManager: ProvidableCompositionLocal<ViewManager> = compositionLocalOf {
     error("No ViewManager provided")
 }
@@ -44,10 +46,23 @@ val GlobalHazeState: ProvidableCompositionLocal<HazeState> = compositionLocalOf 
     error("No HazeState provided")
 }
 
+val Int.esp: TextUnit
+    @Composable
+    get() {
+        return this.toFloat().esp
+    }
+
+val Float.esp: TextUnit
+    @Composable
+    get() {
+        return this.sp * LocalViewManager.current.fontSize.value
+    }
+
+
 
 
 val hazeProgressive = dev.chrisbanes.haze.HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0.0f, easing = FastOutLinearInEasing)
-
+val hazeMask = Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Magenta.copy(.82f), Color.Transparent))
 @Composable
 expect fun rememberImeState(): State<Boolean>
 

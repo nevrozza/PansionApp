@@ -123,7 +123,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.compose.ui.util.fastSumBy
 import androidx.compose.ui.window.DialogProperties
@@ -156,10 +155,7 @@ import server.getDate
 import server.getSixTime
 import server.roundTo
 import server.toMinutes
-import view.LocalViewManager
-import view.LockScreenOrientation
-import view.blend
-import view.rememberImeState
+import view.*
 import kotlin.math.max
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -383,7 +379,7 @@ fun LessonReportContent(
                                             "Настройка колонок",
                                             modifier = Modifier.fillMaxWidth(),
                                             textAlign = TextAlign.Center,
-                                            fontSize = 25.sp,
+                                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                             fontWeight = FontWeight.Bold
                                         )
                                         Spacer(Modifier.height(25.dp))
@@ -398,7 +394,7 @@ fun LessonReportContent(
                                             "Об уроке",
                                             modifier = Modifier.fillMaxWidth(),
                                             textAlign = TextAlign.Center,
-                                            fontSize = 25.sp,
+                                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                             fontWeight = FontWeight.Bold
                                         )
                                         Spacer(Modifier.height(15.dp))
@@ -421,7 +417,7 @@ fun LessonReportContent(
                                                 modifier = Modifier.fillMaxWidth()
                                                     .align(Alignment.Center),
                                                 textAlign = TextAlign.Center,
-                                                fontSize = 25.sp,
+                                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                                 fontWeight = FontWeight.Bold
                                             )
 
@@ -719,7 +715,7 @@ private fun HomeWorkTabContent(
                                             tabText,
                                             overflow = TextOverflow.Ellipsis,
                                             maxLines = 2,
-                                            fontSize = 15.sp,
+                                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                             modifier = Modifier.align(Alignment.Center)
                                         )
                                         if (tab != null) {
@@ -991,7 +987,7 @@ private fun ReportHomeTaskItem(
             Column(Modifier.padding(4.dp).padding(start = 4.dp)) {
                 Text(
                     buildAnnotatedString {
-                        withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                        withStyle(SpanStyle(fontSize = 18.esp, fontWeight = FontWeight.Bold)) {
                             append("Тип: ")
                         }
                         append("${typesList[task.type] ?: "Не выбрано"}")
@@ -1400,7 +1396,7 @@ private fun ColumnsSettingsItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 "$title",
-                fontSize = 20.sp,
+                fontSize = MaterialTheme.typography.titleLarge.fontSize,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)
             )
@@ -1648,7 +1644,7 @@ fun LessonTable(
                             ) {
                                 Text(
                                     text = student.shortFio,
-                                    fontSize = 20.sp,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     fontWeight = FontWeight.Bold,
                                     color = fioColor,
                                     modifier = Modifier

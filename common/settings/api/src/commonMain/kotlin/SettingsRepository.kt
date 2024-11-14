@@ -37,6 +37,21 @@ interface SettingsRepository {
 
     fun saveIsHaze(isHaze: Boolean)
     fun fetchIsHaze() : Boolean
+
+    fun saveIsMarkTable(isMarkTable: Boolean)
+    fun fetchIsMarkTable() : Boolean
+
+    fun saveIsShowingPlusDs(isShowing: Boolean)
+    fun fetchIsShowingPlusDS() : Boolean
+
+    fun saveIsTransitionsEnabled(isEnabled: Boolean)
+    fun fetchIsTransitionsEnabled() : Boolean
+
+    fun saveFontSize(fontSize: Float)
+    fun fetchFontSize() : Float
+
+    fun saveFontType(fontType: Int)
+    fun fetchFontType() : Int
 //    fun fetchSettingsScreenData(): SettingsScreenData
 }
 

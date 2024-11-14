@@ -88,7 +88,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.AppBar
@@ -120,6 +119,7 @@ import users.UsersComponent
 import users.UsersStore
 import view.LocalViewManager
 import view.LockScreenOrientation
+import view.esp
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
@@ -170,7 +170,7 @@ fun UsersContent(
                     ) {
                         Text(
                             "Пользователи",
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -541,7 +541,7 @@ private fun editUserSheet(
 
             Text(
                 model.eLogin, fontWeight = FontWeight.Black,
-                fontSize = 27.sp, textAlign = TextAlign.Center
+                fontSize = 27.esp, textAlign = TextAlign.Center
             )
             val properties = listOf(
                 model.eName,
@@ -556,14 +556,14 @@ private fun editUserSheet(
                     withStyle(
                         SpanStyle(
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize
                         )
                     ) {
                         append("Редактировать пользователя ")
                     }
                     withStyle(
                         SpanStyle(
-                            fontSize = 15.sp,
+                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -876,7 +876,7 @@ private fun editUserSheet(
                         Text(
                             "Модератор",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                         Switch(
@@ -901,7 +901,7 @@ private fun editUserSheet(
                         Text(
                             "Наставник",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                         Switch(
@@ -926,7 +926,7 @@ private fun editUserSheet(
                         Text(
                             "Родитель",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                         Switch(
@@ -1077,14 +1077,14 @@ private fun createUserSheet(
                         withStyle(
                             SpanStyle(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize
                             )
                         ) {
                             append("Создать нового пользователя ")
                         }
                         withStyle(
                             SpanStyle(
-                                fontSize = 15.sp,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -1399,7 +1399,7 @@ private fun createUserSheet(
                                 Text(
                                     "Модератор",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     modifier = Modifier.padding(bottom = 4.dp)
                                 )
                                 Switch(
@@ -1424,7 +1424,7 @@ private fun createUserSheet(
                                 Text(
                                     "Наставник",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     modifier = Modifier.padding(bottom = 4.dp)
                                 )
                                 Switch(
@@ -1449,7 +1449,7 @@ private fun createUserSheet(
                                 Text(
                                     "Родитель",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     modifier = Modifier.padding(bottom = 4.dp)
                                 )
                                 Switch(
@@ -1589,14 +1589,14 @@ private fun createUserSheet(
                 Text(
                     "${model.cSurname} ${model.cName} ${model.cPraname}",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     textAlign = TextAlign.Center
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         model.cLogin,
                         fontWeight = FontWeight.Black,
-                        fontSize = 28.sp,
+                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                         textAlign = TextAlign.Center
                     )
 
@@ -1610,13 +1610,13 @@ private fun createUserSheet(
                                 Text(
                                     s,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
                                     model.cParentLogins?.getOrNull(i).toString(),
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 20.sp,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -1749,7 +1749,7 @@ fun TableScreen(
                         Column {
                             Text(
                                 text = row.first,
-                                fontSize = 20.sp,
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier
                                     .padding(start = 10.dp)

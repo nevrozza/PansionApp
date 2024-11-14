@@ -47,7 +47,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BorderStup
@@ -71,6 +70,7 @@ import server.getLocalDate
 import server.roundTo
 import view.LocalViewManager
 import view.WindowScreen
+import view.esp
 import view.toColor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
@@ -105,7 +105,7 @@ fun SharedTransitionScope.FormRatingContent(
                         Text(
                             text,
                             modifier = Modifier.padding(start = 10.dp),
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -360,7 +360,7 @@ private fun SharedTransitionScope.FormRatingCard(
                         // Show position number for other positions
                         Text(
                             text = topEd.toString(),
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             fontStyle = FontStyle.Italic
                         )
@@ -372,7 +372,7 @@ private fun SharedTransitionScope.FormRatingCard(
                 avatarId = item.avatarId,
                 name = item.fio.name,
                 size = 40.dp,
-                textSize = 20.sp,
+                textSize = MaterialTheme.typography.titleLarge.fontSize,
                 modifier = Modifier.sharedElementWithCallerManagedVisibility(
                     sharedContentState = rememberSharedContentState(key = item.login + "avatar"),
                     visible = isVisible
@@ -384,8 +384,8 @@ private fun SharedTransitionScope.FormRatingCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${item.fio.surname} ${item.fio.name}",
-                    fontSize = 18.sp, // Adjust font size for heading
-                    lineHeight = 19.sp,
+                    fontSize = 18.esp, // Adjust font size for heading
+                    lineHeight = 19.esp,
                     fontWeight = FontWeight.Bold // Make text bold for emphasis
                 )
                 Spacer(Modifier.height(1.dp))
@@ -398,8 +398,8 @@ private fun SharedTransitionScope.FormRatingCard(
                         append("мвд: ${item.mvdStupsCount} ")
                         append("зд: ${item.zdStupsCount} ")
                     },
-                    fontSize = 14.sp, // Adjust font size for body text
-                    lineHeight = 15.sp,
+                    fontSize = MaterialTheme.typography.titleSmall.fontSize, // Adjust font size for body text
+//                    lineHeight = 15.sp,
                     color = Color.Gray
                 )
             }
@@ -419,8 +419,8 @@ private fun SharedTransitionScope.FormRatingCard(
                         avg.toString() + " (${topMark})"
                     } else if (item.avg.count > 0) avg.toString()
                     else "",
-                    fontSize = 18.sp,
-                    lineHeight = 19.sp
+                    fontSize = 18.esp,
+                    lineHeight = 19.esp
                 )
                 Spacer(Modifier.height(1.dp))
                 Text(
@@ -428,8 +428,8 @@ private fun SharedTransitionScope.FormRatingCard(
                         "+${stups} (${topStup})"
                     } else if (item.edStups.isNotEmpty()) (if (stups.toString().first() != '-') "+" else "")+stups.toString()
                     else "",
-                    fontSize = 14.sp,
-                    lineHeight = 15.sp,
+                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
+//                    lineHeight = 15.sp,
                     color = MaterialTheme.colorScheme.primary,//Color.Green,
                     fontWeight = FontWeight.Bold
                 )

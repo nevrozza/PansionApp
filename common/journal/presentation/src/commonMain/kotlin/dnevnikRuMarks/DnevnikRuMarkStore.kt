@@ -25,7 +25,7 @@ interface DnevnikRuMarkStore : Store<Intent, State, Label> {
 
         val pickedSubjectId: Int = 0,
 
-        val isTableView: Boolean = true,
+        val isTableView: Boolean,
         val isWeekDays: Boolean = false,
         val weekDays: List<String> = getWeekDays(),
         val isPreviousWeekDays: Boolean = false,

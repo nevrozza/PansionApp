@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
@@ -49,10 +48,7 @@ import server.Ministries
 import server.Moderation
 import server.Roles
 import server.headerTitlesForMinistry
-import view.LocalViewManager
-import view.WindowScreen
-import view.handy
-import view.toColor
+import view.*
 import kotlin.math.ceil
 
 
@@ -82,7 +78,7 @@ fun SchoolContent(
                     Text(
                         "Пансион",
                         modifier = Modifier.padding(start = 10.dp),
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -155,7 +151,7 @@ fun SchoolContent(
                         ) {
                             Text(
                                 if (model.formName != null) "${model.formName} класс" else "Классы",
-                                fontSize = 17.sp,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(Modifier.height(5.dp))
@@ -195,7 +191,7 @@ fun SchoolContent(
                         ) {
                             Text(
                                 "Школьный рейтинг",
-                                fontSize = 17.sp,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 fontWeight = FontWeight.Bold
                             )
 //                            Spacer(Modifier.height(5.dp))
@@ -241,7 +237,7 @@ fun SchoolContent(
                                                     // Show position number for other positions
                                                     Text(
                                                         text = model.top.toString(),
-                                                        fontSize = 23.sp,
+                                                        fontSize = 23.esp,
                                                         fontWeight = FontWeight.Black,
                                                         fontStyle = FontStyle.Italic
                                                     )
@@ -332,7 +328,7 @@ fun SchoolContent(
                                                                 ) {
                                                                     Text(
                                                                         "Сегодня дежурят",
-                                                                        fontSize = 19.sp,
+                                                                        fontSize = 19.esp,
                                                                         fontWeight = FontWeight.Bold
                                                                     )
                                                                     if (model.role == Roles.student && todayKids.none { it.login == model.login }) {
@@ -381,7 +377,7 @@ fun SchoolContent(
                                                         Column {
                                                             Text(
                                                                 "В другой раз",
-                                                                fontSize = 19.sp,
+                                                                fontSize = 19.esp,
                                                                 fontWeight = FontWeight.Bold,
                                                                 modifier = Modifier.padding(horizontal = 15.dp)
                                                             )
@@ -413,7 +409,7 @@ fun SchoolContent(
                                                     ) {
                                                         Text(
                                                             "Дежурство",
-                                                            fontSize = 19.sp,
+                                                            fontSize = 19.esp,
                                                             fontWeight = FontWeight.Bold
                                                         )
                                                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -536,7 +532,7 @@ fun SchoolContent(
                     ) {
                         Text(
                             "Расписание БЕТА",
-                            fontSize = 20.sp,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -556,7 +552,7 @@ fun SchoolContent(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "Министерства",
-                            fontSize = 19.sp,
+                            fontSize = 19.esp,
                             fontWeight = FontWeight.Black,
                             modifier = Modifier.padding(start = 10.dp)
                         )
@@ -636,7 +632,7 @@ fun SchoolContent(
                         ) {
                             Text(
                                 "Редактировать",
-                                fontSize = 20.sp,
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -677,7 +673,7 @@ fun SchoolContent(
                             text = "Числа показывают, сколько минусов Вам поставили за неделю",
                             modifier = Modifier.fillMaxWidth().alpha(.5f),
                             textAlign = TextAlign.Center,
-                            fontSize = 10.sp
+                            fontSize = 10.esp
                         )
                     }
                 }
@@ -711,7 +707,7 @@ fun SchoolContent(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    fontSize = 20.sp,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     fontWeight = FontWeight.Black
                 )
             }
@@ -820,7 +816,7 @@ fun SchoolContent(
                     text = headerTitlesForMinistry[model.ministryOverviewId] ?: "Министерство?",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    fontSize = 20.sp,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     fontWeight = FontWeight.Black
                 )
             }
@@ -886,7 +882,7 @@ private fun DutyCard(
                     avatarId = kid.avatarId,
                     name = kid.fio.name,
                     size = 40.dp,
-                    textSize = 15.sp
+                    textSize = MaterialTheme.typography.titleSmall.fontSize
                 )
             } else {
                 Icon(
@@ -911,7 +907,7 @@ private fun DutyCard(
             text = "дежурств: ${kid.dutyCount}",
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = .5f),
-            fontSize = 12.sp
+            fontSize = 12.esp
         )
     }
 }
@@ -941,7 +937,7 @@ private fun RowScope.MinistryCard(
         ) {
             Text(
                 ministry,
-                fontSize = 17.sp,
+                fontSize = MaterialTheme.typography.titleMedium.fontSize,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(5.dp))
@@ -964,7 +960,7 @@ private fun RowScope.MinistryCard(
                             text = stupsCount.toString(),
                             color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 17.sp
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize
                         )
                     }
                 }

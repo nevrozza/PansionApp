@@ -79,6 +79,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -97,7 +98,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BorderStup
@@ -141,12 +141,7 @@ import server.getCurrentDayTime
 import server.roundTo
 import server.toMinutes
 import server.weekPairs
-import view.LocalViewManager
-import view.WindowScreen
-import view.blend
-import view.handy
-import view.hazeProgressive
-import view.rememberImeState
+import view.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @ExperimentalLayoutApi
@@ -245,7 +240,7 @@ fun OtherHomeContent(
                     Text(
                         "Главная",
                         modifier = Modifier.padding(start = 10.dp),
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -374,7 +369,8 @@ fun TeacherHomeContent(
                             state = hazeState,
                             style = LocalHazeStyle.current
                         ) {
-                            progressive = hazeProgressive
+                            mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+//                            progressive = hazeProgressive
                         }
                         else Modifier
                     )
@@ -397,7 +393,7 @@ fun TeacherHomeContent(
                                     Text(
                                         it,
                                         modifier = Modifier.padding(start = 10.dp),
-                                        fontSize = 25.sp,
+                                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                         fontWeight = FontWeight.Black,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -713,7 +709,8 @@ fun StudentHomeContent(
                     if (isHaze) Modifier.hazeChild(
                         hazeState
                     ) {
-                        progressive = hazeProgressive
+                        mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+//                        progressive = hazeProgressive
                     }
                     else Modifier
                 )
@@ -751,7 +748,7 @@ fun StudentHomeContent(
                                 Text(
                                     it,
                                     modifier = Modifier.padding(start = 10.dp),
-                                    fontSize = 25.sp,
+                                    fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                     fontWeight = FontWeight.Black,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -871,7 +868,7 @@ private fun RaspisanieTitleBox(
             Text(
                 "Расписание",
                 modifier = Modifier.padding(top = 8.dp, bottom = 5.dp),
-                fontSize = 25.sp,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                 fontWeight = FontWeight.Black
             )
             if (!isMainView) {
@@ -906,7 +903,7 @@ private fun RaspisanieTitleBox(
                                 top = 8.dp,
                                 bottom = 5.dp
                             ),
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black
                         )
                         AnimatedContent(
@@ -921,12 +918,12 @@ private fun RaspisanieTitleBox(
                                 text = it,
                                 modifier = Modifier.padding(start = 7.dp)
                                     .offset(y = 4.dp),
-                                fontSize = 15.sp,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                 color = MaterialTheme.colorScheme.onSurface.copy(
                                     alpha = 0.6f
                                 ),
                                 fontWeight = FontWeight.Bold,
-                                lineHeight = 10.sp,
+//                                lineHeight = 10.sp,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -1007,7 +1004,7 @@ fun Lesson(
                     Text(
                         num.toString(),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
-                        fontSize = 17.sp,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.SemiBold
                     )
                 } else {
@@ -1046,7 +1043,7 @@ fun Lesson(
                             buildAnnotatedString {
                                 withStyle(
                                     SpanStyle(
-                                        fontSize = 20.sp,
+                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                                     )
@@ -1056,7 +1053,7 @@ fun Lesson(
                                 if (cabinet != "0") {
                                     withStyle(
                                         SpanStyle(
-                                            fontSize = 10.sp,
+                                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                             fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
                                         )
@@ -1069,7 +1066,7 @@ fun Lesson(
                                     withStyle(
                                         SpanStyle(
                                             fontWeight = FontWeight.SemiBold,
-                                            fontSize = 17.sp,
+                                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                                         )
                                     ) {
@@ -1080,7 +1077,7 @@ fun Lesson(
                                 withStyle(
                                     SpanStyle(
                                         fontWeight = FontWeight.SemiBold,
-                                        fontSize = 17.sp,
+                                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
                                     )
                                 ) {
@@ -1091,7 +1088,7 @@ fun Lesson(
                                 withStyle(
                                     SpanStyle(
                                         fontWeight = FontWeight.SemiBold,
-                                        fontSize = 12.sp,
+                                        fontSize = 12.esp,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f)
                                     )
                                 ) {
@@ -1099,7 +1096,7 @@ fun Lesson(
                                     append("$start-$end")
                                 }
 
-                            }, lineHeight = 17.sp,
+                            }, lineHeight = MaterialTheme.typography.titleMedium.fontSize,
                             modifier = Modifier.clickable(
                                 interactionSource = MutableInteractionSource(),
                                 indication = null
@@ -1129,7 +1126,7 @@ fun Lesson(
                                     if (notNow) if (hours >= 1 && finalMinutes != 0) "$hours ч $finalMinutes мин" else "$minutesOst мин."
                                     else if (!isEnded) "Уже идёт!"
                                     else "",
-                                    lineHeight = 5.sp,
+                                    lineHeight = 5.esp,
                                     overflow = TextOverflow.Ellipsis,
                                     maxLines = 1
                                 )
@@ -1202,7 +1199,7 @@ fun Lesson(
                                 } else {
                                     if (isCreated) "Готово" else if (isEnded) "Пропуск" else "Отметить"
                                 },
-                                lineHeight = 10.sp
+                                lineHeight = 10.esp
                             )
                         }
                     }
@@ -1220,7 +1217,7 @@ fun Lesson(
             )
             Text(
                 text,
-                fontSize = 20.sp,
+                fontSize = MaterialTheme.typography.titleLarge.fontSize,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
                 modifier = Modifier.align(Alignment.Center)
@@ -1228,7 +1225,7 @@ fun Lesson(
             Text(
                 "$start-$end",
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 12.sp,
+                fontSize = 12.esp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) .6f else 0.3f),
                 modifier = Modifier.align(Alignment.CenterEnd)
             )
@@ -1246,7 +1243,7 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(PaddingValues(start = 5.dp))
     ) {
-        Text(mark.date.subSequence(0, 5).toString(), fontSize = 10.sp, lineHeight = 10.sp)
+        Text(mark.date.subSequence(0, 5).toString(), fontSize = 10.esp, lineHeight = 10.esp)
         Spacer(Modifier.height(2.dp))
         TooltipBox(
             state = tState,
@@ -1407,7 +1404,7 @@ fun RecentMarkContent(
             Text(
                 (if (!isNotStups && mark.toInt() > 0 && !mark.contains("+")
                 ) "+" else "") + mark,
-                fontSize = 18.sp,
+                fontSize = 18.esp,
                 modifier = Modifier.fillMaxWidth().offset(y = 4.dp),
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Black,

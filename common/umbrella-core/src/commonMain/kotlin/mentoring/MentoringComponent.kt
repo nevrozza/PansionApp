@@ -2,6 +2,7 @@ package mentoring
 
 import FIO
 import MainRepository
+import SettingsRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
@@ -29,7 +30,7 @@ class MentoringComponent(
 ) : ComponentContext by componentContext {
 
     val mainRepository: MainRepository = Inject.instance()
-
+//    val setingsRepository: SettingsRepository = Inject.instance()
     private val nInterfaceName = "MentoringComponentNInterface"
     private val nPreAttendanceInterfaceName = "MentoringPreAttendanceComponentNInterface"
 

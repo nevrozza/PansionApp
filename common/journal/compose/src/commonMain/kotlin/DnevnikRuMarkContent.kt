@@ -55,13 +55,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.BorderStup
@@ -112,7 +112,8 @@ fun DnevnikRuMarkContent(
                         hazeState,
                         style = LocalHazeStyle.current
                     ) {
-                        progressive = hazeProgressive
+                        mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+//                        progressive = hazeProgressive
                     }
                     else Modifier
                 ),
@@ -134,7 +135,7 @@ fun DnevnikRuMarkContent(
                         Text(
                             "Успеваемость",
                             //modifier = Modifier.padding(start = 10.dp),
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -268,7 +269,8 @@ fun DnevnikRuMarkContent(
                                             model.isPreviousWeekDays -> it.date in model.previousWeekDays
                                             else -> it.date in model.mDates
                                         }
-                                    } }
+                                    } },
+                                    isDs1Init = component.setingsRepository.fetchIsShowingPlusDS()
                                 )
                             }
                         }
@@ -413,7 +415,7 @@ private fun SubjectMarksItem(
                     Text(
                         text = title,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(2f, false)
@@ -438,7 +440,7 @@ private fun SubjectMarksItem(
                         "NaN"
                     } else {
                         value.roundTo(2).toString()
-                    }, fontWeight = FontWeight.Bold, fontSize = 25.sp,
+                    }, fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(.4f, false)
@@ -535,14 +537,14 @@ private fun ModuleRow(
             Text(
                 "$num модуль",
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+                fontSize = MaterialTheme.typography.titleLarge.fontSize
             ) //is Quarters None ${if(isQuarters) "модуль" else "полугодие"} TODO
             Text(
                 text = if (value.isNaN()) {
                     "NaN"
                 } else {
                     value.roundTo(2).toString()
-                }, fontWeight = FontWeight.SemiBold, fontSize = 20.sp
+                }, fontWeight = FontWeight.SemiBold, fontSize = MaterialTheme.typography.titleLarge.fontSize
             )
         }
     }

@@ -55,7 +55,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.AppBar
@@ -97,7 +96,7 @@ fun AdminAchievementsContent(
                 title = {
                     Text(
                         "События",
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -142,7 +141,7 @@ fun AdminAchievementsContent(
                                 text = buildAnnotatedString {
                                     withStyle(
                                         SpanStyle(
-                                            fontSize = 20.sp,
+                                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                             fontWeight = FontWeight.Black
                                         )
                                     ) {

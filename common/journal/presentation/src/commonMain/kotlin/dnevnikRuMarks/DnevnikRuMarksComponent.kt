@@ -1,6 +1,7 @@
 package dnevnikRuMarks
 
 import JournalRepository
+import SettingsRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
@@ -35,7 +36,7 @@ class DnevnikRuMarksComponent(
     )
 
     val journalRepository: JournalRepository = Inject.instance()
-
+    val setingsRepository: SettingsRepository = Inject.instance()
     val stupsDialogComponent = CAlertDialogComponent(
         componentContext,
         storeFactory,
@@ -51,7 +52,8 @@ class DnevnikRuMarksComponent(
                 nInterface = nInterface,
                 journalRepository = journalRepository,
                 stupsDialogComponent = stupsDialogComponent,
-                studentReportDialog = studentReportDialog
+                studentReportDialog = studentReportDialog,
+                settingsRepository = Inject.instance()
             ).create()
         }
 

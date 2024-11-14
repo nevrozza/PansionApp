@@ -1,5 +1,6 @@
 package com.nevrozq.pansion.features.auth
 
+import AvatarsShop
 import FIO
 import admin.groups.Group
 import admin.groups.GroupInit
@@ -26,6 +27,7 @@ import auth.RFetchQrTokenResponse
 import auth.RTerminateDeviceReceive
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.forms.mapToForm
+import com.nevrozq.pansion.database.pansCoins.PansCoins
 import com.nevrozq.pansion.database.pickedGIA.PickedGIA
 import com.nevrozq.pansion.database.pickedGIA.PickedGIADTO
 import com.nevrozq.pansion.database.secondLogins.SecondLogins
@@ -131,7 +133,9 @@ class AuthController {
                         dislikes = dislikes,
                         giaSubjects = PickedGIA.fetchByStudent(r.studentLogin),
                         ministryId = ministry.ministry,
-                        ministryLevel = ministry.lvl
+                        ministryLevel = ministry.lvl,
+                        pansCoins = if (r.studentLogin == call.login) PansCoins.fetchCount(r.studentLogin) else 0,
+                        avatars = if (r.studentLogin == call.login) AvatarsShop.fetchAvatars(r.studentLogin) else listOf()
                     ))
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Conflict when get about me")
@@ -365,6 +369,8 @@ class AuthController {
                     login = call.login,
                     avatarId = r.avatarId
                 )
+                AvatarsShop.add(login = call.login, avatarId = r.avatarId)
+                PansCoins.add(login = call.login, plus = -r.price)
                 call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "Idk ERROR WHEN CHANGE AVATAR ID CONFLICT!!")

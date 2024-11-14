@@ -82,4 +82,31 @@ class SettingsRepositoryImpl(
     override fun fetchIsHaze(): Boolean {
         return cacheDataSource.fetchIsHaze()
     }
+
+    override fun saveIsMarkTable(isMarkTable: Boolean) {
+        cacheDataSource.saveIsMarkTable(isMarkTable)
+    }
+
+    override fun fetchIsMarkTable(): Boolean = cacheDataSource.fetchIsMarkTable()
+
+    override fun saveIsShowingPlusDs(isShowing: Boolean) {
+        cacheDataSource.saveIsShowingPlusDs(isShowing)
+    }
+
+    override fun fetchIsShowingPlusDS(): Boolean = cacheDataSource.fetchIsShowingPlusDs()
+
+    override fun saveIsTransitionsEnabled(isEnabled: Boolean) {
+        cacheDataSource.saveIsTransitionsEnabled(isEnabled)
+    }
+
+    override fun fetchIsTransitionsEnabled(): Boolean = cacheDataSource.fetchIsTransitionsEnabled()
+    override fun saveFontSize(fontSize: Float) {
+        cacheDataSource.saveFontSize(fontSize)
+    }
+    override fun fetchFontSize(): Float = cacheDataSource.fetchFontSize()
+
+    override fun saveFontType(fontType: Int) {
+        cacheDataSource.saveFontType(fontType)
+    }
+    override fun fetchFontType(): Int = cacheDataSource.fetchFontType()
 }

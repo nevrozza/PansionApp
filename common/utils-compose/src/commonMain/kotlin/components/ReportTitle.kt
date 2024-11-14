@@ -29,7 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import view.esp
 
 @Composable
 fun ReportTitle(
@@ -46,8 +46,8 @@ fun ReportTitle(
     module: Int,
     onClick: (() -> Unit)?
 ) {
-    val bigTextSize = 20.sp// if (!isLarge) else 40.sp
-    val smallTextSize = 14.sp//if (!isLarge)  else 28.sp
+    val bigTextSize = MaterialTheme.typography.titleLarge.fontSize// if (!isLarge) else 40.sp
+    val smallTextSize = MaterialTheme.typography.titleSmall.fontSize//if (!isLarge)  else 28.sp
     val startPadding = if (isStartPadding) 10.dp else 0.dp//if (!isLarge)  else 5.dp
     Box() {
         if(isEnded) {
@@ -198,8 +198,8 @@ fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true, sep
                     }
                 }
             },
-            fontSize = 14.sp,
-            lineHeight = 14.sp,
+            fontSize = 14.esp,
+            lineHeight = 14.esp,
             style = androidx.compose.material3.LocalTextStyle.current.copy(
                 lineHeightStyle = LineHeightStyle(
                     alignment = LineHeightStyle.Alignment.Top,

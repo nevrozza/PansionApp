@@ -5,7 +5,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,9 +30,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
@@ -73,6 +73,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -88,7 +89,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.cAlertDialog.CAlertDialogStore
@@ -124,7 +124,7 @@ fun GroupsContent(
     val subjectsModel by component.subjectsComponent.model.subscribeAsState()
     val formsModel by component.formsComponent.model.subscribeAsState()
     val studentsModel by component.studentsComponent.model.subscribeAsState()
-
+    val overscrollEffect = ScrollableDefaults.overscrollEffect()
     val viewManager = LocalViewManager.current
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
@@ -158,7 +158,8 @@ fun GroupsContent(
                         state = hazeState,
                         style = LocalHazeStyle.current
                     ) {
-                        progressive = hazeProgressive
+                        mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+//                        progressive = hazeProgressive
                     }
                     else Modifier
                 )
@@ -178,7 +179,7 @@ fun GroupsContent(
                         if (isBigView) {
                             Text(
                                 "Группы",
-                                fontSize = 25.sp,
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                 fontWeight = FontWeight.Black,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -592,7 +593,7 @@ fun GroupsContent(
             Column(Modifier.padding(6.dp)) {
                 Text(
                     "Создать урок", fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp, modifier = Modifier.padding(start = 5.dp)
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize, modifier = Modifier.padding(start = 5.dp)
                 )
                 Spacer(Modifier.height(5.dp))
                 CustomTextField(
@@ -675,14 +676,14 @@ fun GroupsContent(
                         withStyle(
                             SpanStyle(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize
                             )
                         ) {
                             append("Создать новый класс ")
                         }
                         withStyle(
                             SpanStyle(
-                                fontSize = 15.sp,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -877,14 +878,14 @@ fun GroupsContent(
                         withStyle(
                             SpanStyle(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize
                             )
                         ) {
                             append("Создать новую группу ")
                         }
                         withStyle(
                             SpanStyle(
-                                fontSize = 15.sp,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
                             )

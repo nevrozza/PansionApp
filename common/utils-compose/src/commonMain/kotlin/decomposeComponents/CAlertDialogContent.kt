@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
 import components.LoadingAnimation
@@ -81,7 +80,7 @@ fun CAlertDialogContent(
                         .hazeHeader(
                                                       viewManager = viewManager,
                                                       hazeState = GlobalHazeState.current,
-                                                      isProgressive = false
+                                                      isMasked = false
                                                   ),
                 color = if(viewManager.hazeHardware.value) Color.Transparent else MaterialTheme.colorScheme.surface,
                 shape = MaterialTheme.shapes.large
@@ -91,7 +90,7 @@ fun CAlertDialogContent(
                         Text(
                             title,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier.fillMaxWidth().offset(x = titleXOffset).padding(top = 20.dp),
                             textAlign = TextAlign.Center
                         )

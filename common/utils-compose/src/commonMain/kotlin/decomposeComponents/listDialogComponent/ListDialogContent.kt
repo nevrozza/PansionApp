@@ -49,7 +49,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
 import components.DefaultModalBottomSheet
@@ -57,15 +56,13 @@ import components.LoadingAnimation
 import components.hazeHeader
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
+import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import view.GlobalHazeState
-import view.LocalViewManager
-import view.ViewManager
-import view.WindowScreen
+import view.*
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -138,7 +135,8 @@ fun BottomSheetVariant(
     coroutineScope: CoroutineScope,
     modalBottomSheetState: SheetState,
     title: String = "Выберите",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (ListItem) -> Unit = {}
 ) {
 
 
@@ -169,7 +167,7 @@ fun BottomSheetVariant(
                                     withStyle(
                                         SpanStyle(
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 20.sp
+                                            fontSize = MaterialTheme.typography.titleLarge.fontSize
                                         )
                                     ) {
                                         append(title)
@@ -188,6 +186,7 @@ fun BottomSheetVariant(
                                         modifier = Modifier.fillMaxWidth(),
                                         onClick = {
                                             component.onClick(it)
+                                            onClick(it)
                                         },
                                         colors = ButtonDefaults.textButtonColors(
                                             contentColor = MaterialTheme.colorScheme.onSurface
@@ -266,7 +265,8 @@ fun DropdownVariant(
     isFullHeight: Boolean,
     offset: DpOffset,
     modifier: Modifier = Modifier,
-    title: String?
+    title: String?,
+    onClick: (ListItem) -> Unit = {}
 ) {
     DropdownMenu(
         expanded = model.isDialogShowing && isTooltip,
@@ -277,7 +277,7 @@ fun DropdownVariant(
             .animateContentSize().hazeHeader(
                 viewManager = viewManager,
                 hazeState = GlobalHazeState.current,
-                isProgressive = false
+                isMasked = false
             ),
         containerColor = if (viewManager.hazeHardware.value) Color.Transparent else MenuDefaults.containerColor,
         offset = offset
@@ -287,7 +287,7 @@ fun DropdownVariant(
         ) {
             Column() {
                 if(title != null) {
-                    Text(title, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 10.dp).padding(top = 5.dp), fontSize = 11.sp, lineHeight = 12.sp)
+                    Text(title, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 10.dp).padding(top = 5.dp), fontSize = 11.esp, lineHeight = 12.esp)
                 }
                 when (it.state) {
                     NetworkState.None -> {
@@ -297,6 +297,7 @@ fun DropdownVariant(
                                 text = { Text(selectionOption.text) },
                                 onClick = {
                                     component.onClick(selectionOption)
+                                    onClick(selectionOption)
                                 },
                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                             )

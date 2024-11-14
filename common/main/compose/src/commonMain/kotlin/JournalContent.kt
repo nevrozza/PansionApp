@@ -67,7 +67,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AlphaTestZatichka
 import components.AppBar
@@ -163,7 +162,7 @@ private fun TrueJournalContent(
                         Text(
                             "Журнал",
                             modifier = Modifier.padding(start = 10.dp),
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -387,7 +386,7 @@ private fun TrueJournalContent(
                                         if (i != 0) {
                                             Spacer(Modifier.height(5.dp))
                                         }
-                                        Text(item.date, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 10.dp))
+                                        Text(item.date, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 10.dp))
                                         Spacer(Modifier.height(5.dp))
                                     }
                                     JournalItemCompose(
@@ -557,8 +556,8 @@ fun JournalItemCompose(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val bigTextSize = 20.sp// if (!isLarge) else 40.sp
-                    val smallTextSize = 14.sp//if (!isLarge)  else 28.sp
+                    val bigTextSize = MaterialTheme.typography.titleLarge.fontSize// if (!isLarge) else 40.sp
+                    val smallTextSize = MaterialTheme.typography.titleSmall.fontSize//if (!isLarge)  else 28.sp
                     val startPadding = 0.dp//if (!isLarge)  else 5.dp
                     val isFullView = true
                     Box() {

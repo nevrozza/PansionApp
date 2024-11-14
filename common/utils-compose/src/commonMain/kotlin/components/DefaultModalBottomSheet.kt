@@ -47,7 +47,7 @@ fun DefaultModalBottomSheet(
             Modifier.hazeHeader(
                 viewManager = viewManager,
                 hazeState = hazeState,
-                isProgressive = false
+                isMasked = false
             ), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             BottomSheetDefaults.DragHandle()

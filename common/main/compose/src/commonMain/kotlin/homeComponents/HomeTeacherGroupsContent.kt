@@ -8,13 +8,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FormatListNumbered
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import home.HomeComponent
@@ -31,7 +31,7 @@ fun LazyListScope.homeTeacherGroupsContent(
                     Text(
                         "Группы",
                         modifier = Modifier.fillMaxWidth().align(Alignment.Center),
-                        fontSize = 24.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
@@ -51,7 +51,7 @@ fun LazyListScope.homeTeacherGroupsContent(
             itemsIndexed(model.teacherGroups, key = {i, item -> item.cutedGroup.groupId}) { i, item ->
                 if (i == model.teacherGroups.indexOfFirst { it.subjectId == item.subjectId }) {
                     Text(item.subjectName,
-                        fontSize = 20.sp,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 12.dp))
                     Spacer(Modifier.height(4.dp))

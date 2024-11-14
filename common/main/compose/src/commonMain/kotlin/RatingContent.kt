@@ -56,7 +56,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -73,10 +72,7 @@ import pullRefresh.rememberPullRefreshState
 import rating.RatingComponent
 import rating.RatingItem
 import rating.RatingStore
-import view.LocalViewManager
-import view.WindowScreen
-import view.rememberImeState
-import view.toColor
+import view.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
     ExperimentalSharedTransitionApi::class
@@ -111,7 +107,7 @@ fun SharedTransitionScope.RatingContent(
                         Text(
                             "Рейтинг",
                             modifier = Modifier.padding(start = if (isExpanded) 10.dp else 0.dp),
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -119,7 +115,7 @@ fun SharedTransitionScope.RatingContent(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             model.lastEditTime,
-                            fontSize = 20.sp,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -383,7 +379,7 @@ private fun SharedTransitionScope.RatingCard(
                     // Show position number for other positions
                     Text(
                         text = item.top.toString(),
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         fontStyle = FontStyle.Italic
                     )
@@ -394,7 +390,7 @@ private fun SharedTransitionScope.RatingCard(
                 avatarId = item.avatarId,
                 name = item.fio.name,
                 size = 40.dp,
-                textSize = 20.sp,
+                textSize = MaterialTheme.typography.titleLarge.fontSize,
                 modifier = Modifier.sharedElementWithCallerManagedVisibility(
                     sharedContentState = rememberSharedContentState(key = item.login + "avatar"),
                     visible = isSharedVisible
@@ -406,8 +402,8 @@ private fun SharedTransitionScope.RatingCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "${item.fio.surname} ${item.fio.name}",
-                        fontSize = 18.sp, // Adjust font size for heading
-                        lineHeight = 19.sp,
+                        fontSize = 18.esp, // Adjust font size for heading
+                        lineHeight = 19.esp,
                         fontWeight = FontWeight.Bold // Make text bold for emphasis
                     )
                     Spacer(Modifier.height(1.dp))
@@ -417,8 +413,8 @@ private fun SharedTransitionScope.RatingCard(
                                 "кл "
                             ).getOrNull(1) ?: item.groupName
                         }",
-                        fontSize = 14.sp, // Adjust font size for body text
-                        lineHeight = 15.sp,
+                        fontSize = MaterialTheme.typography.titleSmall.fontSize, // Adjust font size for body text
+//                        lineHeight = 15.sp,
                         color = Color.Gray
                     )
                 }
@@ -426,14 +422,14 @@ private fun SharedTransitionScope.RatingCard(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = item.avg,
-                        fontSize = 18.sp,
-                        lineHeight = 19.sp
+                        fontSize = 18.esp,
+                        lineHeight = 19.esp
                     )
                     Spacer(Modifier.height(1.dp))
                     Text(
                         text = "+${item.stups}",
-                        fontSize = 14.sp,
-                        lineHeight = 15.sp,
+                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
+//                        lineHeight = 15.sp,
                         color = MaterialTheme.colorScheme.primary,//Color.Green,
                         fontWeight = FontWeight.Bold
                     )
@@ -441,7 +437,7 @@ private fun SharedTransitionScope.RatingCard(
             } else {
                 Text(
                     text = "Вы",
-                    fontSize = 26.sp, // Adjust font size for heading
+                    fontSize = 26.esp, // Adjust font size for heading
                     fontWeight = FontWeight.Bold, // Make text bold for emphasis,
                     modifier = Modifier.offset(y = (-2.5).dp)
                 )
@@ -450,7 +446,7 @@ private fun SharedTransitionScope.RatingCard(
 
                 Text(
                     text = "${if (item.stups > 0) "+" else "-"}${item.stups}",
-                    fontSize = 20.sp,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )

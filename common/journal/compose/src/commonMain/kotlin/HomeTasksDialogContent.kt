@@ -28,7 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
 import components.cAlertDialog.CAlertDialogStore
@@ -37,6 +36,7 @@ import decomposeComponents.CAlertDialogContent
 import homeTasksDialog.HomeTasksDialogComponent
 import homework.ClientReportHomeworkItem
 import server.fetchReason
+import view.esp
 
 @Composable
 fun HomeTasksDialogContent(
@@ -105,16 +105,16 @@ private fun TaskView(
         Column(Modifier.padding(4.dp).padding(start = 4.dp).fillMaxWidth()) {
             Text(
                 buildAnnotatedString {
-                    withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                    withStyle(SpanStyle(fontSize = 18.esp, fontWeight = FontWeight.Bold)) {
                         append("Дата: ")
                     }
                     append("${task.date}")
-                    withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                    withStyle(SpanStyle(fontSize = 18.esp, fontWeight = FontWeight.Bold)) {
                         append(" Время: ")
                     }
                     append("${task.time}")
 
-                    withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                    withStyle(SpanStyle(fontSize = 18.esp, fontWeight = FontWeight.Bold)) {
                         append(" ")
                         append(if (task.studentLogins.isNullOrEmpty()) "Для всех" else "Для ${task.studentLogins?.size}")
                     }
@@ -122,7 +122,7 @@ private fun TaskView(
             )
             Text(
                 buildAnnotatedString {
-                    withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+                    withStyle(SpanStyle(fontSize = 18.esp, fontWeight = FontWeight.Bold)) {
                         append("Тип: ")
                     }
                     append("${typesList[task.type] ?: "Не выбрано"}")

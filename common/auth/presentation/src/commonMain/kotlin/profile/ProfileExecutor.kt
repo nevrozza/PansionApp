@@ -21,7 +21,7 @@ class ProfileExecutor(
         when (intent) {
             is Intent.ChangeTab -> dispatch(Message.TabChanged(intent.index))
             is Intent.SetNewAvatarId -> dispatch(Message.NewAvatarIdChanged(intent.avatarId))
-            Intent.SaveAvatarId -> saveAvatarId()
+            is Intent.SaveAvatarId -> saveAvatarId(intent.avatarId, price = intent.price)
             Intent.Init -> init()
             is Intent.ClickOnGIASubject -> clickOnGia(subjectId = intent.subjectId, isChecked = intent.isChecked)
         }
@@ -61,7 +61,9 @@ class ProfileExecutor(
                         dislikes = aboutMe.dislikes,
                         giaSubjects = aboutMe.giaSubjects,
                         ministryId = aboutMe.ministryId,
-                        ministryLvl = aboutMe.ministryLevel
+                        ministryLvl = aboutMe.ministryLevel,
+                        pansCoins = aboutMe.pansCoins,
+                        avatars = aboutMe.avatars
                     ))
                     nAboutMeInterface.nSuccess()
                 }
@@ -75,17 +77,16 @@ class ProfileExecutor(
         }
     }
 
-    private fun saveAvatarId() {
+    private fun saveAvatarId(avatarId: Int, price: Int) {
         scope.launch(CDispatcher) {
             nAvatarInterface.nStartLoading()
             try {
-                println(state().newAvatarId)
-                authRepository.changeAvatarId(avatarId = state().newAvatarId)
+                authRepository.changeAvatarId(avatarId = avatarId, price = price)
                 nAvatarInterface.nSuccess()
-                authRepository.saveAvatarId(avatarId = state().newAvatarId)
+                authRepository.saveAvatarId(avatarId = avatarId)
                 scope.launch {
-                    changeAvatarOnMain(state().newAvatarId)
-                    dispatch(Message.AvatarIdSaved)
+                    changeAvatarOnMain(avatarId)
+                    dispatch(Message.AvatarIdSaved(price = price, avatarId = avatarId))
                 }
             } catch (e: Throwable) {
                 with(nAvatarInterface) {

@@ -24,7 +24,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.materialkolor.ktx.blend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -32,6 +31,7 @@ import report.UserMark
 import server.fetchReason
 import view.LocalViewManager
 import view.ViewManager
+import view.esp
 import view.handy
 
 @Composable
@@ -91,7 +91,7 @@ fun MarkContent(
         ) {
             Text(
                 mark,
-                fontSize = size.value.sp / 1.6f,
+                fontSize = size.value.esp / 1.6f,
                 modifier = Modifier.fillMaxWidth().align(Alignment.Center), //.offset(y = textYOffset)
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Black,

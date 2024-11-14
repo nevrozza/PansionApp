@@ -2,16 +2,9 @@
 
 import activation.ActivationComponent
 import activation.ActivationStore
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,19 +29,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.QrCodeScanner
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -67,7 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.AnimatedElevatedButton
@@ -80,6 +60,7 @@ import kotlinx.coroutines.launch
 import resources.Images
 import view.LocalViewManager
 import view.bringIntoView
+import view.esp
 import view.rememberImeState
 
 
@@ -150,8 +131,8 @@ fun ActivationContent(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Spacer(Modifier)
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+                    .animateContentSize()) {
                     Icon(
                         Images.MGU,
                         null,
@@ -159,7 +140,8 @@ fun ActivationContent(
                     )
                     //Title
                     Crossfade(
-                        targetState = model.name
+                        targetState = model.name,
+                        modifier = Modifier
                     ) { name ->
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             when (name) {
@@ -167,15 +149,16 @@ fun ActivationContent(
                                     "Активируйте свой аккаунт\n",
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = (26.5).sp
+                                    fontSize = (26.5f).esp,
+                                    lineHeight = 28.esp
                                 )
 
                                 else -> Text(
                                     "Здравствуйте\n$name!",
-                                    lineHeight = 33.sp,
+                                    lineHeight = 28.esp,
                                     fontWeight = FontWeight.SemiBold,
                                     textAlign = TextAlign.Center,
-                                    fontSize = 28.sp
+                                    fontSize = (26.5f).esp
                                 )
                             } //30
                         }
@@ -203,7 +186,7 @@ fun ActivationContent(
 
                                 ActivationStore.Step.Login -> {
 //                            Spacer(Modifier.height(5.dp))
-                                    Text("Введите логин с карточки", fontSize = 20.sp)
+                                    Text("Введите логин с карточки", fontSize = MaterialTheme.typography.titleLarge.fontSize)
                                     Spacer(Modifier.height(10.dp))
                                     CustomTextField(
                                         modifier = Modifier,
@@ -308,7 +291,7 @@ fun ActivationContent(
                                         Text(
                                             text,
                                             textAlign = TextAlign.Center,
-                                            fontSize = 20.sp
+                                            fontSize = MaterialTheme.typography.titleLarge.fontSize
                                         )
                                     }
                                     Spacer(Modifier.height(10.dp))
@@ -474,69 +457,6 @@ fun ActivationContent(
                     ) {
                         changeColorSeed(viewManager, it.toHex())
                     }
-
-//                    Row(
-//                        modifier = Modifier.widthIn(max = 470.dp).fillMaxWidth()
-//                            .bringIntoView(scrollState, imeState)
-//                            .padding(horizontal = 15.dp)
-//                            .padding(bottom = 5.dp),
-//                        horizontalArrangement = Arrangement.SpaceBetween,
-//                        verticalAlignment = Alignment.CenterVertically
-//                    ) {
-//                        Row(verticalAlignment = Alignment.CenterVertically) {
-//                            AnimatedContent(
-//                                when (model.themeTint) {
-//                                    ThemeTint.Auto.name -> Icons.Rounded.AutoMode
-//                                    ThemeTint.Dark.name -> Icons.Rounded.DarkMode
-//                                    else -> Icons.Rounded.LightMode
-//                                }
-//                            ) {
-//                                IconButton(
-//                                    onClick = { component.onEvent(ActivationStore.Intent.ChangeTint) }
-//                                ) {
-//                                    Icon(
-//                                        it,
-//                                        null,
-//                                        modifier = Modifier.size(27.dp)
-//                                    )
-//                                }
-//                            }
-//                            Spacer(Modifier.width(10.dp))
-//
-//                            Button(
-//                                onClick = {
-//                                    component.onEvent(ActivationStore.Intent.ChangeColor)
-//                                },
-//                                contentPadding = PaddingValues(0.dp),
-//                                shape = CircleShape,
-//                                modifier = Modifier.size(25.dp),
-//                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-//                            ) {}
-//                        }
-//
-//                        Row() {
-//                            Icon(
-//                                Icons.AutoMirrored.Rounded.Send,
-//                                null,
-//                                modifier = Modifier.rotate(360-45.0f)
-//                            )
-//                            Text(
-//                                "@pansionApp"
-//                            )
-//                        }
-//
-//                        AnimatedContent(
-//                            when (model.language) {
-//                                else -> "\uD83C\uDDF7\uD83C\uDDFA"
-//                            }
-//                        ) {
-//                            TextButton(onClick = {
-//                                component.onEvent(ActivationStore.Intent.ChangeLanguage)
-//                            }) {
-//                                Text(it, fontSize = 20.sp)
-//                            }
-//                        }
-//                    }
                 }
             }
         }

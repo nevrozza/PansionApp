@@ -53,7 +53,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -71,6 +70,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import view.LocalViewManager
+import view.esp
 import view.rememberImeState
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -108,7 +108,7 @@ fun HomeTasksContent(
                 title = {
                     Text(
                         "Задания",
-                        fontSize = 25.sp,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -119,7 +119,7 @@ fun HomeTasksContent(
                         avatarId = model.avatarId,
                         name = model.name,
                         size = 35.dp,
-                        textSize = 13.sp,
+                        textSize = MaterialTheme.typography.titleSmall.fontSize,
                         modifier = Modifier.padding(end = 10.dp)
                     )
                 },
@@ -203,7 +203,7 @@ private fun DateTasksItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         date,
-                        fontSize = 17.sp,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 6.dp)
                     )
@@ -289,7 +289,7 @@ private fun SubjectTaskItem(
                 withStyle(
                     SpanStyle(
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = .5f),
-                        fontSize = 16.sp
+                        fontSize = 16.esp
                     )
                 ) {
                     append(" · кол-во заданий: ${subjectTasks.size}")
@@ -298,13 +298,13 @@ private fun SubjectTaskItem(
                     withStyle(
                         SpanStyle(
                             color = MaterialTheme.colorScheme.primary,
-                            fontSize = 16.sp
+                            fontSize = 16.esp
                         )
                     ) {
                         append(" +$stupsCount")
                     }
                 }
-            }, fontSize = 18.sp, fontWeight = FontWeight.Bold,
+            }, fontSize = 18.esp, fontWeight = FontWeight.Bold,
             textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
             maxLines = 1
         )
@@ -342,7 +342,7 @@ private fun GroupTaskItems(
                 withStyle(
                     SpanStyle(
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = .5f),
-                        fontSize = 13.sp
+                        fontSize = 13.esp
                     )
                 ) {
                     if (time != "") {

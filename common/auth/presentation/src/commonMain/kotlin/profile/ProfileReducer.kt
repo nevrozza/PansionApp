@@ -9,7 +9,7 @@ object ProfileReducer : Reducer<State, Message> {
         return when (msg) {
             is Message.TabChanged -> copy(tabIndex = msg.index)
             is Message.NewAvatarIdChanged -> copy(newAvatarId = msg.avatarId)
-            Message.AvatarIdSaved -> copy(avatarId = newAvatarId)
+            is Message.AvatarIdSaved -> copy(avatarId = msg.avatarId, avatars = (avatars ?: listOf()) + msg.avatarId, pansCoins = pansCoins-msg.price )
             is Message.AboutMeUpdated -> copy(
                 groups = msg.groups,
                 subjects = msg.subjects,
@@ -19,7 +19,9 @@ object ProfileReducer : Reducer<State, Message> {
                 dislikes = msg.dislikes,
                 giaSubjects = msg.giaSubjects,
                 ministryId = msg.ministryId,
-                ministryLvl = msg.ministryLvl
+                ministryLvl = msg.ministryLvl,
+                pansCoins = msg.pansCoins,
+                avatars = msg.avatars
             )
 
             is Message.GIASubjectsUpdated -> copy(giaSubjects = msg.giaSubjects)

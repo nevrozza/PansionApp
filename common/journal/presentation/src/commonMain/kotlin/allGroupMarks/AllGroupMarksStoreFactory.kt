@@ -1,6 +1,7 @@
 package allGroupMarks
 
 import JournalRepository
+import SettingsRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -22,6 +23,7 @@ class AllGroupMarksStoreFactory(
     private val nInterface: NetworkInterface,
     private val nOpenReportInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
+    private val settingsRepository: SettingsRepository,
     private val stupsDialogComponent: CAlertDialogComponent
 ) {
 
@@ -39,7 +41,8 @@ class AllGroupMarksStoreFactory(
                 subjectId = subjectId,
                 subjectName = subjectName,
                 login = login,
-                isModer = isModer
+                isModer = isModer,
+                isTableView = settingsRepository.fetchIsMarkTable()
             ),
             executorFactory = { AllGroupMarksExecutor(
                 journalRepository = journalRepository,

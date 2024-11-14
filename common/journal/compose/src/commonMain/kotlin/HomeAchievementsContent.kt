@@ -33,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
@@ -41,6 +40,7 @@ import components.CustomTextButton
 import components.GetAvatar
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
+import view.esp
 
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
@@ -74,7 +74,7 @@ fun SharedTransitionScope.HomeAchievementsContent(
                     )) {
                         Text(
                             "События",
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -86,7 +86,7 @@ fun SharedTransitionScope.HomeAchievementsContent(
                         avatarId = model.avatarId,
                         name = model.name,
                         size = 35.dp,
-                        textSize = 13.sp,
+                        textSize = 13.esp,
                         modifier = Modifier.padding(end = 10.dp).sharedElementWithCallerManagedVisibility(
                             sharedContentState = rememberSharedContentState(key = model.login + "avatar"),
                             visible = isVisible
@@ -116,7 +116,7 @@ fun SharedTransitionScope.HomeAchievementsContent(
                                 ) {
                                     append(it.date)
                                 }
-                            }, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                            }, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Black)
                             Spacer(Modifier.height(3.dp))
                             Text(buildAnnotatedString {
                                 append(model.subjects[it.subjectId].toString())

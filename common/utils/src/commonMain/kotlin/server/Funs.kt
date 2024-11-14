@@ -13,7 +13,7 @@ import kotlinx.datetime.todayIn
 
 fun String.toMinutes(): Int {
     val parts = this.split(":")
-    return parts[0].toInt() * 60 + parts[1].toInt()
+    return (parts.getOrNull(0)?.toIntOrNull() ?: 0) * 60 + (parts.getOrNull(1)?.toIntOrNull() ?: 0)
 }
 
 fun List<String>.sortedDate() = this.sortedBy { getLocalDate(it).toEpochDays() }

@@ -1,6 +1,7 @@
 package dnevnikRuMarks
 
 import JournalRepository
+import SettingsRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -18,6 +19,7 @@ class DnevnikRuMarkStoreFactory(
     private val login: String,
     private val nInterface: NetworkInterface,
     private val journalRepository: JournalRepository,
+    private val settingsRepository: SettingsRepository,
     private val stupsDialogComponent: CAlertDialogComponent,
     private val studentReportDialog: StudentReportComponent
 ) {
@@ -30,7 +32,10 @@ class DnevnikRuMarkStoreFactory(
         DnevnikRuMarkStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "DnevnikRuMarkStore",
-            initialState = DnevnikRuMarkStore.State(studentLogin = login),
+            initialState = DnevnikRuMarkStore.State(
+                studentLogin = login,
+                isTableView = settingsRepository.fetchIsMarkTable()
+            ),
             executorFactory = { DnevnikRuMarkExecutor(journalRepository = journalRepository, nInterface = nInterface, stupsDialogComponent = stupsDialogComponent, studentReportDialog = studentReportDialog) },
             reducer = DnevnikRuMarkReducer
         )

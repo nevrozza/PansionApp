@@ -63,15 +63,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import animations.iosSlide
 import animations.slideEnterModifier
 import animations.slideExitModifier
@@ -127,11 +129,7 @@ import root.RootComponent.RootCategories.School
 import root.store.RootStore
 import school.SchoolComponent
 import server.*
-import view.GlobalHazeState
-import view.LocalViewManager
-import view.ViewManager
-import view.WindowCalculator
-import view.WindowScreen
+import view.*
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -145,7 +143,6 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
     val childStack by component.childStack.subscribeAsState()
     val stack by component.childStack.subscribeAsState()
     val isNewVersionDialogShowing = remember { mutableStateOf(true) }
-
     val model by component.model.subscribeAsState()
     val nCheckModel by component.checkNInterface.networkModel.subscribeAsState()
 
@@ -263,19 +260,23 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         backHandler = component.backHandler,
                         onBack = component::onBackClicked,
                         fallbackAnimation = stackAnimation { child ->
-                            when (child.instance) {
-                                is RootComponent.Child.MainJournal -> fade()
-                                is RootComponent.Child.MainSchool -> fade()
-                                is RootComponent.Child.MainHome -> fade()
-                                is RootComponent.Child.MainAdmin -> fade()
-                                is RootComponent.Child.MainMentoring -> fade()
-                                is RootComponent.Child.LessonReport -> iosSlide() + fade()
-                                is RootComponent.Child.HomeSettings -> iosSlide() + fade()
-                                is RootComponent.Child.AdminSchedule -> iosSlide() + fade()
-                                is RootComponent.Child.QRScanner -> iosSlide() + fade()
-                                is RootComponent.Child.HomeProfile -> fade()
-                                is RootComponent.Child.HomeAchievements -> fade()
-                                else -> iosSlide() //if (isExpanded) fade() else iosSlide() + fade()
+                            if (viewManager.isTransitionsEnabled.value) {
+                                when (child.instance) {
+                                    is RootComponent.Child.MainJournal -> fade()
+                                    is RootComponent.Child.MainSchool -> fade()
+                                    is RootComponent.Child.MainHome -> fade()
+                                    is RootComponent.Child.MainAdmin -> fade()
+                                    is RootComponent.Child.MainMentoring -> fade()
+                                    is RootComponent.Child.LessonReport -> iosSlide() + fade()
+                                    is RootComponent.Child.HomeSettings -> iosSlide() + fade()
+                                    is RootComponent.Child.AdminSchedule -> iosSlide() + fade()
+                                    is RootComponent.Child.QRScanner -> iosSlide() + fade()
+                                    is RootComponent.Child.HomeProfile -> fade()
+                                    is RootComponent.Child.HomeAchievements -> fade()
+                                    else -> if (isExpanded) fade() else iosSlide() + fade()
+                                }
+                            } else {
+                                null
                             }
                         },
                         selector = { initialBackEvent, exit, enter ->
@@ -880,7 +881,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 in 19..21 -> "Добрый вечер!"
                                 else -> "Доброй ночи!"
                             },
-                            fontSize = 25.sp,
+                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             modifier = Modifier.padding(bottom = if (isBirthday) 120.dp else 0.dp)
                         )
@@ -947,7 +948,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             text = {
                 Text(
                     buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.esp)) {
                             append("Доступна новая версия!\n")
                         }
                         append("Игнорирование приведёт к проблемам при загрузке данных")
@@ -957,7 +958,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             modifier = Modifier.clip(MaterialTheme.shapes.large).hazeHeader(
                 viewManager = viewManager,
                 hazeState = GlobalHazeState.current,
-                isProgressive = false
+                isMasked = false
             ),
             containerColor = if (viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor
 
@@ -1171,7 +1172,7 @@ fun CustomNavigationBar(
     childStack: ChildStack<*, Child>,
     items: List<NavigationItem?>
 ) {
-
+    val density = LocalDensity.current
 
     NavigationBar(
         modifier = Modifier.then(
@@ -1179,7 +1180,17 @@ fun CustomNavigationBar(
                 GlobalHazeState.current,
                 style = LocalHazeStyle.current
             ) {
-                progressive = view.hazeProgressive.copy(endIntensity = 1f, startIntensity = 0f)
+//                this.blurRadius = 525.dp
+                mask = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent, Color.Magenta.copy(.82f), Color.Magenta//.copy(alpha = 1.0f)
+                    ),
+//                    startY = with(density) { (5.dp).toPx() },
+//                    endY = with(density) { (40.dp).toPx() }
+                )
+//                    Color.Transparent, Color.Transparent,
+//                    Color.Magenta, Color.Magenta, Color.Magenta))
+//                progressive = view.hazeProgressive.copy(endIntensity = 1f, startIntensity = 0f)
             }
             else Modifier
         ).fillMaxWidth(),
@@ -1191,7 +1202,7 @@ fun CustomNavigationBar(
                 selected = getCategory(childStack.active.configuration as Config) == item.category,
                 onClick = { component.onOutput(item.onClickOutput) },
                 icon = { Icon(item.icon, null) },
-                label = { Text(item.label) }
+                label = { Text(item.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             )
         }
     }

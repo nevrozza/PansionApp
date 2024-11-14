@@ -45,7 +45,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
 import components.MarkContent
@@ -58,6 +57,7 @@ import server.fetchReason
 import server.getLocalDate
 import server.toMinutes
 import studentReportDialog.StudentReportComponent
+import view.esp
 import view.handy
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -98,15 +98,13 @@ fun StudentReportDialogContent(
                                 Text(
                                     if (model.info!!.theme.isNotBlank()) model.info!!.theme else "Тема не выставлена",
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 20.sp,
-                                    //lineHeight = 27.sp,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
                                     "${model.studentLine!!.subjectName} ${model.studentLine!!.groupName}",
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = 17.sp,
-                                    //lineHeight = 27.sp,
+                                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.alpha(.5f)
                                 )
@@ -302,7 +300,7 @@ private fun StupContent(
     ) {
         Text(
             (if (mark.first() !in listOf('-', '+')) "+" else "")+mark,
-            fontSize = size.value.sp / 1.6f,
+            fontSize = size.value.esp / 1.6f,
             modifier = Modifier.fillMaxSize().offset(y = textYOffset),
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Black,

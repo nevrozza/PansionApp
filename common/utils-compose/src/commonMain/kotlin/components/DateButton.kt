@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+
 import server.weekPairs
 
 @Composable
@@ -45,14 +45,14 @@ fun DateButton(
             Text(
                 text = date.substring(0, 5),
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
+                fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                 modifier = Modifier.padding(bottom = 10.dp)
                     .align(Alignment.Center)
             )
             Text(
                 text = weekPairs[dayOfWeek] ?: "null",
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 10.sp,
+                fontSize = MaterialTheme.typography.bodySmall.fontSize,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
