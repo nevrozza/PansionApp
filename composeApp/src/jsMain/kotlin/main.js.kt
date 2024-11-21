@@ -42,6 +42,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
+import org.jetbrains.compose.resources.configureWebResources
 import org.jetbrains.skiko.wasm.onWasmReady
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
@@ -55,6 +56,10 @@ import web.events.EventType
 @ExperimentalFoundationApi
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class)
 fun main() {
+    configureWebResources {
+        resourcePathMapping { path ->
+            "/$path" }
+    }
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
@@ -71,9 +76,11 @@ fun main() {
                 lifecycle = lifecycle,
                 backHandler = backDispatcher
             ),
-            deepLink = RootComponentImpl.DeepLink.None,//RootComponentImpl.DeepLink.Web(path = window.location.pathname),
-            webHistoryController = null,//DefaultWebHistoryController(),
-            storeFactory = DefaultStoreFactory(), isMentoring = null
+            deepLink = RootComponentImpl.DeepLink.Web(path = window.location.pathname),//RootComponentImpl.DeepLink.Web(path = window.location.pathname),
+            webHistoryController = DefaultWebHistoryController(),//DefaultWebHistoryController(),
+            storeFactory = DefaultStoreFactory(), isMentoring = null,
+            urlArgs = parseUrlArgs(),
+            wholePath = window.location.href.split(window.location.pathname)[1]
         )
 
     lifecycle.attachToDocument()
@@ -133,16 +140,22 @@ fun main() {
                     }
                     val hex = MaterialTheme.colorScheme.background.toHex()
                     changeThemeColor(hex)
-//                    println("2")
-//                    // Change canvas background color
-//                    ctx.fillStyle = "lightblue"
-//                    println("3")
-//                    ctx.fillRect(0.0, 0.0, canvas.width.toDouble(), canvas.height.toDouble())
-//                    println("4")
                 }
             }
         }
     }
+}
+
+fun parseUrlArgs() : Map<String, String> {
+    val output = mutableMapOf<String, String>()
+    runCatching {
+        val args =  window.location.href.split(window.location.pathname)[1].removePrefix("?").split("?")
+        for (i in args) {
+            val arg = i.split("=")
+            output[arg[0]] = arg[1]
+        }
+    }
+    return output
 }
 
 fun changeThemeColor(newColor: String) {

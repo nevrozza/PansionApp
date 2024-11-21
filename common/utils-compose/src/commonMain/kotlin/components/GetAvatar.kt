@@ -30,7 +30,7 @@ fun GetAvatar(
     val viewManager = LocalViewManager.current
     val isDark = if (viewManager.tint.value == ThemeTint.Auto) isSystemInDarkTheme()
     else viewManager.tint.value == ThemeTint.Dark
-    val image = imageBitmap ?: getAvatarImageVector(avatarId)
+    val image = imageBitmap ?: if (avatarId !in listOf(0, 1)) getAvatarImageVector(avatarId) else null
     image?.prepareToDraw()
     Box(
         modifier = modifier.size(size).clip(CircleShape).background(

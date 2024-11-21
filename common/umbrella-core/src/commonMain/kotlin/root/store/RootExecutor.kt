@@ -2,6 +2,8 @@ package root.store
 
 import AuthRepository
 import CDispatcher
+import JournalRepository
+import RFetchGroupDataReceive
 import activation.ActivationStore
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
@@ -15,9 +17,11 @@ import root.store.RootStore.Intent
 import root.store.RootStore.Label
 import root.store.RootStore.State
 import root.store.RootStore.Message
+import webload.RFetchUserDataReceive
 
 class RootExecutor(
     val authRepository: AuthRepository,
+    private val journalRepository: JournalRepository,
     val checkNInterface: NetworkInterface,
     private val gotoHome: () -> Unit
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
@@ -33,6 +37,114 @@ class RootExecutor(
 
             Intent.CheckConnection -> checkConnection()
             is Intent.ChangeTokenValidationStatus -> dispatch(Message.TokenValidationStatusChanged(intent.isTokenValid))
+            is Intent.DeleteStart -> dispatch(Message.StartFetched(null, null, null, null))
+            is Intent.FetchStartUser -> fetchStartUser(login = intent.login, routing = intent.routing)
+            is Intent.FetchStartGroup -> fetchStartGroup(intent.groupId)
+            is Intent.FetchStartReport -> fetchStartReport(intent.reportId)
+        }
+    }
+
+
+
+    private fun fetchStartReport(reportId: Int) {
+        dispatch(Message.StartIsNeeded)
+        scope.launch(CDispatcher) {
+            try {
+                val r = journalRepository.fetchFullReportData(reportId)
+
+                scope.launch {
+                    dispatch(
+                        Message.StartFetched(
+                            rUser = null,
+                            routing = QuickRoutings.LessonReport,
+                            rGroup = null,
+                            rReportData = r
+                        )
+                    )
+                }
+
+            } catch (_: Throwable) {
+                scope.launch {
+                    dispatch(
+                        Message.StartFetched(
+                            rUser = null,
+                            routing = QuickRoutings.LessonReport,
+                            rGroup = null,
+                            rReportData = null
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun fetchStartGroup(groupId: Int) {
+        dispatch(Message.StartIsNeeded)
+        scope.launch(CDispatcher) {
+            try {
+                val r = authRepository.fetchGroupData(
+                    RFetchGroupDataReceive(groupId)
+                )
+
+                scope.launch {
+                    dispatch(
+                        Message.StartFetched(
+                            rUser = null,
+                            routing = QuickRoutings.HomeAllGroupMarks,
+                            rGroup = r,
+                            rReportData = null
+                        )
+                    )
+                }
+
+            } catch (_: Throwable) {
+                scope.launch {
+                    dispatch(
+                        Message.StartFetched(
+                            rUser = null,
+                            routing = QuickRoutings.HomeAllGroupMarks,
+                            rGroup = null,
+                            rReportData = null
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun fetchStartUser(login: String, routing: QuickRoutings) {
+        dispatch(Message.StartIsNeeded)
+        scope.launch(CDispatcher) {
+            try {
+                val r = authRepository.fetchUserData(
+                    RFetchUserDataReceive(
+                        login = login
+                    )
+                )
+
+                scope.launch {
+                    dispatch(
+                        Message.StartFetched(
+                            rUser = r,
+                            routing = routing,
+                            rGroup = null,
+                            rReportData = null
+                        )
+                    )
+                }
+
+            } catch (_: Throwable) {
+                scope.launch {
+                    dispatch(
+                        Message.StartFetched(
+                            rUser = null,
+                            routing = routing,
+                            rGroup = null,
+                            rReportData = null
+                        )
+                    )
+                }
+            }
         }
     }
 

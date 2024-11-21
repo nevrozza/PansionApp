@@ -106,7 +106,6 @@ class MinistryExecutor(
                 val oldStup = oldItem.kids.first { it.login == login }
                     .dayStups.firstOrNull { s -> s.reportId == reportId && s.reason == reason }
                 if (oldStup != newStup) {
-                    print("GOGOGOOG")
                     journalRepository.uploadMinistryStup(
                         RUploadMinistryStup(
                             studentLogin = login,

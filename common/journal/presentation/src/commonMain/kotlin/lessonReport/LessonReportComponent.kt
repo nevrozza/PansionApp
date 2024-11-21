@@ -243,8 +243,6 @@ class LessonReportComponent(
                 )
             )
         )
-
-        println(getSixTime())
         deleteMarkMenuComponent.onEvent(
             ListDialogStore.Intent.InitList(
                 listOf(

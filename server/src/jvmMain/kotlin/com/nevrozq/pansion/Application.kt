@@ -59,6 +59,7 @@ import com.nevrozq.pansion.plugins.configureSerialization
 import io.ktor.server.application.Application
 import io.ktor.server.engine.*
 import io.ktor.server.netty.Netty
+import isTestMode
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -142,25 +143,45 @@ fun main() {
             delay((1000 * 60 * ratingDelay).toLong())
         }
     }
-
-    embeddedServer(
-        factory = Netty,
-//        port = h_port,
-        environment = applicationEnvironment {
-            log = LoggerFactory.getLogger("ktor.application")
-        },
-        configure = {
-            configureSSLConnectors(
-                host = "0.0.0.0",
-                sslPort = https_port.toString(),
-                sslKeyStorePath = "keystore.jks",
-                sslPrivateKeyPassword = sslPass,
-                sslKeyStorePassword = sslPass,
-                sslKeyAlias = sslAlias
+    (if (isTestMode)
+        embeddedServer(
+            factory = Netty,
+            port = h_port,
+            //        environment = applicationEnvironment {
+            //            log = LoggerFactory.getLogger("ktor.application")
+            //        },
+            //        configure = {
+            //            configureSSLConnectors(
+            //                host = "0.0.0.0",
+            //                sslPort = https_port.toString(),
+            //                sslKeyStorePath = "keystore.jks",
+            //                sslPrivateKeyPassword = sslPass,
+            //                sslKeyStorePassword = sslPass,
+            //                sslKeyAlias = sslAlias
+            //            )
+            //        },
+            module = Application::module
+        )
+    else
+        embeddedServer(
+            factory = Netty,
+//            port = h_port,
+                    environment = applicationEnvironment {
+                        log = LoggerFactory.getLogger("ktor.application")
+                    },
+                    configure = {
+                        configureSSLConnectors(
+                            host = "0.0.0.0",
+                            sslPort = https_port.toString(),
+                            sslKeyStorePath = "keystore.jks",
+                            sslPrivateKeyPassword = sslPass,
+                            sslKeyStorePassword = sslPass,
+                            sslKeyAlias = sslAlias
+                        )
+                    },
+            module = Application::module
+        )
             )
-        },
-        module = Application::module
-    )
         .start(wait = true)
 }
 

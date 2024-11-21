@@ -72,7 +72,7 @@ class FormsExecutor(
                     editFormBottomSheet.fullySuccess()
                 }
             } catch (e: Throwable) {
-                println("EDITFORM: ${e}")
+                println("EDITFORMERROR: ${e}")
                 editFormBottomSheet.nInterface.nError("Не удалось изменить этот класс") {
                     editFormBottomSheet.nInterface.goToNone()
                 }
@@ -86,7 +86,7 @@ class FormsExecutor(
             try {
                 val cutedGroups =
                     adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().formGroups.map { it.groupId } }
-//                println("animeGo: $mentors")
+
                 dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
 //                creatingFormBottomSheet.nInterface.nSuccess()
             } catch (_: Throwable) {

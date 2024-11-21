@@ -60,7 +60,6 @@ object Marks : RatingEntity() {
         return transaction {
             val marks = fetchForAWeek(login)
 
-            println("avg: $marks")
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }
@@ -71,7 +70,6 @@ object Marks : RatingEntity() {
         return transaction {
             val marks = fetchForAPreviousWeek(login)
 
-            println("avg: $marks")
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }
@@ -82,7 +80,6 @@ object Marks : RatingEntity() {
         return transaction {
             val marks = fetchForUser(login)
 
-            println("avg: $marks")
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }
@@ -93,7 +90,6 @@ object Marks : RatingEntity() {
         return transaction {
             val marks = fetchForUser(login).filter { it.part == module}
 
-            println("avg: $marks")
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }

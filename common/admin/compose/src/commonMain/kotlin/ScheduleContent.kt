@@ -1567,7 +1567,6 @@ fun BoxScope.EditPopup(
 ) {
 
     if (model.eiIndex == e.index) {
-//        print("INDEX!${index} of ${e.groupId}")
         if (e.groupId !in listOf(-11, -6, 0)) {
 
             val login = tLogin ?: trueItems.first { it.index == e.index }.teacherLogin
@@ -2079,7 +2078,6 @@ fun BoxScope.EditPopup(
                                             (!((it.t.end.toMinutes() <= e.t.start.toMinutes() ||
                                                     it.t.start.toMinutes() >= e.t.end.toMinutes())) && it.groupId == -11))
                                 }
-                            println("CHECK: ${coItems}")
                             if (t.login in (model.activeTeachers[model.currentDate.second]
                                     ?: listOf())
                             ) {

@@ -74,7 +74,6 @@ object ReportHeaders : Table() {
     }
 
     fun fetchReportHeaders(): List<ReportHeadersDTO> {
-        println("xxy1")
         return transaction {
             ReportHeaders.selectAll().map {
                 ReportHeadersDTO(
@@ -237,7 +236,6 @@ object ReportHeaders : Table() {
                 }
                 val toDelete = p - c.toSet()
                 val toAdd = c - p.toSet()
-                println("xxxsad: ${toAdd}")
                 for (i in toDelete) {
                     db.delete(id = i.id, reportId = r.lessonReportId)
                 }

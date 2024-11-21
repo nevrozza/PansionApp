@@ -1,5 +1,7 @@
 package ktor
 
+import RFetchGroupDataReceive
+import RFetchGroupDataResponse
 import RequestPaths
 import auth.ActivationReceive
 import auth.ActivationResponse
@@ -12,14 +14,38 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.path
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import registration.FetchLoginsReceive
 import registration.FetchLoginsResponse
 import server.delayForNewQRToken
+import webload.RFetchUserDataReceive
+import webload.RFetchUserDataResponse
 
 class KtorAuthRemoteDataSource(
     private val httpClient: HttpClient
 ) {
 
+    suspend fun fetchGroupData(r: RFetchGroupDataReceive): RFetchGroupDataResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.WebLoad.FetchGroupData)
+            }
+        }.body()
+    }
+
+    suspend fun fetchUserData(r: RFetchUserDataReceive): RFetchUserDataResponse {
+        return httpClient.post {
+            url {
+                bearer()
+                setBody(r)
+                path(RequestPaths.WebLoad.FetchUserData)
+            }
+        }.body()
+    }
     suspend fun fetchQRToken(r: RFetchQrTokenReceive) : RFetchQrTokenResponse {
         return httpClient.post {
             url {

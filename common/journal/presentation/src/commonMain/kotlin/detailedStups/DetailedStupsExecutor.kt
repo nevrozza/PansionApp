@@ -28,7 +28,7 @@ class DetailedStupsExecutor(
 //                dispatch(DnevnikRuMarkStore.Message.SubjectsUpdated(subjects))
 //                journalRepository.fe
                 val subjects = journalRepository.fetchAllStups(state().login).stups
-                println("zxc $subjects")
+            
                 dispatch(Message.SubjectsUpdated(subjects))
                 nInterface.nSuccess()
             } catch (x: Throwable) {

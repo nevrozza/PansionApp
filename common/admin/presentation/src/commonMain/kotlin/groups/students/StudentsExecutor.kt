@@ -116,7 +116,7 @@ class StudentsExecutor(
         scope.launch {
             try {
                 val cutedGroups = adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().studentGroups.map { it.id } }
-//                println("animeGo: $mentors")
+
                 dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
 //                creatingFormBottomSheet.nInterface.nSuccess()
             } catch (_: Throwable) {

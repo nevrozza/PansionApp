@@ -325,22 +325,18 @@ class MentoringController {
             try {
                 val r = call.receive<OpenRequestQRReceive>()
 
-                println("SERVERE: responded")
                 activeRegistrationForms.add(r.formId)
-                println("SERVERE: responded")
                 call.respond(
                     HttpStatusCode.OK
                 )
-                println("SERVERE: responded")
             } catch (e: Throwable) {
-                println("SERVERE: ${e}")
+                println("SERVERErrorQR: ${e}")
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Can't open qr: ${e.localizedMessage}"
                 )
             }
         } else {
-            println("sadixxx2")
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }

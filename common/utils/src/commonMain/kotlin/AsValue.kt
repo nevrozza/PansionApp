@@ -1,8 +1,8 @@
+
 import com.arkivanov.decompose.Cancellation
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.rx.Disposable
 import com.arkivanov.mvikotlin.core.store.Store
-import server.DeviceTypex
 
 fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
     object : Value<T>() {
@@ -23,8 +23,11 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
         }
     }
 
-const val applicationVersion = 4
+const val applicationVersion = 10
+const val applicationVersionString = "1.1.0"
 
+
+const val isTestMode = false
 
 
 expect val androidVersion: Int

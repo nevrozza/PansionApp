@@ -6,12 +6,24 @@ import settings.SettingsAuthDataSource
 import auth.*
 import registration.FetchLoginsReceive
 import registration.FetchLoginsResponse
+import webload.RFetchUserDataReceive
+import webload.RFetchUserDataResponse
 
 class AuthRepositoryImpl(
     private val remoteDataSource: KtorAuthRemoteDataSource,
     private val cacheDataSource: SettingsAuthDataSource
 ) : AuthRepository {
     private val cPlatformConfiguration: CommonPlatformConfiguration = Inject.instance()
+
+
+    override suspend fun fetchUserData(r: RFetchUserDataReceive): RFetchUserDataResponse {
+        return remoteDataSource.fetchUserData(r)
+    }
+
+    override suspend fun fetchGroupData(r: RFetchGroupDataReceive): RFetchGroupDataResponse {
+        return remoteDataSource.fetchGroupData(r)
+    }
+
     override suspend fun activateQRTokenAtAll(r: RFetchQrTokenResponse) {
         remoteDataSource.activateQRTokenAtAll(r)
     }

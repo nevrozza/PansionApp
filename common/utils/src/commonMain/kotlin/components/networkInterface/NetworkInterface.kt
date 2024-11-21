@@ -18,11 +18,15 @@ sealed interface NetworkState {
 class NetworkInterface(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    name: String
+    name: String?
 ) : ComponentContext by componentContext {
 
     private val nStore =
-        instanceKeeper.getStore(name) {
+        if (name != null) instanceKeeper.getStore(name) {
+            NetworkInterfaceStoreFactory(
+                storeFactory = storeFactory
+            ).create()
+        } else instanceKeeper.getStore() {
             NetworkInterfaceStoreFactory(
                 storeFactory = storeFactory
             ).create()

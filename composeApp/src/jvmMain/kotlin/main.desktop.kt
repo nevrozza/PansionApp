@@ -133,7 +133,9 @@ fun main() {
                 stateKeeper = stateKeeper
             ),
             storeFactory = DefaultStoreFactory(),
-            isMentoring = null
+            isMentoring = null,
+            urlArgs = emptyMap(),
+            wholePath = ""
 //            deepLink = RootComponentImpl.DeepLink.None,
 //            webHistoryController = null
         )
@@ -201,6 +203,7 @@ fun main() {
                         titleBarStyle = TitleBarStyle.light()
                     )
                 ) {
+
                     AppTheme {
                         DecoratedWindow(
                             onCloseRequest = { isCloseDialogVisible = true },

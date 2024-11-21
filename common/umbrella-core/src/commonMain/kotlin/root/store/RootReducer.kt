@@ -10,7 +10,16 @@ object RootReducer : Reducer<State, Message> {
             Message.GreetingsHided -> copy(isGreetingsShowing = false)
             is Message.PermissionsUpdated -> copy(role = msg.role, moderation = msg.moderation, birthday = msg.birthday)
             is Message.TokenValidationStatusChanged -> copy(isTokenValid = msg.isTokenValid)
-            is Message.VersionFetched -> copy(version = msg.version )
+            is Message.VersionFetched -> copy(version = msg.version)
+            is Message.StartFetched -> copy(
+                startRouting = msg.routing,
+                startUser = msg.rUser,
+                startGroup = msg.rGroup,
+                startReport = msg.rReportData,
+                isStartUserGreetingsShowing = false
+            )
+
+            Message.StartIsNeeded -> copy(isStartUserGreetingsShowing = true)
         }
     }
 }

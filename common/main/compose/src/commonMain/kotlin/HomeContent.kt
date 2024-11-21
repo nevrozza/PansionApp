@@ -734,7 +734,6 @@ fun StudentHomeContent(
                     },
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            println(lazyListState.firstVisibleItemIndex)
                             AnimatedContent(
                                 targetState = if (!isMainView) {
                                     val str = model.currentDate.second.substring(

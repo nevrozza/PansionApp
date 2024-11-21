@@ -8,10 +8,14 @@ import auth.RFetchAboutMeResponse
 import auth.RFetchQrTokenReceive
 import auth.RFetchQrTokenResponse
 import registration.FetchLoginsResponse
+import webload.RFetchUserDataReceive
+import webload.RFetchUserDataResponse
 
 interface AuthRepository {
 
 
+    suspend fun fetchUserData(r: RFetchUserDataReceive) : RFetchUserDataResponse
+    suspend fun fetchGroupData(r: RFetchGroupDataReceive) : RFetchGroupDataResponse
     suspend fun activateQRTokenAtAll(r: RFetchQrTokenResponse)
     suspend fun fetchLogins() : FetchLoginsResponse
     suspend fun activateQRToken(r: RFetchQrTokenResponse) : RActivateQrTokenResponse

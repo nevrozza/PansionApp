@@ -1,6 +1,7 @@
 package root
 
 
+import AuthRepository
 import FIO
 import ReportData
 import SettingsComponent
@@ -50,7 +51,11 @@ interface RootComponent : BackHandlerOwner {
     val model: Value<RootStore.State>
 
     val checkNInterface: NetworkInterface
+    val urlArgs: Map<String, String>
+    val wholePath: String
 
+    var authRepository: AuthRepository
+    fun startOutput(config: Config)
 
     sealed class Child {
         class AuthLogin(val component: LoginComponent) : Child()
@@ -78,6 +83,10 @@ interface RootComponent : BackHandlerOwner {
         class SchoolMinistry(
             val schoolComponent: SchoolComponent,
             val ministryComponent: MinistryComponent
+        ) : Child()
+
+        class ErrorLoad(
+            val reason: String
         ) : Child()
 
         class SecondView(
@@ -253,6 +262,7 @@ interface RootComponent : BackHandlerOwner {
 
         @Serializable
         data class HomeProfile(val studentLogin: String, val fio: FIO, val avatarId: Int, val isOwner: Boolean, val isCanEdit: Boolean) : Config
+        @Serializable
         data class HomeAchievements(val studentLogin: String, val name: String, val avatarId: Int) : Config
         @Serializable
         data class HomeTasks(val studentLogin: String, val avatarId: Int, val name: String) : Config
@@ -274,6 +284,8 @@ interface RootComponent : BackHandlerOwner {
         data object AdminCabinets: Config
         @Serializable
         data object AdminParents: Config
+        @Serializable
+        data class ErrorScreen(val reason: String, val path: String): Config
 
         @Serializable
         data class SecondView(val login: String, val fio: FIO, val avatarId: Int, val config: Config, val isMentoring: Boolean): Config
@@ -284,28 +296,39 @@ interface RootComponent : BackHandlerOwner {
     }
 
     companion object {
-        const val WEB_PATH_AUTH_LOGIN = "auth/login"
-        const val WEB_PATH_AUTH_ACTIVATION = "auth/activation"
-        const val WEB_PATH_MAIN_HOME = "main/home"
-        const val WEB_PATH_HOME_SETTINGS = "main/home/settings"
-        const val WEB_PATH_MAIN_JOURNAL = "main/journal"
-        const val WEB_PATH_MAIN_ADMIN = "main/admin"
-        const val WEB_PATH_MAIN_RATING = "main/rating"
+        const val WEB_PATH_AUTH_LOGIN = "login"
+        const val WEB_PATH_AUTH_ACTIVATION = "activation"
+
+        const val WEB_PATH_MAIN_HOME = "home"
+        const val WEB_PATH_HOME_SETTINGS = "settings"
+        const val WEB_PATH_MAIN_JOURNAL = "journal"
+        const val WEB_PATH_MAIN_ADMIN = "admin"
+        const val WEB_PATH_MAIN_RATING = "leaders"
+        const val WEB_PATH_MAIN_MENTORING = "mentoring"
+        const val WEB_PATH_MAIN_SCHOOL = "school"
+        const val WEB_PATH_QRSCANNER = "qr"
+        const val WEB_PATH_SCHOOL_RATING = "rating"
+        const val WEB_PATH_SCHOOL_MINISTRY = "ministry"
+        const val WEB_PATH_SECOND_VIEW = "sv"
 
         //        const val WEB_PATH_ADMIN_MENTORS = "main/admin/teachers"
-        const val WEB_PATH_ADMIN_USERS = "main/admin/teachers"
-        const val WEB_PATH_ADMIN_GROUPS = "main/admin/students"
-        const val WEB_PATH_ADMIN_CABINETS = "main/admin/cabinets"
-        const val WEB_PATH_ADMIN_CALENDAR = "main/admin/calendar"
-        const val WEB_PATH_ADMIN_SCHEDULE = "main/admin/schedule"
+        const val WEB_PATH_ADMIN_USERS = "users"
+        const val WEB_PATH_ADMIN_GROUPS = "groups"
+        const val WEB_PATH_ADMIN_CABINETS = "cabinets"
+        const val WEB_PATH_ADMIN_CALENDAR = "calendar"
+        const val WEB_PATH_ADMIN_SCHEDULE = "schedule"
+        const val WEB_PATH_ADMIN_PARENTS = "parents"
+        const val WEB_PATH_ADMIN_ACHIEVEMENTS = "achievements"
 
         //        const val WEB_PATH_ADMIN_STUDENTS = "main/admin/students"
-        const val WEB_PATH_JOURNAL_LESSON_REPORT = "main/journal/lesson_report"
-        const val WEB_PATH_HOME_DNEVNIK_RU_MARKS = "main/home/marks"
-        const val WEB_PATH_HOME_DETAILED_STUPS = "main/home/stups"
-        const val WEB_PATH_HOME_ALL_GROUP_MARKS = "main/home/allGroupMarks"
-        const val WEB_PATH_HOME_PROFILE = "main/home/profile"
-        const val WEB_PATH_HOME_TASKS = "main/home/tasks"
+        const val WEB_PATH_JOURNAL_LESSON_REPORT = "report"
+        const val WEB_PATH_HOME_DNEVNIK_RU_MARKS = "marks"
+        const val WEB_PATH_HOME_DETAILED_STUPS = "stups"
+        const val WEB_PATH_HOME_ALL_GROUP_MARKS = "groupMarks"
+        const val WEB_PATH_HOME_PROFILE = "profile"
+        const val WEB_PATH_HOME_TASKS = "tasks"
+        const val WEB_PATH_HOME_ACHIEVEMENTS = "my_achievements"
+        const val WEB_PATH_HOME_STUDENTLINES = "finished"
     }
 
     sealed interface RootCategories {

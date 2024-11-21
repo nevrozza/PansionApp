@@ -115,14 +115,6 @@ class FormRatingExecutor(
                             topStups = topStups
                         )
                     )
-                    println( FormRatingPage(
-                        period = period,
-                        formId = formId,
-                        students = r.students,
-                        topEd = topEd,
-                        topMarks = topMarks,
-                        topStups = topStups
-                    ))
                     scope.launch {
 
                         dispatch(Message.FormRatingPagesUpdated(newPages, r.subjects))

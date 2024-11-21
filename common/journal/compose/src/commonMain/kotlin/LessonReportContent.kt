@@ -184,7 +184,6 @@ fun LessonReportContent(
     BoxWithConstraints {
 
         val isFullView by mutableStateOf(this.maxWidth > 600.dp)
-        println(isFullView)
         Scaffold(
             Modifier.fillMaxSize()
 //                .nestedScroll(scrollBehavior.nestedScrollConnection)

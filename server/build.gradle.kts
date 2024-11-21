@@ -21,7 +21,7 @@ ktor {
     docker {
         jreVersion.set(JavaVersion.VERSION_21)
         localImageName.set("pansionApp-docker-image")
-        imageTag.set("1.0.04")
+        imageTag.set("1.0.05")
 
         portMappings.set(
             listOf(

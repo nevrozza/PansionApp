@@ -20,6 +20,7 @@ kotlin {
 
                 implementation(libs.decompose.core)
                 implementation(libs.decompose.compose)
+                implementation(compose.components.resources)
 
 
                 implementation("io.github.alexzhirkevich:qrose:1.0.1")

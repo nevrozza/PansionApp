@@ -210,7 +210,6 @@ class JournalExecutor(
             try {
                 nInterface.nStartLoading()
                 val headers = mainRepository.fetchReportHeaders()
-                println("XXXik: ${headers}")
                 scope.launch {
                     dispatch(Message.HeadersUpdated(headers.reportHeaders, headers.currentModule))
                     nInterface.nSuccess()

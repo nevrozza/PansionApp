@@ -44,7 +44,6 @@ class ScheduleExecutor(
 
             is Intent.ciCreate -> {
 
-                println("ITEM!!!")
                 createItem(intent.cTiming ?: state().ciTiming!!)
                 mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
             }
@@ -116,7 +115,6 @@ class ScheduleExecutor(
             )
 
             is Intent.eiSave -> {
-                println("MEOW")
                 scope.launch(CDispatcher) {
                     val key =
                         if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
@@ -154,7 +152,6 @@ class ScheduleExecutor(
                         }
                     }
                     scope.launch {
-                        println("SSSS")
                         dispatch(
                             Message.ItemsUpdated(
                                 newItems
@@ -266,7 +263,6 @@ class ScheduleExecutor(
                     )
                     if (!state().isNiCreated) {
 
-                        println("SADD: ${state().niOnClick}")
                         state().niOnClick()
                     }
                     val lessons = state().items[key]!!.toMutableList()
@@ -570,17 +566,16 @@ class ScheduleExecutor(
         }
     }
 
+
     private fun deleteEmptyLessons(
         immuniItem: ScheduleItem? = null
     ) {
-        println("IMMUNI ${immuniItem}")
         scope.launch(CDispatcher) {
             val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
             val trueItems =
                 (state().items[key]
                     ?: emptyList())
-            val items = trueItems.mapNotNull {
-                println(it)
+            trueItems.mapNotNull {
                 if (fetchLoginsOfLesson(
                         trueItems = trueItems,
                         solvedConflictsItems = state().solveConflictItems[key],
@@ -591,9 +586,11 @@ class ScheduleExecutor(
                         timing = null
                     )?.okLogins?.isEmpty() == true && it != immuniItem
                 ) {
+                    // Because of this it works
                     eiDelete(it.index) //null
                 } else it
             }
+//            val items =
 
 //            scope.launch {
 //                dispatch(Message.ItemsUpdated(

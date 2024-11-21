@@ -29,7 +29,7 @@ class StudentReportComponent(
     val dialog = CBottomSheetComponent(
         componentContext = componentContext,
         storeFactory = storeFactory,
-        name = nInterfaceName
+//        name = nInterfaceName
     )
 
     val journalRepository: JournalRepository = Inject.instance()

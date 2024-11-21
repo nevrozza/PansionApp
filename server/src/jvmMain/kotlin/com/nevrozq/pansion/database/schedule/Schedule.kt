@@ -98,7 +98,6 @@ object Schedule : Table() {
                 }
             }
         } catch (e: Throwable) {
-            println("ANIMEEE${e}")
             return emptyList()
         }
     }

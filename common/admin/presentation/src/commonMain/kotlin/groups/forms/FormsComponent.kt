@@ -52,7 +52,6 @@ class FormsComponent(
     val model = formsStore.asValue()
 
     init {
-        println("inited")
 //        nFormsInterface.nError("пошёл ты") {}
         onEvent(FormsStore.Intent.UpdateMentors)
     }

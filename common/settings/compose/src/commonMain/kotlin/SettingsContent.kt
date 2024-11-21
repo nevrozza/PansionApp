@@ -147,6 +147,15 @@ fun SettingsView(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
+                actionRow = {
+                    Text(
+                        text = applicationVersionString,
+                        modifier = Modifier.padding(end = 10.dp).alpha(.5f),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 10.esp
+                    )
+                },
                 hazeState = hazeState
             )
         }

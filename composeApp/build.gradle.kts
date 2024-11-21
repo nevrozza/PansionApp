@@ -163,6 +163,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
+            implementation(compose.components.resources)
 
 
             implementation(project(":common:core"))
@@ -263,8 +264,8 @@ android {
         applicationId = "com.nevrozq.pansion.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.0.04"
+        versionCode = 5
+        versionName = "1.0.05"
     }
     buildFeatures {
         compose = true
@@ -316,7 +317,7 @@ compose.desktop {
             )
 
             packageName = "PansionApp"
-            packageVersion = "1.0.04"
+            packageVersion = "1.0.05"
             windows {
                 menuGroup = "PansionApp"
                 upgradeUuid = "f11ae455-b203-4ff9-9a63-e28e6d7a4bdf"

@@ -61,7 +61,6 @@ class SubjectsComponent(
         onAcceptClick = ::onEditSubjectDialog
     )
     private fun onEditSubjectDialog() {
-        println("SADIK: INT")
         onEvent(SubjectsStore.Intent.EditSubject(sameCount = groupModel.value.subjects.filter { it.name == model.value.eSubjectText }.size))
     }
 

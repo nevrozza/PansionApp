@@ -42,7 +42,6 @@ fun isTimeFormat(str: String): Boolean {
 
     val isNums = parts[0].replaceFirst(":", "").toIntOrNull() != null &&
             parts[1].replaceFirst(":", "").toIntOrNull() != null
-    println("${parts[0].replaceFirst(":", "")} ${parts[1].replaceFirst(":", "").toIntOrNull()}")
     if (isNums) {
         val start = parts[0].toMinutes()
         val end = parts[1].toMinutes()
@@ -222,10 +221,8 @@ fun Float.roundTo(numFractionDigits: Int): String {
 
 fun Int.toSixTime(): String {
     val hour = this/60
-    println("Horu: $hour")
     val minutes = this - 60*hour
 
-    println("mins: $minutes")
     return "${hour.twoNums()}:" +
             minutes.twoNums()
 }

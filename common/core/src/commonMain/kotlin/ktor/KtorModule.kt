@@ -26,6 +26,7 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
+import isTestMode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonBuilder
 import org.kodein.di.DI
@@ -62,8 +63,8 @@ internal val ktorModule = DI.Module("ktorModule") {
 //                accept(ContentType.Application.Json)
 //                header("Access-Control-Allow-Origin", true)
                 url {
-//                    protocol = if (deviceType != DeviceTypex.web) URLProtocol.HTTP else URLProtocol.HTTPS
-                    protocol = URLProtocol.HTTP
+                    protocol = if (deviceType != DeviceTypex.web || isTestMode) URLProtocol.HTTP else URLProtocol.HTTPS
+//                    protocol = URLProtocol.HTTP
                     host = RequestPaths.ip //127.0.0.1:8081 //192.168.137.1
                 }
             }

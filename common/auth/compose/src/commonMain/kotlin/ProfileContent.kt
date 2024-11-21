@@ -48,12 +48,7 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -82,10 +77,12 @@ import components.hazeUnder
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import dev.chrisbanes.haze.HazeState
+import kotlinx.coroutines.launch
 import profile.ProfileComponent
 import profile.ProfileStore
 import resources.Images
 import resources.PricedAvatar
+import resources.imageResource
 import server.Ministries
 import view.GlobalHazeState
 import view.LocalViewManager
@@ -114,11 +111,11 @@ fun SharedTransitionScope.ProfileContent(
     }
 
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
-    val avatarsList = listOf(
+    val avatarsList:List<Pair<String, List<Pair<Int, PricedAvatar>>>> = listOf(
         "Символы" to Images.symbolsCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
             .sortedBy { it.second.price }
             .filter { it.first != Images.Avatars.Symbols.pansionPrint.first || model.ministryId == Ministries.Print } + (0 to PricedAvatar(
-            image = Images.MGU,
+            image = null,
             price = 0
         )),
         "Картины" to Images.picturesCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
@@ -731,10 +728,11 @@ private fun AvatarsBlock(
             //        horizontalArrangement = Arrangement.SpaceBetween
         ) {
             for (a in avatars) {
+                val image = if ((a.second.image as Any?) != null) imageResource(a.second.image!!) else null
                 AvatarButton(
                     currentAvatar = headerAvatar,
                     i = a.first,
-                    image = if (a.second.image != Images.MGU) a.second.image else null,
+                    image = image,
                     name = model.fio.name,
                     price = a.second.price
                 ) {

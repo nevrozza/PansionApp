@@ -242,7 +242,6 @@ class ReportsController() {
         if (call.isTeacher || call.isMember) {
             try {
                 val l = ReportHeaders.fetchHeader(r.reportId)
-
                 call.respond(
                     ReportData(
                         header = ReportHeader(
@@ -273,7 +272,7 @@ class ReportsController() {
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "Can't create report: ${e.localizedMessage}"
+                    "Can't fetch full report: ${e.localizedMessage}"
                 )
             }
         } else {
@@ -552,10 +551,7 @@ class ReportsController() {
                 val result = mutableListOf<AllGroupMarksStudent>()
                 val students = StudentGroups.fetchStudentsOfGroup(r.groupId)
                 students.filter { it.isActive }.forEach { s ->
-                    println("xxxx2:")
-                    println(s.login)
                     val isQuarter = isQuarter(RIsQuartersReceive(s.login))
-                    println("x0")
                     val marks = Marks.fetchForUserGroup(
                         login = s.login,
                         groupId = r.groupId
@@ -578,7 +574,6 @@ class ReportsController() {
                             )
                         } else null
                     }
-                    println("x1")
                     val stups = Stups.fetchForUserGroup(
                         login = s.login,
                         groupId = r.groupId
@@ -604,10 +599,9 @@ class ReportsController() {
                             )
                         } else null
                     }
-                    println("x2")
                     val shortFio =
                         "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}"
-                    println("x3")
+
                     val nki = mutableListOf<StudentNka>()
                     StudentLines.fetchStudentLinesByLoginAndGroup(
                         login = s.login,
@@ -615,7 +609,6 @@ class ReportsController() {
                     ).filter { it.attended != null && it.attended != "0" }.map { x ->
                         nki.add(StudentNka(x.date, isUv = x.attended == "2", module = x.module))
                     }
-                    println(nki)
 
 
                     result.add(
@@ -759,8 +752,6 @@ class ReportsController() {
 
                 all.forEach { s ->
                     val iStups = stups.filter { it.subjectId == s.id }
-                    print("STUPS ")
-                    println(iStups)
                     responseList.add(
                         DetailedStupsSubject(
                             subjectName = s.name,
@@ -805,7 +796,7 @@ class ReportsController() {
         if (call.isMember) {
             try {
                 val allSubjects = Subjects.fetchAllSubjects()
-                println("x1")
+
                 val marks = Marks.fetchForUserQuarters(
                     login = r.login,
                     quartersNum = r.quartersNum,
@@ -814,32 +805,28 @@ class ReportsController() {
                     compareBy({ getLocalDate(it.deployDate).toEpochDays() },
                         { it.deployTime.toMinutes() })
                 )
-                println("x2")
                 val stups = Stups.fetchForUserQuarters(
                     login = r.login,
                     quartersNum = r.quartersNum,
                     isQuarters = r.isQuarters
                 )
-                println("x3")
 
                 val responseList = mutableListOf<DnevnikRuMarksSubject>()
-                println("x4")
+
                 val subjects = StudentGroups.fetchSubjectsOfStudent(studentLogin = r.login)
                 val markSubjects = marks.map { m ->
                     allSubjects.first { it.id == m.subjectId }
                 }
-                println("x6")
                 val stupSubjects = stups.mapNotNull { s ->
                     if (s.subjectId != null) {
                         allSubjects.first { it.id == s.subjectId }
                     } else null
                 }
-                println("x7")
 
                 val groupIds = (marks + stups).filter { it.subjectId != null && it.groupId != null}.associate { it.subjectId!! to it.groupId!! }
-                println("x8")
+
                 val all = subjects.union(markSubjects).union(stupSubjects)
-                println("x9")
+
                 all.forEach { s ->
                     val iMarks = marks.filter { it.subjectId == s.id }
                     val iStups = stups.filter { it.subjectId == s.id }
@@ -940,8 +927,7 @@ class ReportsController() {
                             )
                             preAttendance =
                                 if (preAttendance != null && preAttendance.start.toMinutes() <= r.minutes && preAttendance.end.toMinutes() > r.minutes) preAttendance else null
-//                            println("PAS: ${preAttendance}")
-//                            println("PAS2: ${if(it.attended != null) Attended(attendedType = it.attended, null) else if(preAttendance != null) Attended(attendedType = if(preAttendance.isGood) "2" else "1", reason = preAttendance.reason ) else null}")
+//
                             AddStudentLine(
                                 serverStudentLine = ServerStudentLine(
                                     login = it.login,

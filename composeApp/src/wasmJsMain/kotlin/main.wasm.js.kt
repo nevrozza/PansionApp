@@ -32,6 +32,7 @@ import forks.colorPicker.toHex
 import forks.splitPane.SplitPaneState
 import kotlinx.browser.document
 import kotlinx.browser.window
+import org.jetbrains.compose.resources.configureWebResources
 import org.w3c.dom.HTMLMetaElement
 import org.w3c.dom.asList
 import root.RootComponentImpl
@@ -45,7 +46,12 @@ import kotlin.random.Random
     ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class
 )
 fun main() {
-
+    configureWebResources {
+        resourcePathMapping { path ->
+            "/$path" }
+    }
+    val wholePath = window.location.href.split(window.location.host)[1].removePrefix("/")
+//    preloadFont
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
@@ -62,9 +68,11 @@ fun main() {
                 lifecycle = lifecycle,
                 backHandler = backDispatcher
             ),
-            deepLink = RootComponentImpl.DeepLink.None,//RootComponentImpl.DeepLink.Web(path = window.location.pathname),
-            webHistoryController = null, //DefaultWebHistoryController(),
-            storeFactory = DefaultStoreFactory(), isMentoring = null
+            deepLink = RootComponentImpl.DeepLink.Web(path = window.location.pathname), //RootComponentImpl.DeepLink.None,//
+            webHistoryController = DefaultWebHistoryController(), //null, //
+            storeFactory = DefaultStoreFactory(), isMentoring = null,
+            urlArgs = parseUrlArgs(),
+            wholePath = wholePath
         )
 
 //    lifecycle.attachToDocument()
@@ -99,6 +107,7 @@ fun main() {
         ) {
             PageLoadNotify()
             AppTheme {
+
                 PredictiveBackGestureOverlay(
                     backDispatcher = backDispatcher,
                     backIcon = { _, _ -> },
@@ -118,6 +127,18 @@ fun main() {
 
 
     }
+}
+
+fun parseUrlArgs() : Map<String, String> {
+    val output = mutableMapOf<String, String>()
+    runCatching {
+        val args =  window.location.href.split(window.location.pathname)[1].removePrefix("?").split("?")
+        for (i in args) {
+            val arg = i.split("=")
+            output[arg[0]] = arg[1]
+        }
+    }
+    return output
 }
 
 fun changeThemeColor(newColor: String) {

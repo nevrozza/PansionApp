@@ -31,7 +31,7 @@ class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
     val isFullScreen: MutableState<Boolean> = mutableStateOf(true),
     val isTransitionsEnabled: MutableState<Boolean> = mutableStateOf(true),
     val fontSize: MutableState<Float> = mutableFloatStateOf(1f),
-    val fontType: MutableState<Int> = mutableStateOf(0),
+    val fontType: MutableState<Int> = mutableStateOf(5),
 )
 
 

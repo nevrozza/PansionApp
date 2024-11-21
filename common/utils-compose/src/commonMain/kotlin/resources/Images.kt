@@ -1,13 +1,13 @@
 package resources
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.imageResource
+import org.jetbrains.compose.resources.*
 import pansion.common.utils_compose.generated.resources.*
 import pansion.common.utils_compose.generated.resources.Geologica_Black
 import pansion.common.utils_compose.generated.resources.Geologica_BlackItalic
@@ -40,6 +40,32 @@ import pansion.common.utils_compose.generated.resources.emoji6
 
 //Прости меня, Господи
 
+
+//
+//@Composable
+//fun x(resource: DrawableResource): ImageBitmap {
+//    val resourceReader = LocalResourceReader.currentOrPreview
+//    val resourceEnvironment = rememberResourceEnvironment()
+//    val imageBitmap by rememberResourceState(
+//        resource, resourceReader, resourceEnvironment, { emptyImageBitmap }
+//    ) { env ->
+//        val item = resource.getResourceItemByEnvironment(env)
+//        val resourceDensityQualifier = item.qualifiers.firstOrNull { it is DensityQualifier } as? DensityQualifier
+//        val resourceDensity = resourceDensityQualifier?.dpi ?: DensityQualifier.MDPI.dpi
+//        val screenDensity = resourceEnvironment.density.dpi
+//        val path = item.path
+//        val cached = loadImage(path, "$path-${screenDensity}dpi", resourceReader) {
+//            ImageCache.Bitmap(it.toImageBitmap(resourceDensity, screenDensity))
+//        } as ImageCache.Bitmap
+//        cached.bitmap
+//    }
+//    return imageBitmap
+//}
+
+
+@Composable
+fun imageResource(r: DrawableResource): ImageBitmap = org.jetbrains.compose.resources.imageResource(r)
+
 @Composable
 fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
     // ok, it works better...
@@ -67,7 +93,7 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
 
         2 -> {
             with(Images.Avatars.Cats) {
-                when(avatarId) {
+                when (avatarId) {
                     this.cat1Id -> this.cat1.second.image
                     this.cat2Id -> this.cat2.second.image
                     this.cat3Id -> this.cat3.second.image
@@ -81,8 +107,8 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
             }
         }//catsCostedAvatars
         3 -> {
-            with (Images.Avatars.MemCats) {
-                when(avatarId) {
+            with(Images.Avatars.MemCats) {
+                when (avatarId) {
                     this.catM1Id -> this.catM1.second.image
                     this.catM2Id -> this.catM2.second.image
                     this.catM3Id -> this.catM3.second.image
@@ -93,8 +119,8 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
             }
         }//catsMCostedAvatars
         4 -> {
-            with (Images.Avatars.Symbols) {
-                when(avatarId) {
+            with(Images.Avatars.Symbols) {
+                when (avatarId) {
                     this.crimeaId -> this.crimea.second.image
                     this.russiaId -> this.russia.second.image
                     this.pansionId -> this.pansion.second.image
@@ -104,7 +130,7 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
             }
         }//symbolsCostedAvatars
         5 -> {
-            with (Images.Avatars.Other) {
+            with(Images.Avatars.Other) {
                 when (avatarId) {
                     this.flowers2Id -> this.flowers2.second.image
                     this.headId -> this.head.second.image
@@ -121,7 +147,7 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
             }
         } //othersCostedAvatars
         6 -> {
-            with (Images.Avatars.Pictures) {
+            with(Images.Avatars.Pictures) {
                 when (avatarId) {
                     this.alyonaId -> this.alyona.second.image
                     this.bearId -> this.bear.second.image
@@ -145,7 +171,7 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
             }
         }//picturesCostedAvatars
         7 -> {
-            with (Images.Avatars.Smeshariki) {
+            with(Images.Avatars.Smeshariki) {
                 when (avatarId) {
                     this.smesh1Id -> this.smesh1.second.image
                     this.smesh2Id -> this.smesh2.second.image
@@ -165,7 +191,7 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
             }
         }//smesharikiCostedAvatars
         else -> {
-            with (Images.Avatars.Nevrozq) {
+            with(Images.Avatars.Nevrozq) {
                 when (avatarId) {
                     this.me1Id -> this.me1.second.image
                     this.me2Id -> this.me2.second.image
@@ -175,37 +201,38 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
             }
         }//nevrozqCostedAvatars
     }
-    return image//list[avatarId]?.image
+    return imageResource(image ?: Images.MGUResource)//list[avatarId]?.image
     //imageResource(Res.drawable.anime1)//Images.avatarsMap[avatarId]
 }
 
 data class PricedAvatar(
-    val image: ImageBitmap,
+    val image: DrawableResource?,
     val price: Int
 )
 
 
 data object Images {
+    val MGUResource = Res.drawable.MGU
     val MGU: ImageBitmap
-        @Composable get() = imageResource(Res.drawable.MGU)
+        @Composable get() = imageResource(Res.drawable.MGU) // imageResource(Res.drawable.MGU)
 
 
-    val avatarsMap: Map<Int, ImageBitmap>
-        @Composable get() {
-            return (
-                    animeCostedAvatars
-                            + catsCostedAvatars
-                            + catsMCostedAvatars
-                            + symbolsCostedAvatars
-                            + picturesCostedAvatars
-                            + othersCostedAvatars
-                            + nevrozqCostedAvatars
-                            + smesharikiCostedAvatars
-                    ).toList().associate { it.first to it.second.image }
-        }
+//    val avatarsMap: Map<Int, ImageBitmap>
+//        @Composable get() {
+//            return (
+//                    animeCostedAvatars
+//                            + catsCostedAvatars
+//                            + catsMCostedAvatars
+//                            + symbolsCostedAvatars
+//                            + picturesCostedAvatars
+//                            + othersCostedAvatars
+//                            + nevrozqCostedAvatars
+//                            + smesharikiCostedAvatars
+//                    ).toList().associate { it.first to it.second.image }
+//        }
 
     val animeCostedAvatars: Map<Int, PricedAvatar>
-        @Composable get() {
+        get() {
             with(Images.Avatars.Anime) {
                 return listOf(
                     anime1, anime2, anime3,
@@ -216,7 +243,7 @@ data object Images {
             }
         }
     val nevrozqCostedAvatars: Map<Int, PricedAvatar>
-        @Composable get() {
+        get() {
             with(Images.Avatars.Nevrozq) {
                 return listOf(
                     me1, me2, me3
@@ -224,7 +251,7 @@ data object Images {
             }
         }
     val catsCostedAvatars: Map<Int, PricedAvatar>
-        @Composable get() {
+        get() {
             with(Images.Avatars.Cats) {
                 return listOf(
                     cat1, cat2, cat3,
@@ -291,6 +318,7 @@ data object Images {
             }
         }
 
+
     data object Avatars {
 
         //1
@@ -308,29 +336,29 @@ data object Images {
             const val anime11Id = 1000 + 12
             const val anime12Id = 1000 + 13
             val anime1: Pair<Int, PricedAvatar>
-                @Composable get() = anime1Id  to PricedAvatar(imageResource(Res.drawable.anime1), 30)
+                get() = anime1Id to PricedAvatar(Res.drawable.anime1, 30) //imageResource(
             val anime2: Pair<Int, PricedAvatar>
-                @Composable get() = anime2Id to PricedAvatar(imageResource(Res.drawable.anime2), 10)
+                get() = anime2Id to PricedAvatar(Res.drawable.anime2, 10)
             val anime3: Pair<Int, PricedAvatar>
-                @Composable get() = anime3Id to PricedAvatar(imageResource(Res.drawable.anime3), 10)
+                get() = anime3Id to PricedAvatar(Res.drawable.anime3, 10)
             val anime4: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 5 to PricedAvatar(imageResource(Res.drawable.anime4), 20)
+                get() = 1000 + 5 to PricedAvatar(Res.drawable.anime4, 20)
             val anime5: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 6 to PricedAvatar(imageResource(Res.drawable.anime5), 30)
+                get() = 1000 + 6 to PricedAvatar(Res.drawable.anime5, 30)
             val anime6: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 7 to PricedAvatar(imageResource(Res.drawable.anime6), 20)
+                get() = 1000 + 7 to PricedAvatar(Res.drawable.anime6, 20)
             val anime7: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 8 to PricedAvatar(imageResource(Res.drawable.anime7), 30)
+                get() = 1000 + 8 to PricedAvatar(Res.drawable.anime7, 30)
             val anime8: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 9 to PricedAvatar(imageResource(Res.drawable.anime8), 30)
+                get() = 1000 + 9 to PricedAvatar(Res.drawable.anime8, 30)
             val anime9: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 10 to PricedAvatar(imageResource(Res.drawable.anime9), 15)
+                get() = 1000 + 10 to PricedAvatar(Res.drawable.anime9, 15)
             val anime10: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 11 to PricedAvatar(imageResource(Res.drawable.anime10), 15)
+                get() = 1000 + 11 to PricedAvatar(Res.drawable.anime10, 15)
             val anime11: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 12 to PricedAvatar(imageResource(Res.drawable.anime11), 30)
+                get() = 1000 + 12 to PricedAvatar(Res.drawable.anime11, 30)
             val anime12: Pair<Int, PricedAvatar>
-                @Composable get() = 1000 + 13 to PricedAvatar(imageResource(Res.drawable.anime12), 20)
+                get() = 1000 + 13 to PricedAvatar(Res.drawable.anime12, 20)
         }
 
         //2
@@ -344,21 +372,21 @@ data object Images {
             const val cat7Id = 2000 + 19
             const val catGunId = 2000 + 18
             val cat1: Pair<Int, PricedAvatar>
-                @Composable get() = 2000 + 12 to PricedAvatar(imageResource(Res.drawable.cat1), 30)
+                get() = 2000 + 12 to PricedAvatar(Res.drawable.cat1, 30)
             val cat2: Pair<Int, PricedAvatar>
-                @Composable get() = 2000 + 13 to PricedAvatar(imageResource(Res.drawable.cat2), 30)
+                get() = 2000 + 13 to PricedAvatar(Res.drawable.cat2, 30)
             val cat3: Pair<Int, PricedAvatar>
-                @Composable get() = 2000 + 14 to PricedAvatar(imageResource(Res.drawable.cat3), 20)
+                 get() = 2000 + 14 to PricedAvatar(Res.drawable.cat3, 20)
             val cat4: Pair<Int, PricedAvatar>
-                @Composable get() = 2000 + 15 to PricedAvatar(imageResource(Res.drawable.cat4), 20)
+                 get() = 2000 + 15 to PricedAvatar(Res.drawable.cat4, 20)
             val cat5: Pair<Int, PricedAvatar>
-                @Composable get() = 2000 + 16 to PricedAvatar(imageResource(Res.drawable.cat5), 20)
+                 get() = 2000 + 16 to PricedAvatar(Res.drawable.cat5, 20)
             val cat6: Pair<Int, PricedAvatar>
-                @Composable get() = 2000 + 17 to PricedAvatar(imageResource(Res.drawable.cat6), 10)
+                 get() = 2000 + 17 to PricedAvatar(Res.drawable.cat6, 10)
             val cat7: Pair<Int, PricedAvatar>
-                @Composable get() = 2000 + 19 to PricedAvatar(imageResource(Res.drawable.cat7), 20)
+                 get() = 2000 + 19 to PricedAvatar(Res.drawable.cat7, 20)
             val catGun: Pair<Int, PricedAvatar>
-                @Composable get() = 2000 + 18 to PricedAvatar(imageResource(Res.drawable.catGun), 10)
+                 get() = 2000 + 18 to PricedAvatar(Res.drawable.catGun, 10)
         }
 
         //3
@@ -369,15 +397,15 @@ data object Images {
             const val catM4Id = 3000 + 22
             const val catM5Id = 3000 + 23
             val catM1: Pair<Int, PricedAvatar>
-                @Composable get() = 3000 + 19 to PricedAvatar(imageResource(Res.drawable.catM1), 10)
+                get() = 3000 + 19 to PricedAvatar(Res.drawable.catM1, 10)
             val catM2: Pair<Int, PricedAvatar>
-                @Composable get() = 3000 + 20 to PricedAvatar(imageResource(Res.drawable.catM2), 10)
+                get() = 3000 + 20 to PricedAvatar(Res.drawable.catM2, 10)
             val catM3: Pair<Int, PricedAvatar>
-                @Composable get() = 3000 + 21 to PricedAvatar(imageResource(Res.drawable.catM3), 20)
+                get() = 3000 + 21 to PricedAvatar(Res.drawable.catM3, 20)
             val catM4: Pair<Int, PricedAvatar>
-                @Composable get() = 3000 + 22 to PricedAvatar(imageResource(Res.drawable.catM4), 30)
+                get() = 3000 + 22 to PricedAvatar(Res.drawable.catM4, 30)
             val catM5: Pair<Int, PricedAvatar>
-                @Composable get() = 3000 + 23 to PricedAvatar(imageResource(Res.drawable.catM5), 30)
+                get() = 3000 + 23 to PricedAvatar(Res.drawable.catM5, 30)
         }
 
         //4
@@ -387,13 +415,13 @@ data object Images {
             const val pansionId = 4000 + 26
             const val pansionPrintId = 4000 + 27
             val crimea: Pair<Int, PricedAvatar>
-                @Composable get() = 4000 + 24 to PricedAvatar(imageResource(Res.drawable.flCrimea), 0)
+                get() = 4000 + 24 to PricedAvatar(Res.drawable.flCrimea, 0)
             val russia: Pair<Int, PricedAvatar>
-                @Composable get() = 4000 + 25 to PricedAvatar(imageResource(Res.drawable.flRussia), 0)
+                get() = 4000 + 25 to PricedAvatar(Res.drawable.flRussia, 0)
             val pansion: Pair<Int, PricedAvatar>
-                @Composable get() = 4000 + 26 to PricedAvatar(imageResource(Res.drawable.pansion), 0)
+                get() = 4000 + 26 to PricedAvatar(Res.drawable.pansion, 0)
             val pansionPrint: Pair<Int, PricedAvatar>
-                @Composable get() = 4000 + 27 to PricedAvatar(imageResource(Res.drawable.pansionPrint), 0)
+                get() = 4000 + 27 to PricedAvatar(Res.drawable.pansionPrint, 0)
         }
 
         //0_0
@@ -402,11 +430,11 @@ data object Images {
             const val me2Id = -2
             const val me3Id = -3
             val me1: Pair<Int, PricedAvatar>
-                @Composable get() = -1 to PricedAvatar(imageResource(Res.drawable.me1), 0)
+                get() = -1 to PricedAvatar(Res.drawable.me1, 0)
             val me2: Pair<Int, PricedAvatar>
-                @Composable get() = -2 to PricedAvatar(imageResource(Res.drawable.me2), 0)
+                get() = -2 to PricedAvatar(Res.drawable.me2, 0)
             val me3: Pair<Int, PricedAvatar>
-                @Composable get() = -3 to PricedAvatar(imageResource(Res.drawable.me3), 0)
+                get() = -3 to PricedAvatar(Res.drawable.me3, 0)
         }
 
         //5
@@ -422,25 +450,25 @@ data object Images {
             const val starId = 5000 + 36
             const val handsId = 5000 + 37
             val flowers2: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 28 to PricedAvatar(imageResource(Res.drawable.otFlowers2), 5)
+                get() = 5000 + 28 to PricedAvatar(Res.drawable.otFlowers2, 5)
             val head: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 29 to PricedAvatar(imageResource(Res.drawable.otHead), 5)
+                get() = 5000 + 29 to PricedAvatar(Res.drawable.otHead, 5)
             val hedgehog: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 30 to PricedAvatar(imageResource(Res.drawable.otHedgehog), 25)
+                get() = 5000 + 30 to PricedAvatar(Res.drawable.otHedgehog, 25)
             val mimi: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 31 to PricedAvatar(imageResource(Res.drawable.otMimi), 15)
+                get() = 5000 + 31 to PricedAvatar(Res.drawable.otMimi, 15)
             val november1: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 32 to PricedAvatar(imageResource(Res.drawable.otNovember1), 10)
+                get() = 5000 + 32 to PricedAvatar(Res.drawable.otNovember1, 10)
             val november2: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 33 to PricedAvatar(imageResource(Res.drawable.otNovember2), 10)
+                get() = 5000 + 33 to PricedAvatar(Res.drawable.otNovember2, 10)
             val sky: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 34 to PricedAvatar(imageResource(Res.drawable.otSky), 20)
+                get() = 5000 + 34 to PricedAvatar(Res.drawable.otSky, 20)
             val stars: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 35 to PricedAvatar(imageResource(Res.drawable.otStars), 15)
+                get() = 5000 + 35 to PricedAvatar(Res.drawable.otStars, 15)
             val star: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 36 to PricedAvatar(imageResource(Res.drawable.otStar), 15)
+                get() = 5000 + 36 to PricedAvatar(Res.drawable.otStar, 15)
             val hands: Pair<Int, PricedAvatar>
-                @Composable get() = 5000 + 37 to PricedAvatar(imageResource(Res.drawable.otHands), 10)
+                get() = 5000 + 37 to PricedAvatar(Res.drawable.otHands, 10)
         }
 
         //6
@@ -463,39 +491,39 @@ data object Images {
             const val flowersId = 6000 + 52
             const val wtfId = 6000 + 53
             val alyona: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 37 to PricedAvatar(imageResource(Res.drawable.rkAlyona), 10)
+                get() = 6000 + 37 to PricedAvatar(Res.drawable.rkAlyona, 10)
             val bear: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 38 to PricedAvatar(imageResource(Res.drawable.rkBear), 10)
+                get() = 6000 + 38 to PricedAvatar(Res.drawable.rkBear, 10)
             val blackSquare: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 39 to PricedAvatar(imageResource(Res.drawable.rkBlackSquare), 15)
+                get() = 6000 + 39 to PricedAvatar(Res.drawable.rkBlackSquare, 15)
             val bogatir1: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 40 to PricedAvatar(imageResource(Res.drawable.rkBogatir1), 30)
+                get() = 6000 + 40 to PricedAvatar(Res.drawable.rkBogatir1, 30)
             val bogatir2: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 41 to PricedAvatar(imageResource(Res.drawable.rkBogatir2), 20)
+                get() = 6000 + 41 to PricedAvatar(Res.drawable.rkBogatir2, 20)
             val bogatir3: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 42 to PricedAvatar(imageResource(Res.drawable.rkBogatir3), 10)
+                get() = 6000 + 42 to PricedAvatar(Res.drawable.rkBogatir3, 10)
             val forest: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 43 to PricedAvatar(imageResource(Res.drawable.rkForest), 5)
+                get() = 6000 + 43 to PricedAvatar(Res.drawable.rkForest, 5)
             val persik: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 44 to PricedAvatar(imageResource(Res.drawable.rkPersik), 15)
+                get() = 6000 + 44 to PricedAvatar(Res.drawable.rkPersik, 15)
             val rainbow: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 45 to PricedAvatar(imageResource(Res.drawable.rkRainbow), 10)
+                get() = 6000 + 45 to PricedAvatar(Res.drawable.rkRainbow, 10)
             val unknown: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 46 to PricedAvatar(imageResource(Res.drawable.rkUnknown), 15)
+                get() = 6000 + 46 to PricedAvatar(Res.drawable.rkUnknown, 15)
             val vsadnica: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 47 to PricedAvatar(imageResource(Res.drawable.rkVsadnica), 15)
+                get() = 6000 + 47 to PricedAvatar(Res.drawable.rkVsadnica, 15)
             val vsadnicaSister: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 48 to PricedAvatar(imageResource(Res.drawable.rkVsadnica_sister), 15)
+                get() = 6000 + 48 to PricedAvatar(Res.drawable.rkVsadnica_sister, 15)
             val clown: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 49 to PricedAvatar(imageResource(Res.drawable.rpClown), 40)
+                get() = 6000 + 49 to PricedAvatar(Res.drawable.rpClown, 40)
             val death: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 50 to PricedAvatar(imageResource(Res.drawable.rpDeath), 40)
+                get() = 6000 + 50 to PricedAvatar(Res.drawable.rpDeath, 40)
             val fallAngel: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 51 to PricedAvatar(imageResource(Res.drawable.rpFallAngel), 40)
+                get() = 6000 + 51 to PricedAvatar(Res.drawable.rpFallAngel, 40)
             val flowers: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 52 to PricedAvatar(imageResource(Res.drawable.rpFlowers), 10)
+                get() = 6000 + 52 to PricedAvatar(Res.drawable.rpFlowers, 10)
             val wtf: Pair<Int, PricedAvatar>
-                @Composable get() = 6000 + 53 to PricedAvatar(imageResource(Res.drawable.rpWtf), 30)
+                get() = 6000 + 53 to PricedAvatar(Res.drawable.rpWtf, 30)
         }
 
         //7
@@ -514,31 +542,31 @@ data object Images {
             val smesh12Id = 7000 + 65
             val smesh13Id = 7000 + 66
             val smesh1: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 54 to PricedAvatar(imageResource(Res.drawable.smesh1), 15)
+                get() = 7000 + 54 to PricedAvatar(Res.drawable.smesh1, 15)
             val smesh2: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 55 to PricedAvatar(imageResource(Res.drawable.smesh2), 15)
+                get() = 7000 + 55 to PricedAvatar(Res.drawable.smesh2, 15)
             val smesh3: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 56 to PricedAvatar(imageResource(Res.drawable.smesh3), 15)
+                get() = 7000 + 56 to PricedAvatar(Res.drawable.smesh3, 15)
             val smesh4: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 57 to PricedAvatar(imageResource(Res.drawable.smesh4), 15)
+                 get() = 7000 + 57 to PricedAvatar(Res.drawable.smesh4, 15)
             val smesh5: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 58 to PricedAvatar(imageResource(Res.drawable.smesh5), 15)
+                 get() = 7000 + 58 to PricedAvatar(Res.drawable.smesh5, 15)
             val smesh6: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 59 to PricedAvatar(imageResource(Res.drawable.smesh6), 15)
+                 get() = 7000 + 59 to PricedAvatar(Res.drawable.smesh6, 15)
             val smesh7: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 60 to PricedAvatar(imageResource(Res.drawable.smesh7), 15)
+                 get() = 7000 + 60 to PricedAvatar(Res.drawable.smesh7, 15)
             val smesh8: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 61 to PricedAvatar(imageResource(Res.drawable.smesh8), 15)
+                 get() = 7000 + 61 to PricedAvatar(Res.drawable.smesh8, 15)
             val smesh9: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 62 to PricedAvatar(imageResource(Res.drawable.smesh9), 15)
+                 get() = 7000 + 62 to PricedAvatar(Res.drawable.smesh9, 15)
             val smesh10: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 63 to PricedAvatar(imageResource(Res.drawable.smesh10), 30)
+                get() = 7000 + 63 to PricedAvatar(Res.drawable.smesh10, 30)
             val smesh11: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 64 to PricedAvatar(imageResource(Res.drawable.smesh11), 20)
+                 get() = 7000 + 64 to PricedAvatar(Res.drawable.smesh11, 20)
             val smesh12: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 65 to PricedAvatar(imageResource(Res.drawable.smesh12), 20)
+                 get() = 7000 + 65 to PricedAvatar(Res.drawable.smesh12, 20)
             val smesh13: Pair<Int, PricedAvatar>
-                @Composable get() = 7000 + 66 to PricedAvatar(imageResource(Res.drawable.smesh13), 30)
+                 get() = 7000 + 66 to PricedAvatar(Res.drawable.smesh13, 30)
         }
     }
 

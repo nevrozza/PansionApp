@@ -2,6 +2,8 @@ package com.nevrozq.pansion.features.lessons
 
 import FIO
 import Person
+import RFetchGroupDataReceive
+import RFetchGroupDataResponse
 import TeacherPerson
 import admin.cabinets.CabinetItem
 import admin.cabinets.RFetchCabinetsResponse
@@ -122,6 +124,31 @@ import server.getLocalDate
 import server.toMinutes
 
 class LessonsController() {
+
+
+    suspend fun fetchGroupData(call: ApplicationCall) {
+        if (call.isMember) {
+            val r = call.receive<RFetchGroupDataReceive>()
+            try {
+                val group = Groups.getGroupById(r.groupId)
+                call.respond(
+                    RFetchGroupDataResponse(
+                        groupName = group?.name ?: "",
+                        subjectId = group?.subjectId,
+                        subjectName = if (group?.subjectId != null) Subjects.fetchName(group.subjectId) else "",
+                        teacherLogin = group?.teacherLogin ?: ""
+                    )
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict when get group data")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch group data: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
 
     suspend fun markLesson(call: ApplicationCall) {
         val r = call.receive<RMarkLessonReceive>()
@@ -264,7 +291,6 @@ class LessonsController() {
                 val logins: MutableList<Person> = mutableListOf()
 
 
-                println("SADd00")
                 if (call.isParent) {
                     logins.addAll(Parents.fetchChildren(parentLogin = call.login).map {
                         Person(
@@ -276,7 +302,6 @@ class LessonsController() {
                     )
                 }
 
-                println("SADd0")
                 if (call.isMentor) {
                     val forms = Forms.fetchMentorForms(call.login)
                     logins.addAll(
@@ -296,7 +321,6 @@ class LessonsController() {
                         }
                     )
                 }
-                println("SADd1")
                 val endLogins = logins.toSet().toList()
                 val end = endLogins.associate {
                     it.login to fetchMainNotificationsServer(
@@ -307,7 +331,6 @@ class LessonsController() {
                         studentLogin = it.login
                     )
                 }
-                println("SADd2")
 
                 call.respond(
                     RFetchChildrenMainNotificationsResponse(
@@ -539,7 +562,6 @@ class LessonsController() {
                                 .toMutableMap()
                     }
                 }
-                println("Checkay ${conflictMap}")
                 call.respond(
                     RScheduleList(
                         map.toMap(HashMap()),
@@ -826,7 +848,6 @@ class LessonsController() {
         if (call.isMember) {
             try {
                 val mentors = Users.fetchAllMentors()
-                println("fuck: ${mentors}")
                 val result = mentors.filter { it.isActive }.map {
                     Person(
                         login = it.login,
@@ -838,7 +859,6 @@ class LessonsController() {
                         isActive = true
                     )
                 }
-                println("fuck2: $result")
                 call.respond(
                     RFetchMentorsResponse(
                         result

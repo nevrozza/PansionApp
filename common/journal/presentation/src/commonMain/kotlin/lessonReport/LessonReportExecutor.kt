@@ -71,7 +71,6 @@ class LessonReportExecutor(
             }
 
             is Intent.DeleteColumn -> {
-                println("yes")
                 val newStudentList = state().students.toMutableList()
                 val finalStudentList = mutableListOf<StudentLine>()
                 newStudentList.forEach { line ->
@@ -243,7 +242,6 @@ class LessonReportExecutor(
                     newLikedList.add(intent.studentLogin)
                 }
 
-                println(newLikedList)
                 dispatch(
                     LessonReportStore.Message.RepUpdated(
                         dislikedList = newDislikedList,
@@ -341,8 +339,7 @@ class LessonReportExecutor(
                 }
 
                 val newStudentList = state().students.toMutableList()
-                println(state().students)
-                println(intent.studentLogin)
+
                 val student = state().students.first { it.login == intent.studentLogin }
                 newStudentList.remove(student)
                 newStudentList.add(student.copy(lateTime = "$result${if (intent.chosenTime != "0") " мин" else ""}"))

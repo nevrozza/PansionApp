@@ -65,7 +65,6 @@ class SettingsExecutor(
 
     private fun terminate(id: String) {
         scope.launch(CDispatcher) {
-            println("TEXTIK")
             try {
                 settingsRepository.terminateDevice(RTerminateDeviceReceive(id = id))
                 fetchDevices()

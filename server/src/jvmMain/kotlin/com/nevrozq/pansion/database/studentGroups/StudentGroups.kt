@@ -136,7 +136,6 @@ object StudentGroups : Table() {
 
                 val groupsIds = StudentGroups.select { StudentGroups.studentLogin eq studentLogin }
                 groupsIds.mapNotNull {
-                    println("testik ${it[StudentGroups.studentLogin]}")
                     Subjects.getSubjectById(it[subjectId])
                 }
             } catch (e: Throwable) {

@@ -129,7 +129,6 @@ class MentoringExecutor(
                     .map { it.groupId }.toSet()
             val filteredMarks = state().allDateMarks.mapNotNull {
                 val value = it.value.mapNotNull {
-                    println("mark ${it.groupId}")
                     if (it.groupId in groupsIds) {
                         it
                     } else null
@@ -153,8 +152,6 @@ class MentoringExecutor(
 
 
             dispatch(Message.UpdateTableAfterSubject(filteredMarks, filteredNki, filteredStudents))
-
-            println("sdsx: ${filteredStudents}")
         }
     }
 
@@ -206,7 +203,6 @@ class MentoringExecutor(
                         dm[d] = nd
                     }
                 }
-                println("DM: ${dm}")
 
                 scope.launch {
                     dispatch(
@@ -255,7 +251,6 @@ class MentoringExecutor(
     private fun manageQR(formId: Int, isOpen: Boolean) {
         scope.launch(CDispatcher) {
             try {
-                println("SADIKX${formId}${isOpen}")
                 if (isOpen) {
                     mainRepository.openRegistrationQR(
                         OpenRequestQRReceive(
@@ -277,11 +272,10 @@ class MentoringExecutor(
                             else it
                         }
                     ))
-                    println("SSX")
                 }
 
             } catch (e: Throwable) {
-                println("XXS: ${e}")
+                println("XXSERROR: ${e}")
             }
         }
     }

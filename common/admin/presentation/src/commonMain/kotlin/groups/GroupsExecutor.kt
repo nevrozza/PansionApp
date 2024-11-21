@@ -58,10 +58,9 @@ class GroupsExecutor(
             nFormsInterface.nStartLoading()
             try {
                 val forms = adminRepository.fetchAllForms().forms
-                println("sad0: $forms")
+          
                 dispatch(Message.FormsListChanged(forms))
                 nFormsInterface.nSuccess()
-                println("sad-1: $forms")
                 updateFormsList(forms)
             } catch (_: Throwable) {
                 nFormsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {

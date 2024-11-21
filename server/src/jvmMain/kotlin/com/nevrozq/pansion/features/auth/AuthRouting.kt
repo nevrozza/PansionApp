@@ -8,6 +8,10 @@ fun Application.configureActivationRouting() {
     routing {
         val authController = AuthController()
 
+        post(RequestPaths.WebLoad.FetchUserData) {
+            authController.fetchUserData(call)
+        }
+
         post(RequestPaths.Auth.ChangeLogin) {
             authController.changeSecondLogin(call)
         }

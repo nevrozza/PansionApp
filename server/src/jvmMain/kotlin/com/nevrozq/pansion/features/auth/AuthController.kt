@@ -60,6 +60,8 @@ import server.Moderation
 import server.Roles
 import server.cut
 import server.delayForNewQRToken
+import webload.RFetchUserDataReceive
+import webload.RFetchUserDataResponse
 import java.util.HashMap
 import java.util.UUID
 
@@ -76,6 +78,28 @@ data class QRDevice(
 
 class AuthController {
 
+    suspend fun fetchUserData(call: ApplicationCall) {
+        if (call.isMember) {
+            val r = call.receive<RFetchUserDataReceive>()
+            try {
+                val user = Users.fetchUser(r.login)
+
+                call.respond(
+                    RFetchUserDataResponse(
+                        fio = if (user != null) FIO(name = user.name, surname = user.surname, praname = user.praname) else null,
+                        avatarId = user?.avatarId ?: 1
+                    )
+                )
+            } catch (e: ExposedSQLException) {
+                call.respond(HttpStatusCode.Conflict, "Conflict when get user data")
+            } catch (e: Throwable) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Can't fetch user data: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
 
     suspend fun fetchAboutMe(call: ApplicationCall) {
         if (call.isMember) {
@@ -202,10 +226,6 @@ class AuthController {
             try {
 
                 val r = call.receive<RFetchQrTokenResponse>()
-                println("RRR:")
-                println(authQRDevice)
-                println(authQRCalls)
-                println(authQRCalls[r.token])
                 val userDTO = Users.fetchUser(call.login)
                 val token = UUID.randomUUID()
 
@@ -265,7 +285,6 @@ class AuthController {
 
     suspend fun QRTokenStartPolling(call: ApplicationCall) {
         try {
-            println("meow: ${call}")
             authQRCalls[authQRIds[call.receive<RFetchQrTokenReceive>().deviceId]!!] = call
 
             delay(delayForNewQRToken)

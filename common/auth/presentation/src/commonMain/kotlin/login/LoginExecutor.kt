@@ -39,7 +39,6 @@ class LoginExecutor(private val authRepository: AuthRepository) :
                         ""
                     )
                 )
-                println("SADIKS: ${r.avatarId}")
                 if (r.activation.token.isNotBlank()) {
                     authRepository.saveUser(
                         avatarId = r.avatarId,

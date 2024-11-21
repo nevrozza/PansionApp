@@ -255,7 +255,6 @@ class HomeExecutor(
                         studentLogin = state().login
                     )
                 ).count
-                println("COUNT: ${count}")
                 scope.launch {
                     dispatch(
                         Message.UpdateHomeWorkEmoji(
@@ -281,7 +280,6 @@ class HomeExecutor(
                             notifications = notifications
                         )
                     )
-                    println("NOTS: ${notifications}")
                 }
             } catch (e: Throwable) {
 

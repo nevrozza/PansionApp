@@ -1,6 +1,7 @@
 package root.store
 
 import AuthRepository
+import JournalRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -19,6 +20,7 @@ class RootStoreFactory(
 //    private val role: String,
 //    private val moderation: String,
     private val authRepository: AuthRepository,
+    private val journalRepository: JournalRepository,
     private val checkNInterface: NetworkInterface,
     private val gotoHome: () -> Unit
 ) {
@@ -31,8 +33,20 @@ class RootStoreFactory(
         RootStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "RootStore",
-            initialState = State(role = authRepository.fetchRole(), moderation = authRepository.fetchModeration(), birthday = authRepository.fetchBirthday(), isGreetingsShowing = authRepository.isUserLoggedIn()),
-            executorFactory = { RootExecutor(authRepository = authRepository, checkNInterface = checkNInterface, gotoHome = gotoHome) },
+            initialState = State(
+                role = authRepository.fetchRole(),
+                moderation = authRepository.fetchModeration(),
+                birthday = authRepository.fetchBirthday(),
+                isGreetingsShowing = authRepository.isUserLoggedIn()
+            ),
+            executorFactory = {
+                RootExecutor(
+                    authRepository = authRepository,
+                    journalRepository = journalRepository,
+                    checkNInterface = checkNInterface,
+                    gotoHome = gotoHome
+                )
+            },
             reducer = RootReducer
         )
 

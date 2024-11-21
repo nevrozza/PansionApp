@@ -28,6 +28,7 @@ kotlin {
         }
     }
 }
+
 compose.resources {
     generateResClass = always
 }

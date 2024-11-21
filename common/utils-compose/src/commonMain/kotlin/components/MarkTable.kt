@@ -259,7 +259,7 @@ fun MarkTable(
                                     Row(modifier = Modifier.onGloballyPositioned { c ->
                                         underNameWidth.value =
                                             with(density) { c.size.width.toFloat().toDp() }
-                                        println(underNameWidth.value)
+                                       
                                     }) {
                                         Spacer(Modifier.width(20.dp))
                                         Text(

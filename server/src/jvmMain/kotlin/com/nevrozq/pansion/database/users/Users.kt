@@ -87,7 +87,6 @@ object Users : Table() {
                 Users.update({ Users.login eq login }) {
                     it[Users.password] = BCrypt.hashpw(password.cut(DataLength.passwordLength), BCrypt.gensalt())
                 }
-                println(Users.selectAll().map { it[Users.password] })
             }
         } catch (e: Throwable) {
             println(e)

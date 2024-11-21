@@ -59,7 +59,6 @@ class DetailedStupsComponent(
 
     init {
         onEvent(DetailedStupsStore.Intent.Init)
-        println(reason)
 
     }
 

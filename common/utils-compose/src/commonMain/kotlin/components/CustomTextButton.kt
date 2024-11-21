@@ -36,7 +36,6 @@ fun CustomTextButton(
     isButtonEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    println("x2: $isButtonEnabled")
     CustomTextButton(text = buildAnnotatedString {
         withStyle(SpanStyle(fontWeight = fontWeight
         )) {
@@ -64,8 +63,7 @@ fun CustomTextButton(
         animationSpec = spring(stiffness = Spring.StiffnessHigh),
         targetValue = if (isDark) color.hv() else color
     )
-    println("x3: $isButtonEnabled")
-    Color(1.0f, 1.0f, 1.0f)
+//    Color(1.0f, 1.0f, 1.0f)
     Text(text, textAlign = textAlign, color = color.copy(alpha = if(isButtonEnabled) 1f else .5f), fontSize = fontSize,
         modifier = modifier.then(Modifier.hoverable(interactionSource)
             .clickable(interactionSource = interactionSource, indication = null, enabled = isButtonEnabled) {

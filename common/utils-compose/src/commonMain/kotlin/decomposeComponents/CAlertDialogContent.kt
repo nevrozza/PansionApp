@@ -115,7 +115,6 @@ fun CAlertDialogContent(
                                                     .padding(end = 20.dp),
                                                 horizontalArrangement = Arrangement.End
                                             ) {
-                                                println("x1: $isSaveButtonEnabled")
                                                 CustomTextButton(
                                                     acceptText,
                                                     modifier = Modifier.padding(

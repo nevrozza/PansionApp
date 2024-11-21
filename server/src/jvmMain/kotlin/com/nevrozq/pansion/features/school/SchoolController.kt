@@ -392,7 +392,7 @@ class SchoolController {
     }
 
     suspend fun createMinistryStudent(call: ApplicationCall) {
-        if (call.moderation in listOf(Moderation.mentor, Moderation.both)) {
+        if (call.moderation in listOf(Moderation.mentor, Moderation.both, Moderation.moderator)) {
             try {
                 val r = call.receive<RCreateMinistryStudentReceive>()
                 val fioParts = r.studentFIO.split(" ")
@@ -677,7 +677,6 @@ class SchoolController {
                     top = RatingWeek0Table.fetchRatingOf(r.login, -1)?.top
                 } else if (role != Moderation.nothing) {
                     val form = Forms.fetchMentorForms(r.login).firstOrNull()
-                    println("TESTIRUEM: ${r.login} ${form}")
                     if (form != null) {
                         formName = form.num.toString()
                         formNum = form.num

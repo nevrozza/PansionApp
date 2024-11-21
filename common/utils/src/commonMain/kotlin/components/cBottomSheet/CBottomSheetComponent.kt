@@ -12,16 +12,26 @@ import components.networkInterface.NetworkInterface
 class CBottomSheetComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    name: String
+    name: String? = null
 ) : ComponentContext by componentContext {
-    val nInterface = NetworkInterface(
+    val nInterface = if (name != null) NetworkInterface(
         childContext(name+"NInterface"+"CONTEXT"),
         storeFactory,
         name+"NInterface"
+    ) else NetworkInterface(
+        componentContext,
+        storeFactory,
+        null
     )
     val nModel = nInterface.networkModel
     private val cBottomSheetStore =
+        if (name != null)
         instanceKeeper.getStore(key = name) {
+            CBottomSheetStoreFactory(
+                storeFactory = storeFactory,
+//                networkInterface = nInterface
+            ).create()
+        } else instanceKeeper.getStore() {
             CBottomSheetStoreFactory(
                 storeFactory = storeFactory,
 //                networkInterface = nInterface

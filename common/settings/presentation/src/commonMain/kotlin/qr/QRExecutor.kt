@@ -71,7 +71,7 @@ class QRExecutor(
                 }
 
                 val form = state().code.split("Form").lastOrNull()
-                println("CHECK: ${form}")
+               
                 if (form != state().code && state().isRegistration) {
                     if (form?.toIntOrNull() != null) {
                         val r = settingsRepository.scanRegistrationQR(form.toInt())
@@ -90,7 +90,6 @@ class QRExecutor(
                     nInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-                println("CHECK1: ${e}")
                 nInterface.nError("Не удалось") {
 
                 }

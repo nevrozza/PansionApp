@@ -70,7 +70,6 @@ fun MainViewController(): UIViewController =
             AppTheme {
                 Scaffold() {
                     viewManager.topPadding = it.calculateTopPadding()
-                    println("top: ${it.calculateTopPadding()}")
                     PredictiveBackGestureOverlay(
                         backDispatcher = backDispatcher,
                         backIcon = { _, _ -> },

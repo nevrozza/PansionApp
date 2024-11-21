@@ -71,7 +71,6 @@ fun NotificationItem(
         },
 //        key = not.key
     )
-    print("DS: ${dismissState.currentValue}")
     AnimatedVisibility(
         dismissState.currentValue == SwipeToDismissBoxValue.Settled
     ) {

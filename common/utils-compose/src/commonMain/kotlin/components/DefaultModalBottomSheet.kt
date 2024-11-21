@@ -32,7 +32,6 @@ fun DefaultModalBottomSheet(
 ) {
     val hazeState = GlobalHazeState.current
     val viewManager = LocalViewManager.current
-    println("sad: ${hazeState.toString()}")
     ModalBottomSheet(
         onDismissRequest = {
             onDismissRequest()

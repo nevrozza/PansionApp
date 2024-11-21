@@ -145,7 +145,7 @@ fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = tr
                 onClick?.invoke()
             }.handy()
                 .pointerInput(PointerEventType.Press) {
-                    println("asd")
+                    //smth
                 }
         )
     }

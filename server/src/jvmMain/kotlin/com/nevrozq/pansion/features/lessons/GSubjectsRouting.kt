@@ -8,6 +8,10 @@ fun Application.configureLessonsRouting() {
     routing {
         val lessonsController = LessonsController()
 
+        post(RequestPaths.WebLoad.FetchGroupData) {
+            lessonsController.fetchGroupData(call)
+        }
+
         post(RequestPaths.Reports.MarkLesson) {
             lessonsController.markLesson(call)
         }

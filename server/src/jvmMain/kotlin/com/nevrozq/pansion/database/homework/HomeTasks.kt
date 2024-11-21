@@ -52,7 +52,7 @@ object HomeTasks : Table() {
     fun fetchPreviousHomeTasks(reportId: Int, groupId: Int): List<String> {
         return transaction {
             val previousReportId = ReportHeaders.fetchPreviousReportId(currentReportId = reportId, groupId = groupId) ?: 0
-            println("SEDIK: ${previousReportId}")
+
             (HomeTasks.select { (HomeTasks.groupId eq groupId) and (HomeTasks.reportId eq previousReportId) }.mapNotNull {
                 it[type]
             }.toSet() + "!cl5").toList()
@@ -147,9 +147,9 @@ object HomeTasks : Table() {
             HomeTasks.select {(HomeTasks.groupId inList groupIds) and (HomeTasks.isNec eq true)}.count { x ->
                 if (x[HomeTasks.studentLogins] == null || login in x[HomeTasks.studentLogins].toList()!!) {
                     val htd = homeTasksDone.firstOrNull { it.homeWorkId == x[HomeTasks.id] }
-                    if(htd == null || !htd.isDone) {
-                        println("COUNTED ${x[HomeTasks.id]}")
-                    }
+//                    if(htd == null || !htd.isDone) {
+//                        println("COUNTED ${x[HomeTasks.id]}")
+//                    }
                     htd == null || !htd.isDone
                 } else {
                     false
