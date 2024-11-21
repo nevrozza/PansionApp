@@ -8,30 +8,28 @@
     <meta name="theme-color" content="#2b2d30"/>
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="styles.css?v=11">
 
-    <script type="application/javascript" src="app.js"></script>
-    <script type="application/javascript" src="composeApp.js"></script>
-    <script type="application/javascript" src="unsupported_browser.js"></script>
+    <script type="application/javascript" src="app.js?v=11"></script>
+    <script type="application/javascript" src="composeApp.js?v=11"></script>
+    <script type="application/javascript" src="unsupported_browser.js?v=11"></script>
 </head>
 
 <body>
 <div>
     <div class="spinner" id="spinner"></div>
-    <div id="warning" style="display: none;" >
-        <h3>Ваш браузер не поддерживает WASM-версию =/</h3>
-        <h5>Можете перейти на <a href="https://ios.pansionapp-test.ru" style="color: #375fad">JS-версию</a></h5>
-        <h5>Больше информации <a href="https://t.me/pansionApp" style="color: #375fad">в telegram @pansionApp</a>
-        </h5>
+    <!--style="display: none;"-->
+    <div class="error-message" id="warning unsupportError" >
+        <p style="font-size: 30px">Ваш браузер не поддерживает WASM-версию</p>
+        <p>Можете перейти на <a href="https://ios.pansionapp-test.ru" style="color: #96E8BC">JS-версию</a></p>
+        <p>Больше информации в telegram <a href="https://t.me/pansionApp" style="color: #96E8BC">@pansionApp</a></p>
     </div>
-    <div id="unknownError" style="display: none;" >
-        <h3>Произошла неизвестная ошибка =/</h3>
-        <h5>Можете перейти на <a href="https://ios.pansionapp-test.ru" style="color: #375fad">JS-версию</a> или открыть сайт в новой вкладке</h5>
-        <h5>Пожалуйста, нажмите F12 и отправьте скриншот <a href="https://t.me/pansionApp" style="color: #375fad">в telegram @pansionApp</a>
-        </h5>
+    <div class="error-message" id="warning unknownError">
+        <p style="font-size: 30px">Произошла неизвестная ошибка</p>
+        <p>Можете перейти на <a href="https://ios.pansionapp-test.ru" style="color: #96E8BC">JS-версию</a> или открыть сайт в новой вкладке</p>
+        <p>Пожалуйста, нажмите F12 и отправьте скриншот <a href="https://t.me/pansionApp" style="color: #96E8BC">@pansionApp</a></p>
     </div>
 </div>
 <div id="composeApp"></div>
-<!--<canvas id="composeApp"></canvas>-->
 </body>
 </html>

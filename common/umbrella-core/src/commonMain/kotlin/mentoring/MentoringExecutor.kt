@@ -87,6 +87,8 @@ class MentoringExecutor(
                 dispatch(Message.SubjectChanged(intent.subjectId))
                 updateTableAfterSubject()
             }
+
+            is Intent.UpdateOpenedForms -> dispatch(Message.OpenedFormsUpdated(intent.openedForms))
         }
     }
 

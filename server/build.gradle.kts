@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.nevrozq.pansion"
-version = "0.0.2"
+version = "1.1.1"
 application {
     mainClass.set("com.nevrozq.pansion.ApplicationKt") //com.nevrozq
 

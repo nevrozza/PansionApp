@@ -108,25 +108,25 @@ fun MentoringContent(
         topBar = {
             AppBar(
                 title = {
-                        Text(
-                            "Ученики",
-                            modifier = Modifier.padding(start = 10.dp),
-                            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                            fontWeight = FontWeight.Black,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        IconButton(
-                            onClick = {
-                                component.onOutput(MentoringComponent.Output.NavigateToAchievements)
-                            }
-                        ) {
-                            Icon(
-                                Icons.Rounded.LocalActivity,
-                                null
-                            )
+                    Text(
+                        "Ученики",
+                        modifier = Modifier.padding(start = 10.dp),
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    IconButton(
+                        onClick = {
+                            component.onOutput(MentoringComponent.Output.NavigateToAchievements)
                         }
-                    
+                    ) {
+                        Icon(
+                            Icons.Rounded.LocalActivity,
+                            null
+                        )
+                    }
+
                 },
                 actionRow = {
                     AnimatedVisibility(
@@ -176,9 +176,9 @@ fun MentoringContent(
                             Box(
                                 Modifier.fillMaxSize().padding(padding).padding(
                                     bottom =
-                                    if (viewManager.orientation.value != WindowScreen.Expanded) {
-                                        padding.calculateBottomPadding() + 80.dp - 20.dp
-                                    } else 0.dp
+                                        if (viewManager.orientation.value != WindowScreen.Expanded) {
+                                            padding.calculateBottomPadding() + 80.dp - 20.dp
+                                        } else 0.dp
                                 ),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -264,7 +264,7 @@ fun MentoringContent(
                                 items(model.forms) { f ->
                                     val students = model.students.filter { it.formId == f.id }
                                     val requests = model.requests.filter { it.formId == f.id }
-                                    if(requests.isNotEmpty() || students.isNotEmpty()) {
+                                    if (requests.isNotEmpty() || students.isNotEmpty()) {
                                         FormsItem(
                                             form = f,
                                             students = students,
@@ -307,7 +307,20 @@ private fun FormsItem(
     component: MentoringComponent
 ) {
     val nPAModel by component.nPreAttendanceInterface.networkModel.subscribeAsState()
-    val isExpanded = remember { mutableStateOf(false) }
+    val isExpanded = remember { mutableStateOf(form.id in model.openedForms) }
+    val onExpandClick = {
+        isExpanded.value = !isExpanded.value
+                    component.onEvent(
+                        MentoringStore.Intent.UpdateOpenedForms(
+
+                            if (isExpanded.value) {
+                                model.openedForms + form.id
+                            } else {
+                                model.openedForms - form.id
+                            }
+                        )
+                    )
+    }
     Column(Modifier.animateContentSize()) {
         Row(
             Modifier.fillMaxWidth(),
@@ -317,7 +330,7 @@ private fun FormsItem(
             Text(
                 "${form.num} ${form.title}",
                 modifier = Modifier.padding(start = 7.dp).cClickable {
-                    isExpanded.value = !isExpanded.value
+                    onExpandClick()
                 },
                 fontSize = 19.esp,
                 fontWeight = FontWeight.Bold
@@ -330,7 +343,7 @@ private fun FormsItem(
                     }
                 )
                 IconButton(
-                    onClick = { isExpanded.value = !isExpanded.value },
+                    onClick = { onExpandClick() },
                     modifier = Modifier.size(35.dp)
                 ) {
                     Icon(

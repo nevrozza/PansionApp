@@ -33,6 +33,8 @@ import server.getWeekDays
 
 interface MentoringStore : Store<Intent, State, Label> {
     data class State(
+
+        val openedForms: Set<Int> = emptySet<Int>(),
         val forms: List<MentorForms> = emptyList(),
         val students: List<MentorPerson> = emptyList(),
         val requests: List<RegistrationRequest> = emptyList(),
@@ -71,6 +73,9 @@ interface MentoringStore : Store<Intent, State, Label> {
     )
 
     sealed interface Intent {
+
+        data class UpdateOpenedForms(val openedForms: Set<Int>) : Intent
+
         data object FetchStudents : Intent
 
         data class ChangeFilterDate(val dateFilter: DatesFilter) : Intent
@@ -100,6 +105,7 @@ interface MentoringStore : Store<Intent, State, Label> {
     }
 
     sealed interface Message {
+        data class OpenedFormsUpdated(val openedForms: Set<Int>) : Message
         data class FormsToSummaryUpdated(val formsToSummary: List<Int>) : Message
 
         data class FormsUpdated(val forms: List<MentorForms>) : Message

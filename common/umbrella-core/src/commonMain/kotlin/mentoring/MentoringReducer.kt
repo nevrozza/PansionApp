@@ -45,6 +45,8 @@ object MentoringReducer : Reducer<State, Message> {
 
             is Message.FilterDateChanged -> copy(dateFilter = msg.dateFilter)
             is Message.SubjectChanged -> copy(chosenSubject = msg.subjectId)
+
+            is Message.OpenedFormsUpdated -> copy(openedForms = msg.openedForms)
         }
     }
 }

@@ -16,6 +16,29 @@ html, body {
     overflow: hidden;
 }
 
+.error-message {
+    /*    background-color: #f44336;*/
+        color: white;
+        padding: 0px;
+        border-radius: 5px;
+        text-align: center;
+        height: 100%;
+        width: 100%;
+        align-self: center;
+        position: absolute;
+        display: none;
+        align-content: center;
+        justify-content: center;
+        margin: auto auto; /* Center the error message horizontally */
+    }
+
+
+    .error-message p {
+        margin: 10px;
+        padding: 2px;
+        font-weight: bold;
+        font-family: 'Monospaced', sans-serif; /* Change the font to Roboto */
+    }
 
 .spinner {
     margin: auto;

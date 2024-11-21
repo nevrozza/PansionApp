@@ -13,7 +13,7 @@ plugins {
 //    id("org.jetbrains.kotlin.plugin.compose")
 }
 
-version = "0.0.2"
+version = "1.1.1"
 
 kotlin {
     jvm("jvm")
@@ -317,7 +317,7 @@ compose.desktop {
             )
 
             packageName = "PansionApp"
-            packageVersion = "1.0.05"
+            packageVersion = "1.1.1"
             windows {
                 menuGroup = "PansionApp"
                 upgradeUuid = "f11ae455-b203-4ff9-9a63-e28e6d7a4bdf"

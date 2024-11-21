@@ -1,5 +1,5 @@
 const unhandledError = (event, error) => {
-        document.getElementById("unknownError").style.display = "initial";
+        document.getElementById("warning unknownError").style.display = "initial";
         document.getElementById("spinner").style.display = "none";
         document.getElementById("composeApp").style.display = "none";
 }

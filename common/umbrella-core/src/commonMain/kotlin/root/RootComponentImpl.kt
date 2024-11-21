@@ -1167,7 +1167,7 @@ class RootComponentImpl(
                 listOf(getFirstScreen())
             }
 
-            is DeepLink.Web -> listOf(getConfigForPath(deepLink.path), Config.MainHome)
+            is DeepLink.Web -> if (authRepository.isUserLoggedIn()) listOf(getConfigForPath(deepLink.path), Config.MainHome) else listOf(Config.AuthActivation)
         }
 
     private fun getPathForConfig(config: Config): String =
@@ -1211,7 +1211,7 @@ class RootComponentImpl(
 
     //
     private fun getConfigForPath(path: String): Config {
-        return when (path.removePrefix("/")) {
+        return if (authRepository.isUserLoggedIn()) when (path.removePrefix("/")) {
             WEB_PATH_AUTH_LOGIN -> Config.AuthLogin("")
             WEB_PATH_AUTH_ACTIVATION -> Config.AuthActivation
 //
@@ -1333,8 +1333,9 @@ class RootComponentImpl(
                 )
             }
 
-            else -> Config.AuthActivation
+            else -> firstScreen
         }
+        else Config.AuthActivation
     }
 
     override fun startOutput(config: Config) {
