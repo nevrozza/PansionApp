@@ -93,9 +93,10 @@ fun LoginContent(
     val isButtonEnabled =
         !model.isInProcess && model.login.isNotBlank() && model.password.isNotBlank()
 
-
-    if (model.logined) {
-        component.onOutput(Output.NavigateToMain)
+    LaunchedEffect(model.logined) {
+        if (model.logined) {
+            component.onOutput(Output.NavigateToMain)
+        }
     }
 
     val focusManager = LocalFocusManager.current

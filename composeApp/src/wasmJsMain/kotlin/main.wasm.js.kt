@@ -37,6 +37,7 @@ import org.w3c.dom.HTMLMetaElement
 import org.w3c.dom.asList
 import root.RootComponentImpl
 import server.DeviceTypex
+import server.cut
 import view.*
 import kotlin.random.Random
 
@@ -55,7 +56,7 @@ fun main() {
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
-            deviceName = getDeviceName(),//navigator.userAgent ?: "unknown",
+            deviceName = getDeviceName()?.cut(20),//navigator.userAgent ?: "unknown",
             deviceType = DeviceTypex.web,
             deviceId = getOrCreateDeviceUUID() //navigator.userAgent
         )

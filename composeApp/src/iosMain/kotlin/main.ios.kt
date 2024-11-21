@@ -61,7 +61,9 @@ fun MainViewController(): UIViewController =
             componentContext = DefaultComponentContext(
                 lifecycle = ApplicationLifecycle(),
                 backHandler = backDispatcher
-            ), storeFactory = DefaultStoreFactory(), isMentoring = null
+            ), storeFactory = DefaultStoreFactory(), isMentoring = null,
+            urlArgs = emptyMap(),
+            wholePath = ""
         )
         CompositionLocalProvider(
             LocalViewManager provides viewManager,

@@ -114,7 +114,7 @@ fun main() {
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
-            deviceName = getDeviceName() ?: "unknown",
+            deviceName = getDeviceName()?.cut(20) ?: "unknown",
             deviceType = DeviceTypex.desktop,
             deviceId = getDeviceId()
         )

@@ -36,6 +36,7 @@ import io.ktor.util.decodeBase64Bytes
 import root.RootComponent
 import root.RootComponentImpl
 import server.DeviceTypex
+import server.cut
 import view.AppTheme
 import view.GlobalHazeState
 import view.LocalViewManager
@@ -62,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         PlatformSDK.init(
             configuration = PlatformConfiguration(applicationContext),
             cConfiguration = CommonPlatformConfiguration(
-                deviceName = Build.MODEL ?: "unknown",
+                deviceName = Build.MODEL?.cut(20) ?: "unknown",
                 deviceType = DeviceTypex.android,
                 deviceId = uuid.toString()
             )
@@ -78,7 +79,13 @@ class MainActivity : AppCompatActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
 
-        val root = RootComponentImpl(isMentoring = null, componentContext = defaultComponentContext(), storeFactory = DefaultStoreFactory())
+        val root = RootComponentImpl(
+            isMentoring = null,
+            componentContext = defaultComponentContext(),
+            storeFactory = DefaultStoreFactory(),
+            urlArgs = emptyMap(),
+            wholePath = ""
+        )
 
         setContent {
             val x by root.childStack.subscribeAsState()
