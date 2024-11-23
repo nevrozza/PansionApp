@@ -54,12 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
-import components.CustomTextButton
-import components.GetAvatar
-import components.cClickable
-import components.dashedBorder
+import components.*
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
 import homeTasks.HomeTasksComponent
@@ -115,7 +110,7 @@ fun HomeTasksContent(
                     )
                 },
                 actionRow = {
-                    GetAvatar(
+                    GetAsyncAvatar(
                         avatarId = model.avatarId,
                         name = model.name,
                         size = 35.dp,

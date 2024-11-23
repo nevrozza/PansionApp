@@ -95,6 +95,7 @@ import components.CustomTextButton
 import components.hazeHeader
 import components.hazeUnder
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import forks.splitPane.ExperimentalSplitPaneApi
@@ -374,7 +375,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     start = 0.dp,// padding.calculateStartPadding(LocalLayoutDirection.current),
                     end = 0.dp,//padding.calculateEndPadding(LocalLayoutDirection.current),
                     bottom = 0.dp// if (model.isBottomBarShowing) padding.calculateBottomPadding() else (padding.calculateBottomPadding() - 80.dp).coerceAtLeast(
-//                    0.dp
+                    //                    0.dp
                 )
             )
             {
@@ -541,7 +542,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     DnevnikRuMarkContent(
                                         child.dnevnikRuMarksComponent,
-//                                        isVisible = stack.active.instance is Child.HomeDnevnikRuMarks
+                                        //                                        isVisible = stack.active.instance is Child.HomeDnevnikRuMarks
                                     )
                                 },
                                 firstScreen = {
@@ -554,7 +555,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     DnevnikRuMarkContent(
                                         child.dnevnikRuMarksComponent,
-//                                        isVisible = stack.active.instance is Child.HomeDnevnikRuMarks
+                                        //                                        isVisible = stack.active.instance is Child.HomeDnevnikRuMarks
                                     )
                                 }
                             )
@@ -567,7 +568,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     StudentLinesContent(
                                         child.studentLinesComponent,
-//                                        isVisible = stack.active.instance is Child.HomeStudentLines
+                                        //                                        isVisible = stack.active.instance is Child.HomeStudentLines
                                     )
                                 },
                                 firstScreen = {
@@ -580,7 +581,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     StudentLinesContent(
                                         child.studentLinesComponent,
-//                                        isVisible = stack.active.instance is Child.HomeStudentLines
+                                        //                                        isVisible = stack.active.instance is Child.HomeStudentLines
                                     )
                                 }
                             )
@@ -593,7 +594,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     DetailedStupsContent(
                                         child.detailedStups,
-//                                        isVisible = stack.active.instance is Child.HomeDetailedStups
+                                        //                                        isVisible = stack.active.instance is Child.HomeDetailedStups
                                     )
                                 },
                                 firstScreen = {
@@ -606,7 +607,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     DetailedStupsContent(
                                         child.detailedStups,
-//                                        isVisible = stack.active.instance is Child.HomeDetailedStups
+                                        //                                        isVisible = stack.active.instance is Child.HomeDetailedStups
                                     )
                                 }
                             )
@@ -668,12 +669,12 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
 
                         /*is AdminMentors ->
-                        MultiPaneAdmin(
-                            isExpanded,
-                            adminComponent = child.adminComponent,
-                            currentRouting = AdminComponent.Output.NavigateToMentors,
-                            secondScreen = { MentorsContent(child.mentorsComponent) }
-                        )*/
+                    MultiPaneAdmin(
+                        isExpanded,
+                        adminComponent = child.adminComponent,
+                        currentRouting = AdminComponent.Output.NavigateToMentors,
+                        secondScreen = { MentorsContent(child.mentorsComponent) }
+                    )*/
 
 
                         is AdminUsers ->
@@ -694,7 +695,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     GroupsContent(
                                         child.groupsComponent,
-//                                        isVisible = stack.active.instance is Child.AdminGroups
+                                        //                                        isVisible = stack.active.instance is Child.AdminGroups
                                     )
                                 }
                             )
@@ -724,13 +725,13 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     AllGroupMarksContent(
                                         child.allGroupMarksComponent,
-//                                        isVisible = stack.active.instance is Child.HomeAllGroupMarks
+                                        //                                        isVisible = stack.active.instance is Child.HomeAllGroupMarks
                                     )
                                 },
                                 firstScreen = {
                                     AllGroupMarksContent(
                                         child.allGroupMarksComponent,
-//                                        isVisible = stack.active.instance is Child.HomeAllGroupMarks
+                                        //                                        isVisible = stack.active.instance is Child.HomeAllGroupMarks
                                     )
                                 },
                                 secondScreen = {
@@ -776,7 +777,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = {
                                 CabinetsContent(
                                     child.cabinetsComponent,
-//                                    isVisible = stack.active.instance is Child.AdminCabinets
+                                    //                                    isVisible = stack.active.instance is Child.AdminCabinets
                                 )
                             }
                         )
@@ -828,7 +829,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = {
                                 CalendarContent(
                                     child.calendarComponent,
-//                                    isVisible = stack.active.instance is Child.AdminCalendar
+                                    //                                    isVisible = stack.active.instance is Child.AdminCalendar
                                 )
                             }
                         )
@@ -875,7 +876,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             if (previousScreen is Child.MainMentoring || stack.active.instance is Child.MainMentoring) {
                                 AdminAchievementsContent(
                                     child.adminAchievementsComponent,
-//                                    isVisible = stack.active.instance is Child.AdminAchievements
+                                    //                                    isVisible = stack.active.instance is Child.AdminAchievements
                                 )
                             } else {
                                 MultiPaneAdmin(
@@ -886,7 +887,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     secondScreen = {
                                         AdminAchievementsContent(
                                             child.adminAchievementsComponent,
-//                                            isVisible = stack.active.instance is Child.AdminAchievements
+                                            //                                            isVisible = stack.active.instance is Child.AdminAchievements
                                         )
                                     }
                                 )
@@ -927,7 +928,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     AdminParentsContent(
                                         child.parentsComponent,
-//                                        isVisible = stack.active.instance is Child.AdminParents
+                                        //                                        isVisible = stack.active.instance is Child.AdminParents
                                     )
                                 }
                             )

@@ -879,7 +879,7 @@ private fun DutyCard(
     ) {
         Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
             if (!isEditMode) {
-                GetAvatar(
+                GetAsyncAvatar(
                     avatarId = kid.avatarId,
                     name = kid.fio.name,
                     size = 40.dp,

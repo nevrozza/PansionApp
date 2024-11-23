@@ -2,6 +2,7 @@
 //
 //config.optimization = config.optimization || {};
 //config.optimization.minimize = true;
+//config.mode = 'production'
 //config.optimization.minimizer = [
 //    new TerserPlugin({
 //        terserOptions: {

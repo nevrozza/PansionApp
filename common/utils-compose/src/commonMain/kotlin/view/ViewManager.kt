@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.LocalHazeStyle
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 
@@ -33,7 +34,16 @@ class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
     val fontSize: MutableState<Float> = mutableFloatStateOf(1f),
     val fontType: MutableState<Int> = mutableStateOf(5),
 )
-
+//
+//@Composable
+//fun updateHaze() {
+//    val globalHazeState = GlobalHazeState.current
+//    DisposableEffect(Unit) {
+//        onDispose {
+//            globalHazeState.value = HazeState()
+//        }
+//    }
+//}
 
 
 

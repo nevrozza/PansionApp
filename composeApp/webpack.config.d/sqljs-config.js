@@ -1,9 +1,10 @@
 //// {project}/webpack.config.d/sqljs.js
 //config.resolve = {
 //    fallback: {
-//        fs: false,
-//                path: false,
+//        path: require.resolve("path-browserify"),
+//                fs: false,
 //                crypto: false,
+//        os: require.resolve("os-browserify/browser")
 //    }
 //};
 //

@@ -50,7 +50,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import cGrade
 import components.CustomTextButton
-import components.GetAvatar
+import components.GetAsyncAvatar
 import components.LoadingAnimation
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
@@ -101,7 +101,7 @@ fun LazyListScope.homeStudentBar(
                         }
                     ) {
                         with(sharedTransitionScope) {
-                            GetAvatar(
+                            GetAsyncAvatar(
                                 avatarId = model.avatarId,
                                 name = model.name,
                                 modifier = Modifier.then(

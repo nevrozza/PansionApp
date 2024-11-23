@@ -56,9 +56,19 @@ kotlin {
 //                implementation(libs.sqldelight.js.driver)
 //                implementation(npm("sql.js", "1.6.2"))
 //                implementation(npm("@cashapp/sqldelight-sqljs-worker", "2.0.1"))
-                implementation(devNpm("copy-webpack-plugin", "9.1.0"))
+//                implementation(devNpm("node-polyfill-webpack-plugin", "^2.0.1"))
+//                implementation(devNpm("node-polyfill-webpack-plugin", "^2.0.1"))
+//                implementation(devNpm("path-browserify", "^1.0.1"))
+
             }
         }
+
+//        wasmJsMain.dependencies {
+//            implementation(devNpm("node-polyfill-webpack-plugin", "^2.0.1"))
+//            implementation(devNpm("path-browserify", "^1.0.1"))
+//                        implementation(devNpm("node-polyfill-webpack-plugin", "^2.0.1"))
+
+//        }
     }
 }
 //

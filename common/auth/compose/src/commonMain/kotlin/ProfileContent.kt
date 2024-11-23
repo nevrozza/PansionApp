@@ -65,15 +65,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.GetAvatar
+import components.*
 import components.cBottomSheet.CBottomSheetStore
-import components.cClickable
-import components.hazeHeader
-import components.hazeUnder
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import dev.chrisbanes.haze.HazeState
@@ -110,36 +103,68 @@ fun SharedTransitionScope.ProfileContent(
             (!lazyListState.lastScrolledForward) && lazyListState.firstVisibleItemScrollOffset == 0 || model.tabIndex == 2
     }
 
+//    val globalHazeState = GlobalHazeState.current
+//    DisposableEffect(model.tabIndex == 2) {
+//        onDispose {
+//            println(globalHazeState.value)
+//            globalHazeState.value = HazeState()
+//            println(globalHazeState.value)
+//        }
+//    }
+
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
-    val avatarsList:List<Pair<String, List<Pair<Int, PricedAvatar>>>> = listOf(
-        "Символы" to Images.symbolsCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-            .sortedBy { it.second.price }
-            .filter { it.first != Images.Avatars.Symbols.pansionPrint.first || model.ministryId == Ministries.Print } + (0 to PricedAvatar(
-            image = null,
-            price = 0
-        )),
-        "Картины" to Images.picturesCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-            .sortedBy { it.second.price },
-        "Котики" to Images.catsCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-            .sortedBy { it.second.price },
-        "Котяо" to Images.catsMCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-            .sortedBy { it.second.price },
-        "Смешарики" to Images.smesharikiCostedAvatars.map {
-            it.key to it.value.copy(
-                price = if (model.avatars?.contains(
-                        it.key
-                    ) == true
-                ) 0 else it.value.price
-            )
-        }.sortedBy { it.second.price },
-        "Аниме?.." to Images.animeCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-            .sortedBy { it.second.price },
-        "Другое" to Images.othersCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-            .sortedBy { it.second.price }
-    ) + if (model.fio.name == "Артём" && model.fio.surname == "Маташков") listOf(
-        "nevrozq" to Images.nevrozqCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-            .sortedBy { it.second.price }
-    ) else listOf()
+    val avatarsList: List<Pair<String, List<Pair<Int, PricedAvatar>>>> = remember {
+        listOf(
+            "Символы" to Images.symbolsCostedAvatars.map {
+                it.key to it.value.copy(
+                    price = if (model.avatars?.contains(
+                            it.key
+                        ) == true
+                    ) 0 else it.value.price
+                )
+            }
+                .sortedBy { it.second.price }
+                .filter { it.first != Images.Avatars.Symbols.pansionPrint.first || model.ministryId == Ministries.Print } + (0 to PricedAvatar(
+                path = null,
+                price = 0
+            )),
+            "Картины" to Images.picturesCostedAvatars.map {
+                it.key to it.value.copy(
+                    price = if (model.avatars?.contains(
+                            it.key
+                        ) == true
+                    ) 0 else it.value.price
+                )
+            }
+                .sortedBy { it.second.price },
+            "Котики" to Images.catsCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+                .sortedBy { it.second.price },
+            "Котяо" to Images.catsMCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+                .sortedBy { it.second.price },
+            "Смешарики" to Images.smesharikiCostedAvatars.map {
+                it.key to it.value.copy(
+                    price = if (model.avatars?.contains(
+                            it.key
+                        ) == true
+                    ) 0 else it.value.price
+                )
+            }.sortedBy { it.second.price },
+            "Аниме?.." to Images.animeCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+                .sortedBy { it.second.price },
+            "Другое" to Images.othersCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
+                .sortedBy { it.second.price }
+        ) + if (model.fio.name == "Артём" && model.fio.surname == "Маташков") listOf(
+            "nevrozq" to Images.nevrozqCostedAvatars.map {
+                it.key to it.value.copy(
+                    price = if (model.avatars?.contains(
+                            it.key
+                        ) == true
+                    ) 0 else it.value.price
+                )
+            }
+                .sortedBy { it.second.price }
+        ) else listOf()
+    }
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -195,7 +220,7 @@ fun SharedTransitionScope.ProfileContent(
                                 modifier = Modifier.align(Alignment.Center)
                                     .offset(x = -17.5.dp, y = 2.dp)
                             ) {
-                                GetAvatar(
+                                GetAsyncAvatar(
                                     avatarId = headerAvatar,
                                     name = model.fio.name,
                                     size = 40.dp,
@@ -253,7 +278,7 @@ fun SharedTransitionScope.ProfileContent(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box() {
-                            GetAvatar(
+                            GetAsyncAvatar(
                                 avatarId = headerAvatar,
                                 name = model.fio.name,
                                 size = 150.dp,
@@ -261,7 +286,8 @@ fun SharedTransitionScope.ProfileContent(
                                 modifier = Modifier.sharedElementWithCallerManagedVisibility(
                                     sharedContentState = rememberSharedContentState(key = model.studentLogin + "avatar"),
                                     visible = isSharedVisible
-                                )
+                                ),
+                                isCrossfade = false
                             )
                             val delay = 300
                             this@Column.AnimatedVisibility(
@@ -646,6 +672,7 @@ fun SharedTransitionScope.ProfileContent(
                 }
 
                 else -> {
+
                     items(
                         avatarsList
                     ) {
@@ -728,11 +755,11 @@ private fun AvatarsBlock(
             //        horizontalArrangement = Arrangement.SpaceBetween
         ) {
             for (a in avatars) {
-                val image = if ((a.second.image as Any?) != null) imageResource(a.second.image!!) else null
+//                val image = if ((a.second.image as Any?) != null) imageResource(a.second.image!!) else null
                 AvatarButton(
                     currentAvatar = headerAvatar,
                     i = a.first,
-                    image = image,
+                    path = a.second.path,
                     name = model.fio.name,
                     price = a.second.price
                 ) {
@@ -844,18 +871,18 @@ private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String
 private fun AvatarButton(
     currentAvatar: Int,
     i: Int,
-    image: ImageBitmap?,
+    path: String?,
     price: Int,
     name: String,
     onClick: () -> Unit
 ) {
     Box() {
-        GetAvatar(
+        GetAsyncAvatar(
             avatarId = i,
             name = name,
             modifier = Modifier.padding(5.dp).padding(top = 5.dp).clip(CircleShape).clickable { onClick() },
             isHighQuality = false,
-            imageBitmap = image
+            prePath = path
         )
         if (price != 0) {
             Box(

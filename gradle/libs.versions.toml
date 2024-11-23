@@ -6,11 +6,11 @@ plugin-android = "8.3.0"
 plugin-compose = "1.7.1"#"1.7.0-rc01"
 
 # Multiplatform
-kotlin = "2.1.0-RC2"
+kotlin = "2.0.21"
 coroutines = "1.8.0"
 serialization = "1.6.3"
 datetime = "0.6.0"
-ktor = "3.0.0-wasm2"
+ktor = "3.0.1"
 #ktor = "2.3.10"
 
 

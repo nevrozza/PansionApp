@@ -34,10 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
-import components.CustomTextButton
-import components.GetAvatar
+import components.*
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
 import view.esp
@@ -82,7 +79,7 @@ fun SharedTransitionScope.HomeAchievementsContent(
                     }
                 },
                 actionRow = {
-                    GetAvatar(
+                    GetAsyncAvatar(
                         avatarId = model.avatarId,
                         name = model.name,
                         size = 35.dp,

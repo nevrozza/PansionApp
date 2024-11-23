@@ -25,7 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.CustomTextButton
-import components.GetAvatar
+import components.GetAsyncAvatar
 import components.LoadingAnimation
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
@@ -84,7 +84,7 @@ fun LazyListScope.homeKidsContent(
                                             ), RoundedCornerShape(15.dp)
                                         ).padding(4.dp)
                                     ) {
-                                        GetAvatar(
+                                        GetAsyncAvatar(
                                             avatarId = it.avatarId,
                                             name = it.fio.name
                                         )

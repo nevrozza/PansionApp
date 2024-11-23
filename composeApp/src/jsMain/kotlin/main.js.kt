@@ -47,6 +47,7 @@ import org.jetbrains.skiko.wasm.onWasmReady
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLMetaElement
+import server.cut
 import view.*
 import web.dom.DocumentVisibilityState
 import web.dom.document
@@ -120,9 +121,10 @@ fun main() {
                     )
                 )
             }
+            val haze = remember { mutableStateOf(HazeState()) }
             CompositionLocalProvider(
                 LocalViewManager provides viewManager,
-                GlobalHazeState provides remember { HazeState() }
+                GlobalHazeState provides haze
             ) {
                 PageLoadNotify()
                 AppTheme {

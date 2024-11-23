@@ -66,42 +66,42 @@ import pansion.common.utils_compose.generated.resources.emoji6
 @Composable
 fun imageResource(r: DrawableResource): ImageBitmap = org.jetbrains.compose.resources.imageResource(r)
 
+
 @Composable
-fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
+fun getAvatarPath(avatarId: Int): String? {
     // ok, it works better...
 
-    val image = when (avatarId / 1000) {
+    val path = when (avatarId / 1000) {
         1 -> {
             with(Images.Avatars.Anime) {
                 when (avatarId) {
-                    this.anime1Id -> this.anime1.second.image
-                    this.anime2Id -> this.anime2.second.image
-                    this.anime3Id -> this.anime3.second.image
-                    this.anime4Id -> this.anime4.second.image
-                    this.anime5Id -> this.anime5.second.image
-                    this.anime6Id -> this.anime6.second.image
-                    this.anime7Id -> this.anime7.second.image
-                    this.anime8Id -> this.anime8.second.image
-                    this.anime9Id -> this.anime9.second.image
-                    this.anime10Id -> this.anime10.second.image
-                    this.anime11Id -> this.anime11.second.image
-                    this.anime12Id -> this.anime12.second.image
+                    this.anime1Id -> this.anime1.second.path
+                    this.anime2Id -> this.anime2.second.path
+                    this.anime3Id -> this.anime3.second.path
+                    this.anime4Id -> this.anime4.second.path
+                    this.anime5Id -> this.anime5.second.path
+                    this.anime6Id -> this.anime6.second.path
+                    this.anime7Id -> this.anime7.second.path
+                    this.anime8Id -> this.anime8.second.path
+                    this.anime9Id -> this.anime9.second.path
+                    this.anime10Id -> this.anime10.second.path
+                    this.anime11Id -> this.anime11.second.path
+                    this.anime12Id -> this.anime12.second.path
                     else -> null
                 }
             }
         }
-
         2 -> {
             with(Images.Avatars.Cats) {
                 when (avatarId) {
-                    this.cat1Id -> this.cat1.second.image
-                    this.cat2Id -> this.cat2.second.image
-                    this.cat3Id -> this.cat3.second.image
-                    this.cat4Id -> this.cat4.second.image
-                    this.cat5Id -> this.cat5.second.image
-                    this.cat6Id -> this.cat6.second.image
-                    this.cat7Id -> this.cat7.second.image
-                    this.catGunId -> this.catGun.second.image
+                    this.cat1Id -> this.cat1.second.path
+                    this.cat2Id -> this.cat2.second.path
+                    this.cat3Id -> this.cat3.second.path
+                    this.cat4Id -> this.cat4.second.path
+                    this.cat5Id -> this.cat5.second.path
+                    this.cat6Id -> this.cat6.second.path
+                    this.cat7Id -> this.cat7.second.path
+                    this.catGunId -> this.catGun.second.path
                     else -> null
                 }
             }
@@ -109,11 +109,11 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
         3 -> {
             with(Images.Avatars.MemCats) {
                 when (avatarId) {
-                    this.catM1Id -> this.catM1.second.image
-                    this.catM2Id -> this.catM2.second.image
-                    this.catM3Id -> this.catM3.second.image
-                    this.catM4Id -> this.catM4.second.image
-                    this.catM5Id -> this.catM5.second.image
+                    this.catM1Id -> this.catM1.second.path
+                    this.catM2Id -> this.catM2.second.path
+                    this.catM3Id -> this.catM3.second.path
+                    this.catM4Id -> this.catM4.second.path
+                    this.catM5Id -> this.catM5.second.path
                     else -> null
                 }
             }
@@ -121,10 +121,10 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
         4 -> {
             with(Images.Avatars.Symbols) {
                 when (avatarId) {
-                    this.crimeaId -> this.crimea.second.image
-                    this.russiaId -> this.russia.second.image
-                    this.pansionId -> this.pansion.second.image
-                    this.pansionPrintId -> this.pansionPrint.second.image
+                    this.crimeaId -> this.crimea.second.path
+                    this.russiaId -> this.russia.second.path
+                    this.pansionId -> this.pansion.second.path
+                    this.pansionPrintId -> this.pansionPrint.second.path
                     else -> null
                 }
             }
@@ -132,16 +132,16 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
         5 -> {
             with(Images.Avatars.Other) {
                 when (avatarId) {
-                    this.flowers2Id -> this.flowers2.second.image
-                    this.headId -> this.head.second.image
-                    this.hedgehogId -> this.hedgehog.second.image
-                    this.mimiId -> this.mimi.second.image
-                    this.november1Id -> this.november1.second.image
-                    this.november2Id -> this.november2.second.image
-                    this.skyId -> this.sky.second.image
-                    this.starsId -> this.stars.second.image
-                    this.starId -> this.star.second.image
-                    this.handsId -> this.hands.second.image
+                    this.flowers2Id -> this.flowers2.second.path
+                    this.headId -> this.head.second.path
+                    this.hedgehogId -> this.hedgehog.second.path
+                    this.mimiId -> this.mimi.second.path
+                    this.november1Id -> this.november1.second.path
+                    this.november2Id -> this.november2.second.path
+                    this.skyId -> this.sky.second.path
+                    this.starsId -> this.stars.second.path
+                    this.starId -> this.star.second.path
+                    this.handsId -> this.hands.second.path
                     else -> null
                 }
             }
@@ -149,23 +149,23 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
         6 -> {
             with(Images.Avatars.Pictures) {
                 when (avatarId) {
-                    this.alyonaId -> this.alyona.second.image
-                    this.bearId -> this.bear.second.image
-                    this.blackSquareId -> this.blackSquare.second.image
-                    this.bogatir1Id -> this.bogatir1.second.image
-                    this.bogatir2Id -> this.bogatir2.second.image
-                    this.bogatir3Id -> this.bogatir3.second.image
-                    this.forestId -> this.forest.second.image
-                    this.persikId -> this.persik.second.image
-                    this.rainbowId -> this.rainbow.second.image
-                    this.unknownId -> this.unknown.second.image
-                    this.vsadnicaId -> this.vsadnica.second.image
-                    this.vsadnicaSisterId -> this.vsadnicaSister.second.image
-                    this.clownId -> this.clown.second.image
-                    this.deathId -> this.death.second.image
-                    this.fallAngelId -> this.fallAngel.second.image
-                    this.flowersId -> this.flowers.second.image
-                    this.wtfId -> this.wtf.second.image
+                    this.alyonaId -> this.alyona.second.path
+                    this.bearId -> this.bear.second.path
+                    this.blackSquareId -> this.blackSquare.second.path
+                    this.bogatir1Id -> this.bogatir1.second.path
+                    this.bogatir2Id -> this.bogatir2.second.path
+                    this.bogatir3Id -> this.bogatir3.second.path
+                    this.forestId -> this.forest.second.path
+                    this.persikId -> this.persik.second.path
+                    this.rainbowId -> this.rainbow.second.path
+                    this.unknownId -> this.unknown.second.path
+                    this.vsadnicaId -> this.vsadnica.second.path
+                    this.vsadnicaSisterId -> this.vsadnicaSister.second.path
+                    this.clownId -> this.clown.second.path
+                    this.deathId -> this.death.second.path
+                    this.fallAngelId -> this.fallAngel.second.path
+                    this.flowersId -> this.flowers.second.path
+                    this.wtfId -> this.wtf.second.path
                     else -> null
                 }
             }
@@ -173,19 +173,19 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
         7 -> {
             with(Images.Avatars.Smeshariki) {
                 when (avatarId) {
-                    this.smesh1Id -> this.smesh1.second.image
-                    this.smesh2Id -> this.smesh2.second.image
-                    this.smesh3Id -> this.smesh3.second.image
-                    this.smesh4Id -> this.smesh4.second.image
-                    this.smesh5Id -> this.smesh5.second.image
-                    this.smesh6Id -> this.smesh6.second.image
-                    this.smesh7Id -> this.smesh7.second.image
-                    this.smesh8Id -> this.smesh8.second.image
-                    this.smesh9Id -> this.smesh9.second.image
-                    this.smesh10Id -> this.smesh10.second.image
-                    this.smesh11Id -> this.smesh11.second.image
-                    this.smesh12Id -> this.smesh12.second.image
-                    this.smesh13Id -> this.smesh13.second.image
+                    this.smesh1Id -> this.smesh1.second.path
+                    this.smesh2Id -> this.smesh2.second.path
+                    this.smesh3Id -> this.smesh3.second.path
+                    this.smesh4Id -> this.smesh4.second.path
+                    this.smesh5Id -> this.smesh5.second.path
+                    this.smesh6Id -> this.smesh6.second.path
+                    this.smesh7Id -> this.smesh7.second.path
+                    this.smesh8Id -> this.smesh8.second.path
+                    this.smesh9Id -> this.smesh9.second.path
+                    this.smesh10Id -> this.smesh10.second.path
+                    this.smesh11Id -> this.smesh11.second.path
+                    this.smesh12Id -> this.smesh12.second.path
+                    this.smesh13Id -> this.smesh13.second.path
                     else -> null
                 }
             }
@@ -193,20 +193,159 @@ fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
         else -> {
             with(Images.Avatars.Nevrozq) {
                 when (avatarId) {
-                    this.me1Id -> this.me1.second.image
-                    this.me2Id -> this.me2.second.image
-                    this.me3Id -> this.me3.second.image
+                    this.me1Id -> this.me1.second.path
+                    this.me2Id -> this.me2.second.path
+                    this.me3Id -> this.me3.second.path
                     else -> null
                 }
             }
         }//nevrozqCostedAvatars
     }
-    return imageResource(image ?: Images.MGUResource)//list[avatarId]?.image
+    return path//list[avatarId]?.image
     //imageResource(Res.drawable.anime1)//Images.avatarsMap[avatarId]
 }
 
+//@Composable
+//fun getAvatarImageVector(avatarId: Int): ImageBitmap? {
+//    // ok, it works better...
+//
+//    val image = when (avatarId / 1000) {
+//        1 -> {
+//            with(Images.Avatars.Anime) {
+//                when (avatarId) {
+//                    this.anime1Id -> this.anime1.second.image
+//                    this.anime2Id -> this.anime2.second.image
+//                    this.anime3Id -> this.anime3.second.image
+//                    this.anime4Id -> this.anime4.second.image
+//                    this.anime5Id -> this.anime5.second.image
+//                    this.anime6Id -> this.anime6.second.image
+//                    this.anime7Id -> this.anime7.second.image
+//                    this.anime8Id -> this.anime8.second.image
+//                    this.anime9Id -> this.anime9.second.image
+//                    this.anime10Id -> this.anime10.second.image
+//                    this.anime11Id -> this.anime11.second.image
+//                    this.anime12Id -> this.anime12.second.image
+//                    else -> null
+//                }
+//            }
+//        }
+//
+//        2 -> {
+//            with(Images.Avatars.Cats) {
+//                when (avatarId) {
+//                    this.cat1Id -> this.cat1.second.image
+//                    this.cat2Id -> this.cat2.second.image
+//                    this.cat3Id -> this.cat3.second.image
+//                    this.cat4Id -> this.cat4.second.image
+//                    this.cat5Id -> this.cat5.second.image
+//                    this.cat6Id -> this.cat6.second.image
+//                    this.cat7Id -> this.cat7.second.image
+//                    this.catGunId -> this.catGun.second.image
+//                    else -> null
+//                }
+//            }
+//        }//catsCostedAvatars
+//        3 -> {
+//            with(Images.Avatars.MemCats) {
+//                when (avatarId) {
+//                    this.catM1Id -> this.catM1.second.image
+//                    this.catM2Id -> this.catM2.second.image
+//                    this.catM3Id -> this.catM3.second.image
+//                    this.catM4Id -> this.catM4.second.image
+//                    this.catM5Id -> this.catM5.second.image
+//                    else -> null
+//                }
+//            }
+//        }//catsMCostedAvatars
+//        4 -> {
+//            with(Images.Avatars.Symbols) {
+//                when (avatarId) {
+//                    this.crimeaId -> this.crimea.second.image
+//                    this.russiaId -> this.russia.second.image
+//                    this.pansionId -> this.pansion.second.image
+//                    this.pansionPrintId -> this.pansionPrint.second.image
+//                    else -> null
+//                }
+//            }
+//        }//symbolsCostedAvatars
+//        5 -> {
+//            with(Images.Avatars.Other) {
+//                when (avatarId) {
+//                    this.flowers2Id -> this.flowers2.second.image
+//                    this.headId -> this.head.second.image
+//                    this.hedgehogId -> this.hedgehog.second.image
+//                    this.mimiId -> this.mimi.second.image
+//                    this.november1Id -> this.november1.second.image
+//                    this.november2Id -> this.november2.second.image
+//                    this.skyId -> this.sky.second.image
+//                    this.starsId -> this.stars.second.image
+//                    this.starId -> this.star.second.image
+//                    this.handsId -> this.hands.second.image
+//                    else -> null
+//                }
+//            }
+//        } //othersCostedAvatars
+//        6 -> {
+//            with(Images.Avatars.Pictures) {
+//                when (avatarId) {
+//                    this.alyonaId -> this.alyona.second.image
+//                    this.bearId -> this.bear.second.image
+//                    this.blackSquareId -> this.blackSquare.second.image
+//                    this.bogatir1Id -> this.bogatir1.second.image
+//                    this.bogatir2Id -> this.bogatir2.second.image
+//                    this.bogatir3Id -> this.bogatir3.second.image
+//                    this.forestId -> this.forest.second.image
+//                    this.persikId -> this.persik.second.image
+//                    this.rainbowId -> this.rainbow.second.image
+//                    this.unknownId -> this.unknown.second.image
+//                    this.vsadnicaId -> this.vsadnica.second.image
+//                    this.vsadnicaSisterId -> this.vsadnicaSister.second.image
+//                    this.clownId -> this.clown.second.image
+//                    this.deathId -> this.death.second.image
+//                    this.fallAngelId -> this.fallAngel.second.image
+//                    this.flowersId -> this.flowers.second.image
+//                    this.wtfId -> this.wtf.second.image
+//                    else -> null
+//                }
+//            }
+//        }//picturesCostedAvatars
+//        7 -> {
+//            with(Images.Avatars.Smeshariki) {
+//                when (avatarId) {
+//                    this.smesh1Id -> this.smesh1.second.image
+//                    this.smesh2Id -> this.smesh2.second.image
+//                    this.smesh3Id -> this.smesh3.second.image
+//                    this.smesh4Id -> this.smesh4.second.image
+//                    this.smesh5Id -> this.smesh5.second.image
+//                    this.smesh6Id -> this.smesh6.second.image
+//                    this.smesh7Id -> this.smesh7.second.image
+//                    this.smesh8Id -> this.smesh8.second.image
+//                    this.smesh9Id -> this.smesh9.second.image
+//                    this.smesh10Id -> this.smesh10.second.image
+//                    this.smesh11Id -> this.smesh11.second.image
+//                    this.smesh12Id -> this.smesh12.second.image
+//                    this.smesh13Id -> this.smesh13.second.image
+//                    else -> null
+//                }
+//            }
+//        }//smesharikiCostedAvatars
+//        else -> {
+//            with(Images.Avatars.Nevrozq) {
+//                when (avatarId) {
+//                    this.me1Id -> this.me1.second.image
+//                    this.me2Id -> this.me2.second.image
+//                    this.me3Id -> this.me3.second.image
+//                    else -> null
+//                }
+//            }
+//        }//nevrozqCostedAvatars
+//    }
+//    return imageResource(image ?: Images.MGUResource)//list[avatarId]?.image
+//    //imageResource(Res.drawable.anime1)//Images.avatarsMap[avatarId]
+//}
+
 data class PricedAvatar(
-    val image: DrawableResource?,
+    val path: String?,
     val price: Int
 )
 
@@ -263,7 +402,7 @@ data object Images {
         }
 
     val catsMCostedAvatars: Map<Int, PricedAvatar>
-        @Composable get() {
+        get() {
             with(Images.Avatars.MemCats) {
                 return listOf(
                     catM1, catM2, catM3,
@@ -273,7 +412,7 @@ data object Images {
         }
 
     val symbolsCostedAvatars: Map<Int, PricedAvatar>
-        @Composable get() {
+        get() {
             with(Images.Avatars.Symbols) {
                 return listOf(
                     crimea, russia, pansion,
@@ -282,7 +421,7 @@ data object Images {
             }
         }
     val picturesCostedAvatars: Map<Int, PricedAvatar>
-        @Composable get() {
+        get() {
             with(Images.Avatars.Pictures) {
                 return listOf(
                     alyona, bear, blackSquare,
@@ -295,7 +434,7 @@ data object Images {
             }
         }
     val othersCostedAvatars: Map<Int, PricedAvatar>
-        @Composable get() {
+        get() {
             with(Images.Avatars.Other) {
                 return listOf(
                     flowers2, head, hedgehog,
@@ -306,7 +445,7 @@ data object Images {
         }
 
     val smesharikiCostedAvatars: Map<Int, PricedAvatar>
-        @Composable get() {
+        get() {
             with(Images.Avatars.Smeshariki) {
                 return listOf(
                     smesh1, smesh2, smesh3,
@@ -336,29 +475,29 @@ data object Images {
             const val anime11Id = 1000 + 12
             const val anime12Id = 1000 + 13
             val anime1: Pair<Int, PricedAvatar>
-                get() = anime1Id to PricedAvatar(Res.drawable.anime1, 30) //imageResource(
+                get() = anime1Id to PricedAvatar("anime1", 30) //imageResource(
             val anime2: Pair<Int, PricedAvatar>
-                get() = anime2Id to PricedAvatar(Res.drawable.anime2, 10)
+                get() = anime2Id to PricedAvatar("anime2", 10)
             val anime3: Pair<Int, PricedAvatar>
-                get() = anime3Id to PricedAvatar(Res.drawable.anime3, 10)
+                get() = anime3Id to PricedAvatar("anime3", 10)
             val anime4: Pair<Int, PricedAvatar>
-                get() = 1000 + 5 to PricedAvatar(Res.drawable.anime4, 20)
+                get() = 1000 + 5 to PricedAvatar("anime4", 20)
             val anime5: Pair<Int, PricedAvatar>
-                get() = 1000 + 6 to PricedAvatar(Res.drawable.anime5, 30)
+                get() = 1000 + 6 to PricedAvatar("anime5", 30)
             val anime6: Pair<Int, PricedAvatar>
-                get() = 1000 + 7 to PricedAvatar(Res.drawable.anime6, 20)
+                get() = 1000 + 7 to PricedAvatar("anime6", 20)
             val anime7: Pair<Int, PricedAvatar>
-                get() = 1000 + 8 to PricedAvatar(Res.drawable.anime7, 30)
+                get() = 1000 + 8 to PricedAvatar("anime7", 30)
             val anime8: Pair<Int, PricedAvatar>
-                get() = 1000 + 9 to PricedAvatar(Res.drawable.anime8, 30)
+                get() = 1000 + 9 to PricedAvatar("anime8", 30)
             val anime9: Pair<Int, PricedAvatar>
-                get() = 1000 + 10 to PricedAvatar(Res.drawable.anime9, 15)
+                get() = 1000 + 10 to PricedAvatar("anime9", 15)
             val anime10: Pair<Int, PricedAvatar>
-                get() = 1000 + 11 to PricedAvatar(Res.drawable.anime10, 15)
+                get() = 1000 + 11 to PricedAvatar("anime10", 15)
             val anime11: Pair<Int, PricedAvatar>
-                get() = 1000 + 12 to PricedAvatar(Res.drawable.anime11, 30)
+                get() = 1000 + 12 to PricedAvatar("anime11", 30)
             val anime12: Pair<Int, PricedAvatar>
-                get() = 1000 + 13 to PricedAvatar(Res.drawable.anime12, 20)
+                get() = 1000 + 13 to PricedAvatar("anime12", 20)
         }
 
         //2
@@ -372,21 +511,21 @@ data object Images {
             const val cat7Id = 2000 + 19
             const val catGunId = 2000 + 18
             val cat1: Pair<Int, PricedAvatar>
-                get() = 2000 + 12 to PricedAvatar(Res.drawable.cat1, 30)
+                get() = 2000 + 12 to PricedAvatar("cat1", 30)
             val cat2: Pair<Int, PricedAvatar>
-                get() = 2000 + 13 to PricedAvatar(Res.drawable.cat2, 30)
+                get() = 2000 + 13 to PricedAvatar("cat2", 30)
             val cat3: Pair<Int, PricedAvatar>
-                 get() = 2000 + 14 to PricedAvatar(Res.drawable.cat3, 20)
+                 get() = 2000 + 14 to PricedAvatar("cat3", 20)
             val cat4: Pair<Int, PricedAvatar>
-                 get() = 2000 + 15 to PricedAvatar(Res.drawable.cat4, 20)
+                 get() = 2000 + 15 to PricedAvatar("cat4", 20)
             val cat5: Pair<Int, PricedAvatar>
-                 get() = 2000 + 16 to PricedAvatar(Res.drawable.cat5, 20)
+                 get() = 2000 + 16 to PricedAvatar("cat5", 20)
             val cat6: Pair<Int, PricedAvatar>
-                 get() = 2000 + 17 to PricedAvatar(Res.drawable.cat6, 10)
+                 get() = 2000 + 17 to PricedAvatar("cat6", 10)
             val cat7: Pair<Int, PricedAvatar>
-                 get() = 2000 + 19 to PricedAvatar(Res.drawable.cat7, 20)
+                 get() = 2000 + 19 to PricedAvatar("cat7", 20)
             val catGun: Pair<Int, PricedAvatar>
-                 get() = 2000 + 18 to PricedAvatar(Res.drawable.catGun, 10)
+                 get() = 2000 + 18 to PricedAvatar("catGun", 10)
         }
 
         //3
@@ -397,15 +536,15 @@ data object Images {
             const val catM4Id = 3000 + 22
             const val catM5Id = 3000 + 23
             val catM1: Pair<Int, PricedAvatar>
-                get() = 3000 + 19 to PricedAvatar(Res.drawable.catM1, 10)
+                get() = 3000 + 19 to PricedAvatar("catM1", 10)
             val catM2: Pair<Int, PricedAvatar>
-                get() = 3000 + 20 to PricedAvatar(Res.drawable.catM2, 10)
+                get() = 3000 + 20 to PricedAvatar("catM2", 10)
             val catM3: Pair<Int, PricedAvatar>
-                get() = 3000 + 21 to PricedAvatar(Res.drawable.catM3, 20)
+                get() = 3000 + 21 to PricedAvatar("catM3", 20)
             val catM4: Pair<Int, PricedAvatar>
-                get() = 3000 + 22 to PricedAvatar(Res.drawable.catM4, 30)
+                get() = 3000 + 22 to PricedAvatar("catM4", 30)
             val catM5: Pair<Int, PricedAvatar>
-                get() = 3000 + 23 to PricedAvatar(Res.drawable.catM5, 30)
+                get() = 3000 + 23 to PricedAvatar("catM5", 30)
         }
 
         //4
@@ -415,13 +554,13 @@ data object Images {
             const val pansionId = 4000 + 26
             const val pansionPrintId = 4000 + 27
             val crimea: Pair<Int, PricedAvatar>
-                get() = 4000 + 24 to PricedAvatar(Res.drawable.flCrimea, 0)
+                get() = 4000 + 24 to PricedAvatar("flCrimea", 0)
             val russia: Pair<Int, PricedAvatar>
-                get() = 4000 + 25 to PricedAvatar(Res.drawable.flRussia, 0)
+                get() = 4000 + 25 to PricedAvatar("flRussia", 0)
             val pansion: Pair<Int, PricedAvatar>
-                get() = 4000 + 26 to PricedAvatar(Res.drawable.pansion, 0)
+                get() = 4000 + 26 to PricedAvatar("pansion", 0)
             val pansionPrint: Pair<Int, PricedAvatar>
-                get() = 4000 + 27 to PricedAvatar(Res.drawable.pansionPrint, 0)
+                get() = 4000 + 27 to PricedAvatar("pansionPrint", 0)
         }
 
         //0_0
@@ -430,11 +569,11 @@ data object Images {
             const val me2Id = -2
             const val me3Id = -3
             val me1: Pair<Int, PricedAvatar>
-                get() = -1 to PricedAvatar(Res.drawable.me1, 0)
+                get() = -1 to PricedAvatar("me1", 0)
             val me2: Pair<Int, PricedAvatar>
-                get() = -2 to PricedAvatar(Res.drawable.me2, 0)
+                get() = -2 to PricedAvatar("me2", 0)
             val me3: Pair<Int, PricedAvatar>
-                get() = -3 to PricedAvatar(Res.drawable.me3, 0)
+                get() = -3 to PricedAvatar("me3", 0)
         }
 
         //5
@@ -450,25 +589,25 @@ data object Images {
             const val starId = 5000 + 36
             const val handsId = 5000 + 37
             val flowers2: Pair<Int, PricedAvatar>
-                get() = 5000 + 28 to PricedAvatar(Res.drawable.otFlowers2, 5)
+                get() = 5000 + 28 to PricedAvatar("otFlowers2", 5)
             val head: Pair<Int, PricedAvatar>
-                get() = 5000 + 29 to PricedAvatar(Res.drawable.otHead, 5)
+                get() = 5000 + 29 to PricedAvatar("otHead", 5)
             val hedgehog: Pair<Int, PricedAvatar>
-                get() = 5000 + 30 to PricedAvatar(Res.drawable.otHedgehog, 25)
+                get() = 5000 + 30 to PricedAvatar("otHedgehog", 25)
             val mimi: Pair<Int, PricedAvatar>
-                get() = 5000 + 31 to PricedAvatar(Res.drawable.otMimi, 15)
+                get() = 5000 + 31 to PricedAvatar("otMimi", 15)
             val november1: Pair<Int, PricedAvatar>
-                get() = 5000 + 32 to PricedAvatar(Res.drawable.otNovember1, 10)
+                get() = 5000 + 32 to PricedAvatar("otNovember1", 10)
             val november2: Pair<Int, PricedAvatar>
-                get() = 5000 + 33 to PricedAvatar(Res.drawable.otNovember2, 10)
+                get() = 5000 + 33 to PricedAvatar("otNovember2", 10)
             val sky: Pair<Int, PricedAvatar>
-                get() = 5000 + 34 to PricedAvatar(Res.drawable.otSky, 20)
+                get() = 5000 + 34 to PricedAvatar("otSky", 20)
             val stars: Pair<Int, PricedAvatar>
-                get() = 5000 + 35 to PricedAvatar(Res.drawable.otStars, 15)
+                get() = 5000 + 35 to PricedAvatar("otStars", 15)
             val star: Pair<Int, PricedAvatar>
-                get() = 5000 + 36 to PricedAvatar(Res.drawable.otStar, 15)
+                get() = 5000 + 36 to PricedAvatar("otStar", 15)
             val hands: Pair<Int, PricedAvatar>
-                get() = 5000 + 37 to PricedAvatar(Res.drawable.otHands, 10)
+                get() = 5000 + 37 to PricedAvatar("otHands", 10)
         }
 
         //6
@@ -491,39 +630,39 @@ data object Images {
             const val flowersId = 6000 + 52
             const val wtfId = 6000 + 53
             val alyona: Pair<Int, PricedAvatar>
-                get() = 6000 + 37 to PricedAvatar(Res.drawable.rkAlyona, 10)
+                get() = 6000 + 37 to PricedAvatar("rkAlyona", 10)
             val bear: Pair<Int, PricedAvatar>
-                get() = 6000 + 38 to PricedAvatar(Res.drawable.rkBear, 10)
+                get() = 6000 + 38 to PricedAvatar("rkBear", 10)
             val blackSquare: Pair<Int, PricedAvatar>
-                get() = 6000 + 39 to PricedAvatar(Res.drawable.rkBlackSquare, 15)
+                get() = 6000 + 39 to PricedAvatar("rkBlackSquare", 15)
             val bogatir1: Pair<Int, PricedAvatar>
-                get() = 6000 + 40 to PricedAvatar(Res.drawable.rkBogatir1, 30)
+                get() = 6000 + 40 to PricedAvatar("rkBogatir1", 30)
             val bogatir2: Pair<Int, PricedAvatar>
-                get() = 6000 + 41 to PricedAvatar(Res.drawable.rkBogatir2, 20)
+                get() = 6000 + 41 to PricedAvatar("rkBogatir2", 20)
             val bogatir3: Pair<Int, PricedAvatar>
-                get() = 6000 + 42 to PricedAvatar(Res.drawable.rkBogatir3, 10)
+                get() = 6000 + 42 to PricedAvatar("rkBogatir3", 10)
             val forest: Pair<Int, PricedAvatar>
-                get() = 6000 + 43 to PricedAvatar(Res.drawable.rkForest, 5)
+                get() = 6000 + 43 to PricedAvatar("rkForest", 5)
             val persik: Pair<Int, PricedAvatar>
-                get() = 6000 + 44 to PricedAvatar(Res.drawable.rkPersik, 15)
+                get() = 6000 + 44 to PricedAvatar("rkPersik", 15)
             val rainbow: Pair<Int, PricedAvatar>
-                get() = 6000 + 45 to PricedAvatar(Res.drawable.rkRainbow, 10)
+                get() = 6000 + 45 to PricedAvatar("rkRainbow", 10)
             val unknown: Pair<Int, PricedAvatar>
-                get() = 6000 + 46 to PricedAvatar(Res.drawable.rkUnknown, 15)
+                get() = 6000 + 46 to PricedAvatar("rkUnknown", 15)
             val vsadnica: Pair<Int, PricedAvatar>
-                get() = 6000 + 47 to PricedAvatar(Res.drawable.rkVsadnica, 15)
+                get() = 6000 + 47 to PricedAvatar("rkVsadnica", 15)
             val vsadnicaSister: Pair<Int, PricedAvatar>
-                get() = 6000 + 48 to PricedAvatar(Res.drawable.rkVsadnica_sister, 15)
+                get() = 6000 + 48 to PricedAvatar("rkVsadnica_sister", 15)
             val clown: Pair<Int, PricedAvatar>
-                get() = 6000 + 49 to PricedAvatar(Res.drawable.rpClown, 40)
+                get() = 6000 + 49 to PricedAvatar("rpClown", 40)
             val death: Pair<Int, PricedAvatar>
-                get() = 6000 + 50 to PricedAvatar(Res.drawable.rpDeath, 40)
+                get() = 6000 + 50 to PricedAvatar("rpDeath", 40)
             val fallAngel: Pair<Int, PricedAvatar>
-                get() = 6000 + 51 to PricedAvatar(Res.drawable.rpFallAngel, 40)
+                get() = 6000 + 51 to PricedAvatar("rpFallAngel", 40)
             val flowers: Pair<Int, PricedAvatar>
-                get() = 6000 + 52 to PricedAvatar(Res.drawable.rpFlowers, 10)
+                get() = 6000 + 52 to PricedAvatar("rpFlowers", 10)
             val wtf: Pair<Int, PricedAvatar>
-                get() = 6000 + 53 to PricedAvatar(Res.drawable.rpWtf, 30)
+                get() = 6000 + 53 to PricedAvatar("rpWtf", 30)
         }
 
         //7
@@ -542,31 +681,31 @@ data object Images {
             val smesh12Id = 7000 + 65
             val smesh13Id = 7000 + 66
             val smesh1: Pair<Int, PricedAvatar>
-                get() = 7000 + 54 to PricedAvatar(Res.drawable.smesh1, 15)
+                get() = 7000 + 54 to PricedAvatar("smesh1", 15)
             val smesh2: Pair<Int, PricedAvatar>
-                get() = 7000 + 55 to PricedAvatar(Res.drawable.smesh2, 15)
+                get() = 7000 + 55 to PricedAvatar("smesh2", 15)
             val smesh3: Pair<Int, PricedAvatar>
-                get() = 7000 + 56 to PricedAvatar(Res.drawable.smesh3, 15)
+                get() = 7000 + 56 to PricedAvatar("smesh3", 15)
             val smesh4: Pair<Int, PricedAvatar>
-                 get() = 7000 + 57 to PricedAvatar(Res.drawable.smesh4, 15)
+                 get() = 7000 + 57 to PricedAvatar("smesh4", 15)
             val smesh5: Pair<Int, PricedAvatar>
-                 get() = 7000 + 58 to PricedAvatar(Res.drawable.smesh5, 15)
+                 get() = 7000 + 58 to PricedAvatar("smesh5", 15)
             val smesh6: Pair<Int, PricedAvatar>
-                 get() = 7000 + 59 to PricedAvatar(Res.drawable.smesh6, 15)
+                 get() = 7000 + 59 to PricedAvatar("smesh6", 15)
             val smesh7: Pair<Int, PricedAvatar>
-                 get() = 7000 + 60 to PricedAvatar(Res.drawable.smesh7, 15)
+                 get() = 7000 + 60 to PricedAvatar("smesh7", 15)
             val smesh8: Pair<Int, PricedAvatar>
-                 get() = 7000 + 61 to PricedAvatar(Res.drawable.smesh8, 15)
+                 get() = 7000 + 61 to PricedAvatar("smesh8", 15)
             val smesh9: Pair<Int, PricedAvatar>
-                 get() = 7000 + 62 to PricedAvatar(Res.drawable.smesh9, 15)
+                 get() = 7000 + 62 to PricedAvatar("smesh9", 15)
             val smesh10: Pair<Int, PricedAvatar>
-                get() = 7000 + 63 to PricedAvatar(Res.drawable.smesh10, 30)
+                get() = 7000 + 63 to PricedAvatar("smesh10", 30)
             val smesh11: Pair<Int, PricedAvatar>
-                 get() = 7000 + 64 to PricedAvatar(Res.drawable.smesh11, 20)
+                 get() = 7000 + 64 to PricedAvatar("smesh11", 20)
             val smesh12: Pair<Int, PricedAvatar>
-                 get() = 7000 + 65 to PricedAvatar(Res.drawable.smesh12, 20)
+                 get() = 7000 + 65 to PricedAvatar("smesh12", 20)
             val smesh13: Pair<Int, PricedAvatar>
-                 get() = 7000 + 66 to PricedAvatar(Res.drawable.smesh13, 30)
+                 get() = 7000 + 66 to PricedAvatar("smesh13", 30)
         }
     }
 

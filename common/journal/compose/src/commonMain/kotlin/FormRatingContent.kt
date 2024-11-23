@@ -48,13 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.BorderStup
-import components.CFilterChip
-import components.CLazyColumn
-import components.CustomTextButton
-import components.GetAvatar
-import components.cClickable
+import components.*
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -368,7 +362,7 @@ private fun SharedTransitionScope.FormRatingCard(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
             }
-            GetAvatar(
+            GetAsyncAvatar(
                 avatarId = item.avatarId,
                 name = item.fio.name,
                 size = 40.dp,

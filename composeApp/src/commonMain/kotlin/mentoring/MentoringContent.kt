@@ -57,19 +57,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AnimatedElevatedButton
-import components.AppBar
-import components.CFilterChip
-import components.CLazyColumn
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.CustomTextField
-import components.DatesLine
-import components.GetAvatar
-import components.LoadingAnimation
-import components.MarkTable
-import components.cClickable
+import components.*
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
 import di.Inject
@@ -410,7 +398,7 @@ private fun FormsItem(
 
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                GetAvatar(
+                                GetAsyncAvatar(
                                     avatarId = r.avatarId,
                                     name = r.name,
                                     size = 55.dp,
@@ -508,7 +496,7 @@ private fun FormsItem(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            GetAvatar(
+                            GetAsyncAvatar(
                                 avatarId = s.avatarId,
                                 name = s.fio.name,
                                 size = 40.dp,

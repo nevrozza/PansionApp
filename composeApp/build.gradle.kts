@@ -1,6 +1,7 @@
 @file:Suppress("OPT_IN_USAGE")
 
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
 //    id("compose-setup")
@@ -103,7 +104,6 @@ kotlin {
                 outputDirectory = file("$projectDir/build/wasmJsDistribution/")
             }
         }
-        useCommonJs()
         binaries.executable()
     }
 
@@ -210,7 +210,7 @@ kotlin {
             implementation("com.benasher44:uuid:0.8.4")
             implementation(project.dependencies.enforcedPlatform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:1.0.0-pre.648"))
             implementation("org.jetbrains.kotlin-wrappers:kotlin-browser")
-        }
+           }
 
         wasmJsMain.dependencies {
             implementation("com.benasher44:uuid:0.8.4")
@@ -265,7 +265,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 5
-        versionName = "1.0.05"
+        versionName = "1.1.11"
     }
     buildFeatures {
         compose = true

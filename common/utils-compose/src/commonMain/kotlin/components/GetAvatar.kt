@@ -19,23 +19,40 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import resources.getAvatarImageVector
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import pansion.common.utils_compose.generated.resources.Res
+//import resources.getAvatarImageVector
+import resources.getAvatarPath
 import view.LocalViewManager
 import view.ThemeTint
 import view.esp
 
+
+@OptIn(ExperimentalResourceApi::class)
 @Composable
-fun GetAvatar(
-    avatarId: Int, name: String, size: Dp = 70.dp, textSize: TextUnit = 30.esp, modifier: Modifier = Modifier, isHighQuality: Boolean = true, imageBitmap: ImageBitmap? = null) {
+fun GetAsyncAvatar(
+    avatarId: Int,
+    name: String,
+    size: Dp = 70.dp,
+    textSize: TextUnit = 30.esp,
+    modifier: Modifier = Modifier,
+    isHighQuality: Boolean = true,
+    prePath: String? = null,
+    isCrossfade: Boolean = true
+) {
     val viewManager = LocalViewManager.current
     val isDark = if (viewManager.tint.value == ThemeTint.Auto) isSystemInDarkTheme()
     else viewManager.tint.value == ThemeTint.Dark
-    val image = imageBitmap ?: if (avatarId !in listOf(0, 1)) getAvatarImageVector(avatarId) else null
-    image?.prepareToDraw()
+    val path = prePath ?: if (avatarId !in listOf(0, 1)) getAvatarPath(avatarId) else null
+
     Box(
         modifier = modifier.size(size).clip(CircleShape).background(
             brush = Brush.verticalGradient(
-                colors = if(isDark) listOf(
+                colors = if (isDark) listOf(
 
                     MaterialTheme.colorScheme.primary,
                     MaterialTheme.colorScheme.inversePrimary,
@@ -48,7 +65,7 @@ fun GetAvatar(
         ),
         contentAlignment = Alignment.Center
     ) {
-        if (image == null) { //avatarId in listOf(0, 1) TODOIK
+        if (path == null) { //avatarId in listOf(0, 1) TODOIK
             Text(
                 name[0].toString(),
                 fontSize = textSize,
@@ -56,8 +73,11 @@ fun GetAvatar(
                 color = Color.White
             )
         } else {
-            Image(
-                image,
+            AsyncImage(
+                ImageRequest.Builder(LocalPlatformContext.current)
+                    .data(Res.getUri("drawable/${path}.webp"))
+                    .crossfade(isCrossfade)
+                    .build(),
                 null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -67,4 +87,55 @@ fun GetAvatar(
 
     }
 }
+
+//@Composable
+//fun GetAvatar(
+//    avatarId: Int,
+//    name: String,
+//    size: Dp = 70.dp,
+//    textSize: TextUnit = 30.esp,
+//    modifier: Modifier = Modifier,
+//    isHighQuality: Boolean = true,
+//    imageBitmap: ImageBitmap? = null
+//) {
+//    val viewManager = LocalViewManager.current
+//    val isDark = if (viewManager.tint.value == ThemeTint.Auto) isSystemInDarkTheme()
+//    else viewManager.tint.value == ThemeTint.Dark
+//    val image = imageBitmap ?: if (avatarId !in listOf(0, 1)) getAvatarImageVector(avatarId) else null
+//    image?.prepareToDraw()
+//    Box(
+//        modifier = modifier.size(size).clip(CircleShape).background(
+//            brush = Brush.verticalGradient(
+//                colors = if (isDark) listOf(
+//
+//                    MaterialTheme.colorScheme.primary,
+//                    MaterialTheme.colorScheme.inversePrimary,
+//                ) else listOf(
+//                    MaterialTheme.colorScheme.inversePrimary,
+//                    MaterialTheme.colorScheme.primary
+//                ),
+//                tileMode = TileMode.Decal
+//            )
+//        ),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        if (image == null) { //avatarId in listOf(0, 1) TODOIK
+//            Text(
+//                name[0].toString(),
+//                fontSize = textSize,
+//                fontWeight = FontWeight.Normal,
+//                color = Color.White
+//            )
+//        } else {
+//            Image(
+//                image,
+//                null,
+//                modifier = Modifier.fillMaxSize(),
+//                contentScale = ContentScale.Crop,
+//                filterQuality = if (isHighQuality) FilterQuality.High else FilterQuality.Low
+//            )
+//        }
+//
+//    }
+//}
 

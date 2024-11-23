@@ -25,6 +25,7 @@ kotlin {
 
     js(IR) {
         browser()
+//        useEsModules()
 //        useCommonJs()
         binaries.executable()
     }
@@ -44,6 +45,18 @@ kotlin {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
         }
+        jsMain.dependencies {
+
+            implementation(npm("copy-webpack-plugin", "9.1.0"))
+//            implementation(devNpm("node-polyfill-webpack-plugin", "^2.0.1"))
+//            implementation(devNpm("path-browserify", "^1.0.1"))
+//            implementation(npm("os-browserify", "^0.3.0"))
+        }
+//        wasmJsMain.dependencies {
+//            implementation(devNpm("node-polyfill-webpack-plugin", "^2.0.1"))
+//            implementation(devNpm("path-browserify", "^1.0.1"))
+//            implementation(npm("os-browserify", "^0.3.0"))
+//        }
     }
 
     //JVM

@@ -56,7 +56,7 @@ fun main() {
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
-            deviceName = getDeviceName()?.cut(20),//navigator.userAgent ?: "unknown",
+            deviceName = getDeviceName().cut(20),//navigator.userAgent ?: "unknown",
             deviceType = DeviceTypex.web,
             deviceId = getOrCreateDeviceUUID() //navigator.userAgent
         )
