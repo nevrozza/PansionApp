@@ -69,4 +69,4 @@ jobs:
           name: distributable-${{ matrix.os }}
           if-no-files-found: ignore
           path: |
-            build
+            composeApp/build
