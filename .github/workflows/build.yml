@@ -33,9 +33,10 @@ jobs:
           JBR_HOME: C:\jbr
       # Step 3: 配置 JAVA_HOME 环境变量
       - name: Configure JAVA_HOME
-        run: |
-          echo "JAVA_HOME=C:\\jbr" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "PATH=C:\\jbr\\bin;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+        run: | 
+          echo JAVA_HOME=C:\jbr >> $GITHUB_ENV
+        env: 
+          JAVA_HOME: C:\jbr
 
       # Step 7: 构建 EXE
       - name: Build exe app
