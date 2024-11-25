@@ -37,7 +37,8 @@ jobs:
         
       # Step 4: 验证 JBR 配置是否成功
       - name: Verify JBR
-        run: $JAVA_HOME\\bin\\java -version
+        run: $JAVA_HOME\bin\java -version
+        shell: pwsh
           
       # Step 3：打印
       - name: Print
