@@ -16,8 +16,8 @@ jobs:
 
       # Step 1: 恢复 JBR 缓存
       - name: JBR Cache
-        id: cache-jdk
         uses: actions/cache@v3
+        id: cache-jdk
         with:
           path: /home/runner/jbr # 缓存路径
           key: jbr # 缓存的唯一标识
