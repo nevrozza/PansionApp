@@ -53,14 +53,10 @@ jobs:
 
       # Step 5: 构建EXE
       - name: Build exe app
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 20
-          max_attempts: 2
-          run: |
-            ./gradlew packageUberJarForCurrentOS
-            ./gradlew createDistributable
-            ./gradlew packageExe
+        run: |
+          ./gradlew packageUberJarForCurrentOS
+          ./gradlew createDistributable
+          ./gradlew packageExe
 
       # Step 6：打印
       - name: Print
