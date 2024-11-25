@@ -37,19 +37,19 @@ jobs:
         
       # Step 4: 验证 JBR 配置是否成功
       - name: Verify JBR
-        run: $JAVA_HOME\bin\java -version
+        run: $JAVA_HOME\\bin\\java -version
           
       # Step 3：打印
       - name: Print
         run: |
-          echo "jbr目录下 ：  $(ls -a C:\jbr)"
+          echo "jbr目录下 ：  $(ls -a C:\\jbr)"
           echo "当前目录：$(pwd)"
           
       # Step 4: 配置 Java 环境变量
       - name: Configure Java Environment Variables
         run: |
-          echo "JAVA_HOME=C:\jbr" >> $GITHUB_ENV
-          echo "PATH=C:\jbr\bin:$PATH" >> $GITHUB_ENV
+          echo "JAVA_HOME=C:\\jbr" >> $GITHUB_ENV
+          echo "PATH=C:\\jbr\\bin:$PATH" >> $GITHUB_ENV
 
       # Step 5: 构建EXE
       - name: Build exe app
