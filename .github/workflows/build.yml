@@ -63,12 +63,7 @@ jobs:
         run: |
           echo "项目结构如下 ：  $(ls -a)"
           echo "当前目录：$(pwd)"
-          echo "文件路径1：$(ls composeApp/build/)"
-          echo "文件路径2：$(ls composeApp/build/compose)"
-          echo "文件路径遍历：$(ls -R composeApp/build/compose)"
-          echo "文件路径3：$(ls composeApp/build/compose/binaries)"
-          echo "文件路径4：$(ls composeApp/build/compose/binaries/main)"
-          echo "文件路径5：$(ls composeApp/build/compose/binaries/main/exe/)"
+          echo "文件路径遍历：$(ls -R composeApp/build)"
 
       # Step 7：Upload Relase
       - name: Tag and Release
