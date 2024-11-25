@@ -57,28 +57,20 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 2
-          command: ./gradlew :composeApp:packageExe
+          run: |
+            ./gradlew packageUberJarForCurrentOS
+            ./gradlew createDistributable
+            ./gradlew packageExe
 
       # Step 6：打印
       - name: Print
         run: |
-          echo "项目结构如下 ：  $(ls -a)"
-          echo "文件路径遍历4：$(ls -R)"
-          echo "当前目录：$(pwd)"
           echo "文件路径遍历1：$(ls -R build)"
-          echo "文件路径遍历2：$(ls -R composeApp/build)"
-          echo "文件路径遍历3：$(ls -R composeApp)"
           
-
-      # Step 7：Upload Relase
-      - name: Tag and Release
-        uses: dothq/tag-and-release-and-upload@v1.0.2
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          
-          # Use the version from the previous step
-          version: output
-          
-          assets: '[ "composeApp/build/compose/binaries/main/exe/*.exe" ]'
-          overwrite: true  
-          
+          name: distributable-${{ matrix.os }}
+          if-no-files-found: ignore
+          path: |
+            build
