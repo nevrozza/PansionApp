@@ -63,11 +63,12 @@ jobs:
       - name: Print
         run: |
           echo "项目结构如下 ：  $(ls -a)"
+          echo "文件路径遍历4：$(ls -R)"
           echo "当前目录：$(pwd)"
           echo "文件路径遍历1：$(ls -R build)"
           echo "文件路径遍历2：$(ls -R composeApp/build)"
           echo "文件路径遍历3：$(ls -R composeApp)"
-          echo "文件路径遍历4：$(ls -R)"
+          
 
       # Step 7：Upload Relase
       - name: Tag and Release
