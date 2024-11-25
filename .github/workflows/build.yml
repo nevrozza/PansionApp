@@ -20,6 +20,8 @@ jobs:
         with:
           path: /home/runner/jbr # 缓存路径
           key: jbr # 缓存的唯一标识
+      - name: PRINT2
+        run: echo "$(steps.cache-jdk.outputs.cache-hit)"
 
       # Step 2: 下载并配置 JBR (JetBrains Runtime)（如果缓存未命中）
       - name: Download and Extract JBR
