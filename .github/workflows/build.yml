@@ -24,7 +24,7 @@ jobs:
           JBR_HOME: ${{ github.workspace }}/jbr
       - name: Print
         run: |
-          ls -a
+          ls -a jbr
           pwd
       # Step 3: 配置环境变量
       - name: Set environment variables
