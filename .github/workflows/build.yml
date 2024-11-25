@@ -18,7 +18,7 @@ jobs:
       - name: Restore JBR Cache
         uses: actions/cache@v3
         with:
-          path: jbr/ # 缓存路径
+          path: /jbr # 缓存路径
           key: jbr # 缓存的唯一标识
           restore-keys: jbr-r
 
