@@ -22,7 +22,10 @@ jobs:
           tar -xzf jbr.tar.gz -C jbr --strip-components=1
         env:
           JBR_HOME: ${{ github.workspace }}/jbr
-
+      - name: Print
+        run: |
+          ls -a
+          pwd
       # Step 3: 配置环境变量
       - name: Set environment variables
         run: echo "JAVA_HOME=${{ github.workspace }}/jbr" >> $GITHUB_ENV
