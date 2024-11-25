@@ -27,7 +27,7 @@ jobs:
         if: steps.cache-jdk.outputs.cache-hit != 'true'
         run: |
           mkdir -p C:\jbr
-          curl -L -o C:\jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-17.0.11-linux-x64-b1312.2.tar.gz
+          curl -L -o C:\jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-21.0.5-windows-x64-b631.19.tar.gz
           tar -xzf C:\jbr.tar.gz -C C:\jbr --strip-components=1
         env:
           JBR_HOME: C:\jbr
