@@ -26,8 +26,8 @@ jobs:
       - name: Download and Extract JBR
         if: ${{ steps.cache-jdk.outputs.cache-hit != 'true' }}
         run: |
-          mkdir -p jbr
-          curl -L -o jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-17.0.11-linux-x64-b1312.2.tar.gz
+          mkdir -p /jbr
+          curl -L -o /jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-17.0.11-linux-x64-b1312.2.tar.gz
           tar -xzf jbr.tar.gz -C /jbr --strip-components=1
         env:
           JBR_HOME: /jbr
