@@ -33,42 +33,35 @@ jobs:
           JBR_HOME: C:\jbr
       # Step 3: 配置 JAVA_HOME 环境变量
       - name: Configure JAVA_HOME
-        run: echo "JAVA_HOME=C:\jbr" >> $GITHUB_ENV
+        run: |
+          echo "JAVA_HOME=C:\\jbr" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "PATH=C:\\jbr\\bin;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
         
-      # Step 4: 验证 JBR 配置是否成功
+     # Step 5: 验证 JBR 配置是否成功
       - name: Verify JBR
-        run: $JAVA_HOME\\bin\\java -version
+        run: |
+          $env:JAVA_HOME\bin\java -version
         shell: pwsh
-          
-      # Step 3：打印
-      - name: Print
-        run: |
-          echo "jbr目录下 ：  $(ls -a C:\\jbr)"
-          echo "当前目录：$(pwd)"
-          shell: pwsh
-          
-      # Step 4: 配置 Java 环境变量
-      - name: Configure Java Environment Variables
-        run: |
-          echo "JAVA_HOME=C:\\jbr" >> $GITHUB_ENV
-          echo "PATH=C:\\jbr\\bin:$PATH" >> $GITHUB_ENV
 
-      # Step 5: 构建EXE
+      # Step 6：打印 JBR 目录内容（使用 cmd）
+      - name: Print JBR Directory
+        run: dir C:\jbr /S /B
+
+      # Step 7: 构建 EXE
       - name: Build exe app
         run: |
-          ./gradlew packageUberJarForCurrentOS
-          ./gradlew createDistributable
-          ./gradlew packageExe
+          .\gradlew packageUberJarForCurrentOS
+          .\gradlew createDistributable
+          .\gradlew packageExe
 
-      # Step 6：打印
-      - name: Print
-        run: |
-          echo "文件路径遍历1：$(ls -R build)"
-          
+      # Step 8：打印生成文件路径
+      - name: Print Build Output
+        run: dir composeApp\build /S /B
+
+      # Step 9: 保存构建产物
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: distributable-${{ matrix.os }}
+          name: distributable
           if-no-files-found: ignore
-          path: |
-            composeApp/build
+          path: composeApp/build
