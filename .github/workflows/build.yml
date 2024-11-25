@@ -14,14 +14,29 @@ jobs:
       # Step 1: 检出代码
       - uses: actions/checkout@v4
 
-      # Step 2: 下载并配置 JBR (JetBrains Runtime)
-      - name: Download JetBrains Runtime (JBR)
+      # Step 1: 恢复 JBR 缓存
+      - name: Restore JBR Cache
+        uses: actions/cache@v3
+        with:
+          path: jbr/ # 缓存路径
+          key: jbr-${{ runner.os }}-17.0.11-b1312.2 # 缓存的唯一标识
+
+      # Step 2: 下载并配置 JBR (JetBrains Runtime)（如果缓存未命中）
+      - name: Download and Extract JBR
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          mkdir jbr
+          mkdir -p jbr
           curl -L -o jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-17.0.11-linux-x64-b1312.2.tar.gz
           tar -xzf jbr.tar.gz -C jbr --strip-components=1
         env:
           JBR_HOME: ${{ github.workspace }}/jbr
+      # Step 4: 验证 JBR 配置是否成功
+      - name: Verify JBR
+        run: $JAVA_HOME/bin/java -version
+
+      # Step 3: 配置 JAVA_HOME 环境变量
+      - name: Configure JAVA_HOME
+        run: echo "JAVA_HOME=${{ github.workspace }}/jbr" >> $GITHUB_ENV
           
       # Step 3：打印
       - name: Print
