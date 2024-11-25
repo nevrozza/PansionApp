@@ -28,7 +28,7 @@ jobs:
         run: |
           mkdir -p /home/runner/jbr
           curl -L -o /home/runner/jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-17.0.11-linux-x64-b1312.2.tar.gz
-          tar -xzf jbr.tar.gz -C /home/runner/jbr --strip-components=1
+          tar -xzf /home/runner/jbr.tar.gz -C /home/runner/jbr --strip-components=1
         env:
           JBR_HOME: /home/runner/jbr
       # Step 3: 配置 JAVA_HOME 环境变量
