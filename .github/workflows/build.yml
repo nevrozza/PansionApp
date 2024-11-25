@@ -18,7 +18,7 @@ jobs:
       - name: Restore JBR Cache
         uses: actions/cache@v3
         with:
-          path: /jbr # 缓存路径
+          path: /home/runner/jbr # 缓存路径
           key: jbr # 缓存的唯一标识
           restore-keys: jbr-r
 
@@ -26,14 +26,14 @@ jobs:
       - name: Download and Extract JBR
         if: ${{ steps.cache-jdk.outputs.cache-hit != 'true' }}
         run: |
-          mkdir -p /jbr
-          curl -L -o /jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-17.0.11-linux-x64-b1312.2.tar.gz
-          tar -xzf jbr.tar.gz -C /jbr --strip-components=1
+          mkdir -p /home/runner/jbr
+          curl -L -o /home/runner/jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-17.0.11-linux-x64-b1312.2.tar.gz
+          tar -xzf jbr.tar.gz -C /home/runner/jbr --strip-components=1
         env:
-          JBR_HOME: /jbr
+          JBR_HOME: /home/runner/jbr
       # Step 3: 配置 JAVA_HOME 环境变量
       - name: Configure JAVA_HOME
-        run: echo "JAVA_HOME=/jbr" >> $GITHUB_ENV
+        run: echo "JAVA_HOME=/home/runner/jbr" >> $GITHUB_ENV
         
       # Step 4: 验证 JBR 配置是否成功
       - name: Verify JBR
@@ -42,14 +42,14 @@ jobs:
       # Step 3：打印
       - name: Print
         run: |
-          echo "jbr目录下 ：  $(ls -a /jbr)"
+          echo "jbr目录下 ：  $(ls -a /home/runner/jbr)"
           echo "当前目录：$(pwd)"
           
       # Step 4: 配置 Java 环境变量
       - name: Configure Java Environment Variables
         run: |
-          echo "JAVA_HOME=/jbr" >> $GITHUB_ENV
-          echo "PATH=/jbr/bin:$PATH" >> $GITHUB_ENV
+          echo "JAVA_HOME=/home/runner/jbr" >> $GITHUB_ENV
+          echo "PATH=/home/runner/jbr/bin:$PATH" >> $GITHUB_ENV
 
       # Step 5: 构建EXE
       - name: Build exe app
