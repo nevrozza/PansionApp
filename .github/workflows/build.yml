@@ -53,13 +53,13 @@ jobs:
 
       # Step 7：Upload Relase
       - name: Tag and Release
-      uses: dothq/tag-and-release-and-upload@v1.0.2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        
-        # Use the version from the previous step
-        version: output
-        
-        assets: '[ "composeApp/build/compose/binaries/main/exe/*.exe" ]'
-        overwrite: true  
+        uses: dothq/tag-and-release-and-upload@v1.0.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Use the version from the previous step
+          version: output
+          
+          assets: '[ "composeApp/build/compose/binaries/main/exe/*.exe" ]'
+          overwrite: true  
           
