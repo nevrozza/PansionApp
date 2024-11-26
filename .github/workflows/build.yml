@@ -24,14 +24,8 @@ jobs:
       - name: Configure JAVA_HOME
         uses: actions/setup-java@v4
         with:
-          distribution: 'jdkfile'
-          jdkFile: C:\jbr.tar.gz
-          java-version: '17.0.11'
-          architecture: x64
-          cache: 'gradle'
-          cache-dependency-path: | # optional
-            /*.gradle*
-            /**/gradle-wrapper.properties
+          distribution: 'zulu'
+          java-version: '17'
         
       # Step 4: 构建 EXE
       - name: Build exe app
@@ -47,4 +41,4 @@ jobs:
         with:
           name: distributable
           if-no-files-found: ignore
-          path: composeApp/build
+          path: composeApp/build/compose/binaries/main/app
