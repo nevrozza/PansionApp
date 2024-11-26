@@ -35,11 +35,19 @@ jobs:
         run: |
           setx JAVA_HOME /m C:\jbr
           setx PATH /m "%JAVA_HOME%\bin;%PATH%"
+          set JAVA_HOME=C:\jbr
+          set PATH=%JAVA_HOME%\bin;%PATH%
+          echo JAVA_HOME=C:\jbr >> $GITHUB_ENV
+          echo PATH=%JAVA_HOME%\bin;%PATH% >> $GITHUB_ENV
         shell: cmd
-      - name: 打印
+      
+      - name: Print JAVA_HOME and PATH
         run: |
-          & java -version 2>&1 | ForEach-Object { Write-Output $_ }
+          echo JAVA_HOME=$env:JAVA_HOME
+          echo PATH=$env:PATH
+          java -version
         shell: pwsh
+
         
         
       # Step 7: 构建 EXE
