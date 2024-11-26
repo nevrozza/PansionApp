@@ -30,8 +30,8 @@ jobs:
           architecture: x64
           cache: 'gradle'
           cache-dependency-path: | # optional
-            sub-project/*.gradle*
-            sub-project/**/gradle-wrapper.properties
+            /*.gradle*
+            /**/gradle-wrapper.properties
         
       # Step 4: 构建 EXE
       - name: Build exe app
