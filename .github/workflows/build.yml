@@ -36,6 +36,8 @@ jobs:
 
       # Step 3: 配置 JAVA_HOME 环境变量
       - name: Configure JAVA_HOME
+        env:
+          JAVA_HOME: C:\jbr
         run: |
           setx JAVA_HOME /m C:\jbr
           setx PATH /m "%JAVA_HOME%\bin;%PATH%"
