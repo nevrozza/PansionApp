@@ -26,6 +26,10 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
         
       # Step 4: 构建 EXE
       - name: Build exe app
