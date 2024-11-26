@@ -14,21 +14,11 @@ jobs:
       # Step 1: 检出代码
       - uses: actions/checkout@v4
 
-      # Step 1: 恢复 JBR 缓存
-      - name: JBR Cache
-        uses: actions/cache@v3
-        id: cache-jdk
-        with:
-          path: C:\jbr # 缓存路径
-          key: jbr # 缓存的唯一标识
-
       # Step 2: 下载并配置 JBR (JetBrains Runtime)（如果缓存未命中）
       - name: Download and Extract JBR
-        if: steps.cache-jdk.outputs.cache-hit != 'true'
         run: |
           mkdir -p C:\jbr
           curl -L -o C:\jbr.tar.gz https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-17.0.11-windows-x64-b1312.2.tar.gz
-          tar -xzf C:\jbr.tar.gz -C C:\jbr --strip-components=1
 
       # Step 3: 配置 JAVA_HOME 环境变量
       - name: Configure JAVA_HOME
@@ -38,15 +28,12 @@ jobs:
           jdkFile: C:\jbr.tar.gz
           java-version: '17.0.11'
           architecture: x64
-      
-      - name: Print JAVA_HOME and PATH
-        run: |
-          echo JAVA_HOME=$env:JAVA_HOME
-          echo PATH=$env:PATH
-          java -version
-        shell: pwsh
+          cache: 'gradle'
+          cache-dependency-path: | # optional
+            sub-project/*.gradle*
+            sub-project/**/gradle-wrapper.properties
         
-      # Step 7: 构建 EXE
+      # Step 4: 构建 EXE
       - name: Build exe app
         run: |
           .\gradlew -Dorg.gradle.java.home=C:\jbr
@@ -54,7 +41,7 @@ jobs:
           .\gradlew createDistributable
           .\gradlew packageExe
 
-      # Step 9: 保存构建产物
+      # Step 5: 保存构建产物
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
