@@ -37,7 +37,10 @@ jobs:
           setx PATH /m "%JAVA_HOME%\bin;%PATH%"
         shell: cmd
       - name: 打印
-        run: for /f "tokens=*" %i in ('java -version 2^>^&1') do @echo %i
+        run: |
+          & java -version 2>&1 | ForEach-Object { Write-Output $_ }
+        shell: pwsh
+        
         
       # Step 7: 构建 EXE
       - name: Build exe app
