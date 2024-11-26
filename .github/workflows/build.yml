@@ -36,7 +36,9 @@ jobs:
           setx JAVA_HOME /m C:\jbr
           setx PATH /m "%JAVA_HOME%\bin;%PATH%"
         shell: cmd
-
+      - name: 打印
+        run: for /f "tokens=*" %i in ('java -version 2^>^&1') do @echo %i
+        
       # Step 7: 构建 EXE
       - name: Build exe app
         run: |
