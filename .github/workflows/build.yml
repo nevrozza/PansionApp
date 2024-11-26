@@ -32,8 +32,8 @@ jobs:
 
       # Step 3: 配置 JAVA_HOME 环境变量
       - name: Configure JAVA_HOME
-        run: | 
-          setx PATH /m "%PATH%;C:\jbr\bin
+        run: setx PATH /m "%PATH%;C:\jbr\bin
+        shell: cmd
 
       # Step 7: 构建 EXE
       - name: Build exe app
