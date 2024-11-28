@@ -55,7 +55,8 @@ class UserManageController() {
                             praname = it.praname
                         ),
                         isActive = it.isActive,
-                        isParent = it.isParent
+                        isParent = it.isParent,
+                        isStudent = it.role == Roles.student
                     )
                 }.sortedBy { it.fio.surname }.sortedBy { !it.isActive }
 

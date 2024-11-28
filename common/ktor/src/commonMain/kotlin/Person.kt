@@ -18,7 +18,8 @@ data class PersonParent(
     val login: String,
     val fio: FIO,
     val isActive: Boolean,
-    val isParent: Boolean
+    val isParent: Boolean,
+    val isStudent: Boolean
 )
 @Serializable
 data class PersonPlus(

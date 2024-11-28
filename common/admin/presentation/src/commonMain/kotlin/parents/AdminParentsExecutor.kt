@@ -109,7 +109,7 @@ class AdminParentsExecutor(
     private fun updateChildPicker(state: State) {
         childCreatePicker.onEvent(
             ListDialogStore.Intent.InitList(
-                state.users.filter { it.login !in state().kids && !it.isParent && it.isActive}.map {
+                state.users.filter { it.login !in state().kids && !it.isParent && it.isActive && it.isStudent}.map {
                     ListItem(
                         id = it.login,
                         text = "${it.fio.surname} ${it.fio.name} ${it.fio.praname}"
