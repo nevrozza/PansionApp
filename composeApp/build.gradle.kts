@@ -80,6 +80,8 @@ kotlin {
                 outputDirectory = file("$projectDir/build/jsDistribution/")
             }
         }
+
+        useCommonJs()
         binaries.executable()
     }
     wasmJs {
@@ -92,6 +94,7 @@ kotlin {
                 outputDirectory = file("$projectDir/build/wasmJsDistribution/")
             }
         }
+        useCommonJs()
         binaries.executable()
     }
 

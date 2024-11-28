@@ -26,12 +26,12 @@ kotlin {
     js(IR) {
         browser()
 //        useEsModules()
-//        useCommonJs()
+        useCommonJs()
         binaries.executable()
     }
     wasmJs {
         browser()
-//        useCommonJs()
+        useCommonJs()
         binaries.executable()
     }
 

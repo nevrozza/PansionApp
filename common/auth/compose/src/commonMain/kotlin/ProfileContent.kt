@@ -79,7 +79,7 @@ fun SharedTransitionScope.ProfileContent(
 //    }
 
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
-    val avatarsList: List<Pair<String, List<Pair<Int, PricedAvatar>>>> = remember {
+    val avatarsList: List<Pair<String, List<Pair<Int, PricedAvatar>>>> = if (model.avatars != null) remember {
         listOf(
             "Символы" to Images.symbolsCostedAvatars.map {
                 it.key to it.value.copy(
@@ -130,7 +130,7 @@ fun SharedTransitionScope.ProfileContent(
             }
                 .sortedBy { it.second.price }
         ) else listOf()
-    }
+    } else listOf()
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
