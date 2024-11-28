@@ -3,24 +3,15 @@ package components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
-import androidx.compose.material3.SwipeToDismissBoxState.Companion.Saver
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import main.ClientMainNotification
+import resources.RIcons
 import view.ViewManager
 import view.blend
 import view.esp
@@ -79,14 +71,13 @@ fun NotificationItem(
             backgroundContent = {
 
                 Row(Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    Icon(
-                        Icons.Rounded.Check, null
-                    )
-                    Icon(
-                        Icons.Rounded.Check, null
+                    Spacer(Modifier)
+                    GetAsyncIcon(
+                        RIcons.Check
                     )
                 }
-            }
+            },
+            enableDismissFromStartToEnd = false
         ) {
             Surface(
                 modifier.clip(
@@ -196,10 +187,10 @@ fun NotificationItem(
                                 )
                                 Spacer(Modifier.width(2.5.dp))
                             }
-                                Icon(
-                                    Icons.Rounded.Close,
-                                    null,
-                                    modifier = Modifier.size(15.dp).background(
+                                GetAsyncIcon(
+                                    RIcons.Close,
+                                    size = 15.dp,
+                                    modifier = Modifier.background(
                                         MaterialTheme.colorScheme.surfaceColorAtElevation(15.dp).copy(.3f)
                                     )
                                 )

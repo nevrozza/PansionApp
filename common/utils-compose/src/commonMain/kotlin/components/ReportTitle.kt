@@ -2,19 +2,9 @@ package components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import resources.RIcons
 import view.esp
 
 @Composable
@@ -170,10 +161,11 @@ fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true, sep
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Rounded.Person,
-            null,
-            modifier = Modifier.size(20.dp).offset(y = 1.dp)
+        Spacer(Modifier.width(2.dp))
+        GetAsyncIcon(
+            RIcons.User,
+            size = 14.dp,
+            modifier = Modifier.offset(y = 1.dp)
         )
         Spacer(Modifier.width(5.dp))
         Text(

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Category
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -24,22 +23,22 @@ import org.jetbrains.jewel.window.newFullscreenControls
 import java.awt.Desktop
 import java.net.URI
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun DecoratedWindowScope.TitleBarView() {
-    TitleBar(Modifier.newFullscreenControls()) {
-        Text(title)
-
-        Row(Modifier.align(Alignment.End)) {
-            Tooltip({
-                Text("Open Jewel Github repository")
-            }) {
-                IconButton({
-                    Desktop.getDesktop().browse(URI.create("https://github.com/JetBrains/jewel"))
-                }, Modifier.size(40.dp).padding(5.dp)) {
-                    Icon(Icons.Rounded.Category, "Github")
-                }
-            }
-        }
-    }
-}
+//@OptIn(ExperimentalFoundationApi::class)
+//@Composable
+//fun DecoratedWindowScope.TitleBarView() {
+//    TitleBar(Modifier.newFullscreenControls()) {
+//        Text(title)
+//
+//        Row(Modifier.align(Alignment.End)) {
+//            Tooltip({
+//                Text("Open Jewel Github repository")
+//            }) {
+//                IconButton({
+//                    Desktop.getDesktop().browse(URI.create("https://github.com/JetBrains/jewel"))
+//                }, Modifier.size(40.dp).padding(5.dp)) {
+//                    Icon(Icons.Rounded.Category, "Github")
+//                }
+//            }
+//        }
+//    }
+//}

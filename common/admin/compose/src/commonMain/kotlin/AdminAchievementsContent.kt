@@ -2,52 +2,18 @@
 import achievements.AdminAchievementsComponent
 import achievements.AdminAchievementsStore
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -56,17 +22,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AppBar
-import components.CLazyColumn
-import components.CustomTextButton
-import components.CustomTextField
+import components.*
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import dev.chrisbanes.haze.HazeState
-import view.LocalViewManager
-import view.rememberImeState
+import resources.RIcons
 
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
@@ -88,8 +49,8 @@ fun AdminAchievementsContent(
                     IconButton(
                         onClick = { component.onOutput(AdminAchievementsComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -107,15 +68,15 @@ fun AdminAchievementsContent(
                     IconButton(
                         onClick = { component.onEvent(AdminAchievementsStore.Intent.Init) }
                     ) {
-                        Icon(
-                            Icons.Rounded.Refresh, null
+                        GetAsyncIcon(
+                            RIcons.Refresh
                         )
                     }
                     IconButton(
                         onClick = { component.onEvent(AdminAchievementsStore.Intent.OpenCreateBS) }
                     ) {
-                        Icon(
-                            Icons.Rounded.Add, null
+                        GetAsyncIcon(
+                            path = RIcons.Add
                         )
                     }
                 },
@@ -238,8 +199,8 @@ fun AdminAchievementsContent(
                                             MaterialTheme.colorScheme.primaryContainer.copy(alpha = .5f)
                                         ), contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(
-                                            Icons.Rounded.Add, null
+                                        GetAsyncIcon(
+                                            path = RIcons.Add
                                         )
                                     }
                                 }
@@ -337,8 +298,11 @@ private fun BottomSheetContent(
                     onValueChange = {},
                     label = { Text("Ученик") },
                     trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = expandedStudents
+                        val chevronRotation = animateFloatAsState(if (expandedStudents) 90f else -90f)
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft,
+                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                            size = 15.dp
                         )
                     },
                     shape = RoundedCornerShape(15.dp),
@@ -416,8 +380,11 @@ private fun BottomSheetContent(
                     onValueChange = {},
                     label = { Text("Предмет") },
                     trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = expandedSubjects
+                        val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft,
+                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                            size = 15.dp
                         )
                     },
                     shape = RoundedCornerShape(15.dp),
@@ -479,15 +446,7 @@ private fun BottomSheetContent(
                 supText = "Можно пустым"
             )
             Spacer(Modifier.width(5.dp))
-//            if (model.bsId != null) {
-//                IconButton(
-//                    onClick = {}
-//                ) {
-//                    Icon(
-//                        Icons.Rounded.Close, null
-//                    )
-//                }
-//            }
+
             AnimatedCommonButton(
                 text =
                 if (nBSModel.state == NetworkState.Error) {
@@ -618,8 +577,11 @@ private fun EditBottomSheetContent(
                     onValueChange = {},
                     label = { Text("Предмет") },
                     trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = expandedSubjects
+                        val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft,
+                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                            size = 15.dp
                         )
                     },
                     shape = RoundedCornerShape(15.dp),
@@ -686,8 +648,11 @@ private fun EditBottomSheetContent(
                     onValueChange = {},
                     label = { Text("Ученик") },
                     trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = expandedStudents
+                        val chevronRotation = animateFloatAsState(if (expandedStudents) 90f else -90f)
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft,
+                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                            size = 15.dp
                         )
                     },
                     shape = RoundedCornerShape(15.dp),
@@ -720,15 +685,7 @@ private fun EditBottomSheetContent(
                 }
             }
             Spacer(Modifier.width(5.dp))
-//            if (model.bsId != null) {
-//                IconButton(
-//                    onClick = {}
-//                ) {
-//                    Icon(
-//                        Icons.Rounded.Close, null
-//                    )
-//                }
-//            }
+
 
             AnimatedCommonButton(
                 text = "Удалить",

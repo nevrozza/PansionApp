@@ -121,7 +121,7 @@ fun main() {
                     )
                 )
             }
-            val haze = remember { mutableStateOf(HazeState()) }
+            val haze = remember {HazeState()}
             CompositionLocalProvider(
                 LocalViewManager provides viewManager,
                 GlobalHazeState provides haze
@@ -167,6 +167,7 @@ fun changeThemeColor(newColor: String) {
     if (themeColorMetaTag != null) {
         themeColorMetaTag.content = newColor
     }
+    document.body.style.backgroundColor = newColor
 }
 
 
@@ -192,6 +193,9 @@ fun getDeviceName(): String {
         userAgent.contains("EdgiOS", ignoreCase = true) -> "Edge "
         userAgent.contains("FxiOS", ignoreCase = true) -> "Firefox "
         userAgent.contains("CriOS", ignoreCase = true) -> "Chrome "
+        userAgent.contains("Chrome", ignoreCase = true) -> "Chrome "
+        userAgent.contains("Safari", ignoreCase = true) -> "Safari "
+        userAgent.contains("YaBrowser", ignoreCase = true) -> "Yandex "
         else -> ""
     } + deviceName
 

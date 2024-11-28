@@ -8,51 +8,26 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.BorderStup
-import components.CLazyColumn
-import components.CustomTextButton
-import components.StupsButtons
+import components.*
 import components.networkInterface.NetworkState
 import detailedStups.DetailedStupsComponent
 import detailedStups.DetailedStupsStore
 import dev.chrisbanes.haze.HazeState
 import report.UserMark
+import resources.RIcons
 import server.fetchReason
 import server.getLocalDate
-import view.LocalViewManager
-import view.rememberImeState
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -80,8 +55,8 @@ fun DetailedStupsContent(
                     IconButton(
                         onClick = { component.onOutput(DetailedStupsComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -220,7 +195,9 @@ private fun DetailedStupsSubjectItem(
                         showDs.value = !showDs.value
                     }
                 ) {
-                    Icon(if (showDs.value) Icons.Rounded.Star else Icons.Rounded.StarOutline, null)
+                    GetAsyncIcon(
+                        path = if (showDs.value) RIcons.Star else RIcons.StarOutlined
+                    )
                 }
             }
             if (isFullView.value) {

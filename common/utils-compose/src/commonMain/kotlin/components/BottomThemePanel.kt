@@ -5,42 +5,22 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.AutoMode
-import androidx.compose.material.icons.rounded.Brush
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material.icons.rounded.Translate
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import forks.colorPicker.ColorSlider
+import resources.RIcons
 import view.ThemeTint
 import view.ViewManager
+import view.esp
 
 @Composable
 fun BottomThemePanel(
@@ -52,9 +32,9 @@ fun BottomThemePanel(
     changeColor: (Color) -> Unit
 ) {
     val tints = listOf(
-        Pair(ThemeTint.Dark, Icons.Rounded.DarkMode),
-        Pair(ThemeTint.Auto, Icons.Rounded.AutoMode),
-        Pair(ThemeTint.Light, Icons.Rounded.LightMode)
+        Pair(ThemeTint.Dark, RIcons.DarkMode),
+        Pair(ThemeTint.Auto, RIcons.AutoMode),
+        Pair(ThemeTint.Light, RIcons.LightMode)
     )
     Box(
         Modifier.fillMaxSize()
@@ -72,7 +52,8 @@ fun BottomThemePanel(
                 modifier = modifier.widthIn(max = 470.dp).fillMaxWidth()
                     //                    .bringIntoView(scrollState, imeState)
 
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 12.dp)
+                    .padding(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -82,10 +63,8 @@ fun BottomThemePanel(
                             isColorMenuOpened.value = !isColorMenuOpened.value
                         }
                     ) {
-                        Icon(
-                            Icons.Rounded.Brush,
-                            null,
-                            modifier = Modifier.size(27.dp)
+                        GetAsyncIcon(
+                            RIcons.BigBrush
                         )
                     }
 
@@ -93,13 +72,13 @@ fun BottomThemePanel(
 
 
                 Row() {
-                    Icon(
-                        Icons.AutoMirrored.Rounded.Send,
-                        null,
-                        modifier = Modifier.rotate(360 - 45.0f)
+                    GetAsyncIcon(
+                        RIcons.Telegram
                     )
+                    Spacer(Modifier.width(5.dp))
                     Text(
-                        "@pansionApp"
+                        "PansionApp",
+                        fontSize = 17.esp
                     )
                 }
 
@@ -108,10 +87,9 @@ fun BottomThemePanel(
 
                     }
                 ) {
-                    Icon(
-                        Icons.Rounded.Translate,
-                        null,
-                        modifier = Modifier.size(27.dp)
+                    GetAsyncIcon(
+                        RIcons.Translate,
+                        size = 27.dp
                     )
                 }
             }
@@ -143,7 +121,7 @@ fun BottomThemePanel(
                             tints.forEach { tint ->
                                 ChangeTintButton(
                                     tint = tint.first,
-                                    imageVector = tint.second,
+                                    iconPath = tint.second,
                                     isSelected = viewManager.tint.value == tint.first
                                 ) {
                                     onThemeClick(it)
@@ -160,7 +138,7 @@ fun BottomThemePanel(
 @Composable
 fun ChangeTintButton(
     tint: ThemeTint,
-    imageVector: ImageVector,
+    iconPath: String,
     isSelected: Boolean,
     onClick: (ThemeTint) -> Unit
 ) {
@@ -170,8 +148,8 @@ fun ChangeTintButton(
         },
         colors = IconButtonDefaults.iconButtonColors(containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Unspecified)
     ) {
-        Icon(
-            imageVector = imageVector,
+        GetAsyncIcon(
+            path = iconPath,
             contentDescription = tint.name,
             tint = MaterialTheme.colorScheme.onSurface
         )

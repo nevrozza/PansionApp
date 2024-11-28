@@ -27,7 +27,6 @@ import pansion.common.utils_compose.generated.resources.Geologica_SemiBold
 import pansion.common.utils_compose.generated.resources.Geologica_SemiBoldItalic
 import pansion.common.utils_compose.generated.resources.Geologica_Thin
 import pansion.common.utils_compose.generated.resources.Geologica_ThinItalic
-import pansion.common.utils_compose.generated.resources.MGU
 import pansion.common.utils_compose.generated.resources.Res
 import pansion.common.utils_compose.generated.resources.emoji0
 import pansion.common.utils_compose.generated.resources.*
@@ -91,6 +90,7 @@ fun getAvatarPath(avatarId: Int): String? {
                 }
             }
         }
+
         2 -> {
             with(Images.Avatars.Cats) {
                 when (avatarId) {
@@ -203,6 +203,167 @@ fun getAvatarPath(avatarId: Int): String? {
     }
     return path//list[avatarId]?.image
     //imageResource(Res.drawable.anime1)//Images.avatarsMap[avatarId]
+}
+
+
+data object RIcons {
+    const val HomeWork = "list-check-solid.svg"
+    const val Check = "check-solid.svg"
+    const val Close = "xmark-solid.svg"
+    const val ChevronLeft = "chevron-left-solid.svg"
+    const val MagicWand = "wand-magic-sparkles-solid.svg"
+    const val Gift = "gift-solid.svg"
+    const val Save = "floppy-disk-solid.svg"
+    const val Add = "plus-solid.svg"
+    const val Link = "link-solid.svg"
+
+    const val Qr = "qrcode-solid.svg"
+
+    const val TrashCanRegular = "trash-can-regular.svg"
+    const val Refresh = "rotate-right-solid.svg"
+    const val SovietSettings = "screwdriver-wrench-solid.svg"
+    const val Group = "users-solid.svg"
+    const val SmallGroup = "user-group-solid.svg"
+    const val Home = "house-solid.svg"
+    const val School = "school-solid.svg"
+    const val Book = "book-solid.svg"
+    const val ContactBook = "address-book-regular.svg"
+    const val Table = "table-list-solid.svg"
+
+    const val Settings = "gear-solid.svg"
+
+    const val Trophy = "trophy-solid.svg"
+
+    const val Calendar = "calendar-regular.svg"
+
+    const val SchoolCap = "graduation-cap-solid.svg"
+    const val SchoolCapOutlined = "graduation-cap-outlined.svg"
+
+    const val MGU = "MGU.png"
+
+    const val User = "user-solid.svg"
+
+    const val VisibilityOff = "eye-slash-solid.svg"
+    const val Visibility = "eye-solid.svg"
+
+
+    const val QuestionCircle = "circle-question-regular.svg"
+
+    const val BigBrush = "brush-solid.svg"
+
+    const val Repeat = "repeat-solid.svg"
+
+    const val Logout = "arrow-right-from-bracket-solid.svg"
+
+    const val Puzzle = "puzzle-piece-solid.svg"
+
+    const val PersonAdd = "user-plus-solid.svg"
+
+    const val SwapHoriz = "arrow-right-arrow-left-solid.svg"
+
+    const val ErrorOutline = "circle-exclamation-solid.svg"
+
+    const val Edit = "pen-solid.svg"
+
+    const val Menu = "bars-solid.svg"
+
+    const val Thumbtack = "thumbtack-solid.svg"
+
+    const val History = "clock-rotate-left-solid.svg"
+
+    const val Tune = "sliders-solid.svg"
+
+    const val Like = "thumbs-up-solid.svg"
+
+    const val Fire = "fire-solid.svg"
+
+    const val Search = "magnifying-glass-solid.svg"
+
+    const val Upload = "cloud-arrow-up-solid.svg"
+
+    const val Star = "star-solid.svg"
+    const val StarOutlined = "star-regular.svg"
+
+    const val Shield = "shield-cat-solid.svg"
+
+    const val MoreVert = "ellipsis-vertical-solid.svg"
+
+    const val Coins = "coins-solid.svg"
+
+    const val RocketLaunch = "rocket-launch-solid.svg"
+    const val Rocket = "rocket-solid.svg"
+
+
+    const val Newspaper = "newspaper-solid.svg"
+
+    const val Comment = "comment-solid.svg"
+
+    const val Ball = "basketball-solid.svg"
+
+    const val Styler = "styler-solid.svg"
+
+    const val Celebration = "celebration-solid.svg"
+
+    const val CuteCheck = "cute-check.svg"
+
+    const val CheckCircleOutline = "circle-check-regular.svg"
+
+    const val Restaraunt = "utensils-solid.svg"
+
+    const val Schedule = "clock-regular.svg"
+
+    const val HourglassBottom = "hourglass-end-solid.svg"
+
+    const val Dining = "dining-solid.svg"
+
+    const val Receipt = "receipt-solid.svg"
+
+    const val ManageSearch = "manage-search-solid.svg"
+
+    const val PlaylistAddCheckCircle = "playlist-add-check-circle.svg"
+
+    const val Minus = "minus-solid.svg"
+
+    const val AutoMode = "auto-mode-solid.svg"
+    const val DarkMode = "dark-mode-solid.svg"
+    const val LightMode = "light-mode-solid.svg"
+
+    const val Translate = "translate.svg"
+
+    const val Telegram = "telegram-brands-solid.svg"
+
+    const val Key = "key-solid.svg"
+
+    const val FlashlightOn = "flashlight-on-solid.svg"
+    const val FlashlightOff = "flashlight-off-solid.svg"
+
+    const val Maximize = "maximize-solid.svg"
+    const val Minimize = "minimize-solid.svg"
+
+
+    data object Devices {
+        data object Web {
+            const val Yandex = "yandex-brands-solid.svg"
+            const val Safari = "safari-brands-solid.svg"
+            const val Edge = "edge-brands-solid.svg"
+            const val Opera = "opera-brands-solid.svg"
+            const val Chrome = "chrome-brands-solid.svg"
+            const val Firefox = "firefox-browser-brands-solid.svg"
+            const val Web = "globe-solid.svg"
+        }
+
+        data object Desktop {
+            const val computer = "computer-solid.svg"
+            const val laptop = "laptop-solid.svg"
+            const val windows = "windows-brands-solid.svg"
+        }
+
+        data object Mobile {
+            const val Android = "android-brands-solid.svg"
+            const val Apple = "apple-brands-solid.svg"
+        }
+    }
+
 }
 
 //@Composable
@@ -351,9 +512,6 @@ data class PricedAvatar(
 
 
 data object Images {
-    val MGUResource = Res.drawable.MGU
-    val MGU: ImageBitmap
-        @Composable get() = imageResource(Res.drawable.MGU) // imageResource(Res.drawable.MGU)
 
 
 //    val avatarsMap: Map<Int, ImageBitmap>
@@ -515,17 +673,17 @@ data object Images {
             val cat2: Pair<Int, PricedAvatar>
                 get() = 2000 + 13 to PricedAvatar("cat2", 30)
             val cat3: Pair<Int, PricedAvatar>
-                 get() = 2000 + 14 to PricedAvatar("cat3", 20)
+                get() = 2000 + 14 to PricedAvatar("cat3", 20)
             val cat4: Pair<Int, PricedAvatar>
-                 get() = 2000 + 15 to PricedAvatar("cat4", 20)
+                get() = 2000 + 15 to PricedAvatar("cat4", 20)
             val cat5: Pair<Int, PricedAvatar>
-                 get() = 2000 + 16 to PricedAvatar("cat5", 20)
+                get() = 2000 + 16 to PricedAvatar("cat5", 20)
             val cat6: Pair<Int, PricedAvatar>
-                 get() = 2000 + 17 to PricedAvatar("cat6", 10)
+                get() = 2000 + 17 to PricedAvatar("cat6", 10)
             val cat7: Pair<Int, PricedAvatar>
-                 get() = 2000 + 19 to PricedAvatar("cat7", 20)
+                get() = 2000 + 19 to PricedAvatar("cat7", 20)
             val catGun: Pair<Int, PricedAvatar>
-                 get() = 2000 + 18 to PricedAvatar("catGun", 10)
+                get() = 2000 + 18 to PricedAvatar("catGun", 10)
         }
 
         //3
@@ -687,25 +845,25 @@ data object Images {
             val smesh3: Pair<Int, PricedAvatar>
                 get() = 7000 + 56 to PricedAvatar("smesh3", 15)
             val smesh4: Pair<Int, PricedAvatar>
-                 get() = 7000 + 57 to PricedAvatar("smesh4", 15)
+                get() = 7000 + 57 to PricedAvatar("smesh4", 15)
             val smesh5: Pair<Int, PricedAvatar>
-                 get() = 7000 + 58 to PricedAvatar("smesh5", 15)
+                get() = 7000 + 58 to PricedAvatar("smesh5", 15)
             val smesh6: Pair<Int, PricedAvatar>
-                 get() = 7000 + 59 to PricedAvatar("smesh6", 15)
+                get() = 7000 + 59 to PricedAvatar("smesh6", 15)
             val smesh7: Pair<Int, PricedAvatar>
-                 get() = 7000 + 60 to PricedAvatar("smesh7", 15)
+                get() = 7000 + 60 to PricedAvatar("smesh7", 15)
             val smesh8: Pair<Int, PricedAvatar>
-                 get() = 7000 + 61 to PricedAvatar("smesh8", 15)
+                get() = 7000 + 61 to PricedAvatar("smesh8", 15)
             val smesh9: Pair<Int, PricedAvatar>
-                 get() = 7000 + 62 to PricedAvatar("smesh9", 15)
+                get() = 7000 + 62 to PricedAvatar("smesh9", 15)
             val smesh10: Pair<Int, PricedAvatar>
                 get() = 7000 + 63 to PricedAvatar("smesh10", 30)
             val smesh11: Pair<Int, PricedAvatar>
-                 get() = 7000 + 64 to PricedAvatar("smesh11", 20)
+                get() = 7000 + 64 to PricedAvatar("smesh11", 20)
             val smesh12: Pair<Int, PricedAvatar>
-                 get() = 7000 + 65 to PricedAvatar("smesh12", 20)
+                get() = 7000 + 65 to PricedAvatar("smesh12", 20)
             val smesh13: Pair<Int, PricedAvatar>
-                 get() = 7000 + 66 to PricedAvatar("smesh13", 30)
+                get() = 7000 + 66 to PricedAvatar("smesh13", 30)
         }
     }
 

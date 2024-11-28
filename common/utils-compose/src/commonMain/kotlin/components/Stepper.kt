@@ -8,10 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,6 +19,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import resources.RIcons
 
 @Composable
 fun Stepper(
@@ -52,7 +49,10 @@ fun Stepper(
                 },
                 enabled = count != minCount
             ) {
-                Icon(Icons.Rounded.Remove, null)
+                GetAsyncIcon(
+                    RIcons.Minus,
+                    size = height-7.dp
+                )
             }
         }
         AnimatedContent(
@@ -69,7 +69,10 @@ fun Stepper(
                 onClick = { onChangeCount(count + 1) },
                 enabled = count != maxCount
             ) {
-                Icon(Icons.Rounded.Add, null)
+                GetAsyncIcon(
+                    RIcons.Add,
+                    size = height-7.dp
+                )
             }
         }
     }

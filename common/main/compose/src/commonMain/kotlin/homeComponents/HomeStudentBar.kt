@@ -2,41 +2,15 @@ package homeComponents
 
 import DotsFlashing
 import FIO
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ManageSearch
-import androidx.compose.material.icons.outlined.PlaylistAddCheckCircle
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import cGrade
 import components.CustomTextButton
 import components.GetAsyncAvatar
+import components.GetAsyncIcon
 import components.LoadingAnimation
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
@@ -59,6 +34,7 @@ import home.HomeStore
 import kotlinx.coroutines.CoroutineScope
 import main.Period
 import resources.Images
+import resources.RIcons
 import server.roundTo
 import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
@@ -202,14 +178,14 @@ fun LazyListScope.homeStudentBar(
                     },
                     modifier = Modifier.align(Alignment.BottomEnd)
                 ) {
-                    Icon(
-                        Icons.AutoMirrored.Rounded.ManageSearch, null
+                    GetAsyncIcon(
+                        RIcons.ManageSearch
                     )
                 }
             }
         }
         Spacer(Modifier.height(15.dp))
-        Row(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
             ElevatedCard(
                 Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
                     .weight(1f)
@@ -224,6 +200,7 @@ fun LazyListScope.homeStudentBar(
             ) {
                 Column(
                     Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
+                        .fillMaxHeight()
                         .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -238,9 +215,8 @@ fun LazyListScope.homeStudentBar(
                             .padding(end = 5.dp, bottom = 5.dp),
                         contentAlignment = Alignment.CenterEnd
                     ) {
-                        Icon(
-                            Icons.Outlined.PlaylistAddCheckCircle,
-                            null,
+                        GetAsyncIcon(
+                            RIcons.PlaylistAddCheckCircle,
                             tint = MaterialTheme.colorScheme.secondary
                         )
                     }
@@ -262,6 +238,7 @@ fun LazyListScope.homeStudentBar(
             ) {
                 Column(
                     Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
+                        .fillMaxHeight()
                         .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {

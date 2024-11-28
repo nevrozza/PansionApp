@@ -6,35 +6,14 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
-import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onPlaced
@@ -44,15 +23,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AnimatedElevatedButton
-import components.BottomThemePanel
-import components.CustomTextButton
-import components.CustomTextField
-import components.LoadingAnimation
+import components.*
 import forks.colorPicker.toHex
 import kotlinx.coroutines.launch
-import resources.Images
+import resources.RIcons
 import view.LocalViewManager
 import view.bringIntoView
 import view.esp
@@ -130,25 +104,28 @@ fun ActivationContent(
                 Spacer(Modifier)
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
                     .animateContentSize()) {
-                    Icon(
-                        Images.MGU,
-                        null,
-                        Modifier.size(200.dp)
+                    GetAsyncIcon(
+                        path = RIcons.MGU,
+                        size = 200.dp
                     )
+
                     //Title
                     Crossfade(
                         targetState = model.name,
-                        modifier = Modifier
+                        modifier = Modifier.animateContentSize()
                     ) { name ->
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             when (name) {
-                                null -> Text(
-                                    "Активируйте свой аккаунт\n",
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = (26.5f).esp,
-                                    lineHeight = 28.esp
-                                )
+                                null -> {
+                                    Spacer(Modifier)
+                                    Text(
+                                        "Активируйте свой аккаунт",
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = (26.5f).esp,
+                                        lineHeight = 28.esp
+                                    )
+                                }
 
                                 else -> Text(
                                     "Здравствуйте\n$name!",
@@ -194,10 +171,10 @@ fun ActivationContent(
                                         text = "Логин",
                                         isEnabled = !model.isInProcess,
                                         leadingIcon = {
-                                            val image = Icons.Rounded.Person
-                                            // Please provide localized description for accessibility services
-                                            val description = "Login"
-                                            Icon(imageVector = image, description)
+                                            GetAsyncIcon(
+                                                path = RIcons.User,
+                                                size = 19.dp
+                                            )
                                         },
 
                                         isMoveUpLocked = true,
@@ -257,9 +234,7 @@ fun ActivationContent(
                                                         },
                                                         modifier = Modifier.size(30.dp)
                                                     ) {
-                                                        Icon(
-                                                            Icons.Rounded.History, null
-                                                        )
+                                                        GetAsyncIcon(RIcons.Link)
                                                     }
 
                                                 }
@@ -374,15 +349,12 @@ fun ActivationContent(
                                 }
 
                                 ActivationStore.Step.Login -> {
-                                    IconButton(
-                                        onClick = {},
-                                        enabled = false
-                                    ) {
-                                        Icon(
-                                            Icons.Rounded.QrCodeScanner, null,
-                                            modifier = Modifier.alpha(0f)
-                                        )
-                                    }
+//                                    IconButton(
+//                                        onClick = {},
+//                                        enabled = false
+//                                    ) {
+//
+//                                    }
                                     AnimatedElevatedButton(
                                         text = "Далее",
                                         isEnabled = isLoginButtonEnabled
@@ -391,13 +363,7 @@ fun ActivationContent(
                                             ActivationStore.Intent.ChangeStepOnActivation
                                         )
                                     }
-                                    IconButton(
-                                        onClick = { component.onOutput(ActivationComponent.Output.GoToScanner) }
-                                    ) {
-                                        Icon(
-                                            Icons.Rounded.QrCodeScanner, null
-                                        )
-                                    }
+
                                 }
 
                                 ActivationStore.Step.Activation -> {
@@ -414,9 +380,8 @@ fun ActivationContent(
                                             )
                                         }
                                     ) {
-                                        Icon(
-                                            Icons.AutoMirrored.Rounded.ArrowBackIos,
-                                            null
+                                        GetAsyncIcon(
+                                            RIcons.ChevronLeft
                                         )
                                     }
                                     Spacer(Modifier.width(5.dp))

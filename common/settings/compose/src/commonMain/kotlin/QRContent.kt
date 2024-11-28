@@ -1,49 +1,13 @@
-
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Android
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CalendarToday
-import androidx.compose.material.icons.rounded.Computer
-import androidx.compose.material.icons.rounded.DeviceUnknown
-import androidx.compose.material.icons.rounded.Language
-import androidx.compose.material.icons.rounded.PhoneIphone
-import androidx.compose.material3.Button
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,20 +27,17 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedCommonButton
 import components.CustomTextButton
 import components.CustomTextField
+import components.GetAsyncIcon
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.*
 import qr.QRComponent
 import qr.QRStore
 import qr.isCameraAvailable
-import server.DeviceTypex
+import resources.RIcons
 import server.twoNums
 import view.LocalViewManager
 import view.esp
@@ -161,7 +122,9 @@ fun QRContentActual(component: QRComponent) {
     IconButton(onClick = {
         component.onOutput(QRComponent.Output.Back)
     }, modifier = Modifier.padding(top = viewManager.topPadding, start = 20.dp)) {
-        Icon(Icons.Rounded.ArrowBackIosNew, null)
+        GetAsyncIcon(
+            path = RIcons.ChevronLeft
+        )
     }
     CBottomSheetContent(
         component = component.authBottomSheet
@@ -185,15 +148,13 @@ fun QRContentActual(component: QRComponent) {
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    when (model.deviceType) {
-                        DeviceTypex.desktop -> Icons.Rounded.Computer
-                        DeviceTypex.android -> Icons.Rounded.Android
-                        DeviceTypex.ios -> Icons.Rounded.PhoneIphone
-                        DeviceTypex.web -> Icons.Rounded.Language
-                        else -> Icons.Rounded.DeviceUnknown
-                    }, "PlatformIcon",
-                    modifier = Modifier.size(40.dp)
+                GetAsyncIcon(
+                    path = getDeviceIcon(
+                        deviceType = model.deviceType,
+                        deviceName = model.deviceName ?: ""
+                    ),
+                    contentDescription = "PlatformIcon",
+                    size = 40.dp
                 )
             }
             Spacer(Modifier.height(7.dp))
@@ -356,28 +317,25 @@ private fun createUserSheet(
                                     },
                                     enabled = !isCreatingInProcess
                                 ) {
-                                    Icon(
-                                        Icons.Rounded.CalendarToday,
-                                        null
-                                    )
+                                    GetAsyncIcon(RIcons.Calendar)
                                 }
                             }
                         )
                         if (model.isDateDialogShowing) {
                             val datePickerState = rememberDatePickerState(
                                 initialSelectedDateMillis =
-                                if (model.cBirthday.length == 8) {
-                                    val day = model.cBirthday.substring(0, 2).toInt()
-                                    val month = model.cBirthday.substring(2, 4).toInt()
-                                    val year = model.cBirthday.substring(4).toInt()
-                                    LocalDate(
-                                        year = year,
-                                        monthNumber = month,
-                                        dayOfMonth = day
-                                    ).atStartOfDayIn(
-                                        TimeZone.UTC
-                                    ).toEpochMilliseconds()
-                                } else null,
+                                    if (model.cBirthday.length == 8) {
+                                        val day = model.cBirthday.substring(0, 2).toInt()
+                                        val month = model.cBirthday.substring(2, 4).toInt()
+                                        val year = model.cBirthday.substring(4).toInt()
+                                        LocalDate(
+                                            year = year,
+                                            monthNumber = month,
+                                            dayOfMonth = day
+                                        ).atStartOfDayIn(
+                                            TimeZone.UTC
+                                        ).toEpochMilliseconds()
+                                    } else null,
                                 yearRange = IntRange(1940, model.currentYear - 5)
                             )
                             DatePickerDialog(

@@ -4,14 +4,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -19,20 +12,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.PopupPositionProvider
-import androidx.compose.ui.window.PopupProperties
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
+import components.GetAsyncIcon
 import components.LoadingAnimation
 import components.mpChose.MpChoseComponent
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
+import resources.RIcons
 import view.LocalViewManager
 import view.ViewManager
-import view.WindowScreen
 
-    //USING ONLY FOR SCHEDULE (why..)
+//USING ONLY FOR SCHEDULE (why..)
 @Composable
 fun mpChoseDesktopContent(
     component: MpChoseComponent,
@@ -93,8 +85,8 @@ fun DropdownVariant(
                         },
                         modifier = Modifier.padding(top = (9.2f).dp).size(30.dp).offset(x = 8.dp)
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, "back"
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 }

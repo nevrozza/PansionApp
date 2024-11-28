@@ -3,19 +3,8 @@ package forks.splitPane
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CloseFullscreen
-import androidx.compose.material.icons.rounded.Fax
-import androidx.compose.material.icons.rounded.OpenInFull
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.MutableState
@@ -23,7 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import components.GetAsyncIcon
 import cursorForHorizontalResize
+import resources.RIcons
 import view.LocalViewManager
 
 @ExperimentalSplitPaneApi
@@ -35,7 +26,7 @@ fun SplitPaneScope.dSplitter(
         Box(Modifier.fillMaxHeight()) {
             if (isFullScreen != null) {
                 AnimatedContent(
-                    if (isFullScreen.value) Icons.Rounded.CloseFullscreen else Icons.Rounded.OpenInFull,
+                    if (isFullScreen.value) RIcons.Minimize else RIcons.Maximize,
                     modifier = Modifier.size(25.dp).offset(x = 20.dp, y = viewManager.topPadding + 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -43,7 +34,10 @@ fun SplitPaneScope.dSplitter(
                         onClick = {
                             isFullScreen.value = !isFullScreen.value
                         }) {
-                        Icon(it, null)
+                        GetAsyncIcon(
+                            it,
+                            size = 18.dp
+                            )
                     }
                 }
             }

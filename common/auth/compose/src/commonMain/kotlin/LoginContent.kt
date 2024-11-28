@@ -1,50 +1,14 @@
-import activation.ActivationComponent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import components.AnimatedCommonButton
-import components.CustomTextField
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.QrCode
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.School
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -55,25 +19,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.BottomThemePanel
-import components.CentreAppBar
-import components.LoadingAnimation
+import components.*
 import forks.colorPicker.toHex
-import io.github.alexzhirkevich.qrose.options.QrBallShape
-import io.github.alexzhirkevich.qrose.options.QrFrameShape
-import io.github.alexzhirkevich.qrose.options.QrPixelShape
-import io.github.alexzhirkevich.qrose.options.QrShapes
-import io.github.alexzhirkevich.qrose.options.circle
-import io.github.alexzhirkevich.qrose.options.roundCorners
+import io.github.alexzhirkevich.qrose.options.*
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import login.LoginComponent
 import login.LoginComponent.Output
-import login.LoginStore
 import login.LoginStore.Intent
+import resources.RIcons
 import view.LocalViewManager
 import view.bringIntoView
 import view.rememberImeState
@@ -139,8 +93,8 @@ fun LoginContent(
                     IconButton(
                         onClick = { component.onOutput(Output.BackToActivation) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 }
@@ -162,10 +116,9 @@ fun LoginContent(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Crossfade(model.qrToken == "", modifier = Modifier.animateContentSize()) {
                         if (it) {
-                            Icon(
-                                Icons.Rounded.School,
-                                null,
-                                Modifier.size(150.dp)
+                            GetAsyncIcon(
+                                path = RIcons.SchoolCap,
+                                size = 150.dp
                             )
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -196,10 +149,10 @@ fun LoginContent(
                         text = "Логин",
                         isEnabled = !model.isInProcess,
                         leadingIcon = {
-                            val image = Icons.Rounded.Person
-                            // Please provide localized description for accessibility services
-                            val description = "Login"
-                            Icon(imageVector = image, description)
+                            GetAsyncIcon(
+                                path = RIcons.User,
+                                size = 19.dp
+                            )
                         },
                         onEnterClicked = {
                             focusManager.moveFocus(FocusDirection.Down)
@@ -250,8 +203,8 @@ fun LoginContent(
                             modifier = Modifier.alpha(.0f),
                             enabled = false
                         ) {
-                            Icon(
-                                Icons.Rounded.QrCode, null
+                            GetAsyncIcon(
+                                path = RIcons.Qr
                             )
                         }
                         AnimatedCommonButton(
@@ -267,9 +220,9 @@ fun LoginContent(
                                 component.onEvent(Intent.GetQrToken)
                             }
                         ) {
-                            AnimatedContent(if (model.qrToken == "") Icons.Rounded.QrCode else Icons.Rounded.Refresh) {
-                                Icon(
-                                    it, null
+                            AnimatedContent(if (model.qrToken == "") RIcons.Qr else RIcons.Refresh) {
+                                GetAsyncIcon(
+                                    path = it
                                 )
                             }
                         }

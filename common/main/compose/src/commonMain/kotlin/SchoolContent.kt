@@ -1,6 +1,9 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -9,28 +12,22 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -43,6 +40,7 @@ import dev.chrisbanes.haze.HazeState
 import main.school.DutyKid
 import main.school.MinistrySettingsReason
 import main.school.MinistryStudent
+import resources.RIcons
 import school.SchoolComponent
 import school.SchoolStore
 import server.Ministries
@@ -90,9 +88,7 @@ fun SchoolContent(
                                 component.onOutput(SchoolComponent.Output.NavigateBack)
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Home, null
-                            )
+                            GetAsyncIcon(RIcons.Home)
                         }
                     }
                     AnimatedVisibility(nModel.state == NetworkState.Loading) {
@@ -108,8 +104,8 @@ fun SchoolContent(
                             component.onEvent(SchoolStore.Intent.Init)
                         }
                     ) {
-                        Icon(
-                            Icons.Filled.Refresh, null
+                        GetAsyncIcon(
+                            RIcons.Refresh
                         )
                     }
                 },
@@ -126,9 +122,10 @@ fun SchoolContent(
             hazeState = hazeState
         ) {
             item {
-                Row(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
                     ElevatedCard(
-                        Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                        Modifier
+                            .fillMaxWidth().clip(CardDefaults.elevatedShape)
                             .weight(1f)
                             .handy()
                             .clickable() {
@@ -146,7 +143,7 @@ fun SchoolContent(
                         )
                     ) {
                         Column(
-                            Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
+                            Modifier.fillMaxHeight().padding(vertical = 10.dp, horizontal = 15.dp)
                                 .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -161,9 +158,8 @@ fun SchoolContent(
                                     .padding(end = 5.dp, bottom = 5.dp),
                                 contentAlignment = Alignment.CenterEnd
                             ) {
-                                Icon(
-                                    Icons.Rounded.Group,
-                                    null,
+                                GetAsyncIcon(
+                                    RIcons.SmallGroup,
                                     tint = MaterialTheme.colorScheme.secondary
                                 )
                             }
@@ -186,7 +182,7 @@ fun SchoolContent(
                         )
                     ) {
                         Column(
-                            Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
+                            Modifier.fillMaxHeight().padding(vertical = 10.dp, horizontal = 15.dp)
                                 .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -224,15 +220,14 @@ fun SchoolContent(
                                         1 -> {
                                             Box(contentAlignment = Alignment.Center) {
                                                 if (model.top != null && model.top!! <= 3) {
-                                                    // Show trophy icon for top 3 positions
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.EmojiEvents, // Replace with your trophy icon resource
-                                                        contentDescription = "Top position",
+                                                    GetAsyncIcon(
+                                                        RIcons.Trophy,
                                                         tint = when (model.top) {
                                                             1 -> "#ffd700".toColor()
                                                             2 -> "#c0c0c0".toColor()
                                                             else -> "#cd7f32".toColor()
-                                                        }
+                                                        },
+                                                        size = 23.dp
                                                     )
                                                 } else {
                                                     // Show position number for other positions
@@ -247,10 +242,10 @@ fun SchoolContent(
                                         }
 
                                         2 ->
-                                            Icon(
-                                                Icons.Rounded.EmojiEvents,
-                                                null,
-                                                tint = MaterialTheme.colorScheme.secondary
+                                            GetAsyncIcon(
+                                                RIcons.Trophy,
+                                                tint = MaterialTheme.colorScheme.secondary,
+                                                size = 23.dp
                                             )
                                     }
                                 }
@@ -285,7 +280,10 @@ fun SchoolContent(
                     val isEditDutyView = remember { mutableStateOf(false) }
                     ElevatedCard(
                         modifier = Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
-                            .clickable(enabled = !isEditDutyView.value, indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                            .clickable(
+                                enabled = !isEditDutyView.value,
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }) {
                                 isFullDutyView.value = !isFullDutyView.value
                             }
                     ) {
@@ -355,8 +353,9 @@ fun SchoolContent(
                                                                             },
                                                                             modifier = Modifier.size(30.dp)
                                                                         ) {
-                                                                            Icon(
-                                                                                Icons.Rounded.Edit, null
+                                                                            GetAsyncIcon(
+                                                                                RIcons.Edit,
+                                                                                size = 19.dp
                                                                             )
                                                                         }
                                                                     }
@@ -443,8 +442,8 @@ fun SchoolContent(
                                                                 },
                                                                 modifier = Modifier.size(30.dp)
                                                             ) {
-                                                                Icon(
-                                                                    Icons.Rounded.Done, null
+                                                                GetAsyncIcon(
+                                                                    RIcons.Check
                                                                 )
                                                             }
                                                         }
@@ -539,7 +538,11 @@ fun SchoolContent(
                             overflow = TextOverflow.Ellipsis,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = MaterialTheme.colorScheme.primary)
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft,
+                            modifier = Modifier.rotate(180f),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -568,8 +571,8 @@ fun SchoolContent(
                                 },
                                 modifier = Modifier.size(30.dp)
                             ) {
-                                Icon(
-                                    Icons.Rounded.Rocket, null
+                                GetAsyncIcon(
+                                    RIcons.Rocket
                                 )
                             }
                         }
@@ -586,8 +589,8 @@ fun SchoolContent(
                                 },
                                 modifier = Modifier.padding(end = 7.dp).size(30.dp)
                             ) {
-                                Icon(
-                                    Icons.Rounded.Settings, null
+                                GetAsyncIcon(
+                                    RIcons.Settings
                                 )
                             }
                         }
@@ -601,8 +604,8 @@ fun SchoolContent(
                             },
                             modifier = Modifier.padding(end = 7.dp).size(30.dp)
                         ) {
-                            Icon(
-                                Icons.Rounded.Menu, null
+                            GetAsyncIcon(
+                                RIcons.Menu
                             )
                         }
                     }
@@ -639,9 +642,9 @@ fun SchoolContent(
                                 overflow = TextOverflow.Ellipsis,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            Icon(
-                                Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                null,
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft,
+                                modifier = Modifier.rotate(180f),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -651,10 +654,10 @@ fun SchoolContent(
             if (model.role == Roles.student) {
                 item {
                     Spacer(Modifier.height(7.dp))
-                    Row {
+                    Row(Modifier.height(IntrinsicSize.Max)) {
                         MinistryCard(
                             ministry = "МВД",
-                            nullIcon = Icons.Rounded.LocalPolice,
+                            nullIconPath = RIcons.Shield,
                             stupsCount = model.mvdStupsCount
                         ) {
                             component.onEvent(SchoolStore.Intent.OpenMinistryOverview(Ministries.MVD))
@@ -662,7 +665,7 @@ fun SchoolContent(
                         Spacer(Modifier.width(15.dp))
                         MinistryCard(
                             ministry = "Здраво-\nохранение",
-                            nullIcon = Icons.Rounded.Checkroom,
+                            nullIconPath = RIcons.Styler,
                             stupsCount = model.zdStupsCount
                         ) {
                             component.onEvent(SchoolStore.Intent.OpenMinistryOverview(Ministries.DressCode))
@@ -766,8 +769,9 @@ fun SchoolContent(
                                 },
                                 modifier = Modifier.size(30.dp)
                             ) {
-                                Icon(
-                                    Icons.Rounded.Add, null
+                                GetAsyncIcon(
+                                    path = RIcons.Add,
+                                    size = 20.dp
                                 )
                             }
 
@@ -788,7 +792,9 @@ fun SchoolContent(
                                         keyboardType = KeyboardType.Text
                                     )
                                     IconButton(onClick = { onEnterClick() }) {
-                                        Icon(Icons.Rounded.Done, null)
+                                        GetAsyncIcon(
+                                            RIcons.Check
+                                        )
                                     }
                                 }
                             }
@@ -863,6 +869,7 @@ fun SchoolContent(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DutyCard(
     kid: DutyKid,
@@ -872,12 +879,12 @@ private fun DutyCard(
     modifier: Modifier = Modifier.padding(horizontal = 15.dp)
 ) {
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    FlowRow(
+        verticalArrangement = Arrangement.Center,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier.clip(RoundedCornerShape(15.dp)).then(modifier.fillMaxWidth())
     ) {
-        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(40.dp).align(Alignment.CenterVertically), contentAlignment = Alignment.Center) {
             if (!isEditMode) {
                 GetAsyncAvatar(
                     avatarId = kid.avatarId,
@@ -886,37 +893,43 @@ private fun DutyCard(
                     textSize = MaterialTheme.typography.titleSmall.fontSize
                 )
             } else {
-                Icon(
-                    Icons.Rounded.Menu, null
+                GetAsyncIcon(
+                    RIcons.Menu
                 )
             }
             if (isHisTurn) {
-                Icon(
-                    Icons.Rounded.RestaurantMenu, null,
-                    modifier = Modifier.size(20.dp).align(Alignment.BottomEnd).offset(x = 4.dp),
+                GetAsyncIcon(
+                    RIcons.Dining,
+                    size = 20.dp,
+                    modifier = Modifier.align(Alignment.BottomEnd).offset(x = 4.dp),
                     tint = Color.White
                 )
             }
         }
-//        Spacer(Modifier.width(9.dp))
+//        FlowRow(
+//            horizontalArrangement = Arrangement.SpaceBetween,
+//        ) {
         Text(
-            text = "${kid.fio.surname} ${kid.fio.name}" ,
-            fontWeight = if(myLogin == kid.login) FontWeight.Bold else FontWeight.SemiBold,
-            color = if(myLogin == kid.login) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+            text = "${kid.fio.surname} ${kid.fio.name}",
+            fontWeight = if (myLogin == kid.login) FontWeight.Bold else FontWeight.SemiBold,
+            color = if (myLogin == kid.login) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.align(Alignment.CenterVertically)
         )
         Text(
             text = "дежурств: ${kid.dutyCount}",
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = .5f),
-            fontSize = 12.esp
+            fontSize = 10.esp,
+            modifier = Modifier.align(Alignment.CenterVertically)
         )
+//        }
     }
 }
 
 @Composable
 private fun RowScope.MinistryCard(
     ministry: String,
-    nullIcon: ImageVector,
+    nullIconPath: String,
     stupsCount: Int,
     onClick: () -> Unit
 ) {
@@ -932,7 +945,7 @@ private fun RowScope.MinistryCard(
         )
     ) {
         Column(
-            Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
+            Modifier.fillMaxHeight().padding(vertical = 10.dp, horizontal = 15.dp)
                 .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
@@ -951,9 +964,8 @@ private fun RowScope.MinistryCard(
                     stupsCount >= 0
                 ) { cf ->
                     if (cf) {
-                        Icon(
-                            nullIcon,
-                            null,
+                        GetAsyncIcon(
+                            nullIconPath,
                             tint = MaterialTheme.colorScheme.secondary
                         )
                     } else {
@@ -978,9 +990,9 @@ private fun MinistrySettingsItem(
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (ministryStudent.lvl == "1") {
-            Icon(
-                Icons.Rounded.Rocket, null,
-                modifier = Modifier.size(25.dp)
+            GetAsyncIcon(
+                RIcons.Rocket,
+                size = 25.dp
             )
         }
         Text("${ministryStudent.fio.surname} ${ministryStudent.fio.name}${if (ministryStudent.form.isNotBlank()) " ${ministryStudent.form}" else ""}")
@@ -989,7 +1001,10 @@ private fun MinistrySettingsItem(
                 onClick = { onDeleteClick() },
                 modifier = Modifier.size(30.dp)
             ) {
-                Icon(Icons.Rounded.DeleteOutline, null)
+                GetAsyncIcon(
+                    path = RIcons.TrashCanRegular,
+                    size = 19.dp
+                )
             }
         }
     }

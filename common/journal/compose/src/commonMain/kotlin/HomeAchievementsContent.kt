@@ -4,24 +4,9 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -37,6 +22,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
+import resources.RIcons
 import view.esp
 
 @OptIn(
@@ -59,8 +45,8 @@ fun SharedTransitionScope.HomeAchievementsContent(
                     IconButton(
                         onClick = { component.onOutput(HomeAchievementsComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },

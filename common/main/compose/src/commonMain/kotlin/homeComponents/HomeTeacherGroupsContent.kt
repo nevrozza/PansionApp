@@ -4,10 +4,6 @@ import TeacherGroupButton
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.FormatListNumbered
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
@@ -35,14 +31,7 @@ fun LazyListScope.homeTeacherGroupsContent(
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
-//                    if (model.isMentor || model.isModer) {
-//                        IconButton(
-//                            onClick = {},
-//                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 15.dp).size(30.dp)
-//                        ) {
-//                            Icon(Icons.Rounded.FormatListNumbered, null)
-//                        }
-//                    }
+
                 }
             }
             item {

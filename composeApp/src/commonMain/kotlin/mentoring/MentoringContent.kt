@@ -3,53 +3,20 @@ package mentoring
 import MentorPerson
 import SettingsRepository
 import allGroupMarks.DatesFilter
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -61,13 +28,10 @@ import components.*
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
 import di.Inject
-import io.github.alexzhirkevich.qrose.options.QrBallShape
-import io.github.alexzhirkevich.qrose.options.QrFrameShape
-import io.github.alexzhirkevich.qrose.options.QrPixelShape
-import io.github.alexzhirkevich.qrose.options.QrShapes
-import io.github.alexzhirkevich.qrose.options.roundCorners
+import io.github.alexzhirkevich.qrose.options.*
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import registration.RegistrationRequest
+import resources.RIcons
 import root.RootComponent.Config
 import view.LocalViewManager
 import view.WindowScreen
@@ -109,9 +73,8 @@ fun MentoringContent(
                             component.onOutput(MentoringComponent.Output.NavigateToAchievements)
                         }
                     ) {
-                        Icon(
-                            Icons.Rounded.LocalActivity,
-                            null
+                        GetAsyncIcon(
+                            RIcons.CuteCheck
                         )
                     }
 
@@ -127,9 +90,8 @@ fun MentoringContent(
                                 component.onEvent(MentoringStore.Intent.ChangeView)
                             }
                         ) {
-                            Icon(
-                                if (model.isTableView) Icons.Rounded.PermContactCalendar else Icons.Rounded.Summarize,
-                                null
+                            GetAsyncIcon(
+                                if (model.isTableView) RIcons.ContactBook else RIcons.Table
                             )
                         }
                     }
@@ -138,7 +100,9 @@ fun MentoringContent(
                             component.onEvent(MentoringStore.Intent.FetchStudents)
                         }
                     ) {
-                        Icon(Icons.Rounded.Refresh, null)
+                        GetAsyncIcon(
+                            RIcons.Refresh
+                        )
                     }
 
                 },
@@ -319,11 +283,11 @@ private fun FormsItem(
                 "${form.num} ${form.title}",
                 modifier = Modifier.padding(start = 7.dp).cClickable {
                     onExpandClick()
-                },
+                }.weight(1f, false),
                 fontSize = 19.esp,
                 fontWeight = FontWeight.Bold
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(modifier = Modifier.weight(.4f, false), verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(
                     checked = form.id in model.formsForSummary,
                     onCheckedChange = {
@@ -334,9 +298,11 @@ private fun FormsItem(
                     onClick = { onExpandClick() },
                     modifier = Modifier.size(35.dp)
                 ) {
-                    Icon(
-                        if (isExpanded.value) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                        null
+                    val chevronRotation = animateFloatAsState(if (isExpanded.value) 90f else -90f)
+                    GetAsyncIcon(
+                        path = RIcons.ChevronLeft,
+                        modifier = Modifier.rotate(chevronRotation.value),
+                        size = 15.dp
                     )
                 }
                 IconButton(
@@ -350,12 +316,12 @@ private fun FormsItem(
                     },
                     modifier = Modifier.size(35.dp)
                 ) {
-                    AnimatedContent(
-                        if (form.isQrActive) Icons.Rounded.Close
-                        else Icons.Rounded.Add
-                    ) {
-                        Icon(it, null)
-                    }
+                    val addRotation = animateFloatAsState(if (form.isQrActive) 90f+45f else 0f)
+                    GetAsyncIcon(
+                        path = RIcons.Add,
+                        modifier = Modifier.rotate(addRotation.value),
+//                        size = 15.dp
+                    )
                 }
             }
         }
@@ -454,8 +420,8 @@ private fun FormsItem(
                                             )
                                         }
                                     ) {
-                                        Icon(
-                                            Icons.Rounded.Done, null
+                                        GetAsyncIcon(
+                                            RIcons.Check
                                         )
                                     }
                                     Spacer(Modifier.width(7.dp))
@@ -470,8 +436,8 @@ private fun FormsItem(
                                             )
                                         }
                                     ) {
-                                        Icon(
-                                            Icons.Rounded.Close, null
+                                        GetAsyncIcon(
+                                            RIcons.Close
                                         )
                                     }
                                 }
@@ -548,8 +514,8 @@ private fun FormsItem(
                                             }
                                         }
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.Receipt, null,
+                                        GetAsyncIcon(
+                                            RIcons.Receipt,
                                             tint = if (isChosenPA) MaterialTheme.colorScheme.primary else LocalContentColor.current
                                         )
                                     }
@@ -577,98 +543,10 @@ private fun FormsItem(
                                         },
                                         modifier = Modifier.size(30.dp)
                                     ) {
-                                        Icon(
-                                            Icons.Rounded.Home, null
+                                        GetAsyncIcon(
+                                            RIcons.Home
                                         )
                                     }
-//
-//                                IconButton(
-//                                    onClick = {
-//                                        component.onOutput(
-//                                            MentoringComponent.Output.CreateSecondView(
-//                                                login = s.login,
-//                                                fio = s.fio,
-//                                                avatarId = s.avatarId,
-//                                                config = Config.HomeStudentLines(
-//                                                    login = s.login
-//                                                )
-//                                            )
-//                                        )
-//                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-//                                    },
-//                                    modifier = Modifier.size(30.dp)
-//                                ) {
-//                                    Icon(
-//                                        Icons.Rounded.ManageSearch, null
-//                                    )
-//                                }
-//
-//                                IconButton(
-//                                    onClick = {
-//                                        component.onOutput(
-//                                            MentoringComponent.Output.CreateSecondView(
-//                                                login = s.login,
-//                                                fio = s.fio,
-//                                                avatarId = s.avatarId,
-//                                                config = Config.HomeDnevnikRuMarks(
-//                                                    studentLogin = s.login
-//                                                )
-//                                            )
-//                                        )
-//                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-//                                    },
-//                                    modifier = Modifier.size(30.dp)
-//                                ) {
-//                                    Icon(
-//                                        Icons.Outlined.PlaylistAddCheckCircle, null
-//                                    )
-//                                }
-//
-//
-//                                IconButton(
-//                                    onClick = {
-//                                        component.onOutput(
-//                                            MentoringComponent.Output.CreateSecondView(
-//                                                login = s.login,
-//                                                fio = s.fio,
-//                                                avatarId = s.avatarId,
-//                                                config = Config.HomeTasks(
-//                                                    studentLogin = s.login,
-//                                                    avatarId = s.avatarId,
-//                                                    name = s.fio.name
-//                                                )
-//                                            )
-//                                        )
-//                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-//                                    },
-//                                    modifier = Modifier.size(30.dp)
-//                                ) {
-//                                    Icon(
-//                                        Icons.Rounded.HistoryEdu, null
-//                                    )
-//                                }
-//                                IconButton(
-//                                    onClick = {
-//                                        component.onOutput(
-//                                            MentoringComponent.Output.CreateSecondView(
-//                                                login = s.login,
-//                                                fio = s.fio,
-//                                                avatarId = s.avatarId,
-//                                                config = Config.HomeAchievements(
-//                                                    studentLogin = s.login,
-//                                                    name = s.fio.name,
-//                                                    avatarId = s.avatarId
-//                                                )
-//                                            )
-//                                        )
-//                                        component.onEvent(MentoringStore.Intent.SelectStudent(s.login))
-//                                    },
-//                                    modifier = Modifier.size(30.dp)
-//                                ) {
-//                                    Icon(
-//                                        Icons.Rounded.EmojiEvents, null
-//                                    )
-//                                }
                                 }
                             }
 
@@ -836,7 +714,9 @@ private fun FormsItem(
                                                                         )
                                                                     }
                                                                 ) {
-                                                                    Icon(Icons.Rounded.Close, null)
+                                                                    GetAsyncIcon(
+                                                                        RIcons.Close
+                                                                    )
                                                                 }
 
                                                                 AnimatedCommonButton(

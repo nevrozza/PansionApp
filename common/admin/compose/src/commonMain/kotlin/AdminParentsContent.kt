@@ -1,30 +1,15 @@
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,6 +17,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
+import components.GetAsyncIcon
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
@@ -39,9 +25,8 @@ import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import dev.chrisbanes.haze.HazeState
 import parents.AdminParentsComponent
 import parents.AdminParentsStore
-import view.LocalViewManager
+import resources.RIcons
 import view.esp
-import view.rememberImeState
 
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
@@ -64,8 +49,8 @@ fun AdminParentsContent(
                     IconButton(
                         onClick = { component.onOutput(AdminParentsComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -83,8 +68,8 @@ fun AdminParentsContent(
                     IconButton(
                         onClick = { component.onEvent(AdminParentsStore.Intent.Init) }
                     ) {
-                        Icon(
-                            Icons.Rounded.Refresh, null
+                        GetAsyncIcon(
+                            RIcons.Refresh
                         )
                     }
                     Box() {
@@ -93,8 +78,8 @@ fun AdminParentsContent(
                                 component.childCreatePicker.onEvent(ListDialogStore.Intent.ShowDialog)
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Add, null
+                            GetAsyncIcon(
+                                RIcons.Add
                             )
                         }
                         ListDialogDesktopContent(
@@ -131,8 +116,8 @@ fun AdminParentsContent(
                                             },
                                             modifier = Modifier.size(20.dp)
                                         ) {
-                                            Icon(
-                                                Icons.Rounded.Add, null
+                                            GetAsyncIcon(
+                                                RIcons.Add
                                             )
                                         }
                                         if (model.addToStudent == p.login) {
@@ -160,9 +145,9 @@ fun AdminParentsContent(
                                                 },
                                                 modifier = Modifier.size(20.dp)
                                             ) {
-                                                Icon(
-                                                    Icons.Rounded.Edit,
-                                                    null
+                                                GetAsyncIcon(
+                                                    RIcons.Edit,
+                                                    size = 17.dp
                                                 )
                                             }
                                             if (model.editId == x.id) {

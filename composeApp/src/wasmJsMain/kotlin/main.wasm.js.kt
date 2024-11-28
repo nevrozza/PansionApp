@@ -153,6 +153,7 @@ fun changeThemeColor(newColor: String) {
 
 fun getDeviceName(): String {
     val userAgent = window.navigator.userAgent
+
     var deviceName = when {
         userAgent.contains("iPhone", ignoreCase = true) -> "iPhone"
         userAgent.contains("Samsung", ignoreCase = true) -> "Samsung"
@@ -160,7 +161,7 @@ fun getDeviceName(): String {
         userAgent.contains("Fedora", ignoreCase = true) -> "Fedora"
         userAgent.contains("iPad", ignoreCase = true) -> "iPad"
         userAgent.contains("Android", ignoreCase = true) -> "Android"
-        userAgent.contains("Windows", ignoreCase = true) -> "Windows"
+       userAgent.contains("Windows", ignoreCase = true) -> "Windows"
         userAgent.contains("Macintosh", ignoreCase = true) -> "MacOS"
         userAgent.contains("Linux", ignoreCase = true) -> "Linux"
         else -> "Устройство"
@@ -173,6 +174,9 @@ fun getDeviceName(): String {
         userAgent.contains("EdgiOS", ignoreCase = true) -> "Edge "
         userAgent.contains("FxiOS", ignoreCase = true) -> "Firefox "
         userAgent.contains("CriOS", ignoreCase = true) -> "Chrome "
+        userAgent.contains("Chrome", ignoreCase = true) -> "Chrome "
+        userAgent.contains("Safari", ignoreCase = true) -> "Safari "
+        userAgent.contains("YaBrowser", ignoreCase = true) -> "Yandex "
         else -> ""
     } + deviceName
 

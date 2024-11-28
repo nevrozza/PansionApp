@@ -6,48 +6,17 @@
 import admin.groups.Group
 import admin.groups.Subject
 import androidx.compose.animation.*
-import androidx.compose.animation.core.EaseIn
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,8 +24,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -70,16 +37,15 @@ import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import dev.chrisbanes.haze.HazeState
-import kotlinx.coroutines.launch
 import profile.ProfileComponent
 import profile.ProfileStore
 import resources.Images
 import resources.PricedAvatar
-import resources.imageResource
+import resources.RIcons
 import server.Ministries
-import view.GlobalHazeState
 import view.LocalViewManager
 import view.esp
+import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @ExperimentalMaterial3Api
@@ -153,7 +119,7 @@ fun SharedTransitionScope.ProfileContent(
                 .sortedBy { it.second.price },
             "Другое" to Images.othersCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
                 .sortedBy { it.second.price }
-        ) + if (model.fio.name == "Артём" && model.fio.surname == "Маташков") listOf(
+        ) + if (model.fio.name in listOf("Артём", "Артëм") && model.fio.surname == "Маташков") listOf(
             "nevrozq" to Images.nevrozqCostedAvatars.map {
                 it.key to it.value.copy(
                     price = if (model.avatars?.contains(
@@ -190,8 +156,8 @@ fun SharedTransitionScope.ProfileContent(
                         IconButton(
                             onClick = { component.onOutput(ProfileComponent.Output.Back) }
                         ) {
-                            Icon(
-                                Icons.Rounded.ArrowBackIosNew, null
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft
                             )
                         }
                     },
@@ -260,8 +226,11 @@ fun SharedTransitionScope.ProfileContent(
                             exit = fadeOut() + scaleOut(),
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Rounded.Toll, null)
-                                Text(": ${model.pansCoins.toString()}", fontSize = 17.esp, fontWeight = FontWeight.Bold)
+                                GetAsyncIcon(
+                                    RIcons.Coins
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text("${model.pansCoins.toString()}", fontSize = 17.esp, fontWeight = FontWeight.Bold)
                             }
                         }
                     },
@@ -291,7 +260,7 @@ fun SharedTransitionScope.ProfileContent(
                             )
                             val delay = 300
                             this@Column.AnimatedVisibility(
-                                visible = model.ministryLvl != "0",
+                                visible = model.ministryLvl != "0" && isSharedVisible,
                                 enter = expandIn(
                                     expandFrom = Alignment.TopEnd,
                                     animationSpec = tween(delayMillis = delay)
@@ -299,15 +268,14 @@ fun SharedTransitionScope.ProfileContent(
                                 exit = fadeOut() + scaleOut(),
                                 modifier = Modifier.offset(x = -5.dp, y = -5.dp)
                             ) {
-                                Icon(
-                                    Icons.Rounded.RocketLaunch,
-                                    null,
-                                    modifier = Modifier.size(50.dp),
+                                GetAsyncIcon(
+                                    path = RIcons.RocketLaunch,
+                                    size = 50.dp,
                                     tint = MaterialTheme.colorScheme.inversePrimary.hv()
                                 )
                             }
                             this@Column.AnimatedVisibility(
-                                visible = model.ministryId != "0",
+                                visible = model.ministryId != "0" && isSharedVisible,
                                 enter = fadeIn(animationSpec = tween(delayMillis = delay)) + scaleIn(
                                     animationSpec = tween(
                                         delayMillis = delay
@@ -316,42 +284,41 @@ fun SharedTransitionScope.ProfileContent(
                                 exit = fadeOut() + scaleOut(),
                                 modifier = Modifier.align(Alignment.BottomEnd)
                             ) {
-                                Icon(
-                                    when (model.ministryId) {
+                                GetAsyncIcon(
+                                    path = when (model.ministryId) {
                                         Ministries.MVD -> {
-                                            Icons.Rounded.LocalPolice
+                                            RIcons.Shield
                                         }
 
                                         Ministries.Culture -> {
-                                            Icons.Rounded.Celebration
+                                            RIcons.Celebration
                                         }
 
                                         Ministries.DressCode -> {
-                                            Icons.Rounded.Checkroom
+                                            RIcons.Styler
                                         }
 
                                         Ministries.Education -> {
-                                            Icons.Rounded.School
+                                            RIcons.SchoolCap
                                         }
 
                                         Ministries.Print -> {
-                                            Icons.Rounded.Newspaper
+                                            RIcons.Newspaper
                                         }
 
                                         Ministries.Social -> {
-                                            Icons.Rounded.QuestionAnswer
+                                            RIcons.Comment
                                         }
 
                                         Ministries.Sport -> {
-                                            Icons.Rounded.SportsSoccer
+                                            RIcons.Ball
                                         }
 
                                         else -> {
-                                            Icons.Rounded.QuestionMark
+                                            RIcons.QuestionCircle
                                         }
                                     },
-                                    null,
-                                    modifier = Modifier.size(50.dp),
+                                    size = 50.dp,
                                     tint = MaterialTheme.colorScheme.inversePrimary.hv()
                                 )
                             }
@@ -366,17 +333,99 @@ fun SharedTransitionScope.ProfileContent(
                         )
 
                         Spacer(Modifier.height(5.dp)) //3.dp
-                        Text(
-                            buildAnnotatedString {
-                                withStyle(SpanStyle(Color.Green)) {
-                                    append("+${model.likes}")
-                                }
-                                append("/")
-                                withStyle(SpanStyle(Color.Red)) {
-                                    append("-${model.dislikes}")
+                        Crossfade(
+                            model.avatarId != model.newAvatarId && model.avatars != null && model.tabIndex !in listOf(
+                                0,
+                                1
+                            ),
+                            modifier = Modifier.animateContentSize()
+                        ) {
+                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                                if (it) {
+
+                                    val price = avatarsList.flatMap { it.second }
+                                        .firstOrNull { it.first == model.newAvatarId }?.second?.price?.toString()
+                                        ?: "???"
+
+                                    Crossfade(nAvatarModel.state) {
+
+                                        SmallFloatingActionButton(
+                                            onClick = {
+                                                if (it != NetworkState.Loading && model.avatarId != model.newAvatarId && model.avatars != null && (price.toIntOrNull()
+                                                        ?: 0) <= model.pansCoins
+                                                ) {
+                                                    component.onEvent(
+                                                        ProfileStore.Intent.SaveAvatarId(
+                                                            avatarId = model.newAvatarId,
+                                                            price = price.toIntOrNull() ?: 0
+                                                        )
+                                                    )
+                                                }
+                                            },
+                                            containerColor = if ((price.toIntOrNull()
+                                                    ?: 0) <= model.pansCoins
+                                            ) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
+                                        ) {
+                                            when (it) {
+                                                NetworkState.None -> {
+                                                    AnimatedContent(price) {
+
+                                                        Row(
+                                                            modifier = Modifier.padding(horizontal = 15.dp),
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
+                                                            if ((model.avatars?.contains(model.newAvatarId) == true || it == "0") && (price.toIntOrNull()
+                                                                    ?: 0) <= model.pansCoins
+                                                            ) {
+                                                                Text("Сохранить  ")
+                                                                GetAsyncIcon(
+                                                                    path = RIcons.Save
+                                                                )
+                                                            } else {
+                                                                Text(
+                                                                    (if ((price.toIntOrNull()
+                                                                            ?: 0) <= model.pansCoins
+                                                                    ) "Купить за $it"
+                                                                    else "Не хватает ${(price.toIntOrNull() ?: 0) - model.pansCoins}") + "  "
+
+                                                                )
+
+                                                                GetAsyncIcon(
+                                                                    path = RIcons.Coins
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                NetworkState.Loading -> {
+                                                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                                                }
+
+                                                NetworkState.Error -> {
+                                                    Text(nAvatarModel.error)
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                } else {
+                                    if (model.likes.absoluteValue != 0 || model.dislikes.absoluteValue != 0) {
+                                        Text(
+                                            buildAnnotatedString {
+                                                withStyle(SpanStyle(Color.Green)) {
+                                                    append("+${model.likes}")
+                                                }
+                                                append("/")
+                                                withStyle(SpanStyle(Color.Red)) {
+                                                    append("-${model.dislikes}")
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
                             }
-                        )
+                        }
                         Spacer(Modifier.height(5.dp))
                         //            HorizontalDivider(Modifier.width(340.dp).height(1.dp).padding(vertical = 15.dp, horizontal = 30.dp), color = MaterialTheme.colorScheme.onBackground.copy(alpha = .1f))
                     }
@@ -403,7 +452,7 @@ fun SharedTransitionScope.ProfileContent(
                             text = {
                                 Text(
                                     text = text,
-                                    maxLines = 1
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis
                                 )
                             }
                         )
@@ -412,74 +461,11 @@ fun SharedTransitionScope.ProfileContent(
             }
 
             //LessonReportTopBar(component, isFullView) //, scrollBehavior
-        },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible =
-                    model.avatarId != model.newAvatarId && model.avatars != null && model.tabIndex !in listOf(0, 1),
-                enter = slideInVertically(initialOffsetY = { it * 2 }),
-                exit = slideOutVertically(targetOffsetY = { it * 2 }),
-            ) {
-
-                val price = avatarsList.flatMap { it.second }
-                    .firstOrNull { it.first == model.newAvatarId }?.second?.price?.toString() ?: "???"
-                Crossfade(nAvatarModel.state) {
-                    SmallFloatingActionButton(
-                        onClick = {
-                            if (it != NetworkState.Loading && model.avatarId != model.newAvatarId && model.avatars != null && (price.toIntOrNull()
-                                    ?: 0) <= model.pansCoins
-                            ) {
-                                component.onEvent(
-                                    ProfileStore.Intent.SaveAvatarId(
-                                        avatarId = model.newAvatarId,
-                                        price = price.toIntOrNull() ?: 0
-                                    )
-                                )
-                            }
-                        },
-                        containerColor = if ((price.toIntOrNull()
-                                ?: 0) <= model.pansCoins
-                        ) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
-                    ) {
-                        when (it) {
-                            NetworkState.None -> {
-                                AnimatedContent(price) {
-                                    if (model.avatars?.contains(model.newAvatarId) == true || it == "0") {
-                                        Icon(
-                                            Icons.Rounded.Save,
-                                            null
-                                        )
-                                    } else {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 5.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text(
-                                                if ((price.toIntOrNull()
-                                                        ?: 0) <= model.pansCoins
-                                                ) "Купить за $it" else "Не хватает ${(price.toIntOrNull() ?: 0) - model.pansCoins}"
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            NetworkState.Loading -> {
-                                CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                            }
-
-                            NetworkState.Error -> {
-                                Text(nAvatarModel.error)
-                            }
-                        }
-                    }
-                }
-            }
         }
     ) { padding ->
         CLazyColumn(
             padding = PaddingValues(
-                top = padding.calculateTopPadding(),
+                top = animateDpAsState(padding.calculateTopPadding()).value,
                 bottom = padding.calculateBottomPadding()
             ),
             state = lazyListState,
@@ -564,9 +550,8 @@ fun SharedTransitionScope.ProfileContent(
                                                                 }
                                                             }
                                                         }
-                                                        Icon(
-                                                            Icons.Outlined.School,
-                                                            null,
+                                                        GetAsyncIcon(
+                                                            path = RIcons.SchoolCapOutlined,
                                                             modifier = Modifier.align(Alignment.TopEnd)
                                                         )
                                                     }
@@ -616,10 +601,10 @@ fun SharedTransitionScope.ProfileContent(
                                                             .padding(end = 5.dp, bottom = 5.dp),
                                                         contentAlignment = Alignment.CenterEnd
                                                     ) {
-                                                        Icon(
-                                                            Icons.Outlined.EmojiEvents,
-                                                            null,
-                                                            tint = MaterialTheme.colorScheme.secondary
+                                                        GetAsyncIcon(
+                                                            RIcons.CuteCheck,
+                                                            tint = MaterialTheme.colorScheme.secondary,
+                                                            size = 26.dp
                                                         )
                                                     }
                                                 }
@@ -850,17 +835,23 @@ private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String
                 },
                 modifier = Modifier.padding(start = 3.dp)
             )
-            Row {
-                Icon(Icons.Rounded.Person, null)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Spacer(Modifier.width(4.dp))
+                GetAsyncIcon(
+                    path = RIcons.User,
+                    size = 15.dp
+                )
+                Spacer(Modifier.width(4.dp))
                 Text(teacher)
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(.5f, false)) {
-            Icon(
-                Icons.Rounded.LocalFireDepartment,
-                null,
-                modifier = Modifier.size(30.dp)
+            GetAsyncIcon(
+                path = RIcons.Fire,
+                size = 22.dp
             )
+            Spacer(Modifier.width(4.dp))
             Text(group.group.difficult, fontSize = 19.esp)
         }
     }
@@ -902,14 +893,14 @@ private fun AvatarButton(
                 )
             }
         } else if (currentAvatar == i) {
-            Icon(
-                Icons.Rounded.CheckCircleOutline,
-                null,
+            GetAsyncIcon(
+                RIcons.CheckCircleOutline,
                 modifier = Modifier.align(Alignment.BottomEnd)
-                    .padding(5.dp).background(
+                    .background(
                         MaterialTheme.colorScheme.primary,
                         shape = CircleShape
-                    ),
+                    )
+                    .padding(2.dp),
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         }

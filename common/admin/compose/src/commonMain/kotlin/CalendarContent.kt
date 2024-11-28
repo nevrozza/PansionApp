@@ -1,48 +1,15 @@
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.DeleteOutline
-import androidx.compose.material.icons.rounded.Save
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SelectableDates
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,22 +18,13 @@ import androidx.compose.ui.unit.dp
 import calendar.CalendarComponent
 import calendar.CalendarStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
-import components.CustomTextButton
-import components.SaveAnimation
+import components.*
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.*
+import resources.RIcons
 import server.twoNums
-import view.LocalViewManager
 import view.esp
-import view.rememberImeState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,8 +46,8 @@ fun CalendarContent(
                     IconButton(
                         onClick = { component.onOutput(CalendarComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -116,9 +74,8 @@ fun CalendarContent(
                 ) {
                     when (it) {
                         NetworkState.None -> {
-                            Icon(
-                                Icons.Rounded.Save,
-                                null
+                            GetAsyncIcon(
+                                RIcons.Save
                             )
                         }
 
@@ -367,8 +324,8 @@ private fun ModuleButton(
     ) {
         if (startDate == null || num == null) {
             Box(Modifier.fillMaxSize()) {
-                Icon(
-                    Icons.Rounded.Add, null,
+                GetAsyncIcon(
+                    path = RIcons.Add,
                     modifier = Modifier.align(Alignment.Center)
                 )
 //                Text(
@@ -408,10 +365,12 @@ private fun ModuleButton(
                                 onClick = { isGoToDelete.value = true },
                                 modifier = Modifier.align(Alignment.TopEnd)
                                     .padding(top = 2.dp, end = 2.dp)
-                                    .size(20.dp)
+                                    .size(35.dp)
                             ) {
-                                Icon(
-                                    Icons.Rounded.DeleteOutline, null
+                                GetAsyncIcon(
+                                    RIcons.TrashCanRegular,
+                                    size = 20.dp,
+                                    modifier = Modifier.align(Alignment.Center)
                                 )
                             }
                         }
@@ -430,16 +389,14 @@ private fun ModuleButton(
                             IconButton(
                                 onClick = { isGoToDelete.value = false }
                             ) {
-                                Icon(
-                                    Icons.Rounded.Close, null
+                                GetAsyncIcon(
+                                    RIcons.Close
                                 )
                             }
                             IconButton(
                                 onClick = { component.onEvent(CalendarStore.Intent.DeleteModule) }
                             ) {
-                                Icon(
-                                    Icons.Rounded.Check, null
-                                )
+                                GetAsyncIcon(RIcons.Check)
                             }
                         }
                     }

@@ -26,6 +26,7 @@ kotlin {
                 implementation(libs.decompose.compose)
 
                 implementation("io.coil-kt.coil3:coil-compose:3.0.3")
+                implementation("io.coil-kt.coil3:coil-svg:3.0.3")
                 implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.3")
             }
         }

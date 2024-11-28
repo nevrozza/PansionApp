@@ -2,71 +2,22 @@
 
 //import root.RootComponent.Child.AdminMentors
 import admin.AdminComponent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
-import androidx.compose.material.icons.rounded.Cake
-import androidx.compose.material.icons.rounded.Diversity1
-import androidx.compose.material.icons.rounded.EditCalendar
-import androidx.compose.material.icons.rounded.GridView
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Token
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -74,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import animations.iosSlide
@@ -83,7 +35,6 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.plus
-import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.androidPredictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.materialPredictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
@@ -92,10 +43,10 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.essenty.backhandler.BackEvent
 import components.CustomTextButton
+import components.GetAsyncIcon
 import components.hazeHeader
 import components.hazeUnder
 import components.networkInterface.NetworkState
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import forks.splitPane.ExperimentalSplitPaneApi
@@ -103,7 +54,6 @@ import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
 import groups.GroupsContent
 import home.HomeStore
-import io.ktor.util.reflect.*
 import journal.JournalComponent
 import journal.JournalStore
 import kotlinx.datetime.Clock
@@ -111,28 +61,19 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mentoring.MentoringComponent
 import mentoring.MentoringContent
+import resources.RIcons
 import root.RootComponent
 import root.RootComponent.Child
-import root.RootComponent.Child.AdminGroups
-import root.RootComponent.Child.AdminUsers
-import root.RootComponent.Child.HomeSettings
-import root.RootComponent.Child.LessonReport
-import root.RootComponent.Child.MainAdmin
-import root.RootComponent.Child.MainHome
-import root.RootComponent.Child.MainJournal
-import root.RootComponent.Child.MainMentoring
-import root.RootComponent.Child.MainRating
-import root.RootComponent.Child.MainSchool
+import root.RootComponent.Child.*
 import root.RootComponent.Config
-import root.RootComponent.RootCategories.Admin
-import root.RootComponent.RootCategories.Home
-import root.RootComponent.RootCategories.Journal
-import root.RootComponent.RootCategories.Mentoring
-import root.RootComponent.RootCategories.School
+import root.RootComponent.RootCategories.*
 import root.store.QuickRoutings
 import root.store.RootStore
 import school.SchoolComponent
-import server.*
+import server.Moderation
+import server.Roles
+import server.cut
+import server.getDate
 import view.*
 
 @ExperimentalAnimationApi
@@ -293,7 +234,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             ) == WindowScreen.Vertical
         val items = listOf<NavigationItem?>(
             NavigationItem(
-                icon = Icons.Rounded.Home,
+                iconPath = RIcons.Home,
                 label = "Главная",
                 category = if (isExpanded && getCategory(childStack.active.configuration as Config) == Journal) Journal
                 else Home,
@@ -305,13 +246,15 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     Moderation.both
                 )) && component.isMentoring == null
             ) NavigationItem(
-                icon = Icons.AutoMirrored.Rounded.LibraryBooks,
+                iconPath = RIcons.Book,//Icons.AutoMirrored.Rounded.LibraryBooks,
                 label = "Журнал",
+                size = 20.dp,
                 category = Journal,
                 onClickOutput = RootComponent.Output.NavigateToJournal
             ) else null,
             NavigationItem(
-                icon = Icons.Rounded.Token,
+                iconPath = RIcons.School,//Icons.Rounded.Token,
+                size = 24.dp,
                 label = "Пансион",
                 category = School,
                 onClickOutput = RootComponent.Output.NavigateToSchool
@@ -319,8 +262,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             if (model.moderation != Moderation.nothing
                 && component.isMentoring == null
             ) NavigationItem(
-                icon = Icons.Rounded.Diversity1,
-                label = "Ученики",
+                iconPath = RIcons.Group,//Icons.Rounded.Diversity1,
+                        label = "Ученики",
+                size = 24.dp,
                 category = Mentoring,
                 onClickOutput = RootComponent.Output.NavigateToMentoring
             ) else null,
@@ -329,9 +273,10 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     Moderation.both
                 ) && component.isMentoring == null
             ) NavigationItem(
-                icon = Icons.Rounded.GridView,
-                label = "Админ",
+                iconPath = RIcons.SovietSettings, //Icons.Rounded.GridView,
+                        label = "Админ",
                 category = Admin,
+                size = 20.dp,
                 onClickOutput = RootComponent.Output.NavigateToAdmin
             ) else null,
         )
@@ -629,9 +574,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                         },
                                         modifier = Modifier.padding(bottom = if (!isExpanded) 80.dp else 10.dp)
                                     ) {
-                                        Icon(
-                                            Icons.Rounded.EditCalendar,
-                                            null
+                                        GetAsyncIcon(
+                                            path = RIcons.MagicWand
                                         )
                                         Spacer(Modifier.width(10.dp))
                                         Text("Расписание БЕТА")
@@ -1016,9 +960,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                         AnimatedVisibility(isBirthday) {
                             Column {
-                                Icon(
-                                    imageVector = Icons.Rounded.Cake, contentDescription = null,
-                                    modifier = Modifier.size(100.dp)
+                                GetAsyncIcon(
+                                    path = RIcons.Gift,
+                                    size = 100.dp
                                 )
                                 Spacer(Modifier.height(20.dp))
                             }
@@ -1314,10 +1258,11 @@ fun MultiPaneSplit(
 
 
 data class NavigationItem(
-    val icon: ImageVector,
+    val iconPath: String,
     val label: String,
     val category: RootComponent.RootCategories,
-    val onClickOutput: RootComponent.Output
+    val onClickOutput: RootComponent.Output,
+    val size: Dp = 22.dp
 )
 
 
@@ -1358,7 +1303,14 @@ fun CustomNavigationBar(
             NavigationBarItem(
                 selected = getCategory(childStack.active.configuration as Config) == item.category,
                 onClick = { component.onOutput(item.onClickOutput) },
-                icon = { Icon(item.icon, null) },
+                icon = {
+                    Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                        GetAsyncIcon(
+                            path = item.iconPath,
+                            size = item.size
+                        )
+                    }
+                },
                 label = { Text(item.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             )
         }
@@ -1391,7 +1343,14 @@ fun CustomNavigationRail(
                     NavigationRailItem(
                         selected = getCategory(childStack.active.configuration as Config) == item.category,
                         onClick = { component.onOutput(item.onClickOutput) },
-                        icon = { Icon(item.icon, null) },
+                        icon = {
+                            Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                                GetAsyncIcon(
+                                    path = item.iconPath,
+                                    size = item.size
+                                )
+                            }
+                               },
                         label = { Text(item.label) }
                     )
                 }

@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import resources.RIcons
 
 @Composable
 fun CustomCheckbox(
@@ -49,10 +47,10 @@ fun CustomCheckbox(
                 Modifier.clip(RoundedCornerShape(40)).fillMaxSize()
                     .background(MaterialTheme.colorScheme.primary)
             )
-            Icon(
-                imageVector = Icons.Rounded.Done,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary
+            GetAsyncIcon(
+                path = RIcons.Check,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.fillMaxSize()
             )
         }
     }

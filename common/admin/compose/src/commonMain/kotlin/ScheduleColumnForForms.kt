@@ -12,11 +12,6 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,11 +31,12 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import components.CustomTextField
-import components.cClickable
+import components.GetAsyncIcon
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
+import resources.RIcons
 import schedule.*
 import server.cut
 import server.isTimeFormat
@@ -131,8 +127,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                                     }
                                 }
                             ) {
-                                Icon(
-                                    Icons.Rounded.Add, null
+                                GetAsyncIcon(
+                                    RIcons.Add
                                 )
                             }
                             if (model.ciLogin == formId.toString()) {
@@ -176,8 +172,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                               },
                                                     enabled = value.isNotBlank()
                                                 ) {
-                                                    Icon(
-                                                        Icons.Rounded.Done, null
+                                                    GetAsyncIcon(
+                                                        RIcons.Check
                                                     )
                                                 }
                                             }
@@ -345,9 +341,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                                     }
                                                                                 }
                                                                             ) {
-                                                                                Icon(
-                                                                                    Icons.Rounded.Done,
-                                                                                    null
+                                                                                GetAsyncIcon(
+                                                                                    RIcons.Check
                                                                                 )
                                                                             }
                                                                         } else {
@@ -402,9 +397,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                                 )
                                                                             }
                                                                         ) {
-                                                                            Icon(
-                                                                                Icons.Rounded.Replay,
-                                                                                null
+                                                                            GetAsyncIcon(
+                                                                                RIcons.Repeat
                                                                             )
                                                                         }
                                                                     }
@@ -957,9 +951,8 @@ private fun BoxScope.ScheduleForFormsContent(
                 onClick = { onDeleteClick() },
                 modifier = Modifier.size(20.dp).align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp)
             ) {
-                Icon(
-                    Icons.Rounded.Delete,
-                    null
+                GetAsyncIcon(
+                    RIcons.TrashCanRegular
                 )
             }
         }

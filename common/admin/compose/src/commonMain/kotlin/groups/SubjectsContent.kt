@@ -3,52 +3,18 @@ package groups
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.LocalFireDepartment
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
@@ -59,24 +25,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.CLazyColumn
-import components.CustomTextButton
-import components.CustomTextField
-import components.LoadingAnimation
+import components.*
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
-import components.cClickable
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
-import dev.chrisbanes.haze.HazeState
 import groups.students.StudentsComponent
 import groups.students.StudentsStore
 import groups.subjects.SubjectsComponent
 import groups.subjects.SubjectsStore
 import kotlinx.coroutines.CoroutineScope
+import resources.RIcons
 import view.LocalViewManager
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -158,7 +119,7 @@ fun SubjectsContent(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Column {
+                                            Column(Modifier.weight(1f, false)) {
                                                 Text(
                                                     group.group.name,
                                                     modifier = Modifier
@@ -166,17 +127,18 @@ fun SubjectsContent(
                                                     fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                                     fontWeight = FontWeight.SemiBold
                                                 )
-                                                Row {
-                                                    Icon(
-                                                        Icons.Rounded.Person,
-                                                        null
-                                                    )
-                                                    Text(text = mentorName)
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
 
-                                                    Icon(
-                                                        Icons.Rounded.LocalFireDepartment,
-                                                        null
+                                                    Spacer(Modifier.width(4.dp))
+                                                    GetAsyncIcon(RIcons.User, size = 18.dp)
+                                                    Spacer(Modifier.width(4.dp))
+                                                    Text(text = mentorName)
+                                                    Spacer(Modifier.width(6.dp))
+                                                    GetAsyncIcon(
+                                                        path = RIcons.Fire,
+                                                        size = 18.dp
                                                     )
+                                                    Spacer(Modifier.width(4.dp))
                                                     Text(group.group.difficult)
                                                 }
                                             }
@@ -205,9 +167,12 @@ fun SubjectsContent(
                                                     component.eGroupBottomSheet.onEvent(
                                                         CBottomSheetStore.Intent.ShowSheet
                                                     )
-                                                }
+                                                },
+                                                modifier = Modifier.weight(0.1f, false)
                                             ) {
-                                                Icon(Icons.Rounded.Edit, null)
+                                                GetAsyncIcon(
+                                                    path = RIcons.Edit
+                                                )
                                             }
                                         }
                                     }
@@ -235,8 +200,8 @@ fun SubjectsContent(
                                                         },
                                                         modifier = Modifier.size(25.dp)
                                                     ) {
-                                                        Icon(
-                                                            Icons.Rounded.Close, null
+                                                        GetAsyncIcon(
+                                                            RIcons.Close
                                                         )
                                                     }
                                                 }
@@ -270,8 +235,8 @@ fun SubjectsContent(
                                                         onClick = { isWannaCreate.value = true },
                                                         modifier = Modifier.size(25.dp)
                                                     ) {
-                                                        Icon(
-                                                            Icons.Rounded.Add, null
+                                                        GetAsyncIcon(
+                                                            RIcons.Add
                                                         )
                                                     }
                                                 }
@@ -445,8 +410,11 @@ fun SubjectsContent(
                         onValueChange = {},
                         label = { Text("Учитель") },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = expandedTeachers
+                            val chevronRotation = animateFloatAsState(if (expandedTeachers) 90f else -90f)
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft,
+                                modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                size = 15.dp
                             )
                         },
                         shape = RoundedCornerShape(15.dp),

@@ -1,46 +1,12 @@
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.EmojiEvents
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedAssistChip
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -69,6 +35,7 @@ import pullRefresh.rememberPullRefreshState
 import rating.RatingComponent
 import rating.RatingItem
 import rating.RatingStore
+import resources.RIcons
 import view.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
@@ -126,8 +93,8 @@ fun SharedTransitionScope.RatingContent(
                         IconButton(
                             onClick = { component.onOutput(RatingComponent.Output.Back) }
                         ) {
-                            Icon(
-                                Icons.Rounded.ArrowBackIosNew, null
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft
                             )
                         }
                     }
@@ -136,8 +103,8 @@ fun SharedTransitionScope.RatingContent(
                     IconButton(
                         onClick = { component.onEvent(RatingStore.Intent.Init) }
                     ) {
-                        Icon(
-                            Icons.Filled.Refresh, null
+                        GetAsyncIcon(
+                            RIcons.Refresh
                         )
                     }
 
@@ -148,8 +115,8 @@ fun SharedTransitionScope.RatingContent(
                                 component.onOutput(RatingComponent.Output.NavigateToSettings)
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Settings, null
+                            GetAsyncIcon(
+                                RIcons.Settings
                             )
                         }
                     }
@@ -362,15 +329,15 @@ private fun SharedTransitionScope.RatingCard(
             Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                 if (item.top <= 3) {
                     // Show trophy icon for top 3 positions
-                    Icon(
-                        imageVector = Icons.Rounded.EmojiEvents, // Replace with your trophy icon resource
-                        contentDescription = "Top position",
+                    GetAsyncIcon(
+                        path = RIcons.Trophy,
                         tint = when (item.top) {
                             1 -> "#ffd700".toColor()
                             2 -> "#c0c0c0".toColor()
                             else -> "#cd7f32".toColor()
                         },
-                        modifier = Modifier.size(35.dp)
+                        size = 35.dp,
+                        contentDescription = "Top position"
                     )
                 } else {
                     // Show position number for other positions

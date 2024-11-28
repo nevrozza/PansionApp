@@ -1,22 +1,8 @@
 package components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,8 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import view.GlobalHazeState
-import view.LocalViewManager
+import resources.RIcons
 
 @Composable
 fun SaveAnimation(isShowing: Boolean, customText: String? = null, modifier: Modifier? = null, unShow: () -> Unit) {
@@ -53,10 +38,10 @@ fun SaveAnimation(isShowing: Boolean, customText: String? = null, modifier: Modi
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(15.dp)
                 ) {
-                    Icon(
-                        Icons.Rounded.Done, null,
+                    GetAsyncIcon(
+                        path = RIcons.Check,
                         tint = Color.Green,
-                        modifier = Modifier.size(70.dp)
+                        size = 70.dp
                     )
                     Text(customText ?: "Успешно сохранено!")
                 }
@@ -89,10 +74,10 @@ fun ErrorAnimation(isShowing: Boolean, textError: String, modifier: Modifier? = 
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(15.dp)
                 ) {
-                    Icon(
-                        Icons.Rounded.Close, null,
+                    GetAsyncIcon(
+                        path = RIcons.Close,
                         tint = Color.Red,
-                        modifier = Modifier.size(70.dp)
+                        size = 70.dp
                     )
                     Text(textError, textAlign = TextAlign.Center)
                 }

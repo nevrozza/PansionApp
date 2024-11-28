@@ -1,15 +1,15 @@
 import io.ktor.plugin.features.DockerPortMapping
 import io.ktor.plugin.features.DockerPortMappingProtocol
 
-val ktorV = "3.0.0-beta-2-eap-912"
+val ktorV = "3.0.1"
 plugins {
     kotlin("multiplatform")
-    id("io.ktor.plugin") version "3.0.0-beta-1"
+    id("io.ktor.plugin") version "3.0.1"
     id(libs.plugins.serialization.get().pluginId)
 }
 
 group = "com.nevrozq.pansion"
-version = "1.1.1"
+version = "1.1.2"
 application {
     mainClass.set("com.nevrozq.pansion.ApplicationKt") //com.nevrozq
 
@@ -21,7 +21,7 @@ ktor {
     docker {
         jreVersion.set(JavaVersion.VERSION_21)
         localImageName.set("pansionApp-docker-image")
-        imageTag.set("1.1.11")
+        imageTag.set("1.1.2")
 
         portMappings.set(
             listOf(

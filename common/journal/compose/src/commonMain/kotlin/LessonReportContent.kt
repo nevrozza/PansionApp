@@ -1,117 +1,25 @@
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.AddHomeWork
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.LocalPolice
-import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material.icons.rounded.Save
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.ThumbDown
-import androidx.compose.material.icons.rounded.ThumbsUpDown
-import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.UnfoldLess
-import androidx.compose.material.icons.rounded.UnfoldMore
-import androidx.compose.material.icons.rounded.ViewWeek
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconToggleButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SecondaryScrollableTabRow
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.rememberTooltipState
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -119,11 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.coerceAtLeast
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.util.fastSumBy
 import androidx.compose.ui.window.DialogProperties
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -142,20 +46,13 @@ import homeTasksDialog.HomeTasksDialogStore
 import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import lessonReport.ColumnTypes
-import lessonReport.LessonReportComponent
-import lessonReport.LessonReportStore
-import lessonReport.MarkColumn
-import lessonReport.StudentLine
-import lessonReport.Stup
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.rememberPullRefreshState
-import server.fetchReason
-import server.getDate
-import server.getSixTime
-import server.roundTo
-import server.toMinutes
-import view.*
+import lessonReport.*
+import resources.RIcons
+import server.*
+import view.LocalViewManager
+import view.LockScreenOrientation
+import view.blend
+import view.esp
 import kotlin.math.max
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -230,9 +127,8 @@ fun LessonReportContent(
                                 ) {
                                     when (it) {
                                         NetworkState.None -> {
-                                            Icon(
-                                                Icons.Rounded.Save,
-                                                null
+                                            GetAsyncIcon(
+                                                RIcons.Save
                                             )
                                         }
 
@@ -373,7 +269,7 @@ fun LessonReportContent(
                             when (it) {
                                 LessonReportStore.SettingsTab.MarksTab -> {
 
-                                    Column(Modifier) {
+                                    Column() {
                                         Text(
                                             "Настройка колонок",
                                             modifier = Modifier.fillMaxWidth(),
@@ -383,6 +279,7 @@ fun LessonReportContent(
                                         )
                                         Spacer(Modifier.height(25.dp))
                                         MarksTabContent(component)
+
 
                                     }
                                 }
@@ -445,9 +342,8 @@ fun LessonReportContent(
                                                         },
                                                         enabled = true
                                                     ) {
-                                                        Icon(
-                                                            Icons.Rounded.Save,
-                                                            null
+                                                        GetAsyncIcon(
+                                                            RIcons.Save
                                                         )
                                                     }
                                                 }
@@ -461,9 +357,8 @@ fun LessonReportContent(
                                                         )
                                                     }
                                                 ) {
-                                                    Icon(
-                                                        Icons.Rounded.History,
-                                                        null
+                                                    GetAsyncIcon(
+                                                        RIcons.History
                                                     )
                                                 }
                                             }
@@ -488,9 +383,8 @@ fun LessonReportContent(
                                     }
                                 }
                             ) {
-                                Icon(
-                                    Icons.Rounded.Tune,
-                                    null
+                                GetAsyncIcon(
+                                    RIcons.Tune
                                 )
                             }
                             if (component.model.value.isEditable) {
@@ -506,9 +400,8 @@ fun LessonReportContent(
                                         }
                                     }
                                 ) {
-                                    Icon(
-                                        Icons.Rounded.ViewWeek,
-                                        null
+                                    GetAsyncIcon(
+                                        path = RIcons.Thumbtack
                                     )
                                 }
                             }
@@ -524,9 +417,8 @@ fun LessonReportContent(
                                     }
                                 }
                             ) {
-                                Icon(
-                                    Icons.Rounded.AddHomeWork,
-                                    null
+                                GetAsyncIcon(
+                                    RIcons.HomeWork
                                 )
                             }
                             AnimatedVisibility(model.settingsTab == LessonReportStore.SettingsTab.SetupTab) {
@@ -537,10 +429,20 @@ fun LessonReportContent(
                                         isLikeMenuOpened.value = it
                                     }
                                 ) {
-                                    Icon(
-                                        Icons.Rounded.ThumbsUpDown,
-                                        null
-                                    )
+                                    Box(Modifier.size(30.dp)) {
+                                        GetAsyncIcon(
+                                            RIcons.Like,
+                                            size = 16.dp,
+                                            modifier = Modifier.align(Alignment.TopStart)
+                                        )
+                                        GetAsyncIcon(
+                                            RIcons.Like,
+                                            size = 16.dp,
+                                            modifier = Modifier.rotate(180f).align(Alignment.BottomEnd)
+                                        )
+                                    }
+
+
                                 }
                             }
                         }
@@ -732,8 +634,9 @@ private fun HomeWorkTabContent(
                                                 modifier = Modifier.size(20.dp)
                                                     .align(Alignment.CenterEnd)
                                             ) {
-                                                Icon(
-                                                    Icons.Rounded.Edit, null
+                                                GetAsyncIcon(
+                                                    RIcons.Edit,
+                                                    size = 15.dp
                                                 )
                                             }
                                         }
@@ -755,9 +658,8 @@ private fun HomeWorkTabContent(
                                 component.onEvent(LessonReportStore.Intent.UpdateTabLoginsId(null))
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Add,
-                                null
+                            GetAsyncIcon(
+                                RIcons.PersonAdd
                             )
                         }
                     }
@@ -800,7 +702,7 @@ private fun HomeWorkTabContent(
             component.homeTasksTabDialogComponent,
             acceptText = if (model.tabLogins == null) "Создать" else "Редактировать",
             isCustomButtons = false,
-            title = if (model.tabLogins == null) "Новая группа" else "Обновлённая группу",
+            title = if (model.tabLogins == null) "Новая группа" else "Обновить группу",
             isSaveButtonEnabled = model.newTabLogins.sorted() !in (model.homeTasksNewTabs.map { it.sorted() } + model.hometasks.map { it.studentLogins }
                 .map { it?.sorted() }) && model.newTabLogins.isNotEmpty(),
         ) {
@@ -870,8 +772,11 @@ private fun ReportHomeTaskItem(
                             onValueChange = {},
                             label = { Text("Тип") },
                             trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(
-                                    expanded = expandedType
+                                val chevronRotation = animateFloatAsState(if (expandedType) 90f else -90f)
+                                GetAsyncIcon(
+                                    path = RIcons.ChevronLeft,
+                                    modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                    size = 15.dp
                                 )
                             },
                             shape = RoundedCornerShape(15.dp)
@@ -1005,8 +910,8 @@ private fun ReportHomeTaskItem(
             },
             modifier = Modifier.size(20.dp).align(Alignment.TopEnd)
         ) {
-            Icon(
-                Icons.Rounded.Menu, null
+            GetAsyncIcon(
+                RIcons.Menu
             )
         }
     }
@@ -1223,7 +1128,7 @@ private fun MarksTabContent(
     val dsBringIntoViewRequester = BringIntoViewRequester()
     val endBringIntoViewRequester = BringIntoViewRequester()
     if (isExpanded) {
-        Row(Modifier.padding(horizontal = 20.dp)) {
+        Row(Modifier.padding(horizontal = 20.dp).verticalScroll(rememberScrollState())) {
             Column(
                 Modifier.fillMaxWidth(.5f),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -1392,7 +1297,10 @@ private fun ColumnsSettingsItem(
         Modifier.fillMaxWidth().animateContentSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.cClickable {
+            isOpened.value = !isOpened.value
+            bringIntoRequest()
+        }) {
             Text(
                 "$title",
                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
@@ -1400,28 +1308,19 @@ private fun ColumnsSettingsItem(
                 modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)
             )
             if (!isExpanded) {
-                IconButton(
-                    onClick = {
-                        isOpened.value = !isOpened.value
-                        bringIntoRequest()
-                    },
-                    modifier = Modifier.size(30.dp)
-                ) {
-                    AnimatedContent(
-                        if (isOpened.value) Icons.Rounded.UnfoldLess else Icons.Rounded.UnfoldMore
-                    ) {
-                        Icon(
-                            it, null
-                        )
-                    }
-                }
+                val chevronRotation = animateFloatAsState(if (isOpened.value) 90f else -90f)
+                GetAsyncIcon(
+                    path = RIcons.ChevronLeft,
+                    modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                    size = 15.dp
+                )
             } else {
                 Spacer(Modifier.height(30.dp))
             }
         }
         val inColumn = sortedColumnList.filter { isOpened.value || it.title in columnNames }
-        LazyColumn(Modifier.height((inColumn.size * 30).dp + 1.dp), userScrollEnabled = false) {
-            items(items = inColumn, key = { i -> i.reasonId }) { i ->
+        Column() {
+            inColumn.forEach { i ->
                 val isInProcess = remember { mutableStateOf(false) }
                 val isChecked = (i.title in currentList.map { it.title })
                 Row(
@@ -1458,12 +1357,15 @@ private fun ColumnsSettingsItem(
                                 }
                             }
                         }
-                    }.width(170.dp).animateItem(fadeInSpec = null, fadeOutSpec = null),
+                    }.width(170.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        ("!${i.title}").removePrefix(currentId)
+                        ("!${i.title}").removePrefix(currentId),
+                        modifier = Modifier.width(145.dp),
+                        maxLines=1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     CustomCheckbox(
                         checked = isChecked,
@@ -1570,29 +1472,26 @@ fun LessonTable(
                                 Box() {
                                     when (column.type.subSequence(0, 3)) {
                                         "!dz" -> {
-                                            Icon(
-                                                Icons.Rounded.Home,
-                                                null,
-                                                modifier = Modifier.size(14.dp)
-                                                    .offset(y = (2).dp, x = -1.dp)
+                                            GetAsyncIcon(
+                                                RIcons.Home,
+                                                size = 14.dp,
+                                                modifier = Modifier.offset(y = (0).dp, x = -1.dp)
                                             )
                                         }
 
                                         "!st" -> {
-                                            Icon(
-                                                Icons.Rounded.Star,
-                                                null,
-                                                modifier = Modifier.size(14.dp)
-                                                    .offset(y = (2).dp, x = -1.dp)
+                                            GetAsyncIcon(
+                                                RIcons.Star,
+                                                size = 14.dp,
+                                                modifier = Modifier.offset(y = (0).dp, x = -1.dp)
                                             )
                                         }
 
                                         "!ds" -> {
-                                            Icon(
-                                                Icons.Rounded.LocalPolice,
-                                                null,
-                                                modifier = Modifier.size(14.dp)
-                                                    .offset(y = (2).dp, x = -1.dp)
+                                            GetAsyncIcon(
+                                                RIcons.Shield,
+                                                size = 14.dp,
+                                                modifier = Modifier.offset(y = (0).dp, x = -1.dp)
                                             )
                                         }
                                     }
@@ -1655,18 +1554,6 @@ fun LessonTable(
                                 )
                             }
                             Row(Modifier.padding(start = lP)) {
-
-//                            Box(
-//                                Modifier.width(lP),
-//                                contentAlignment = Alignment.CenterEnd
-//                            ) {
-//                                IconButton(
-//                                    onClick = { onEditClick(index) },
-//                                    modifier = Modifier.padding(top = 5.dp).size(15.dp)
-//                                ) {
-//                                    Icon(Icons.Rounded.Edit, null)
-//                                }
-//                            }
                                 model.columnNames.forEach { column ->
 //                                    val isChecked = remember { mutableStateOf(false) }
                                     Box(
@@ -1792,9 +1679,8 @@ fun LessonTable(
                                                                                         )
                                                                                     )
                                                                                 }) {
-                                                                                Icon(
-                                                                                    Icons.Rounded.MoreVert,
-                                                                                    null
+                                                                                GetAsyncIcon(
+                                                                                    RIcons.MoreVert
                                                                                 )
                                                                             }
                                                                             if (model.selectedLogin == student.login) {
@@ -1833,9 +1719,8 @@ fun LessonTable(
                                                                                     )
                                                                                 )
                                                                             }) {
-                                                                            Icon(
-                                                                                Icons.Rounded.Close,
-                                                                                null
+                                                                            GetAsyncIcon(
+                                                                                RIcons.Close
                                                                             )
                                                                         }
                                                                     }
@@ -1963,10 +1848,8 @@ fun LessonTable(
                                                                     },
                                                                 contentAlignment = Alignment.Center
                                                             ) {
-                                                                Icon(
-                                                                    Icons.Rounded.Add,
-                                                                    modifier = Modifier,
-                                                                    contentDescription = null,
+                                                                GetAsyncIcon(
+                                                                    RIcons.Add,
                                                                     tint = MaterialTheme.colorScheme.onSurface
                                                                 )
                                                             }
@@ -2085,9 +1968,8 @@ private fun LikeDislikeRow(
         IconButton(onClick = {
             component.onEvent(LessonReportStore.Intent.LikeStudent(student.login))
         }, modifier = Modifier.size(20.dp)) {
-            Icon(
-                Icons.Rounded.ThumbDown, null,
-                modifier = Modifier.rotate(180f)
+            GetAsyncIcon(
+                path = RIcons.Like
             )
         }
         Spacer(Modifier.width(7.dp))
@@ -2098,8 +1980,9 @@ private fun LikeDislikeRow(
                 )
             )
         }, modifier = Modifier.size(20.dp)) {
-            Icon(
-                Icons.Rounded.ThumbDown, null
+            GetAsyncIcon(
+                path = RIcons.Like,
+                modifier = Modifier.rotate(180f)
             )
         }
     }
@@ -2151,9 +2034,8 @@ fun PrisutCheckBox(
                     }
                 }) {
                 AnimatedVisibility(attendedType == "0") {
-                    Icon(
-                        imageVector = Icons.Rounded.Done,
-                        contentDescription = null,
+                    GetAsyncIcon(
+                        path = RIcons.Check,
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.fillMaxSize()
                             .background(MaterialTheme.colorScheme.primary)
@@ -2247,9 +2129,8 @@ private fun settingsAB(
             component.setReportColumnsComponent.onEvent(CBottomSheetStore.Intent.ShowSheet)
         }
     ) {
-        Icon(
-            Icons.Rounded.ViewWeek,
-            null
+        GetAsyncIcon(
+            path = RIcons.Menu
         )
     }
 }
@@ -2263,21 +2144,8 @@ private fun backAB(
             component.onOutput(LessonReportComponent.Output.Back)
         }
     ) {
-        Icon(
-            Icons.Rounded.ArrowBackIosNew, null
-        )
-    }
-}
-
-@Composable
-private fun refreshAB(
-    component: LessonReportComponent
-) {
-    IconButton(
-        onClick = { }//*refresh()*// }
-    ) {
-        Icon(
-            Icons.Filled.Refresh, null
+        GetAsyncIcon(
+            path = RIcons.ChevronLeft
         )
     }
 }

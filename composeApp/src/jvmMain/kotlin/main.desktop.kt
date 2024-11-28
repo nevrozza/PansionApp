@@ -4,25 +4,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoMode
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -52,6 +37,7 @@ import com.arkivanov.essenty.statekeeper.StateKeeperDispatcher
 import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import components.CustomTextButton
+import components.GetAsyncIcon
 import components.hazeHeader
 import dev.chrisbanes.haze.HazeState
 import di.Inject
@@ -79,6 +65,7 @@ import org.jetbrains.jewel.window.styling.LocalTitleBarStyle
 import org.jetbrains.jewel.window.styling.TitleBarColors
 import org.jetbrains.jewel.window.styling.TitleBarMetrics
 import org.jetbrains.jewel.window.styling.TitleBarStyle
+import resources.RIcons
 import root.RootComponentImpl
 import server.DeviceTypex
 import server.cut
@@ -87,7 +74,7 @@ import java.awt.Dimension
 import java.io.File
 import java.net.InetAddress
 import java.net.NetworkInterface
-import java.util.UUID
+import java.util.*
 import javax.swing.SwingUtilities
 
 private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
@@ -330,9 +317,9 @@ private fun DecoratedWindowScope.MainTitleBar(viewManager: ViewManager, l: Title
     ) {
         AnimatedContent(
             when (viewManager.tint.value) {
-                ThemeTint.Auto -> Icons.Rounded.AutoMode
-                ThemeTint.Dark -> Icons.Rounded.DarkMode
-                ThemeTint.Light -> Icons.Rounded.LightMode
+                ThemeTint.Auto -> RIcons.AutoMode
+                ThemeTint.Dark -> RIcons.DarkMode
+                ThemeTint.Light -> RIcons.LightMode
             },
             modifier = Modifier.align(Alignment.Start)
                 .padding(start = 5.dp),
@@ -345,9 +332,8 @@ private fun DecoratedWindowScope.MainTitleBar(viewManager: ViewManager, l: Title
                 },
                 modifier = Modifier.fillMaxHeight()
             ) {
-                Icon(
-                    imageVector = it,
-                    "Change Theme",
+                GetAsyncIcon(
+                    path = it,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }

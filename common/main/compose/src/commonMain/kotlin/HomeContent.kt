@@ -1,95 +1,28 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateValue
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.progressSemantics
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -99,18 +32,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.BorderStup
-import components.CLazyColumn
-import components.CustomTextButton
-import components.DatesLine
+import components.*
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
-import components.cMark
-import components.dashedBorder
-import components.getMarkColor
-import components.markColorsColored
-import components.markColorsMono
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -119,11 +43,7 @@ import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import home.HomeComponent
 import home.HomeStore
-import homeComponents.homeChildrenNotificationsContent
-import homeComponents.homeKidsContent
-import homeComponents.homeStudentBar
-import homeComponents.homeStudentNotifications
-import homeComponents.homeTeacherGroupsContent
+import homeComponents.*
 import journal.JournalStore
 import journal.init.TeacherGroup
 import kotlinx.coroutines.CoroutineScope
@@ -135,12 +55,8 @@ import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
 import report.UserMark
-import server.Roles
-import server.fetchReason
-import server.getCurrentDayTime
-import server.roundTo
-import server.toMinutes
-import server.weekPairs
+import resources.RIcons
+import server.*
 import view.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
@@ -251,8 +167,8 @@ fun OtherHomeContent(
                         IconButton(
                             onClick = { component.onEvent(HomeStore.Intent.Init) }
                         ) {
-                            Icon(
-                                Icons.Filled.Refresh, null
+                            GetAsyncIcon(
+                                RIcons.Refresh
                             )
                         }
 
@@ -262,8 +178,8 @@ fun OtherHomeContent(
                                 component.onOutput(HomeComponent.Output.NavigateToSettings)
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Settings, null
+                            GetAsyncIcon(
+                                RIcons.Settings
                             )
                         }
                     }
@@ -411,8 +327,8 @@ fun TeacherHomeContent(
                                 IconButton(
                                     onClick = { component.onEvent(HomeStore.Intent.Init) }
                                 ) {
-                                    Icon(
-                                        Icons.Filled.Refresh, null
+                                    GetAsyncIcon(
+                                        RIcons.Refresh
                                     )
                                 }
 
@@ -422,8 +338,8 @@ fun TeacherHomeContent(
                                         component.onOutput(HomeComponent.Output.NavigateToSettings)
                                     }
                                 ) {
-                                    Icon(
-                                        Icons.Rounded.Settings, null
+                                    GetAsyncIcon(
+                                        RIcons.Settings
                                     )
                                 }
                             }
@@ -726,8 +642,8 @@ fun StudentHomeContent(
                                     }
                                 }
                             ) {
-                                Icon(
-                                    Icons.Rounded.ArrowBackIosNew, null
+                                GetAsyncIcon(
+                                    path = RIcons.ChevronLeft
                                 )
                             }
                         }
@@ -757,7 +673,9 @@ fun StudentHomeContent(
                                 IconButton(onClick = {
                                     component.onOutput(HomeComponent.Output.NavigateToSchool)
                                 }) {
-                                    Icon(Icons.Rounded.Token, null)
+                                    GetAsyncIcon(
+                                        path = RIcons.School
+                                    )
                                 }
                             }
                         }
@@ -771,8 +689,8 @@ fun StudentHomeContent(
                         IconButton(
                             onClick = { component.onEvent(HomeStore.Intent.Init) }
                         ) {
-                            Icon(
-                                Icons.Filled.Refresh, null
+                            GetAsyncIcon(
+                                path = RIcons.Refresh
                             )
                         }
                         if (viewManager.orientation.value != WindowScreen.Expanded) {
@@ -781,8 +699,8 @@ fun StudentHomeContent(
                                     component.onOutput(HomeComponent.Output.NavigateToSettings)
                                 }
                             ) {
-                                Icon(
-                                    Icons.Rounded.Settings, null
+                                GetAsyncIcon(
+                                    path = RIcons.Settings
                                 )
                             }
                         }
@@ -1007,8 +925,8 @@ fun Lesson(
                         fontWeight = FontWeight.SemiBold
                     )
                 } else {
-                    Icon(
-                        Icons.Rounded.Restaurant, null,
+                    GetAsyncIcon(
+                        path = RIcons.Restaraunt,
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                     )
                 }
@@ -1112,10 +1030,9 @@ fun Lesson(
                         if (notNow || !isEnded || (marks.isEmpty() && stupsSum == 0)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (notNow) {
-                                    Icon(
-                                        Icons.Rounded.Schedule,
-                                        null,
-                                        modifier = Modifier.size(20.dp)
+                                    GetAsyncIcon(
+                                        path = RIcons.Schedule,
+                                        size = 20.dp
                                     )
                                     Spacer(Modifier.width(5.dp))
                                 }
@@ -1209,8 +1126,8 @@ fun Lesson(
         Box(
             Modifier.fillMaxWidth(),
         ) {
-            Icon(
-                Icons.Rounded.Restaurant, null,
+            GetAsyncIcon(
+                path = RIcons.Restaraunt,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
                 modifier = Modifier.align(Alignment.CenterStart)
             )
@@ -1281,8 +1198,8 @@ fun CalendarButton(component: HomeComponent) {
     IconButton(
         onClick = { component.onEvent(HomeStore.Intent.ChangeIsDatesShown) }
     ) {
-        Icon(
-            Icons.Rounded.CalendarToday, null
+        GetAsyncIcon(
+            RIcons.Calendar
         )
     }
 }
@@ -1331,7 +1248,10 @@ fun TeacherGroupButton(component: HomeComponent, it: TeacherGroup, modifier: Mod
                     append("(${it.teacherLogin})")
                 }
             )
-            Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null)
+            GetAsyncIcon(
+                path = RIcons.ChevronLeft,
+                modifier = Modifier.rotate(180f)
+            )
         }
     }
 }

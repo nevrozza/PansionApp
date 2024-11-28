@@ -5,19 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -25,26 +13,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedAssistChip
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,11 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -68,13 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AlphaTestZatichka
-import components.AppBar
-import components.CLazyColumn
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.TeacherTime
-import components.cClickable
+import components.*
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -87,6 +46,7 @@ import journal.JournalStore
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
+import resources.RIcons
 import server.Moderation
 import server.Roles
 import view.LocalViewManager
@@ -184,8 +144,8 @@ private fun TrueJournalContent(
                                 component.groupListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Add, null
+                            GetAsyncIcon(
+                                RIcons.Add
                             )
                         }
                         ListDialogDesktopContent(
@@ -195,8 +155,8 @@ private fun TrueJournalContent(
                     IconButton(
                         onClick = { if (isExpanded) onRefresh() else component.onEvent(JournalStore.Intent.Refresh) }
                     ) {
-                        Icon(
-                            Icons.Filled.Refresh, null
+                        GetAsyncIcon(
+                            RIcons.Refresh
                         )
                     }
                     if (isExpanded) {
@@ -205,8 +165,8 @@ private fun TrueJournalContent(
                                 component.onOutput(JournalComponent.Output.NavigateToSettings)
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Settings, null
+                            GetAsyncIcon(
+                                RIcons.Settings
                             )
                         }
                     }
@@ -501,7 +461,9 @@ private fun CloseButton(isShown: Boolean, onClick: () -> Unit) {
             onClick = { onClick() },
             modifier = Modifier.size(20.dp),
         ) {
-            Icon(Icons.Rounded.Close, null)
+            GetAsyncIcon(
+                RIcons.Close
+            )
         }
     }
 }

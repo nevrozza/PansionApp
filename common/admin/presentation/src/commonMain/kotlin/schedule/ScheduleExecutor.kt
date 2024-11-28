@@ -536,7 +536,7 @@ class ScheduleExecutor(
             )
             scope.launch {
                 dispatch(Message.ItemsUpdated(items))
-                deleteEmptyLessons() //item
+                deleteEmptyLessons(item) //
             }
 
             scope.launch {

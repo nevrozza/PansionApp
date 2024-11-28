@@ -1,33 +1,15 @@
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.HourglassBottom
-import androidx.compose.material.icons.rounded.ThumbDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -38,13 +20,13 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
 import components.CustomTextButton
+import components.GetAsyncIcon
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
 import report.ClientStudentLine
+import resources.RIcons
 import studentLines.StudentLinesComponent
 import studentReportDialog.StudentReportDialogStore
-import view.LocalViewManager
-import view.rememberImeState
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -66,8 +48,8 @@ fun StudentLinesContent(
                     IconButton(
                         onClick = { component.onOutput(StudentLinesComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -176,15 +158,18 @@ private fun ClientStudentLineContent(
             ) {
 
                 if (sl.lateTime.isNotBlank() && sl.lateTime != "00 мин" && sl.lateTime != "0") {
-                    Icon(Icons.Rounded.HourglassBottom, null)
+                    GetAsyncIcon(
+                        RIcons.HourglassBottom,
+                        size = 18.dp
+                    )
                     Spacer(Modifier.width(5.dp))
                     Text(sl.lateTime.removePrefix("0"))
                     Spacer(Modifier.width(10.dp))
                 }
                 if (sl.isLiked in listOf("t", "f")) {
-                    Icon(
-                        Icons.Rounded.ThumbDown, null,
-                        modifier = Modifier.rotate(if (sl.isLiked == "t") 180f else 0f)
+                    GetAsyncIcon(
+                        RIcons.Like,
+                        modifier = Modifier.rotate(if (sl.isLiked != "t") 180f else 0f)
                     )
                     Spacer(Modifier.width(10.dp))
                 }

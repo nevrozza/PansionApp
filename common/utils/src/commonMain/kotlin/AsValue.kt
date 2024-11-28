@@ -23,8 +23,8 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
         }
     }
 
-const val applicationVersion = 11
-const val applicationVersionString = "1.1.1"
+const val applicationVersion = 12
+const val applicationVersionString = "1.1.2"
 
 
 const val isTestMode = false

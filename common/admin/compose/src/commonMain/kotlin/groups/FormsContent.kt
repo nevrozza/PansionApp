@@ -3,58 +3,20 @@ package groups
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.ExpandLess
-import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
@@ -65,20 +27,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.CLazyColumn
-import components.CustomTextButton
-import components.CustomTextField
-import components.GroupPicker
-import components.NSCutedGroup
-import components.NSSubject
+import components.*
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
-import dev.chrisbanes.haze.HazeState
 import excel.exportForms
 import groups.forms.FormsComponent
 import groups.forms.FormsStore
+import resources.RIcons
 import view.esp
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -140,34 +96,45 @@ fun FormsContent(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Column {
+                                        Column(
+                                            Modifier.weight(1f, false)
+                                        ) {
                                             Row {
                                                 Text(
-                                                    text = "${form.form.classNum}${if (form.form.title.length < 2) "-" else " "}${form.form.title.lowercase()} класс",
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = MaterialTheme.typography.titleMedium.fontSize
-                                                )
-                                                Spacer(Modifier.padding(start = 4.dp))
-                                                Text(
-                                                    "${form.form.classNum}${if (form.form.shortTitle.length < 2) "-" else " "}${form.form.shortTitle}",
-                                                    fontSize = 10.esp,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(
-                                                        alpha = 0.6f
-                                                    ),
-                                                    fontWeight = FontWeight.Bold
+                                                    buildAnnotatedString {
+                                                        withStyle(
+                                                            SpanStyle(
+                                                                fontWeight = FontWeight.Bold,
+                                                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                                                )
+                                                        ) {
+                                                            append("${form.form.classNum}${if (form.form.title.length < 2) "-" else " "}${form.form.title.lowercase()} класс ")
+                                                        }
+
+                                                        withStyle(
+                                                            SpanStyle(fontSize = 10.esp,
+                                                                      color = MaterialTheme.colorScheme.onSurface.copy(
+                                                                          alpha = 0.6f
+                                                                      ),
+                                                                      fontWeight = FontWeight.Bold)
+                                                        ) {
+                                                            append("${form.form.classNum}${if (form.form.shortTitle.length < 2) "-" else " "}${form.form.shortTitle}")
+                                                        }
+                                                    }
                                                 )
                                             }
-                                            Row {
-                                                Icon(
-                                                    Icons.Rounded.Person,
-                                                    null,
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                GetAsyncIcon(
+                                                    RIcons.User,
+                                                    size = 14.dp,
                                                     modifier = Modifier.offset(x = (-4).dp)
                                                 )
                                                 Text(text = mentorName)
                                             }
                                         }
 
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Row(verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(.1f, false)) {
                                             IconButton(
                                                 onClick = {
                                                     component.onEvent(FormsStore.Intent.ChangeEFormClassNum(form.form.classNum.toString()))
@@ -176,10 +143,13 @@ fun FormsContent(
                                                     component.onEvent(FormsStore.Intent.ChangeEFormMentorLogin(form.form.mentorLogin))
                                                     component.onEvent(FormsStore.Intent.EditFormInit(form.id))
                                                     component.editFormBottomSheet.onEvent(
-                                                        CBottomSheetStore.Intent.ShowSheet)
+                                                        CBottomSheetStore.Intent.ShowSheet
+                                                    )
                                                 }
                                             ) {
-                                                Icon(Icons.Rounded.Edit, null)
+                                                GetAsyncIcon(
+                                                    RIcons.Edit
+                                                )
                                             }
                                             Crossfade(nFGModel.state == NetworkState.Loading) {
                                                 Box(
@@ -193,9 +163,12 @@ fun FormsContent(
                                                             )
                                                         )
                                                     } else {
-                                                        Icon(
-                                                            if (form.id == model.chosenFormId) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                                                            null
+                                                        val chevronRotation =
+                                                            animateFloatAsState(if (form.id == model.chosenFormId) 90f else -90f)
+                                                        GetAsyncIcon(
+                                                            path = RIcons.ChevronLeft,
+                                                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                                            size = 15.dp
                                                         )
                                                     }
                                                 }
@@ -247,14 +220,15 @@ fun FormsContent(
                                                                     onClick = {
                                                                         component.onEvent(
                                                                             FormsStore.Intent.DeleteFormGroup(
-                                                                            subjectId = formGroup.subjectId,
-                                                                            groupId = formGroup.groupId
-                                                                        ))
+                                                                                subjectId = formGroup.subjectId,
+                                                                                groupId = formGroup.groupId
+                                                                            )
+                                                                        )
                                                                     },
                                                                     modifier = Modifier.size(25.dp)
                                                                 ) {
-                                                                    Icon(
-                                                                        Icons.Rounded.Close, null
+                                                                    GetAsyncIcon(
+                                                                        RIcons.Close
                                                                     )
                                                                 }
                                                             }
@@ -265,9 +239,8 @@ fun FormsContent(
                                                                     component.onEvent(FormsStore.Intent.OpenFormGroupCreationMenu)
                                                                 }
                                                             ) {
-                                                                Icon(
-                                                                    Icons.Rounded.Add,
-                                                                    null
+                                                                GetAsyncIcon(
+                                                                    RIcons.Add
                                                                 )
                                                             }
                                                         } else {
@@ -505,8 +478,11 @@ fun FormsContent(
                         onValueChange = {},
                         label = { Text("Наставник") },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = expandedMentors
+                            val chevronRotation = animateFloatAsState(if (expandedMentors) 90f else -90f)
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft,
+                                modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                size = 15.dp
                             )
                         },
                         shape = RoundedCornerShape(15.dp),

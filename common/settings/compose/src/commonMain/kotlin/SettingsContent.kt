@@ -1,29 +1,9 @@
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,7 +33,7 @@ import forks.colorPicker.toHex
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
-import server.DeviceTypex
+import resources.RIcons
 import view.*
 
 
@@ -132,8 +112,8 @@ fun SettingsView(
                     IconButton(
                         onClick = { component.onOutput(SettingsComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -188,7 +168,11 @@ fun SettingsView(
                         component.changeLoginDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
                     }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text("Персонализация", fontSize = 23.esp, fontWeight = FontWeight.Black)
                     IconButton(
                         onClick = {
@@ -196,7 +180,9 @@ fun SettingsView(
                         },
                         modifier = Modifier.size(25.dp)
                     ) {
-                        Icon(Icons.Rounded.Palette, null)
+                        GetAsyncIcon(
+                            RIcons.BigBrush
+                        )
                     }
                 }
                 Spacer(Modifier.height(7.dp))
@@ -266,7 +252,11 @@ fun SettingsView(
                     )
                 }
                 Spacer(Modifier.height(20.dp))
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text("Шрифт", fontSize = 23.esp, fontWeight = FontWeight.Black)
                     Box {
                         val fontName = when (viewManager.fontType.value) {
@@ -376,8 +366,8 @@ fun SettingsView(
                     IconButton(
                         onClick = { component.onOutput(SettingsComponent.Output.GoToScanner) }
                     ) {
-                        Icon(
-                            Icons.Rounded.QrCodeScanner, null
+                        GetAsyncIcon(
+                            path = RIcons.Qr
                         )
                     }
                     AnimatedVisibility(nDevicesModel.state == NetworkState.Loading) {
@@ -389,8 +379,8 @@ fun SettingsView(
                                 nDevicesModel.onFixErrorClick.invoke()
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Autorenew, null
+                            GetAsyncIcon(
+                                path = RIcons.Repeat
                             )
                         }
                     }
@@ -407,49 +397,66 @@ fun SettingsView(
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
                                         .padding(vertical = 4.dp, horizontal = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+//                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            when (device.deviceType) {
-                                                DeviceTypex.desktop -> Icons.Rounded.Computer
-                                                DeviceTypex.android -> Icons.Rounded.Android
-                                                DeviceTypex.ios -> Icons.Rounded.PhoneIphone
-                                                DeviceTypex.web -> Icons.Rounded.Language
-                                                else -> Icons.Rounded.DeviceUnknown
-                                            }, "PlatformIcon"
+                                    Spacer(Modifier.width(5.dp))
+                                    GetAsyncIcon(
+                                        path = getDeviceIcon(
+                                            deviceType = device.deviceType,
+                                            deviceName = device.deviceName ?: ""
+                                        ),
+                                        contentDescription = "PlatformIcon",
+                                        size = 30.dp
+                                    )
+                                    Spacer(Modifier.width(15.dp))
+                                    Column() {
+                                        Text(
+                                            device.deviceName ?: "Неизвестное устройство",
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 16.esp,
+                                            lineHeight = 16.esp
                                         )
-                                        Spacer(Modifier.width(10.dp))
-                                        Column {
+                                        Row(
+                                            Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            val time = remember {
+                                                val globalParts = device.time.split("T")
+                                                val partDays = globalParts[0].split("-")
+                                                val partTime = globalParts[1].split(":")
+                                                val days = partDays[2]
+                                                val month = partDays[1]
+                                                val year = partDays[0]
+
+                                                val hours = partTime[0]
+                                                val minutes = partTime[1]
+                                                "$days.$month.$year ($hours:$minutes)"
+                                            }
                                             Text(
-                                                device.deviceName ?: "Неизвестное устройство",
-                                                fontWeight = FontWeight.SemiBold,
-                                                fontSize = 16.esp,
-                                                lineHeight = 16.esp
-                                            )
-                                            Text(
-                                                device.time,
-                                                fontSize = 16.esp,
-                                                lineHeight = 16.esp,
+                                                time,
+                                                fontSize = 13.esp,
+                                                lineHeight = 13.esp,
                                                 color = MaterialTheme.colorScheme.onBackground.copy(
                                                     alpha = .5f
                                                 )
                                             )
+                                            CustomTextButton(
+                                                text = if (device.isThisSession) "Вы" else "Удалить",
+                                                fontSize = 13.esp
+                                            ) {
+                                                if (!device.isThisSession) {
+                                                    component.onEvent(
+                                                        SettingsStore.Intent.TerminateDevice(
+                                                            device.deviceId
+                                                        )
+                                                    )
+                                                }
+                                            }
                                         }
-                                        Spacer(Modifier.width(10.dp))
                                     }
-                                    CustomTextButton(
-                                        text = if (device.isThisSession) "Данное\nустройство" else "Завершить\nсессию"
-                                    ) {
-                                        if (!device.isThisSession) {
-                                            component.onEvent(
-                                                SettingsStore.Intent.TerminateDevice(
-                                                    device.deviceId
-                                                )
-                                            )
-                                        }
-                                    }
+
                                 }
                             }
                             Spacer(Modifier.height(5.dp))
@@ -473,12 +480,10 @@ fun SettingsView(
                         ),
                         contentPadding = PaddingValues(horizontal = 15.dp)
                     ) {
-
-                        Icon(
-                            Icons.AutoMirrored.Rounded.Logout,
-                            null,
+                        GetAsyncIcon(
+                            path = RIcons.Logout,
                             tint = colorRed,
-                            modifier = Modifier.size(25.dp)
+                            size = 25.dp
                         )
                         Spacer(Modifier.width(5.dp))
                         Text(

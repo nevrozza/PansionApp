@@ -1,12 +1,13 @@
 package components
 
-import androidx.compose.foundation.Image
+//import resources.getAvatarImageVector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,12 +26,37 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import pansion.common.utils_compose.generated.resources.Res
-//import resources.getAvatarImageVector
 import resources.getAvatarPath
 import view.LocalViewManager
 import view.ThemeTint
 import view.esp
 
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun GetAsyncIcon(
+    path: String,
+    contentDescription: String? = null,
+    tint: Color = LocalContentColor.current,
+    size: Dp = 22.dp,
+    modifier: Modifier = Modifier
+) {
+    AsyncImage(
+        ImageRequest.Builder(LocalPlatformContext.current)
+            .data(Res.getUri("drawable/icons/${path}"))
+            .crossfade(true)
+            .build(),
+        modifier = modifier.size(size, size),
+        contentDescription = contentDescription,
+        colorFilter = ColorFilter.tint(tint)
+    )
+
+//            .components {
+//                add(SvgDecoder.Factory())
+//            }
+//            .crossfade(true)
+//            .build()
+
+}
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -75,8 +101,8 @@ fun GetAsyncAvatar(
         } else {
             AsyncImage(
                 ImageRequest.Builder(LocalPlatformContext.current)
-                    .data(Res.getUri("drawable/${path}.webp"))
-                    .crossfade(isCrossfade)
+                    .data(Res.getUri("drawable/avatars/${path}.webp"))
+                    .crossfade(300)
                     .build(),
                 null,
                 modifier = Modifier.fillMaxSize(),

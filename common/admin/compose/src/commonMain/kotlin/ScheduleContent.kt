@@ -4,19 +4,22 @@ import admin.schedule.ScheduleSubject
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.ParagraphStyle
@@ -26,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.DialogProperties
@@ -42,12 +44,15 @@ import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
+import resources.RIcons
 import schedule.*
 import schedule.ScheduleStore.EditState
 import server.isTimeFormat
 import server.toMinutes
 import server.weekPairs
-import view.*
+import view.LockScreenOrientation
+import view.blend
+import view.esp
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -79,8 +84,8 @@ fun ScheduleContent(
                     IconButton(
                         onClick = { component.onOutput(ScheduleComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -189,9 +194,8 @@ fun ScheduleContent(
                             component.onEvent(ScheduleStore.Intent.ChangeIsTeacherView)
                         }
                     ) {
-                        Icon(
-                            if (model.isTeachersView) Icons.Rounded.Person else Icons.Rounded.Groups,
-                            null
+                        GetAsyncIcon(
+                            path = if (model.isTeachersView) RIcons.User else RIcons.Group
                         )
                     }
 
@@ -201,9 +205,8 @@ fun ScheduleContent(
                             isStatic.value = it
                         }
                     ) {
-                        Icon(
-                            Icons.Rounded.Extension,
-                            null
+                        GetAsyncIcon(
+                            RIcons.Puzzle
                         )
                     }
                 },
@@ -231,9 +234,8 @@ fun ScheduleContent(
                     ) {
                         when (it) {
                             NetworkState.None -> {
-                                Icon(
-                                    Icons.Rounded.Save,
-                                    null
+                                GetAsyncIcon(
+                                    RIcons.Save
                                 )
                             }
 
@@ -299,6 +301,7 @@ fun ScheduleContent(
 
                         Box(
                             modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
+                                .padding(start = 8.dp)
                         ) {
                             //TIMINGS
                             Box(Modifier.padding(top = headerP)) {
@@ -328,9 +331,8 @@ fun ScheduleContent(
                                             component.listCreateTeacher.onEvent(ListDialogStore.Intent.ShowDialog)
                                         }
                                     ) {
-                                        Icon(
-                                            Icons.Rounded.PersonAdd,
-                                            "addTeacher"
+                                        GetAsyncIcon(
+                                            RIcons.PersonAdd
                                         )
                                     }
                                     ListDialogDesktopContent(
@@ -617,8 +619,8 @@ private fun LazyItemScope.ScheduleColumn(
                                 }
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Add, null
+                            GetAsyncIcon(
+                                RIcons.Add
                             )
                         }
                         if (model.ciLogin == c.login) {
@@ -817,9 +819,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                                             }
                                                                         }
                                                                     ) {
-                                                                        Icon(
-                                                                            Icons.Rounded.Done,
-                                                                            null
+                                                                        GetAsyncIcon(
+                                                                            RIcons.Check
                                                                         )
                                                                     }
                                                                 } else {
@@ -873,9 +874,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                                         )
                                                                     }
                                                                 ) {
-                                                                    Icon(
-                                                                        Icons.Rounded.Replay,
-                                                                        null
+                                                                    GetAsyncIcon(
+                                                                        path = RIcons.Repeat
                                                                     )
                                                                 }
                                                             }
@@ -1030,9 +1030,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                                 )
                                                             }
                                                         ) {
-                                                            Icon(
-                                                                Icons.Rounded.Close,
-                                                                null
+                                                            GetAsyncIcon(
+                                                                RIcons.Close
                                                             )
                                                         }
                                                         IconButton(
@@ -1051,9 +1050,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                                 }
                                                             }
                                                         ) {
-                                                            Icon(
-                                                                Icons.Rounded.Done,
-                                                                null
+                                                            GetAsyncIcon(
+                                                                RIcons.Check
                                                             )
                                                         }
                                                     }
@@ -1092,9 +1090,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                         )
                                                     }
                                                 ) {
-                                                    Icon(
-                                                        Icons.Rounded.ArrowBackIos,
-                                                        null
+                                                    GetAsyncIcon(
+                                                        RIcons.ChevronLeft
                                                     )
                                                 }
                                                 Column {
@@ -1136,8 +1133,13 @@ private fun LazyItemScope.ScheduleColumn(
                                                             onValueChange = {},
                                                             label = { Text("Предмет") },
                                                             trailingIcon = {
-                                                                ExposedDropdownMenuDefaults.TrailingIcon(
-                                                                    expanded = expandedGSubjects
+                                                                val chevronRotation =
+                                                                    animateFloatAsState(if (expandedGSubjects) 90f else -90f)
+                                                                GetAsyncIcon(
+                                                                    path = RIcons.ChevronLeft,
+                                                                    modifier = Modifier.padding(end = 10.dp)
+                                                                        .rotate(chevronRotation.value),
+                                                                    size = 15.dp
                                                                 )
                                                             },
                                                             shape = RoundedCornerShape(
@@ -1240,7 +1242,9 @@ private fun LazyItemScope.ScheduleColumn(
                                                             }
                                                         }
                                                     ) {
-                                                        Icon(Icons.Rounded.Done, null)
+                                                        GetAsyncIcon(
+                                                            RIcons.Check
+                                                        )
                                                     }
                                                 }
                                             }
@@ -1512,7 +1516,8 @@ private fun LazyItemScope.ScheduleColumn(
             val tEnd = remember { mutableStateOf("") }
             AnimatedVisibility(
                 (model.ciLogin == c.login && model.ciTiming != null && mpModel.isDialogShowing) ||
-                 (((model.eiNewLogin ?: trueItems?.firstOrNull { it.index == model.eiIndex }?.teacherLogin) == c.login && model.eiTiming != null) && mpEditModel.isDialogShowing),
+                        (((model.eiNewLogin
+                            ?: trueItems?.firstOrNull { it.index == model.eiIndex }?.teacherLogin) == c.login && model.eiTiming != null) && mpEditModel.isDialogShowing),
                 enter = fadeIn() + scaleIn()
             ) {
                 val t = if (mpEditModel.isDialogShowing) ScheduleTiming(
@@ -1526,8 +1531,16 @@ private fun LazyItemScope.ScheduleColumn(
                     tStart.value = t.start
                     tEnd.value = t.end
                 }
-                val tPadding by animateDpAsState((minuteHeight * (t.start.toMinutes() - dayStartTime.toMinutes())).coerceAtLeast(0.dp))
-                val height by animateDpAsState((minuteHeight * (t.end.toMinutes() - t.start.toMinutes())).coerceAtLeast(0.dp))
+                val tPadding by animateDpAsState(
+                    (minuteHeight * (t.start.toMinutes() - dayStartTime.toMinutes())).coerceAtLeast(
+                        0.dp
+                    )
+                )
+                val height by animateDpAsState(
+                    (minuteHeight * (t.end.toMinutes() - t.start.toMinutes())).coerceAtLeast(
+                        0.dp
+                    )
+                )
 
                 Card(
                     Modifier.padding(top = tPadding)
@@ -1767,9 +1780,8 @@ fun BoxScope.EditPopup(
                                             )
                                         }
                                     ) {
-                                        Icon(
-                                            Icons.Rounded.DeleteOutline,
-                                            null
+                                        GetAsyncIcon(
+                                            RIcons.TrashCanRegular
                                         )
                                     }
                                     IconButton(
@@ -1781,9 +1793,8 @@ fun BoxScope.EditPopup(
                                             )
                                         }
                                     ) {
-                                        Icon(
-                                            Icons.Rounded.SwapHoriz,
-                                            null
+                                        GetAsyncIcon(
+                                            path = RIcons.SwapHoriz
                                         )
                                     }
                                     AnimatedVisibility(
@@ -1818,9 +1829,8 @@ fun BoxScope.EditPopup(
                                                     )
                                                 }
                                             ) {
-                                                Icon(
-                                                    Icons.Rounded.Done,
-                                                    null
+                                                GetAsyncIcon(
+                                                    RIcons.Check
                                                 )
                                             }
                                         } else {
@@ -2029,9 +2039,8 @@ fun BoxScope.EditPopup(
                                                 }
                                             }
                                         ) {
-                                            Icon(
-                                                Icons.Rounded.Done,
-                                                null
+                                            GetAsyncIcon(
+                                                RIcons.Check
                                             )
                                         }
 
@@ -2118,9 +2127,8 @@ fun BoxScope.EditPopup(
                             )
                         }
                     ) {
-                        Icon(
-                            Icons.Rounded.DeleteOutline,
-                            null
+                        GetAsyncIcon(
+                            RIcons.TrashCanRegular
                         )
                     }
                 }
@@ -2265,9 +2273,8 @@ fun ErrorsTooltip(
             },
             enabled = true
         ) {
-            Icon(
-                Icons.Rounded.ErrorOutline,
-                null,
+            GetAsyncIcon(
+                path = RIcons.ErrorOutline,
                 tint = MaterialTheme.colorScheme.error
             )
         }

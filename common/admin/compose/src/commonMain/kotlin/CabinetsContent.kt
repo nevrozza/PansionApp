@@ -1,31 +1,13 @@
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -39,11 +21,12 @@ import cabinets.CabinetsStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CustomTextField
+import components.GetAsyncIcon
 import components.hazeUnder
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
+import resources.RIcons
 import view.LocalViewManager
-import view.rememberImeState
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -63,8 +46,8 @@ fun CabinetsContent(
                     IconButton(
                         onClick = { component.onOutput(CabinetsComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -91,9 +74,8 @@ fun CabinetsContent(
                 ) {
                     when (it) {
                         NetworkState.None -> {
-                            Icon(
-                                Icons.Rounded.Save,
-                                null
+                            GetAsyncIcon(
+                                path = RIcons.Save
                             )
                         }
 
@@ -106,33 +88,6 @@ fun CabinetsContent(
                         }
                     }
                 }
-
-//                    AnimatedContent(nModel.state) {
-//                    when (it) {
-//                        NetworkState.None -> {
-//                            SmallFloatingActionButton(
-//                                onClick = {
-//                                    component.onEvent(LessonReportStore.Intent.UpdateWholeReport)
-//                                }
-//                            ) {
-//                                Icon(
-//                                    Icons.Rounded.Save,
-//                                    null
-//                                )
-//                            }
-//                        }
-//
-//                        NetworkState.Loading -> {
-//                            SmallFloatingActionButton(
-//                                onClick = {}
-//                            ) {
-//                                CircularProgressIndicator()
-//                            }
-//                        }
-//
-//                        NetworkState.Error -> {}
-//                    }
-//                }
             }
         }
     ) { padding ->

@@ -5,75 +5,26 @@ import admin.users.User
 import admin.users.UserInit
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CalendarToday
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.UploadFile
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
@@ -89,30 +40,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AppBar
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.CustomTextField
-import components.LoadingAnimation
-import components.ScrollBaredBox
+import components.*
 import components.cBottomSheet.CBottomSheetStore
-import components.cClickable
-import components.hazeUnder
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
 import dev.chrisbanes.haze.HazeState
 import excel.importStudents
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.*
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
+import resources.RIcons
 import server.Roles
 import server.twoNums
 import users.UsersComponent
@@ -155,8 +95,8 @@ fun UsersContent(
                     IconButton(
                         onClick = { component.onOutput(UsersComponent.Output.Back) }
                     ) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew, null
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
                         )
                     }
                 },
@@ -183,8 +123,8 @@ fun UsersContent(
                                 }
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Search, null
+                            GetAsyncIcon(
+                                RIcons.Search
                             )
                         }
                         AnimatedVisibility(
@@ -309,8 +249,8 @@ fun UsersContent(
                                 showFilePicker.value = !showFilePicker.value
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.UploadFile, null
+                            GetAsyncIcon(
+                                path = RIcons.Upload
                             )
                         }
                     }
@@ -320,8 +260,8 @@ fun UsersContent(
                         IconButton(
                             onClick = { component.onEvent(UsersStore.Intent.FetchUsers) }
                         ) {
-                            Icon(
-                                Icons.Filled.Refresh, null
+                            GetAsyncIcon(
+                                RIcons.Refresh
                             )
                         }
                         IconButton(
@@ -329,8 +269,8 @@ fun UsersContent(
                                 component.cUserBottomSheet.onEvent(CBottomSheetStore.Intent.ShowSheet)
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Add, null
+                            GetAsyncIcon(
+                                RIcons.Add
                             )
                         }
                     }
@@ -662,9 +602,8 @@ private fun editUserSheet(
                                 },
                                 enabled = !isEditingInProcess
                             ) {
-                                Icon(
-                                    Icons.Rounded.CalendarToday,
-                                    null
+                                GetAsyncIcon(
+                                    path = RIcons.Calendar
                                 )
                             }
                         }
@@ -782,8 +721,11 @@ private fun editUserSheet(
                             onValueChange = {},
                             label = { Text("Роль") },
                             trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(
-                                    expanded = expandedRoles
+                                val chevronRotation = animateFloatAsState(if (expandedRoles) 90f else -90f)
+                                GetAsyncIcon(
+                                    path = RIcons.ChevronLeft,
+                                    modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                    size = 15.dp
                                 )
                             },
                             shape = RoundedCornerShape(15.dp),
@@ -834,8 +776,11 @@ private fun editUserSheet(
                                 onValueChange = {},
                                 label = { Text("Предмет") },
                                 trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(
-                                        expanded = expandedSubjects
+                                    val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                                    GetAsyncIcon(
+                                        path = RIcons.ChevronLeft,
+                                        modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                        size = 15.dp
                                     )
                                 },
                                 shape = RoundedCornerShape(15.dp),
@@ -1184,9 +1129,8 @@ private fun createUserSheet(
                                     },
                                     enabled = !isCreatingInProcess
                                 ) {
-                                    Icon(
-                                        Icons.Rounded.CalendarToday,
-                                        null
+                                    GetAsyncIcon(
+                                        RIcons.Calendar
                                     )
                                 }
                             }
@@ -1305,8 +1249,11 @@ private fun createUserSheet(
                                 onValueChange = {},
                                 label = { Text("Роль") },
                                 trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(
-                                        expanded = expandedRoles
+                                    val chevronRotation = animateFloatAsState(if (expandedRoles) 90f else -90f)
+                                    GetAsyncIcon(
+                                        path = RIcons.ChevronLeft,
+                                        modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                        size = 15.dp
                                     )
                                 },
                                 shape = RoundedCornerShape(15.dp),
@@ -1357,8 +1304,11 @@ private fun createUserSheet(
                                     onValueChange = {},
                                     label = { Text("Предмет") },
                                     trailingIcon = {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                            expanded = expandedSubjects
+                                        val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                                        GetAsyncIcon(
+                                            path = RIcons.ChevronLeft,
+                                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                            size = 15.dp
                                         )
                                     },
                                     shape = RoundedCornerShape(15.dp),
@@ -1485,8 +1435,11 @@ private fun createUserSheet(
                                     onValueChange = {},
                                     label = { Text("Класс") },
                                     trailingIcon = {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                            expanded = expandedForms
+                                        val chevronRotation = animateFloatAsState(if (expandedForms) 90f else -90f)
+                                        GetAsyncIcon(
+                                            path = RIcons.ChevronLeft,
+                                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                            size = 15.dp
                                         )
                                     },
                                     shape = RoundedCornerShape(15.dp),
@@ -1764,7 +1717,10 @@ fun TableScreen(
                                         onClick = { onEditClick(index) },
                                         modifier = Modifier.padding(top = 5.dp).size(15.dp)
                                     ) {
-                                        Icon(Icons.Rounded.Edit, null)
+                                        GetAsyncIcon(
+                                            RIcons.Edit,
+                                            size = 10.dp
+                                        )
                                     }
                                 }
                                 row.second.forEach { (key, value) ->

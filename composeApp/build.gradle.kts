@@ -14,7 +14,7 @@ plugins {
 //    id("org.jetbrains.kotlin.plugin.compose")
 }
 
-version = "1.1.1"
+version = "1.1.2"
 
 kotlin {
     jvm("jvm")
@@ -22,16 +22,9 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     androidTarget()
-//    ios() {
-//        this.binaries.framework {
-//            baseName = "ComposeApp"
-//            isStatic = false
-//            linkerOpts.add("-lsqlite3")
-//        }
-//    }
     listOf(
         iosArm64(),
-        iosX64(),
+//        iosX64(),
         iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
@@ -76,9 +69,6 @@ kotlin {
         }
     }
 
-//    iosX64()
-//    iosArm64()
-//    iosSimulatorArm64()
 
     js(IR) {
         moduleName = "composeApp"
@@ -90,10 +80,8 @@ kotlin {
                 outputDirectory = file("$projectDir/build/jsDistribution/")
             }
         }
-//        browser()
         binaries.executable()
     }
-//RIP
     wasmJs {
         moduleName = "composeApp"
         browser {
@@ -107,39 +95,11 @@ kotlin {
         binaries.executable()
     }
 
-//    wasmJs {
-//        moduleName = "composeApp"
-//
-//        useCommonJs()
-//        browser()
-//        binaries.executable()
-//    }
-
     jvmToolchain(17)
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
     }
-
-//    configurations.configureEach {
-//        resolutionStrategy.eachDependency {
-//            if (requested.group == "androidx.collection" && requested.name.startsWith("collection")) {
-//                useTarget("androidx.collection:collection:1.4.0")
-//            }
-//            else if (requested.group == "androidx.annotation" && requested.name.startsWith("annotation")) {
-//                useTarget("androidx.annotation:annotation:1.7.1")
-//            }
-//        }
-//    }
-//    configurations.configureEach {
-//        resolutionStrategy.eachDependency {
-//            if (requested.group == "androidx.collection" && requested.name.startsWith("collection")) {
-//                useTarget("org.jetbrains.compose.collection-internal:collection:1.6.0-beta02")
-//            } else if (requested.group == "androidx.annotation" && requested.name.startsWith("annotation")) {
-//                useTarget("org.jetbrains.compose.annotation-internal:annotation:1.8.0-alpha01")
-//            }
-//        }
-//    }
     sourceSets {
         commonMain.dependencies {
             implementation("io.github.alexzhirkevich:qrose:1.0.1")
@@ -149,7 +109,6 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.foundation)
             implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
 //            implementation(libs.jetbrains.compose.splitpane)
 
 //            implementation(libs.moko.resources.compose)
@@ -265,14 +224,14 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 5
-        versionName = "1.1.11"
+        versionName = version.toString()
     }
     buildFeatures {
         compose = true
     }
-    compose {
-        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.21-RC"
-    }
+//    compose {
+//        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.21"
+//    }
 //    composeOptions {
 //        kotlinCompilerExtensionVersion = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0-RC2"
 //    }
@@ -317,7 +276,7 @@ compose.desktop {
             )
 
             packageName = "PansionApp"
-            packageVersion = "1.1.1"
+            packageVersion = version.toString()
             windows {
                 menuGroup = "PansionApp"
                 upgradeUuid = "f11ae455-b203-4ff9-9a63-e28e6d7a4bdf"
@@ -340,10 +299,4 @@ compose.desktop {
 
         }
     }
-}
-
-
-
-compose.experimental {
-    web.application {}
 }

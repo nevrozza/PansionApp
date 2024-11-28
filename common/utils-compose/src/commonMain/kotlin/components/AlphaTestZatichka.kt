@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,6 +13,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import resources.RIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,8 +33,8 @@ fun AlphaTestZatichka(
                                 onSettingsClick()
                             }
                         ) {
-                            Icon(
-                                Icons.Rounded.Settings, null
+                            GetAsyncIcon(
+                                RIcons.Settings
                             )
                         }
                     },
