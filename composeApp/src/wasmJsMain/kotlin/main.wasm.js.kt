@@ -122,6 +122,7 @@ fun main() {
                     )
                 }
                 val hex = MaterialTheme.colorScheme.background.toHex()
+
                 changeThemeColor(hex)
             }
         }

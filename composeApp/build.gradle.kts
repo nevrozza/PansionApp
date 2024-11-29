@@ -14,7 +14,7 @@ plugins {
 //    id("org.jetbrains.kotlin.plugin.compose")
 }
 
-version = "1.1.2"
+version = "1.2.1"
 
 kotlin {
     jvm("jvm")
