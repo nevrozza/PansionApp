@@ -35,7 +35,7 @@ fun getModuleByDate(date: String): CalendarDTO? {
 
 fun createLogin(name: String, surname: String, plusNum: Int = 0): String {
     val nameSubstring = name.lowercase().latin()// else name.lowercase().latin()
-    return (("${nameSubstring}.${surname.lowercase().latin()}".cut(27).plus("${Users.getCount() + 1 + plusNum}")).replace(" ", "").replace("-", "")).cut(30)
+    return (("${nameSubstring}-${surname.lowercase().latin()}".cut(27).plus("${Users.getCount() + 1 + plusNum}")).replace(" ", "").replace("-", "")).cut(30)
 }
 
 
