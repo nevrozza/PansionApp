@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ToBeCreatedStudent(
     val user: UserInit,
-    val parents: List<String>,
+    val parents: List<Pair<String, String>>,
     val formId: Int
 )
 

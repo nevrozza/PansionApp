@@ -1511,10 +1511,11 @@ private fun createUserSheet(
                         }
 
                         Spacer(Modifier.height(7.dp))
+                        val isSolo = (model.users?.filter { it.user.fio.name == model.cName && it.user.fio.surname == model.cSurname && it.user.birthday == model.cBirthday }?.size ?: 0) == 0
                         AnimatedCommonButton(
-                            text = "Создать",
+                            text = if (isSolo) "Создать" else "Существует",
                             modifier = Modifier.width(TextFieldDefaults.MinWidth),
-                            isEnabled = num == 5
+                            isEnabled = num == 5 && isSolo
                         ) {
                             component.onEvent(UsersStore.Intent.CreateUser)
                         }

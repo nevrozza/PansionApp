@@ -78,6 +78,7 @@ class UserManageController() {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
+
     suspend fun updateParents(call: ApplicationCall) {
         if (call.isModer) {
             try {
@@ -86,8 +87,7 @@ class UserManageController() {
                     if (r.id != 0) {
                         Parents.delete(r.id)
                     }
-                }
-                else if (r.studentLogin != "") {
+                } else if (r.studentLogin != "") {
                     Parents.insert(
                         ParentsDTO(
                             id = 0,
@@ -138,7 +138,7 @@ class UserManageController() {
                     )
                 )
 
-                if(r.parentFIOs != null) {
+                if (r.parentFIOs != null) {
                     pLogins = mutableListOf()
                     r.parentFIOs!!.forEach { p ->
                         val fio = p.split(" ")
@@ -170,7 +170,7 @@ class UserManageController() {
                         pLogins.add(pLogin)
                     }
                 }
-                if(r.formId != 0) {
+                if (r.formId != 0) {
                     StudentsInForm.insert(
                         StudentInFormDTO(
                             formId = r.formId,
@@ -196,54 +196,88 @@ class UserManageController() {
         if (call.isModer) {
             try {
                 transaction {
+                    println("STUDENTS: ${r.students}")
                     r.students.forEach { l ->
-                        val login =
-                            createLogin(name = l.user.fio.name, surname = l.user.fio.surname)
-                        val student = UserDTO(
-                            login = login,
-                            password = null,
-                            name = l.user.fio.name,
-                            surname = l.user.fio.surname,
-                            praname = l.user.fio.praname,
-                            birthday = l.user.birthday,
-                            role = l.user.role,
-                            moderation = l.user.moderation,
-                            isParent = l.user.isParent,
-                            avatarId = 1,
-                            isActive = true,
-                            subjectId = null
+                        val studentPreviousLogin = Users.getLoginWithFIO(
+                            fio = FIO(
+                                name = l.user.fio.name.replace("ë", "ё"),
+                                surname = l.user.fio.surname.replace("ë", "ё"),
+                                praname = l.user.fio.praname?.replace("ë", "ё")
+                            ),
+                            itShouldBeStudent = true
                         )
-                        val p = l.parents.first().split(" ")
-                        val pFio = FIO(
-                            name = p[1],
-                            surname = p[0],
-                            praname = p.getOrNull(2)
-                        )
-                        val pLogin = createLogin(pFio.name, pFio.surname, 1)
-                        val parent = UserDTO(
-                            login = pLogin,
-                            password = null,
-                            name = pFio.name,
-                            surname = pFio.surname,
-                            praname = pFio.praname,
-                            birthday = "01012000",
-                            role = Roles.nothing,
-                            moderation = Moderation.nothing,
-                            isParent = true,
-                            avatarId = 1,
-                            isActive = true,
-                            subjectId = null
-                        )
+                        var student: UserDTO? = null
+                        var login: String? = null
+                        println("GOT IT: ${studentPreviousLogin == null} ${Users.fetchUser(studentPreviousLogin ?: "")?.birthday != l.user.birthday}")
+                        if (studentPreviousLogin == null || Users.fetchUser(studentPreviousLogin)?.birthday != l.user.birthday) {
 
-                        Users.insert(listOf(student, parent))
-                        Parents.insert(
-                            ParentsDTO(
-                                id = 0,
-                                studentLogin = login,
-                                parentLogin = pLogin
+                            login =
+                                createLogin(name = l.user.fio.name, surname = l.user.fio.surname)
+                            student = UserDTO(
+                                login = login,
+                                password = null,
+                                name = l.user.fio.name.replace("ë", "ё"),
+                                surname = l.user.fio.surname.replace("ë", "ё"),
+                                praname = l.user.fio.praname?.replace("ë", "ё"),
+                                birthday = l.user.birthday,
+                                role = l.user.role,
+                                moderation = l.user.moderation,
+                                isParent = l.user.isParent,
+                                avatarId = 1,
+                                isActive = true,
+                                subjectId = null
                             )
-                        )
-                        if(l.formId != 0) {
+                        }
+                        l.parents.forEach { pp ->
+                            val p = pp.first.split(" ")
+                            val pFio = FIO(
+                                name = p[1].replace("ë", "ё"),
+                                surname = p[0].replace("ë", "ё"),
+                                praname = (p.getOrNull(2) + (if (p.getOrNull(3) != null) " "+p.getOrNull(3) else "")).replace("ë", "ё")
+                            )
+
+                            val parentPreviousLogin = Users.getLoginWithFIO(
+                                fio = FIO(
+                                    name = l.user.fio.name.replace("ë", "ё"),
+                                    surname = l.user.fio.surname.replace("ë", "ё"),
+                                    praname = l.user.fio.praname?.replace("ë", "ё")
+                                ),
+                                itShouldBeStudent = false
+                            )
+                            var pLogin: String? = null
+                            if (parentPreviousLogin == null || Users.fetchUser(parentPreviousLogin)?.birthday != pp.second) {
+                                pLogin = createLogin(pFio.name, pFio.surname, 1)
+                                val parent = UserDTO(
+                                    login = pLogin,
+                                    password = null,
+                                    name = pFio.name,
+                                    surname = pFio.surname,
+                                    praname = pFio.praname,
+                                    birthday = pp.second.replace(".", ""),
+                                    role = Roles.nothing,
+                                    moderation = Moderation.nothing,
+                                    isParent = true,
+                                    avatarId = 1,
+                                    isActive = true,
+                                    subjectId = null
+                                )
+
+                                Users.insert(
+                                    listOf(student, parent)
+                                        .mapNotNull { it }
+                                )
+                            }
+                            if (login != null || pLogin != null) {
+                                Parents.insert(
+                                    ParentsDTO(
+                                        id = 0,
+                                        studentLogin = login ?: studentPreviousLogin!!,
+                                        parentLogin = pLogin ?: parentPreviousLogin!!
+                                    )
+                                )
+                            }
+                        }
+                        if (l.formId != 0 && login != null) {
                             StudentsInForm.insert(
                                 StudentInFormDTO(
                                     formId = l.formId,
@@ -253,6 +287,7 @@ class UserManageController() {
                         }
                     }
                 }
+
                 call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "This User already exists")
@@ -269,7 +304,7 @@ class UserManageController() {
             try {
                 val users = Users.fetchAll()
                 val forms = Forms.getAllForms().mapNotNull {
-                    if(it.isActive) {
+                    if (it.isActive) {
                         CutedForm(
                             id = it.formId,
                             title = it.title,
@@ -283,7 +318,8 @@ class UserManageController() {
                         users.map { it.mapToUser() }.sortedBy { it.user.fio.surname },
                         forms,
                         subjects = subjects
-                        ))
+                    )
+                )
             } catch (e: Throwable) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -331,7 +367,7 @@ class UserManageController() {
         val deleteTokenReceive = call.receive<DeleteTokenReceive>()
         if (Tokens.isTokenValid(token)) {
             val login = Tokens.getLoginOfThisToken(token)
-            if(Tokens.getTokensOfThisLogin(login).any { it.deviceId == deleteTokenReceive.id }) {
+            if (Tokens.getTokensOfThisLogin(login).any { it.deviceId == deleteTokenReceive.id }) {
                 Tokens.deleteTokenByIdAndLogin(deleteTokenReceive.id, login)
                 call.respond(HttpStatusCode.OK)
             } else {
@@ -385,6 +421,7 @@ class UserManageController() {
             call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
+
     suspend fun performDeleteUser(call: ApplicationCall) {
         val r = call.receive<RDeleteUserReceive>()
         if (call.isModer) {

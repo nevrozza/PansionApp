@@ -1,0 +1,26 @@
+{
+
+  "name": "PansionApp",
+
+  "short_name": "PansionApp",
+
+  "start_url": "https://pansionapp-test.ru",
+
+  "display": "standalone",
+
+  "icons": [{
+
+    "src": "favicon.ico",
+
+    "sizes": "256x256",
+
+    "type": "image/ico"
+
+  }],
+  "permissions": [
+      "unlimitedStorage",
+      "notifications",
+      "fullscreen"
+  ]
+
+}

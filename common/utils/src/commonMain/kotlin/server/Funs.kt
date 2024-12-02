@@ -235,7 +235,9 @@ fun String.cut(size: Int): String {
     }
 }
 
-fun String.latin() = this.replace("а", "a")
+fun String.latin() = this
+    .replace("Х", "kh")
+    .replace("а", "a")
     .replace("б", "b")
     .replace("в", "v")
     .replace("г", "g")
@@ -262,7 +264,7 @@ fun String.latin() = this.replace("а", "a")
     .replace("ш", "sh")
     .replace("щ", "tch")
     .replace("ъ", "x")
-    .replace("ы", "i")
+    .replace("ы", "y")
     .replace("ь", "x")
     .replace("э", "e")
     .replace("ю", "yu")

@@ -131,6 +131,8 @@ fun SharedTransitionScope.ProfileContent(
                 .sortedBy { it.second.price }
         ) else listOf()
     } else listOf()
+
+
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -160,7 +162,7 @@ fun SharedTransitionScope.ProfileContent(
                                 path = RIcons.ChevronLeft
                             )
                         }
-                    },
+                                    },
                     title = {
                         Box(modifier = Modifier.fillMaxWidth().padding(end = 10.dp)) {
                             AnimatedContent(
@@ -218,13 +220,13 @@ fun SharedTransitionScope.ProfileContent(
                             }
 
                         }
-                    },
+                            },
                     actionRow = {
                         AnimatedVisibility(
                             visible = model.tabIndex !in listOf(0, 1),
                             enter = fadeIn() + scaleIn(),
                             exit = fadeOut() + scaleOut(),
-                        ) {
+                            ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 GetAsyncIcon(
                                     RIcons.Coins
@@ -233,7 +235,7 @@ fun SharedTransitionScope.ProfileContent(
                                 Text("${model.pansCoins.toString()}", fontSize = 17.esp, fontWeight = FontWeight.Bold)
                             }
                         }
-                    },
+                                },
                     hazeState = null,
                     isTransparentHaze = true
                 )
@@ -241,7 +243,7 @@ fun SharedTransitionScope.ProfileContent(
                     isFullHeader,
                     enter = fadeIn() + expandVertically(clip = false) + scaleIn(),
                     exit = fadeOut() + shrinkVertically(clip = false) + scaleOut(),
-                ) {
+                    ) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -317,7 +319,7 @@ fun SharedTransitionScope.ProfileContent(
                                         else -> {
                                             RIcons.QuestionCircle
                                         }
-                                    },
+                                                                   },
                                     size = 50.dp,
                                     tint = MaterialTheme.colorScheme.inversePrimary.hv()
                                 )
@@ -343,26 +345,26 @@ fun SharedTransitionScope.ProfileContent(
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                                 if (it) {
 
-                                    val price = avatarsList.flatMap { it.second }
+                                    val price = if (model.avatars?.contains(model.newAvatarId) == true) 0 else (avatarsList.flatMap { it.second }
                                         .firstOrNull { it.first == model.newAvatarId }?.second?.price?.toString()
-                                        ?: "???"
+                                            ?: "???").toIntOrNull()
 
                                     Crossfade(nAvatarModel.state) {
 
                                         SmallFloatingActionButton(
                                             onClick = {
-                                                if (it != NetworkState.Loading && model.avatarId != model.newAvatarId && model.avatars != null && (price.toIntOrNull()
+                                                if (it != NetworkState.Loading && model.avatarId != model.newAvatarId && model.avatars != null && (price
                                                         ?: 0) <= model.pansCoins
                                                 ) {
                                                     component.onEvent(
                                                         ProfileStore.Intent.SaveAvatarId(
                                                             avatarId = model.newAvatarId,
-                                                            price = price.toIntOrNull() ?: 0
+                                                            price = price ?: 0
                                                         )
                                                     )
                                                 }
                                             },
-                                            containerColor = if ((price.toIntOrNull()
+                                            containerColor = if ((price
                                                     ?: 0) <= model.pansCoins
                                             ) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
                                         ) {
@@ -374,7 +376,7 @@ fun SharedTransitionScope.ProfileContent(
                                                             modifier = Modifier.padding(horizontal = 15.dp),
                                                             verticalAlignment = Alignment.CenterVertically
                                                         ) {
-                                                            if ((model.avatars?.contains(model.newAvatarId) == true || it == "0") && (price.toIntOrNull()
+                                                            if ((model.avatars?.contains(model.newAvatarId) == true || it == 0) && (price
                                                                     ?: 0) <= model.pansCoins
                                                             ) {
                                                                 Text("Сохранить  ")
@@ -382,12 +384,12 @@ fun SharedTransitionScope.ProfileContent(
                                                                     path = RIcons.Save
                                                                 )
                                                             } else {
+
                                                                 Text(
-                                                                    (if ((price.toIntOrNull()
+                                                                    (if ((price
                                                                             ?: 0) <= model.pansCoins
                                                                     ) "Купить за $it"
-                                                                    else "Не хватает ${(price.toIntOrNull() ?: 0) - model.pansCoins}") + "  "
-
+                                                                    else "Не хватает ${(price ?: 0) - model.pansCoins}") + "  "
                                                                 )
 
                                                                 GetAsyncIcon(
@@ -746,7 +748,7 @@ private fun AvatarsBlock(
                     i = a.first,
                     path = a.second.path,
                     name = model.fio.name,
-                    price = a.second.price
+                    price = if(model.avatars?.contains(a.first) == true) 0 else a.second.price
                 ) {
                     component.onEvent(ProfileStore.Intent.SetNewAvatarId(a.first))
                 }

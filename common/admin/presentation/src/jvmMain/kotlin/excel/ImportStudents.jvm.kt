@@ -21,16 +21,17 @@ actual fun importStudents(path: String, component: UsersComponent) {
     val toBeCreated: MutableList<ToBeCreatedStudent> = mutableListOf()
     workSheet.forEach { wb ->
         val r = wb.toList()
-        val student = r[0].toString().split(" ")
-        val bDay = r[1].toString().replace(".", "")
-        val formId = r[2].toString().split(".")[0].toInt()
+        val student = r[1].toString().split(" ")
+        val bDay = r[2].toString().replace(".", "")
+        val formId = r[0].toString().split(".")[0].toInt()
         val parent = r[3].toString()
+        val parentB = r[4].toString()
 
         val userInit = UserInit(
             fio = FIO(
                 name = student[1],
                 surname = student[0],
-                praname = student.getOrNull(2)
+                praname = student.getOrNull(2)+ (if (student.getOrNull(3) != null) " "+student.getOrNull(3) else "")
             ),
             birthday = bDay,
             role = Roles.student,
@@ -40,7 +41,7 @@ actual fun importStudents(path: String, component: UsersComponent) {
         toBeCreated.add(
             ToBeCreatedStudent(
                 user = userInit,
-                parents = listOf(parent),
+                parents = listOf(Pair(parent, parentB)),
                 formId = formId
             )
         )

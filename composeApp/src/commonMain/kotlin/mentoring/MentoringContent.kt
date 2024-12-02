@@ -450,7 +450,7 @@ private fun FormsItem(
             }
         }
         if (isExpanded.value) {
-            students.forEach { s ->
+            students.sortedBy { it.fio.surname }.forEach { s ->
                 val isChosenPA = model.chosenAttendanceLogin == s.login
                 Surface(
                     shape = RoundedCornerShape(15.dp),

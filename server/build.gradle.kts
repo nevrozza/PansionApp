@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.nevrozq.pansion"
-version = "1.2.1"
+version = "1.2.21"
 application {
     mainClass.set("com.nevrozq.pansion.ApplicationKt") //com.nevrozq
 
@@ -21,7 +21,7 @@ ktor {
     docker {
         jreVersion.set(JavaVersion.VERSION_21)
         localImageName.set("pansionApp-docker-image")
-        imageTag.set("1.2.1")
+        imageTag.set("1.2.21")
 
         portMappings.set(
             listOf(
