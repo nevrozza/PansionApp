@@ -245,14 +245,14 @@ class UserManageController() {
                                 itShouldBeStudent = false
                             )
                             var pLogin: String? = null
-                            if (parentPreviousLogin == null || Users.fetchUser(parentPreviousLogin)?.birthday != pp.second) {
+                            if (parentPreviousLogin == null || Users.fetchUser(parentPreviousLogin)?.birthday != pp.second.replace(".", "")) {
                                 pLogin = createLogin(pFio.name, pFio.surname, 1)
                                 val parent = UserDTO(
                                     login = pLogin,
                                     password = null,
-                                    name = pFio.name,
-                                    surname = pFio.surname,
-                                    praname = pFio.praname,
+                                    name = pFio.name.replace("ë", "ё"),
+                                    surname = pFio.surname.replace("ë", "ё"),
+                                    praname = pFio.praname?.replace("ë", "ё"),
                                     birthday = pp.second.replace(".", ""),
                                     role = Roles.nothing,
                                     moderation = Moderation.nothing,
