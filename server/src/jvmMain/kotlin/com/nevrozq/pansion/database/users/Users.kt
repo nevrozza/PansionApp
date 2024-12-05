@@ -56,7 +56,7 @@ object Users : Table() {
             val u =
                 Users.select((Users.surname eq fio.surname) and (Users.name eq fio.name) and (Users.praname eq fio.praname))
                     .firstOrNull {
-                        (itShouldBeStudent && it[Users.role] == Roles.student) || (!itShouldBeStudent)
+                        ((itShouldBeStudent && it[Users.role] == Roles.student)) || (!itShouldBeStudent)
                     }
             u?.get(login)
         }

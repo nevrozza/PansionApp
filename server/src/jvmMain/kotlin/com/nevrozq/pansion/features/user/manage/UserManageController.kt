@@ -196,19 +196,18 @@ class UserManageController() {
         if (call.isModer) {
             try {
                 transaction {
-                    println("STUDENTS: ${r.students}")
+//                    println("STUDENTS: ${r.students}")
                     r.students.forEach { l ->
                         val studentPreviousLogin = Users.getLoginWithFIO(
                             fio = FIO(
                                 name = l.user.fio.name.replace("ë", "ё"),
                                 surname = l.user.fio.surname.replace("ë", "ё"),
-                                praname = l.user.fio.praname?.replace("ë", "ё")
+                                praname = (l.user.fio.praname ?: "").replace("ë", "ё")
                             ),
                             itShouldBeStudent = true
                         )
                         var student: UserDTO? = null
                         var login: String? = null
-                        println("GOT IT: ${studentPreviousLogin == null} ${Users.fetchUser(studentPreviousLogin ?: "")?.birthday != l.user.birthday}")
                         if (studentPreviousLogin == null || Users.fetchUser(studentPreviousLogin)?.birthday != l.user.birthday) {
 
                             login =
@@ -231,22 +230,30 @@ class UserManageController() {
                         l.parents.forEach { pp ->
                             val p = pp.first.split(" ")
                             val pFio = FIO(
-                                name = p[1].replace("ë", "ё"),
-                                surname = p[0].replace("ë", "ё"),
-                                praname = (p.getOrNull(2) + (if (p.getOrNull(3) != null) " "+p.getOrNull(3) else "")).replace("ë", "ё")
+                                name = p[1].replace("ë", "ё").trim(),
+                                surname = p[0].replace("ë", "ё").trim(),
+                                praname = ((p.getOrNull(2)
+                                    ?: "") + (if (p.getOrNull(3) != null) " " + p.getOrNull(3) else "")).replace(
+                                    "ë",
+                                    "ё"
+                                ).trim()
                             )
 
                             val parentPreviousLogin = Users.getLoginWithFIO(
                                 fio = FIO(
-                                    name = l.user.fio.name.replace("ë", "ё"),
-                                    surname = l.user.fio.surname.replace("ë", "ё"),
-                                    praname = l.user.fio.praname?.replace("ë", "ё")
+                                    name = pFio.name.replace("ë", "ё").trim(),
+                                    surname = pFio.surname.replace("ë", "ё").trim(),
+                                    praname = (pFio.praname?.replace("ë", "ё"))?.trim()?.replace("ë", "ё")
                                 ),
                                 itShouldBeStudent = false
                             )
                             var pLogin: String? = null
-                            if (parentPreviousLogin == null || Users.fetchUser(parentPreviousLogin)?.birthday != pp.second.replace(".", "")) {
-                                pLogin = createLogin(pFio.name, pFio.surname, 1)
+                            if (parentPreviousLogin == null || Users.fetchUser(parentPreviousLogin)?.birthday != pp.second.replace(
+                                    ".",
+                                    ""
+                                )
+                            ) {
+                                pLogin = createLogin(pFio.surname, 1)
                                 val parent = UserDTO(
                                     login = pLogin,
                                     password = null,
@@ -267,7 +274,9 @@ class UserManageController() {
                                         .mapNotNull { it }
                                 )
                             }
-                            if (login != null || pLogin != null) {
+
+                            val children = Parents.fetchChildren(pLogin ?: parentPreviousLogin!!)
+                            if ((login ?: studentPreviousLogin!!) !in children.map { it.login }) {
                                 Parents.insert(
                                     ParentsDTO(
                                         id = 0,
@@ -291,8 +300,6 @@ class UserManageController() {
                 call.respond(HttpStatusCode.OK)
             } catch (e: ExposedSQLException) {
                 call.respond(HttpStatusCode.Conflict, "This User already exists")
-            } catch (e: Throwable) {
-                call.respond(HttpStatusCode.BadRequest, "Can't create user: ${e.localizedMessage}")
             }
         } else {
             call.respond(HttpStatusCode.Forbidden, "No permission")

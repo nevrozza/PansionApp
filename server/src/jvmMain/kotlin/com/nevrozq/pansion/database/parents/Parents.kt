@@ -43,14 +43,16 @@ object Parents : Table() {
 
     fun fetchChildren(parentLogin: String): List<PersonPlus> {
         return transaction {
-            Parents.select{(Parents.parentLogin eq parentLogin)}.map {
-                val user = Users.fetchUser(it[studentLogin])!!
-                PersonPlus(
-                    login = it[studentLogin],
-                    avatarId = user.avatarId,
-                    fio = FIO(name = user.name, surname = user.surname, praname = user.praname),
-                    isActive = user.isActive
-                )
+            Parents.select{(Parents.parentLogin eq parentLogin)}.mapNotNull {
+                val user = Users.fetchUser(it[studentLogin])
+                if (user != null) {
+                    PersonPlus(
+                        login = it[studentLogin],
+                        avatarId = user.avatarId,
+                        fio = FIO(name = user.name, surname = user.surname, praname = user.praname),
+                        isActive = user.isActive
+                    )
+                } else null
             }
         }
     }
