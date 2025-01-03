@@ -327,6 +327,7 @@ class AuthController {
             try {
 
                 val r = call.receive<RChangeLogin>()
+                throw Throwable("mem")
                 if (r.newLogin !in Users.fetchAll()
                         .map { it.login } + SecondLogins.fetchAllNewLogins()
                 ) {

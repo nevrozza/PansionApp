@@ -56,7 +56,7 @@ class AdminRepositoryImpl(
     private val remoteDataSource: KtorAdminRemoteDataSource
 ) : AdminRepository {
     override suspend fun addStudentToGroup(r: RAddStudentToGroup) {
-        return remoteDataSource.addStudentToGroup(r)
+        remoteDataSource.addStudentToGroup(r)
     }
 
     override suspend fun fetchParents(): RFetchParentsListResponse {

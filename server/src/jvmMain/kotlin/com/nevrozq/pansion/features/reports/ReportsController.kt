@@ -388,7 +388,7 @@ class ReportsController() {
                         val start = getLocalDate(pair.first)
                         val end = if (pair.second != null) getLocalDate(pair.second!!) else null
 
-                        val isMain = a.subjectId !in listOf(-4, -3, -2)
+                        val isMain = a.subjectId > -2//!in listOf(-4, -3, -2)
 
 
                         val i = achievementsStups[Period.YEAR]!!

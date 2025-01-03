@@ -1,12 +1,4 @@
-import auth.ActivationResponse
-import auth.LoginResponse
-import auth.CheckActivationResponse
-import auth.RActivateQrTokenResponse
-import auth.RCheckConnectionResponse
-import auth.RCheckGIASubjectReceive
-import auth.RFetchAboutMeResponse
-import auth.RFetchQrTokenReceive
-import auth.RFetchQrTokenResponse
+import auth.*
 import registration.FetchLoginsResponse
 import webload.RFetchUserDataReceive
 import webload.RFetchUserDataResponse
@@ -38,7 +30,7 @@ interface AuthRepository {
 
     suspend fun performLogin(login: String, password: String): LoginResponse
     suspend fun activate(login: String, password: String): ActivationResponse
-    suspend fun checkActivation(login: String): CheckActivationResponse
+    suspend fun checkActivation(r: CheckActivationReceive): CheckActivationResponse
 
     fun saveAvatarId(avatarId: Int)
 

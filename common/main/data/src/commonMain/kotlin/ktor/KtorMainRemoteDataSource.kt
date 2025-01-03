@@ -49,304 +49,109 @@ import schedule.RFetchPersonScheduleReceive
 import schedule.RPersonScheduleList
 
 class KtorMainRemoteDataSource(
-    private val httpClient: HttpClient
+    private val hc: HttpClient
 ) {
-    suspend fun updateTodayDuty(r: RUpdateTodayDuty) {
-        httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.UpdateDuty)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
-    suspend fun startNewDayDuty(r: RStartNewDayDuty) {
-        httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.StartNewDayDuty)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
-    suspend fun fetchDuty(r: RFetchDutyReceive) : RFetchDutyResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.FetchDuty)
-                setBody(r)
-            }
-        }.body()
-    }
-
-    suspend fun fetchMinistrySettings(r: RFetchMinistryStudentsReceive) : RFetchMinistrySettingsResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.FetchMinistrySettings)
-                setBody(r)
-            }
-        }.body()
-    }
-    suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive) : RFetchMinistrySettingsResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.CreateMinistryStudent)
-                setBody(r)
-            }
-        }.body()
-    }
-
-    suspend fun changeToUv(r: RChangeToUv) {
-        httpClient.post {
-            url {
-                bearer()
-                setBody(r)
-                path(RequestPaths.Main.ChangeToUv)
-            }
-        }.status.value.checkOnNoOk()
-    }
-
-    suspend fun fetchSchoolData(r: RFetchSchoolDataReceive) : RFetchSchoolDataResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                setBody(r)
-                path(RequestPaths.Main.FetchSchoolData)
-            }
-        }.body()
-    }
-
-    suspend fun fetchJournalBySubjects(r: RFetchJournalBySubjectsReceive) : RFetchJournalBySubjectsResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                setBody(r)
-                path(RequestPaths.Mentoring.FetchJournalBySubjects)
-            }
-        }.body()
-    }
-
-    suspend fun openRegistrationQR(r: OpenRequestQRReceive) {
-        httpClient.post {
-            url {
-                bearer()
-                setBody(r)
-                path(RequestPaths.Registration.OpenQR)
-            }
-        }.status.value.checkOnNoOk()
-    }
-    suspend fun solveRegistrationRequest(r: SolveRequestReceive) {
-        httpClient.post {
-            url {
-                bearer()
-                setBody(r)
-                path(RequestPaths.Registration.SolveRequest)
-            }
-        }.status.value.checkOnNoOk()
-    }
-    suspend fun closeRegistrationQR(r: CloseRequestQRReceive) {
-        httpClient.post {
-            url {
-                bearer()
-                setBody(r)
-                path(RequestPaths.Registration.CloseQR)
-            }
-        }.status.value.checkOnNoOk()
-    }
-
-    suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.FetchMentorGroupIds)
-            }
-        }.body()
-    }
-
-    suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive) : RFetchMainNotificationsResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.FetchNotifications)
-                setBody(r)
-            }
-        }.body()
-    }
-    suspend fun fetchChildrenMainNotifications() : RFetchChildrenMainNotificationsResponse{
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.FetchChildrenNotifications)
-            }
-        }.body()
-    }
-
-    suspend fun fetchChildren() : RFetchChildrenResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.FetchChildren)
-            }
-        }.body()
-    }
-    suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive) {
-        httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.CheckNotification)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun updateTodayDuty(r: RUpdateTodayDuty): Boolean =
+        hc.dPost(RequestPaths.Main.UpdateDuty, r).check()
 
 
-    suspend fun savePreAttendanceDay(r: RSavePreAttendanceDayReceive) {
-        httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Mentoring.SavePreAttendanceDay)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
-
-    suspend fun fetchPreAttendanceDay(r: RFetchPreAttendanceDayReceive) : RFetchPreAttendanceDayResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Mentoring.FetchPreAttendanceDay)
-                setBody(r)
-            }
-        }.body()
-    }
-
-    suspend fun fetchMentorStudents(): RFetchMentoringStudentsResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Mentoring.FetchMentoringStudents)
-            }
-        }.body()
-    }
+    suspend fun startNewDayDuty(r: RStartNewDayDuty): Boolean =
+        hc.dPost(RequestPaths.Main.StartNewDayDuty, r).check()
 
 
-    suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.FetchScheduleSubjects)
-            }
-        }.body()
-    }
-
-    suspend fun fetchSubjectRating(r: RFetchSubjectRatingReceive): RFetchSubjectRatingResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Main.FetchSubjectRating)
-                setBody(r)
-            }
-        }.body()
-    }
+    suspend fun fetchDuty(r: RFetchDutyReceive): RFetchDutyResponse =
+        hc.dPost(RequestPaths.Main.FetchDuty, r).body()
 
 
-    suspend fun fetchPersonSchedule(r: RFetchPersonScheduleReceive): RPersonScheduleList {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Lessons.FetchPersonSchedule)
-                setBody(r)
-            }
-        }.body()
-    }
+    suspend fun fetchMinistrySettings(r: RFetchMinistryStudentsReceive): RFetchMinistrySettingsResponse =
+        hc.dPost(RequestPaths.Main.FetchMinistrySettings, r).body()
 
-    suspend fun fetchRecentGrades(r: RFetchRecentGradesReceive): RFetchRecentGradesResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Reports.FetchRecentGrades)
-                setBody(r)
-            }
-        }.body()
-    }
+    suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive): RFetchMinistrySettingsResponse =
+        hc.dPost(RequestPaths.Main.CreateMinistryStudent, r).body()
 
-    suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse {
-        val response = httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchTeacherGroups)
-            }
-        }
-        return response.body()
-    }
 
-    suspend fun fetchMainAvg(request: RFetchMainAVGReceive): RFetchMainAVGResponse {
-        val response = httpClient.post {
-            bearer()
-            url {
-                contentType(ContentType.Application.Json)
-                path(RequestPaths.Main.FetchMainAVG)
-                setBody(request)
-            }
-        }
-        return response.body()
-    }
-    suspend fun fetchMainHomeTasksCount(r: RFetchMainHomeTasksCountReceive): RFetchMainHomeTasksCountResponse {
-        return httpClient.post {
-            url {bearer()
-                path(RequestPaths.Main.FetchHomeTasksCount)
-                setBody(r)
-            }
-        }.body()
-    }
+    suspend fun changeToUv(r: RChangeToUv): Boolean =
+        hc.dPost(RequestPaths.Main.ChangeToUv, r).check()
 
-    suspend fun fetchStudentInGroup(request: RFetchStudentsInGroupReceive): RFetchStudentsInGroupResponse {
-        val response = httpClient.post {
-            bearer()
-            url {
-                contentType(ContentType.Application.Json)
-                path(RequestPaths.Lessons.FetchStudentsInGroup)
-                setBody(request)
-            }
-        }
 
-        return response.body()
-    }
+    suspend fun fetchSchoolData(r: RFetchSchoolDataReceive): RFetchSchoolDataResponse =
+        hc.dPost(RequestPaths.Main.FetchSchoolData, r).body()
 
-    suspend fun fetchReportHeaders(): RFetchHeadersResponse {
-        val response = httpClient.post {
-            bearer()
-            url {
-//                contentType(ContentType.Application.Json)
-                path(RequestPaths.Reports.FetchReportHeaders)
-            }
-        }
-        return response.body()
-    }
 
-    suspend fun createReport(r: RCreateReportReceive): RCreateReportResponse {
-        val response = httpClient.post {
-            bearer()
-            url {
-//                contentType(ContentType.Application.Json)
-                path(RequestPaths.Reports.CreateReport)
-                setBody(r)
-            }
-        }
-        return response.body()
-    }
+    suspend fun fetchJournalBySubjects(r: RFetchJournalBySubjectsReceive): RFetchJournalBySubjectsResponse =
+        hc.dPost(RequestPaths.Mentoring.FetchJournalBySubjects, r).body()
 
-    suspend fun fetchReportData(r: RFetchReportDataReceive): RFetchReportDataResponse {
-        val response = httpClient.post {
-            bearer()
-            url {
-//                contentType(ContentType.Application.Json)
-                path(RequestPaths.Reports.FetchReportData)
-                setBody(r)
-            }
-        }
-        return response.body()
-    }
+    suspend fun openRegistrationQR(r: OpenRequestQRReceive): Boolean =
+        hc.dPost(RequestPaths.Registration.OpenQR, r).check()
+
+
+    suspend fun solveRegistrationRequest(r: SolveRequestReceive): Boolean =
+        hc.dPost(RequestPaths.Registration.SolveRequest, r).check()
+
+
+    suspend fun closeRegistrationQR(r: CloseRequestQRReceive): Boolean =
+        hc.dPost(RequestPaths.Registration.CloseQR, r).check()
+
+    suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse =
+        hc.dPost(RequestPaths.Main.FetchMentorGroupIds).body()
+
+
+    suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive): RFetchMainNotificationsResponse =
+        hc.dPost(RequestPaths.Main.FetchNotifications, r).body()
+
+    suspend fun fetchChildrenMainNotifications(): RFetchChildrenMainNotificationsResponse =
+        hc.dPost(RequestPaths.Main.FetchChildrenNotifications).body()
+
+    suspend fun fetchChildren(): RFetchChildrenResponse =
+        hc.dPost(RequestPaths.Main.FetchChildren).body()
+
+    suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive): Boolean =
+        hc.dPost(RequestPaths.Main.CheckNotification, r).check()
+
+
+    suspend fun savePreAttendanceDay(r: RSavePreAttendanceDayReceive): Boolean =
+        hc.dPost(RequestPaths.Mentoring.SavePreAttendanceDay, r).check()
+
+    suspend fun fetchPreAttendanceDay(r: RFetchPreAttendanceDayReceive): RFetchPreAttendanceDayResponse =
+        hc.dPost(RequestPaths.Mentoring.FetchPreAttendanceDay, r).body()
+
+
+    suspend fun fetchMentorStudents(): RFetchMentoringStudentsResponse =
+        hc.dPost(RequestPaths.Mentoring.FetchMentoringStudents).body()
+
+
+    suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse =
+        hc.dPost(RequestPaths.Main.FetchScheduleSubjects).body()
+
+
+    suspend fun fetchSubjectRating(r: RFetchSubjectRatingReceive): RFetchSubjectRatingResponse =
+        hc.dPost(RequestPaths.Main.FetchSubjectRating, r).body()
+
+    suspend fun fetchPersonSchedule(r: RFetchPersonScheduleReceive): RPersonScheduleList =
+        hc.dPost(RequestPaths.Lessons.FetchPersonSchedule, r).body()
+
+
+    suspend fun fetchRecentGrades(r: RFetchRecentGradesReceive): RFetchRecentGradesResponse =
+        hc.dPost(RequestPaths.Reports.FetchRecentGrades, r).body()
+
+    suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchTeacherGroups).body()
+
+    suspend fun fetchMainAvg(r: RFetchMainAVGReceive): RFetchMainAVGResponse =
+        hc.dPost(RequestPaths.Main.FetchMainAVG, r).body()
+
+    suspend fun fetchMainHomeTasksCount(r: RFetchMainHomeTasksCountReceive): RFetchMainHomeTasksCountResponse =
+        hc.dPost(RequestPaths.Main.FetchHomeTasksCount, r).body()
+
+    suspend fun fetchStudentInGroup(r: RFetchStudentsInGroupReceive): RFetchStudentsInGroupResponse =
+        hc.dPost(RequestPaths.Lessons.FetchStudentsInGroup, r).body()
+
+    suspend fun fetchReportHeaders(): RFetchHeadersResponse =
+        hc.dPost(RequestPaths.Reports.FetchReportHeaders).body()
+
+    suspend fun createReport(r: RCreateReportReceive): RCreateReportResponse =
+        hc.dPost(RequestPaths.Reports.CreateReport, r).body()
+
+    suspend fun fetchReportData(r: RFetchReportDataReceive): RFetchReportDataResponse =
+        hc.dPost(RequestPaths.Reports.FetchReportData, r).body()
 }

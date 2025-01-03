@@ -1,6 +1,277 @@
+-allowaccessmodification
+-flattenpackagehierarchy
+-mergeinterfacesaggressively
+-dontnote *
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+
+# Most of volatile fields are updated with AtomicFU and should not be mangled/removed
+-keepclassmembers class io.ktor.** {
+    volatile <fields>;
+}
+
+-keepclassmembernames class io.ktor.** {
+    volatile <fields>;
+}
+
+# client engines are loaded using ServiceLoader so we need to keep them
+-keep class io.ktor.client.engine.** implements io.ktor.client.HttpClientEngineContainer
+
+
+-keep class com.jetbrains.** { *; }
+
+# Remove intrinsic assertions.
+-assumenosideeffects class kotlin.jvm.internal.Intrinsics {
+    public static void checkExpressionValueIsNotNull(...);
+    public static void checkNotNullExpressionValue(...);
+    public static void checkParameterIsNotNull(...);
+    public static void checkNotNullParameter(...);
+    public static void checkFieldIsNotNull(...);
+    public static void checkReturnedValueIsNotNull(...);
+}
+
+-keeppackagenames org.jetbrains.jewel
+
+-dontwarn androidx.compose.desktop.DesktopTheme*
+-dontwarn kotlinx.datetime.**
+
+-keep class dev.romainguy.kotlin.explorer.code.*TokenMarker { *; }
+-dontnote dev.romainguy.kotlin.explorer.code.*TokenMarker
+
+-keep class org.fife.** { *; }
+-dontnote org.fife.**
+
+-keep class sun.misc.Unsafe { *; }
+-dontnote sun.misc.Unsafe
+
+-keep class com.jetbrains.JBR* { *; }
+-dontnote com.jetbrains.JBR*
+
+-keep class com.sun.jna** { *; }
+-dontnote com.sun.jna**
+
+
+-keep class androidx.compose.ui.input.key.KeyEvent_desktopKt { *; }
+-dontnote androidx.compose.ui.input.key.KeyEvent_desktopKt
+
+-dontnote androidx.compose.ui.input.key.KeyEvent_skikoKt
+-dontwarn androidx.compose.ui.input.key.KeyEvent_skikoKt
+
+-dontnote org.jetbrains.jewel.intui.markdown.standalone.styling.extensions.**
+-dontwarn org.jetbrains.jewel.intui.markdown.standalone.styling.extensions.**
+
+# Ktor
+-keep class io.ktor.** { *; }
+-keepclassmembers class io.ktor.** { volatile <fields>; }
+-keep class io.ktor.client.engine.cio.** { *; }
+-keep class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.atomicfu.**
+-dontwarn io.netty.**
+-dontwarn com.typesafe.**
+-dontwarn org.slf4j.**
+
+-keep class org.cef.** { *; }
+-keep class kotlinx.coroutines.swing.SwingDispatcherFactory
+
+
+# Keep extension's common dependencies
+-keep class ireader.core.source.** { public protected *; }
+-keep class ireader.core.http.** { public protected *; }
+-keep,allowoptimization class ireader.** { public protected *; }
+-keep,allowoptimization class kotlinx.coroutines.** { public protected *; }
+-keep,allowoptimization class androidx.preference.** { public protected *; }
+-keep,allowoptimization class okhttp3.** { public protected *; }
+-keep,allowoptimization class okio.** { public protected *; }
+-keep,allowoptimization class org.jsoup.** { public protected *; }
+-keep,allowoptimization class kotlin.** { public protected *; }
+-keep,allowoptimization class io.ktor.** { public protected *; }
+-keep,allowoptimization class com.google.gson.** { public protected *; }
+-keep,allowoptimization class org.jetbrains.kotlinx.** { public protected *; }
+-keep,allowoptimization class app.cash.quickjs.** { public protected *; }
+-keep,allowoptimization class com.google.accompanist.** { public protected *; }
+-keep,allowoptimization class org.tinylog.** { public protected *; }
+-keep,allowoptimization class nl.siegmann.epublib.** { public protected *; }
+-keep,allowoptimization class org.slf4j.** { public protected *; }
+-keep class org.xmlpull.** { public protected *; }
+-keep,allowoptimization class org.koin.** { public protected *; }
+-keep,allowoptimization class app.cash.sqldelight.** { public protected *; }
+
+-keepattributes SourceFile,
+                LineNumberTable,
+                RuntimeVisibleAnnotations,
+                RuntimeVisibleParameterAnnotations,
+                RuntimeVisibleTypeAnnotations,
+                AnnotationDefault
+
+-renamesourcefileattribute SourceFile
+
+-dontwarn org.conscrypt.**
+
+
+##---------------Begin: proguard configuration for couroutines  ----------
+# When editing this file, update the following files as well:
+# - META-INF/com.android.tools/proguard/coroutines.pro
+# - META-INF/com.android.tools/r8/coroutines.pro
+
+
+# Most of volatile fields are updated with AFU and should not be mangled
+-keepclassmembers class kotlinx.coroutines.** {
+    volatile <fields>;
+}
+
+
+
+
+
+##---------------End: proguard configuration for Couroutines  ----------
+
+##---------------Begin: proguard configuration for Okhttp  ----------
+#Okhttp
+# JSR 305 annotations are for embedding nullability information.
+-dontwarn javax.annotation.**
+
+# A resource is loaded with a relative path so the package of this class must be preserved.
+-adaptresourcefilenames okhttp3/internal/publicsuffix/PublicSuffixDatabase.gz
+
+# Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+
+# OkHttp platform used only on JVM and when Conscrypt and other security providers are available.
+-dontwarn okhttp3.internal.platform.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
+##---------------End: proguard configuration for Okhttp  ----------
+##---------------Begin: proguard configuration for okio  ----------
+
+# Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+##---------------End: proguard configuration for okio  ----------
+
+##---------------Begin: proguard configuration for Ktor  ----------
+# Ktor
+-keep class io.ktor.** { *; }
+-keep class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.atomicfu.**
+-dontwarn io.netty.**
+-dontwarn com.typesafe.**
+-dontwarn org.slf4j.**
+##---------------End: proguard configuration for Ktor  ----------
+
+
+#---------
+# Keep trakt-java and tmdb-java entity names (for GSON)
+-keep class ireader.common.models.*.entities.** {
+    <fields>;
+    <init>(...);
+}
+-keep class ireader.common.models.*.entities.** {
+    <fields>;
+    <init>(...);
+}
+
+
+
+
+##---------------Begin: proguard configuration for Gson  ----------
+# Gson uses generic type information stored in a class file when working with fields. Proguard
+# removes such information by default, so configure it to keep all of it.
+-keepattributes Signature
+
+# For using GSON @Expose annotation
+-keepattributes *Annotation*
+
+
+# Gson specific classes
+-dontwarn sun.misc.**
+
+
+##---------------End: proguard configuration for Gson  ----------
+
+##---------------Begin: proguard configuration for kotlinx.serialization  ----------
+-keepattributes *Annotation*, InnerClasses
+
+# kotlinx-serialization-json specific.
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+
+
+-keep,includedescriptorclasses class ireader.**$$serializer { *; }
+-keepclassmembers class org.ireader.** {
+    *** Companion;
+}
+
+
+-keep class kotlinx.serialization.**
+-keepclassmembers class kotlinx.serialization.** {
+    <methods>;
+}
+
+##---------------End: proguard configuration for kotlinx.serialization  ----------
+
+# Log4J
+-dontwarn org.apache.logging.log4j.**
+-keep,includedescriptorclasses class org.apache.logging.log4j.** { *; }
+# tinylog
+-dontwarn org.tinylog.**.**
+-keep,includedescriptorclasses class org.tinylog.**
+# antlr
+-dontwarn org.antlr.runtime.**.**
+-keep,includedescriptorclasses class org.antlr.runtime.**
+
+-allowaccessmodification
+-dontusemixedcaseclassnames
+-verbose
+
+-keepattributes *Annotation*
+
+-keepclasseswithmembernames,includedescriptorclasses class * {
+    native <methods>;
+}
+-keepclassmembers class * { public <init>(...); }
+
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# JSR 305 annotations are for embedding nullability information.
+-dontwarn javax.annotation.**
+
+# A resource is loaded with a relative path so the package of this class must be preserved.
+-adaptresourcefilenames okhttp3/internal/publicsuffix/PublicSuffixDatabase.gz
+
+# Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+
+# OkHttp platform used only on JVM and when Conscrypt and other security providers are available.
+-dontwarn okhttp3.internal.platform.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
+-keep class org.ocpsoft.prettytime.i18n**
+
+-dontwarn kotlinx.datetime.**
+-dontwarn org.slf4j.**
+-keep class org.slf4j.**{ *; }
+-keep class com.sun.jna.* { *; }
+-keep class * implements com.sun.jna.* { *; }
+
+-assumenosideeffects class kotlin.jvm.internal.Intrinsics {
+    public static void checkExpressionValueIsNotNull(...);
+    public static void checkNotNullExpressionValue(...);
+    public static void checkParameterIsNotNull(...);
+    public static void checkNotNullParameter(...);
+    public static void checkFieldIsNotNull(...);
+    public static void checkReturnedValueIsNotNull(...);
+}
+
 -keepclasseswithmembers public class Main_desktopKt {  # <-- Change com.company to yours
     public static void main(); #java.lang.String[]
 }
+
 
 -dontwarn kotlinx.coroutines.debug.*
 -keep class java.lang.** { *; }
@@ -88,7 +359,6 @@
 -dontwarn javax.naming.**
 
 # Ignore warnings and Don't obfuscate for now
--dontobfuscate
 -ignorewarnings
 
 # Keep `Companion` object fields of serializable classes.

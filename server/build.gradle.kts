@@ -19,7 +19,7 @@ application {
 
 ktor {
     docker {
-        jreVersion.set(JavaVersion.VERSION_21)
+        jreVersion.set(JavaVersion.VERSION_17)
         localImageName.set("pansionApp-docker-image")
         imageTag.set("1.2.21")
 

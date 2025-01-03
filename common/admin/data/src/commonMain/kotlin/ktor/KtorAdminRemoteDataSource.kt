@@ -56,425 +56,135 @@ import schedule.RFetchScheduleDateReceive
 import schedule.RScheduleList
 
 class KtorAdminRemoteDataSource(
-    private val httpClient: HttpClient
+    private val hc: HttpClient
 ) {
 
-    suspend fun addStudentToGroup(r: RAddStudentToGroup) {
-        httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Lessons.AddStudentToGroupFromSubject)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun addStudentToGroup(r: RAddStudentToGroup): Boolean =
+        hc.dPost(RequestPaths.Lessons.AddStudentToGroupFromSubject, r).check()
 
-    suspend fun createExcelStudents(r: RCreateExcelStudentsReceive) {
-       httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.UserManage.CreateStudentsFromExcel)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
-
-    suspend fun fetchParents(): RFetchParentsListResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Parents.FetchParents)
-            }
-        }.body()
-    }
-    suspend fun updateParents(r: RUpdateParentsListReceive): RFetchParentsListResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Parents.UpdateParent)
-                setBody(r)
-            }
-        }.body()
-    }
-
-    suspend fun createAchievement(r: RCreateAchievementReceive) : RFetchAchievementsResponse{
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Achievements.Create)
-                setBody(r)
-            }
-        }.body()
-    }
-    suspend fun editAchievement(r: REditAchievementReceive) : RFetchAchievementsResponse{
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Achievements.Edit)
-                setBody(r)
-            }
-        }.body()
-    }
-    suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive) : RFetchAchievementsResponse{
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Achievements.UpdateGroup)
-                setBody(r)
-            }
-        }.body()
-    }
-    suspend fun deleteAchievement(r: RDeleteAchievementReceive) : RFetchAchievementsResponse{
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Achievements.Delete)
-                setBody(r)
-            }
-        }.body()
-    }
-
-    suspend fun fetchAllAchievements(): RFetchAchievementsResponse {
-        return httpClient.post {
-            url {
-                bearer()
-                path(RequestPaths.Achievements.FetchAll)
-            }
-        }.body()
-    }
-
-    suspend fun fetchSchedule(r: RFetchScheduleDateReceive) : RScheduleList {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchSchedule)
-                setBody(r)
-            }
-        }.body()
-    }
-
-    suspend fun saveSchedule(r: RScheduleList) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.SaveSchedule)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
-
-    suspend fun performRegistrationUser(request: RRegisterUserReceive): RCreateUserResponse {
-        val response = httpClient.post {
-            bearer()
-            url {
-
-                path(RequestPaths.UserManage.CreateUser)
-                setBody(request)
-            }
-        }
-
-        return response.body()
-    }
-
-    suspend fun performFetchAllUsers(): RFetchAllUsersResponse {
-        return httpClient.post {
-            bearer()
-            url {
-//                contentType(ContentType.Application.Json)
-                path(RequestPaths.UserManage.FetchAllUsers)
-            }
-        }.body()
-    }
-
-    suspend fun clearUserPassword(request: RClearUserPasswordReceive) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.UserManage.ClearPasswordAdmin)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
-
-    suspend fun performEditUser(request: REditUserReceive) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.UserManage.EditUser)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-
-    }
-    suspend fun performDeleteUser(request: RDeleteUserReceive) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.UserManage.DeleteUser)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-
-    }
-
-    suspend fun updateCalendar(r: RUpdateCalendarReceive) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.UpdateCalendar)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
-
-    suspend fun fetchCalendar() : RFetchCalendarResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchCalendar)
-            }
-        }.body()
-    }
-
-    suspend fun updateCabinets(r: RUpdateCabinetsReceive) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.UpdateCabinets)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
-
-    suspend fun fetchCabinets() : RFetchCabinetsResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchCabinets)
-            }
-        }.body()
-    }
-
-    suspend fun fetchInitSchedule() : RFetchInitScheduleResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchInitSchedule)
-            }
-        }.body()
-    }
+    suspend fun createExcelStudents(r: RCreateExcelStudentsReceive): Boolean =
+        hc.dPost(RequestPaths.UserManage.CreateStudentsFromExcel, r).check()
 
 
-    suspend fun performFetchAllSubjects(): RFetchAllSubjectsResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchAllSubjects)
-            }
-        }.body()
+    suspend fun fetchParents(): RFetchParentsListResponse =
+        hc.dPost(RequestPaths.Parents.FetchParents).body()
 
-    }
-    suspend fun performStudentsInForm(request: RFetchStudentsInFormReceive): RFetchStudentsInFormResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchStudentsInForm)
-                setBody(request)
-            }
-        }.body()
+    suspend fun updateParents(r: RUpdateParentsListReceive): RFetchParentsListResponse =
+        hc.dPost(RequestPaths.Parents.UpdateParent, r).body()
 
-    }
+    suspend fun createAchievement(r: RCreateAchievementReceive): RFetchAchievementsResponse =
+        hc.dPost(RequestPaths.Achievements.Create, r).body()
 
-    suspend fun performFormGroups(request: RFetchFormGroupsReceive): RFetchFormGroupsResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchFormGroups)
-                setBody(request)
-            }
-        }.body()
+    suspend fun editAchievement(r: REditAchievementReceive): RFetchAchievementsResponse =
+        hc.dPost(RequestPaths.Achievements.Edit, r).body()
 
-    }
+    suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive): RFetchAchievementsResponse =
+        hc.dPost(RequestPaths.Achievements.UpdateGroup, r).body()
 
-    suspend fun createNewSubject(request: RCreateSubjectReceive) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.CreateSubject)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
-    suspend fun deleteSubject(r: RDeleteSubject) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.DeleteSubject)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
-    suspend fun editSubject(r: REditSubjectReceive) {
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.EditSubject)
-                setBody(r)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun deleteAchievement(r: RDeleteAchievementReceive): RFetchAchievementsResponse =
+        hc.dPost(RequestPaths.Achievements.Delete, r).body()
 
-    suspend fun createFormGroup(request: RCreateFormGroupReceive){
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.CreateFormGroup)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun fetchAllAchievements(): RFetchAchievementsResponse =
+        hc.dPost(RequestPaths.Achievements.FetchAll).body()
 
-    suspend fun deleteFormGroup(request: RCreateFormGroupReceive){
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.DeleteFormGroup)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun fetchSchedule(r: RFetchScheduleDateReceive): RScheduleList =
+        hc.dPost(RequestPaths.Lessons.FetchSchedule, r).body()
 
-    suspend fun createStudentGroup(request: RCreateStudentGroupReceive){
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.CreateStudentGroup)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun saveSchedule(r: RScheduleList) : Boolean =
+        hc.dPost(RequestPaths.Lessons.SaveSchedule, r).check()
 
-    suspend fun deleteStudentGroup(request: RCreateStudentGroupReceive){
-        httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.DeleteStudentGroup)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun performRegistrationUser(r: RRegisterUserReceive): RCreateUserResponse =
+        hc.dPost(RequestPaths.UserManage.CreateUser, r).body()
+
+    suspend fun performFetchAllUsers(): RFetchAllUsersResponse =
+        hc.dPost(RequestPaths.UserManage.FetchAllUsers).body()
+
+    suspend fun clearUserPassword(r: RClearUserPasswordReceive) : Boolean =
+        hc.dPost(RequestPaths.UserManage.ClearPasswordAdmin, r).check()
+
+    suspend fun performEditUser(r: REditUserReceive) : Boolean =
+        hc.dPost(RequestPaths.UserManage.EditUser, r).check()
+
+    suspend fun performDeleteUser(r: RDeleteUserReceive) : Boolean =
+        hc.dPost(RequestPaths.UserManage.DeleteUser, r).check()
+
+    suspend fun updateCalendar(r: RUpdateCalendarReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.UpdateCalendar, r).check()
+
+    suspend fun fetchCalendar(): RFetchCalendarResponse =
+        hc.dPost(RequestPaths.Lessons.FetchCalendar).body()
+
+    suspend fun updateCabinets(r: RUpdateCabinetsReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.UpdateCabinets, r).check()
+
+    suspend fun fetchCabinets(): RFetchCabinetsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchCabinets).body()
+
+    suspend fun fetchInitSchedule(): RFetchInitScheduleResponse =
+        hc.dPost(RequestPaths.Lessons.FetchInitSchedule).body()
 
 
-    suspend fun bindStudentToForm(request: RBindStudentToFormReceive){
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.BindStudentToForm)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun performFetchAllSubjects(): RFetchAllSubjectsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchAllSubjects).body()
 
-    suspend fun createGroup(request: RCreateGroupReceive) {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.CreateGroup)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
-    suspend fun createGroup(request: REditGroupReceive) {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.EditGroup)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun performStudentsInForm(r: RFetchStudentsInFormReceive): RFetchStudentsInFormResponse =
+        hc.dPost(RequestPaths.Lessons.FetchStudentsInForm, r).body()
 
-    suspend fun createForm(request: CreateFormReceive) {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.CreateForm)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
-    suspend fun editForm(request: REditFormReceive) {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.EditForm)
-                setBody(request)
-            }
-        }.status.value.checkOnNoOk()
-    }
+    suspend fun performFormGroups(r: RFetchFormGroupsReceive): RFetchFormGroupsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchFormGroups, r).body()
 
-    suspend fun performFetchGroups(request: RFetchGroupsReceive): RFetchGroupsResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchGroups)
-                setBody(request)
-            }
-        }.body()
-    }
-    suspend fun performFetchStudentGroups(request: RFetchStudentGroupsReceive): RFetchStudentGroupsResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchStudentGroups)
-                setBody(request)
-            }
-        }.body()
-    }
+    suspend fun createNewSubject(r: RCreateSubjectReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.CreateSubject, r).check()
 
-    suspend fun performFetchAllForms(): RFetchFormsResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchAllForms)
-            }
-        }.body()
-    }
+    suspend fun deleteSubject(r: RDeleteSubject) : Boolean =
+        hc.dPost(RequestPaths.Lessons.DeleteSubject, r).check()
 
-    suspend fun performFetchTeachersForGroup(): RFetchTeachersResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchTeachersForGroup)
-            }
-        }.body()
-    }
+    suspend fun editSubject(r: REditSubjectReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.EditSubject, r).check()
 
-    suspend fun performFetchMentorsForGroups(): RFetchMentorsResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                path(RequestPaths.Lessons.FetchMentorsForGroup)
-            }
-        }.body()
-    }
+    suspend fun createFormGroup(r: RCreateFormGroupReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.CreateFormGroup, r).check()
 
-    suspend fun performFetchCutedGroups(request: RFetchGroupsReceive): RFetchCutedGroupsResponse {
-        return httpClient.post {
-            bearer()
-            url {
-                contentType(ContentType.Application.Json)
-                path(RequestPaths.Lessons.FetchCutedGroups)
-                setBody(request)
-            }
-        }.body()
-    }
-//    suspend fun performCheckActivation(request: CheckActivationReceive) : CheckActivationResponse {
-//        return httpClient.post {
-//            url {
-//                path("check/auth")
-//                setBody(request)
-//            }
-//        }.body()
-//    }
+    suspend fun deleteFormGroup(r: RCreateFormGroupReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.DeleteFormGroup, r).check()
+
+    suspend fun createStudentGroup(r: RCreateStudentGroupReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.CreateStudentGroup, r).check()
+
+    suspend fun deleteStudentGroup(r: RCreateStudentGroupReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.DeleteStudentGroup, r).check()
+
+
+    suspend fun bindStudentToForm(r: RBindStudentToFormReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.BindStudentToForm, r).check()
+
+    suspend fun createGroup(r: RCreateGroupReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.CreateGroup, r).check()
+
+    suspend fun createGroup(r: REditGroupReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.EditGroup, r).check()
+
+    suspend fun createForm(r: CreateFormReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.CreateForm, r).check()
+
+    suspend fun editForm(r: REditFormReceive) : Boolean =
+        hc.dPost(RequestPaths.Lessons.EditForm, r).check()
+
+    suspend fun performFetchGroups(r: RFetchGroupsReceive): RFetchGroupsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchGroups, r).body()
+
+    suspend fun performFetchStudentGroups(r: RFetchStudentGroupsReceive): RFetchStudentGroupsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchStudentGroups, r).body()
+
+    suspend fun performFetchAllForms(): RFetchFormsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchAllForms).body()
+
+    suspend fun performFetchTeachersForGroup(): RFetchTeachersResponse =
+        hc.dPost(RequestPaths.Lessons.FetchTeachersForGroup).body()
+
+    suspend fun performFetchMentorsForGroups(): RFetchMentorsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchMentorsForGroup).body()
+
+    suspend fun performFetchCutedGroups(r: RFetchGroupsReceive): RFetchCutedGroupsResponse =
+        hc.dPost(RequestPaths.Lessons.FetchCutedGroups, r).body()
 }

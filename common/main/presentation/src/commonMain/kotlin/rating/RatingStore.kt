@@ -8,6 +8,7 @@ import com.arkivanov.mvikotlin.core.store.Store
 import rating.RatingStore.Intent
 import rating.RatingStore.Label
 import rating.RatingStore.State
+import server.ExtraSubjectsId
 
 interface RatingStore : Store<Intent, State, Label> {
     data class State(
@@ -46,24 +47,24 @@ interface RatingStore : Store<Intent, State, Label> {
 }
 
 val startSubject =  ScheduleSubject(
-    id = -1,
+    id = ExtraSubjectsId.common,
     name = "Общий рейтинг",
     isActive = true
 )
 val mvdSubject =  ScheduleSubject(
-    id = -2,
+    id = ExtraSubjectsId.mvd,
     name = "Дисциплина",
     isActive = true
 )
 
 val socialWorkSubject =  ScheduleSubject(
-    id = -3,
+    id = ExtraSubjectsId.social,
     name = "Общественная работа",
     isActive = true
 )
 
 val creativeSubject =  ScheduleSubject(
-    id = -4,
+    id = ExtraSubjectsId.creative,
     name = "Творчество",
     isActive = true
 )

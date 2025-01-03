@@ -4,6 +4,14 @@ package server
 const val delayForNewQRToken : Long = 1000 * 60 * 5
 
 
+object ExtraSubjectsId {
+    const val common = -1
+    const val mvd = -2
+    const val social = -3
+    const val creative = -4
+
+}
+
 val headerTitlesForMinistry = mapOf(
     "0" to "...",
     Ministries.MVD to "МВД",

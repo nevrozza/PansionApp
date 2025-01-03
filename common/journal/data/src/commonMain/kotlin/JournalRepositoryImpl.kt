@@ -61,7 +61,7 @@ class JournalRepositoryImpl(
     }
 
     override suspend fun checkHomeTask(r: RCheckHomeTaskReceive) {
-        return remoteDataSource.checkHomeTask(r)
+        remoteDataSource.checkHomeTask(r)
     }
 
     override suspend fun fetchHomeTasksInit(r: RFetchTasksInitReceive): RFetchTasksInitResponse {

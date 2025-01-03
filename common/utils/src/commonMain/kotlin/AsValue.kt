@@ -27,7 +27,7 @@ const val applicationVersion = 22
 const val applicationVersionString = "1.2.21"
 
 
-const val isTestMode = false
+const val isTestMode = true//false
 
 
 expect val androidVersion: Int

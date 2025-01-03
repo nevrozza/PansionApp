@@ -5,11 +5,15 @@ import SettingsRepository
 import activation.ActivationStore.Intent
 import activation.ActivationStore.Message
 import activation.ActivationStore.State
+import auth.CheckActivationReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.launch
 
-class ActivationExecutor(private val settingsRepository: SettingsRepository, private val authRepository: AuthRepository) :
+class ActivationExecutor(
+    private val settingsRepository: SettingsRepository,
+    private val authRepository: AuthRepository
+) :
     CoroutineExecutor<Intent, Unit, State, Message, Nothing>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -25,6 +29,7 @@ class ActivationExecutor(private val settingsRepository: SettingsRepository, pri
             is Intent.ChangeVerifyPassword -> dispatch(Message.VerifyPasswordChanged(intent.password))
         }
     }
+
     private fun init() {
         scope.launch {
             try {
@@ -46,11 +51,9 @@ class ActivationExecutor(private val settingsRepository: SettingsRepository, pri
                 } else {
                     dispatch(Message.CustomError("Произошло что-то очень странное..."))
                 }
-            }
-            catch (e: ConnectTimeoutException) {
+            } catch (e: ConnectTimeoutException) {
                 dispatch(Message.CustomError("Не удаётся подключиться к серверу"))
-            }
-            catch (e: Throwable) {
+            } catch (e: Throwable) {
                 if (e.message.toString()
                         .commonPrefixWith("failed to connect to /") == "failed to connect to /"
                 ) {
@@ -71,7 +74,11 @@ class ActivationExecutor(private val settingsRepository: SettingsRepository, pri
         dispatch(Message.ProcessStarted)
         scope.launch {
             try {
-                val response = authRepository.checkActivation(state.login)
+                val response = authRepository.checkActivation(
+                    CheckActivationReceive(
+                        login = state.login
+                    )
+                )
                 if (response.isActivated) {
                     dispatch(Message.AlreadyActivated)
                 } else if (response.name == null) {
@@ -79,11 +86,9 @@ class ActivationExecutor(private val settingsRepository: SettingsRepository, pri
                 } else {
                     dispatch(Message.GoToActivationStep(response.name!!))
                 }
-            }
-            catch (e: ConnectTimeoutException) {
+            } catch (e: ConnectTimeoutException) {
                 dispatch(Message.CustomError("Не удаётся подключиться к серверу"))
-            }
-            catch (e: Throwable) {
+            } catch (e: Throwable) {
                 if (e.message.toString()
                         .commonPrefixWith("failed to connect to /") == "failed to connect to /"
                 ) {

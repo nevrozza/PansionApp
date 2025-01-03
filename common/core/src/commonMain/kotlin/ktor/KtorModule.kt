@@ -80,10 +80,12 @@ val vzlomList = listOf<String>(
     "Kuda smotrim?"
 )
 
-fun HttpMessageBuilder.bearer() {
-    val token = Inject.instance<AuthRepository>().fetchToken()
+fun HttpMessageBuilder.bearer(isActive: Boolean = true) {
     val vzlom = vzlomList.random()
     header("Vzlom", vzlom)
-    header("Bearer-Authorization", token)
+    if (isActive) {
+        val token = Inject.instance<AuthRepository>().fetchToken()
+        header("Bearer-Authorization", token)
+    }
 }
 

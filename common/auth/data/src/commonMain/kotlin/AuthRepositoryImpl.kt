@@ -89,7 +89,7 @@ class AuthRepositoryImpl(
     override suspend fun performLogin(login: String, password: String): LoginResponse {
         val r =
             remoteDataSource.performLogin(
-                request = LoginReceive(
+                r = LoginReceive(
                     login = login,
                     password = password,
                     deviceName = cPlatformConfiguration.deviceName,
@@ -105,7 +105,7 @@ class AuthRepositoryImpl(
     override suspend fun activate(login: String, password: String): ActivationResponse {
         val r =
             remoteDataSource.activate(
-                request = ActivationReceive(
+                r = ActivationReceive(
                     login = login,
                     password = password,
                     deviceId = cPlatformConfiguration.deviceId,
@@ -129,13 +129,8 @@ class AuthRepositoryImpl(
         return r
     }
 
-    override suspend fun checkActivation(login: String): CheckActivationResponse {
-        val r = remoteDataSource.checkUserActivation(
-            request = CheckActivationReceive(
-                login = login
-            )
-        )
-        return r
+    override suspend fun checkActivation(r: CheckActivationReceive): CheckActivationResponse {
+        return remoteDataSource.checkUserActivation(r)
     }
 
     override fun saveAvatarId(avatarId: Int) {

@@ -119,6 +119,7 @@ import rating.RatingItem
 import report.RMarkLessonReceive
 import report.UserMark
 import schedule.*
+import server.ExtraSubjectsId
 import server.Roles
 import server.getLocalDate
 import server.toMinutes
@@ -361,9 +362,9 @@ class LessonsController() {
                 val groups: List<GroupDTO> = Groups.getAllGroups()
                 val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
                 val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
-                    -2 to "Дисциплина",
-                    -3 to "Общественная работа",
-                    -4 to "Творчество"
+                    ExtraSubjectsId.mvd to "Дисциплина",
+                    ExtraSubjectsId.social to "Общественная работа",
+                    ExtraSubjectsId.creative to "Творчество"
                 )
 
                 val filtered = fetchMainNotificationsServer(

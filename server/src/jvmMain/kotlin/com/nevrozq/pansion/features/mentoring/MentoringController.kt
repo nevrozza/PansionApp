@@ -324,7 +324,7 @@ class MentoringController {
 
             try {
                 val r = call.receive<OpenRequestQRReceive>()
-
+                
                 activeRegistrationForms.add(r.formId)
                 call.respond(
                     HttpStatusCode.OK

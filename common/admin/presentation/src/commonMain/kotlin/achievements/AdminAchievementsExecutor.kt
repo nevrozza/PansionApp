@@ -12,6 +12,7 @@ import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import kotlinx.coroutines.launch
+import server.ExtraSubjectsId
 import server.getDate
 
 class AdminAchievementsExecutor(
@@ -247,7 +248,7 @@ class AdminAchievementsExecutor(
                         Message.Inited(
                             achievements = r.list,
                             students = r.students ?: listOf(),
-                            subjects = mapOf(-2 to "Дисциплина", -3 to "Общественная работа", -4 to "Творчество") + r.subjects //mvd-2 social-3 creative-3
+                            subjects = mapOf(ExtraSubjectsId.mvd to "Дисциплина", ExtraSubjectsId.social to "Общественная работа", ExtraSubjectsId.creative to "Творчество") + r.subjects //mvd-2 social-3 creative-3
                         )
                     )
                     nInterface.nSuccess()
