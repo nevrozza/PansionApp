@@ -4,7 +4,9 @@ import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
+import io.ktor.http.*
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.response.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -16,6 +18,29 @@ import server.cut
 import server.getLocalDate
 import server.latin
 import java.util.UUID
+
+
+val Unit.done: Boolean
+    get() = true
+
+suspend fun ApplicationCall.dRes(
+    permission: Boolean,
+    errorText: String,
+    body: suspend ApplicationCall.() -> Boolean
+) {
+    if (permission) {
+        try {
+            body()
+        } catch (e: Throwable) {
+            this.respond(
+                HttpStatusCode.BadRequest,
+                "$errorText: ${e.message}"
+            )
+        }
+    } else {
+        this.respond(HttpStatusCode.Forbidden, "No permission")
+    }
+}
 
 fun List<String>?.toStr(): String? = this?.joinToString("/-")
 fun String?.toList(): List<String>? = if((this?.length ?: 0) > 2) this?.split("/-") else null

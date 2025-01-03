@@ -9,7 +9,11 @@ object ExtraSubjectsId {
     const val mvd = -2
     const val social = -3
     const val creative = -4
+}
 
+object ScheduleIds {
+    const val extra = -6
+    const val food = -11
 }
 
 val headerTitlesForMinistry = mapOf(

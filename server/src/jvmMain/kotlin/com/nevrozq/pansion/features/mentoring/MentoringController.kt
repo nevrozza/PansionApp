@@ -20,16 +20,11 @@ import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.features.lessons.fetchSchedule
-import com.nevrozq.pansion.utils.createLogin
-import com.nevrozq.pansion.utils.isMember
-import com.nevrozq.pansion.utils.isMentor
-import com.nevrozq.pansion.utils.isModer
-import com.nevrozq.pansion.utils.login
-import com.nevrozq.pansion.utils.toId
+import com.nevrozq.pansion.utils.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
-import io.ktor.server.response.respond
+import io.ktor.server.response.*
 import journal.init.RFetchMentorGroupIdsResponse
 import mentoring.MentorForms
 import mentoring.RFetchJournalBySubjectsReceive
@@ -53,10 +48,7 @@ import registration.SolveRequestReceive
 import report.StudentNka
 import report.UserMark
 import report.UserMarkPlus
-import server.Moderation
-import server.Roles
-import server.getLocalDate
-import server.toMinutes
+import server.*
 import java.util.UUID
 
 val activeRegistrationForms = mutableListOf<Int>()
@@ -67,8 +59,8 @@ private val activeRegistrationRequests = mutableMapOf<
 class MentoringController {
 
     suspend fun fetchJournalBySubjects(call: ApplicationCall) {
-        val r = call.receive<RFetchJournalBySubjectsReceive>()
-        try {
+        call.dRes(true, "Can't fetch journal by subjects for mentors") {
+            val r = this.receive<RFetchJournalBySubjectsReceive>()
             val students = StudentsInForm.fetchStudentsLoginsByFormIds(r.forms).associateWith {
                 StudentGroups.fetchGroupOfStudentIDS(it)
             }
@@ -133,7 +125,7 @@ class MentoringController {
                 }
             }
 
-            call.respond(
+            this.respond(
                 RFetchJournalBySubjectsResponse(
                     groups = Groups.getAllGroups().map {
                         CutedGroupViaSubject(
@@ -147,264 +139,197 @@ class MentoringController {
                     studentsMarks = ocenki,
                     studentsNki = nki
                 )
-            )
-
-        } catch (e: Throwable) {
-            call.respond(
-                HttpStatusCode.BadRequest,
-                "Can't fetch journal by subjects for mentors: ${e.localizedMessage}"
-            )
+            ).done
         }
     }
 
     suspend fun fetchLogins(call: ApplicationCall) {
-        val r = call.receive<FetchLoginsReceive>()
-        try {
-            call.respond(
+        call.dRes(true, "Can't fetch logins") {
+
+            val r = this.receive<FetchLoginsReceive>()
+            this.respond(
                 FetchLoginsResponse(
                     DeviceBinds.selectAll(r.deviceId.toId())
                 )
-            )
-        } catch (e: Throwable) {
-            call.respond(
-                HttpStatusCode.BadRequest,
-                "Can't fetch Logins: ${e.localizedMessage}"
-            )
+            ).done
         }
     }
 
     suspend fun sendRegistrationRequest(call: ApplicationCall) {
-        if (!call.isMember) {
-            val r = call.receive<SendRegistrationRequestReceive>()
-            try {
-                activeRegistrationRequests[r.deviceId.toId()] = r.request
-                call.respond(
-                    HttpStatusCode.OK
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't send request: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = !call.isMember
+        call.dRes(perm, "Can't send request") {
+            val r = this.receive<SendRegistrationRequestReceive>()
+            activeRegistrationRequests[r.deviceId.toId()] = r.request
+            this.respond(
+                HttpStatusCode.OK
+            ).done
         }
     }
 
     suspend fun scanRegistrationQR(call: ApplicationCall) {
-        if (!call.isMember) {
-            val r = call.receive<ScanRequestQRReceive>()
-            try {
-                if (r.formId in activeRegistrationForms) {
-                    val f = Forms.fetchById(r.formId)
-                    call.respond(
-                        ScanRequestQRResponse(
-                            formName = "${f.classNum} ${f.title}"
-                        )
+        val perm = !call.isMember
+        call.dRes(perm, "Can't scan qr") {
+            val r = this.receive<ScanRequestQRReceive>()
+            if (r.formId in activeRegistrationForms) {
+                val f = Forms.fetchById(r.formId)
+                this.respond(
+                    ScanRequestQRResponse(
+                        formName = "${f.classNum} ${f.title}"
                     )
-                } else {
-                    throw Throwable()
-                }
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't scan qr: ${e.localizedMessage}"
-                )
+                ).done
+            } else {
+                throw Throwable()
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
         }
     }
 
     suspend fun solveRegistrationRequest(call: ApplicationCall) {
-        if (call.isMentor) {
-            val r = call.receive<SolveRequestReceive>()
+        val perm = call.isMentor
+        call.dRes(perm, "Can't accept request") {
+
+            val r = this.receive<SolveRequestReceive>()
             val parentFios = mutableListOf(r.request.fioFather, r.request.fioMother)
             val users = Users.fetchAll()
-            try {
-                val id =
-                    activeRegistrationRequests.filterValues { it == r.request }.keys.first()
-                if (r.isAccepted) {
-                    transaction {
+
+            val id =
+                activeRegistrationRequests.filterValues { it == r.request }.keys.first()
+            if (r.isAccepted) {
+                transaction {
 
 
-                        val login = createLogin(name = r.request.name, surname = r.request.surname)
+                    val login = createLogin(name = r.request.name, surname = r.request.surname)
 
 
-                        Users.insert(
-                            UserDTO(
-                                login = login,
-                                password = null,
-                                name = r.request.name,
-                                surname = r.request.surname,
-                                praname = r.request.praname,
-                                birthday = r.request.birthday,
-                                role = Roles.student,
-                                moderation = Moderation.nothing,
-                                isParent = false,
-                                avatarId = r.request.avatarId,
-                                isActive = true,
-                                subjectId = null
-                            )
+                    Users.insert(
+                        UserDTO(
+                            login = login,
+                            password = null,
+                            name = r.request.name,
+                            surname = r.request.surname,
+                            praname = r.request.praname,
+                            birthday = r.request.birthday,
+                            role = Roles.student,
+                            moderation = Moderation.nothing,
+                            isParent = false,
+                            avatarId = r.request.avatarId,
+                            isActive = true,
+                            subjectId = null
                         )
+                    )
 
 
-                        parentFios.filter { it.isNotBlank() }.forEach { p ->
-                            val fio = p.split(" ")
-                            val ff = FIO(
-                                name = fio[1],
-                                surname = fio[0],
-                                praname = fio.getOrNull(2)
+                    parentFios.filter { it.isNotBlank() }.forEach { p ->
+                        val fio = p.split(" ")
+                        val ff = FIO(
+                            name = fio[1],
+                            surname = fio[0],
+                            praname = fio.getOrNull(2)
+                        )
+                        if (ff !in users.map { FIO(name = it.name, surname = it.surname, praname = it.praname) }) {
+
+                            val pLogin = createLogin(fio[1], fio[0])
+                            Users.insert(
+                                UserDTO(
+                                    login = pLogin,
+                                    password = null,
+                                    name = fio[1],
+                                    surname = fio[0],
+                                    praname = fio.getOrNull(2),
+                                    birthday = "01012000",
+                                    role = Roles.nothing,
+                                    moderation = Moderation.nothing,
+                                    isParent = true,
+                                    avatarId = 0,
+                                    isActive = true,
+                                    subjectId = null
+                                )
                             )
-                            if (ff !in users.map { FIO(name = it.name, surname = it.surname, praname = it.praname) }) {
 
-                                val pLogin = createLogin(fio[1], fio[0])
-                                Users.insert(
-                                    UserDTO(
-                                        login = pLogin,
-                                        password = null,
-                                        name = fio[1],
-                                        surname = fio[0],
-                                        praname = fio.getOrNull(2),
-                                        birthday = "01012000",
-                                        role = Roles.nothing,
-                                        moderation = Moderation.nothing,
-                                        isParent = true,
-                                        avatarId = 0,
-                                        isActive = true,
-                                        subjectId = null
-                                    )
+                            Parents.insert(
+                                ParentsDTO(
+                                    id = 0,
+                                    studentLogin = login,
+                                    parentLogin = pLogin
                                 )
-
-                                Parents.insert(
-                                    ParentsDTO(
-                                        id = 0,
-                                        studentLogin = login,
-                                        parentLogin = pLogin
-                                    )
-                                )
-                                DeviceBinds.add(
-                                    id = id,
-                                    login = pLogin
-                                )
-                            }
+                            )
+                            DeviceBinds.add(
+                                id = id,
+                                login = pLogin
+                            )
                         }
+                    }
 
-                        DeviceBinds.add(
-                            id = id,
+                    DeviceBinds.add(
+                        id = id,
+                        login = login
+                    )
+                    StudentsInForm.insert(
+                        StudentInFormDTO(
+                            formId = r.request.formId,
                             login = login
                         )
-                        StudentsInForm.insert(
-                            StudentInFormDTO(
-                                formId = r.request.formId,
-                                login = login
-                            )
-                        )
+                    )
 
-                    }
                 }
-                activeRegistrationRequests.remove(id)
-                call.respond(HttpStatusCode.OK)
-
-
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't accept: ${e.localizedMessage}"
-                )
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            activeRegistrationRequests.remove(id)
+            this.respond(HttpStatusCode.OK).done
+
         }
     }
 
     suspend fun openRegistrationQR(call: ApplicationCall) {
-        if (call.isMentor) {
+        val perm = call.isMentor
+        call.dRes(perm, "Can't open qr") {
+            val r = this.receive<OpenRequestQRReceive>()
 
-            try {
-                val r = call.receive<OpenRequestQRReceive>()
-                
-                activeRegistrationForms.add(r.formId)
-                call.respond(
-                    HttpStatusCode.OK
-                )
-            } catch (e: Throwable) {
-                println("SERVERErrorQR: ${e}")
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't open qr: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            activeRegistrationForms.add(r.formId)
+            this.respond(
+                HttpStatusCode.OK
+            ).done
         }
     }
 
     suspend fun closeRegistrationQR(call: ApplicationCall) {
-        if (call.isMentor) {
-            val r = call.receive<CloseRequestQRReceive>()
-            try {
-                activeRegistrationForms.remove(r.formId)
-                call.respond(
-                    HttpStatusCode.OK
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't close qr: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isMentor
+        call.dRes(perm, "Can't close qr") {
+            val r = this.receive<CloseRequestQRReceive>()
+            activeRegistrationForms.remove(r.formId)
+            this.respond(
+                HttpStatusCode.OK
+            ).done
         }
     }
 
     suspend fun fetchMentorGroupIds(call: ApplicationCall) {
-        if (call.isMentor) {
-            try {
-                val forms = Forms.fetchMentorForms(call.login)
-                val students = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
-                val groups = StudentGroups.fetchGroupIdsOfStudents(students.map { it })
-                call.respond(
-                    RFetchMentorGroupIdsResponse(groups)
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch mentor group ids: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isMentor
+        call.dRes(perm, "Can't fetch mentor group ids") {
+            val forms = Forms.fetchMentorForms(this.login)
+            val students = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
+            val groups = StudentGroups.fetchGroupIdsOfStudents(students.map { it })
+            this.respond(
+                RFetchMentorGroupIdsResponse(groups)
+            ).done
         }
     }
 
     suspend fun savePreAttendanceDay(call: ApplicationCall) {
-        if (call.isMentor) {
-            try {
-                val r = call.receive<RSavePreAttendanceDayReceive>()
-                PreAttendance.savePreAttendance(
-                    date = r.date,
-                    login = r.studentLogin,
-                    preAttendance = r.preAttendance
-                )
-                call.respond(HttpStatusCode.OK)
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't save preAttendance: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isMentor
+        call.dRes(perm, "Can't save preAttendance") {
+            val r = this.receive<RSavePreAttendanceDayReceive>()
+            PreAttendance.savePreAttendance(
+                date = r.date,
+                login = r.studentLogin,
+                preAttendance = r.preAttendance
+            )
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun fetchPreAttendanceDay(call: ApplicationCall) {
-        if (call.isMentor) {
-            try {
-                val r = call.receive<RFetchPreAttendanceDayReceive>()
+        val perm = call.isMentor
+        call.dRes(perm, "Can't fetch preAttendance") {
+            val r = call.receive<RFetchPreAttendanceDayReceive>()
                 val subjects = Subjects.fetchAllSubjectsAsMap()
                 val groups = StudentGroups.fetchGroupsOfStudent(r.studentLogin)
                 val ids = groups.mapNotNull { if (it.isActive) it.id else null }
@@ -420,13 +345,13 @@ class MentoringController {
                             ScheduleForAttendance(
                                 groupId = s.groupId,
                                 subjectName = if (group != null) subjects[group.subjectId].toString() else when (s.groupId) {
-                                    -11 -> "Приём пищи"
-                                    -6 -> "Доп занятие"
+                                    ScheduleIds.food -> "Приём пищи"
+                                    ScheduleIds.extra -> "Доп занятие"
                                     else -> s.custom.firstOrNull().toString()
                                 },
                                 groupName = group?.name ?: when (s.groupId) {
-                                    -11 -> ""
-                                    -6 -> s.teacherLogin
+                                    ScheduleIds.food -> ""
+                                    ScheduleIds.extra -> s.teacherLogin
                                     else -> ""
                                 },
                                 start = s.t.start,
@@ -440,7 +365,7 @@ class MentoringController {
                     login = r.studentLogin
                 )
 
-                call.respond(
+                this.respond(
                     RFetchPreAttendanceDayResponse(
                         schedule = schedule,
                         attendance = if (preAttendance != null) ClientPreAttendance(
@@ -450,23 +375,14 @@ class MentoringController {
                             isGood = preAttendance.isGood
                         ) else null
                     )
-                )
-
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch preAttendance: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+                ).done
         }
     }
 
     suspend fun fetchStudents(call: ApplicationCall) {
-        if (call.isMentor || call.isModer) {
-            try {
-                val forms = if (call.isModer) {
+        val perm = call.isMentor || call.isModer
+        call.dRes(perm, "Can't fetch students (mentor)") {
+            val forms = if (this.isModer) {
                     Forms.getAllForms().map {
                         MentorForms(
                             id = it.formId,
@@ -476,7 +392,7 @@ class MentoringController {
                         )
                     }
                 } else {
-                    Forms.fetchMentorForms(call.login)
+                    Forms.fetchMentorForms(this.login)
                 }
 
                 val studentLogins =
@@ -487,7 +403,7 @@ class MentoringController {
                     it.value.formId in forms.map { it.id }
                 }
 
-                call.respond(
+                this.respond(
                     RFetchMentoringStudentsResponse(
                         forms = forms,
                         students = students.map { s ->
@@ -504,105 +420,7 @@ class MentoringController {
                         },
                         requests = requests.map { it.value }
                     )
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch students (mentor): ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+                ).done
         }
     }
-
-//    suspend fun checkHomeTask(call: ApplicationCall) {
-//        if (call.isMember) {
-//            try {
-//                val r = call.receive<RCheckHomeTaskReceive>()
-//                HomeTasksDone.checkTask(
-//                    login = r.login,
-//                    homeWorkId = r.homeWorkId,
-//                    isDone = r.isCheck,
-//                    id = r.id
-//                )
-//            } catch (e: Throwable) {
-//                call.respond(
-//                    HttpStatusCode.BadRequest,
-//                    "Can't check Task: ${e.localizedMessage}"
-//                )
-//            }
-//        } else {
-//            call.respond(HttpStatusCode.Forbidden, "No permission")
-//        }
-//    }
-//
-//    suspend fun fetchHomeTasks(call: ApplicationCall) {
-//        if (call.isMember) {
-//            try {
-//
-//                val r = call.receive<RFetchHomeTasksReceive>()
-//                val groupIDS = StudentGroups.fetchGroupOfStudentIDS(r.login) //
-//                val homeTasks = HomeTasks.getClientHomeTasks(
-//                    groupIds = groupIDS,
-//                    login = r.login,
-//                    date = r.date
-//                )
-//
-//                call.respond(
-//                    RFetchHomeTasksResponse(
-//                        tasks = homeTasks
-//                    )
-//                )
-//            } catch (e: Throwable) {
-//                call.respond(
-//                    HttpStatusCode.BadRequest,
-//                    "Can't fetch homeTasks: ${e.localizedMessage}"
-//                )
-//            }
-//        } else {
-//            call.respond(HttpStatusCode.Forbidden, "No permission")
-//        }
-//    }
-//
-//    suspend fun fetchHomeTasksInit(call: ApplicationCall) {
-//        if(call.isMember) {
-//            try {
-//                val r = call.receive<RFetchTasksInitReceive>()
-//                val groups = StudentGroups.fetchGroupsOfStudent(r.login)
-//                val subjects = Subjects.fetchAllSubjectsAsMap().filter { it.key in groups.map { g -> g.subjectId } }
-//                val schedule = Schedule.getOnNext(getDate(), getSixTime())
-//                    .sortedBy { getLocalDate(it.date).toEpochDays() + (it.start.toMinutes() / 1000f) }
-//                val cutedDateTimeGroups = groups.map { g ->
-//                    val lesson = schedule.firstOrNull { it.groupId == g.id }
-//                    CutedDateTimeGroup(
-//                        id = g.id,
-//                        name = g.name,
-//                        localDateTime = if (lesson != null) getLocalDateTime(
-//                            date = lesson.date,
-//                            time = lesson.start
-//                        ) else null
-//                    )
-//                }
-//                call.respond(
-//                    RFetchTasksInitResponse(
-//                        groups = cutedDateTimeGroups,
-//                        subjects = subjects,
-//                        dates = HomeTasks.getHomeTasksDateForGroupsLogin(
-//                            groups.map { it.id },
-//                            r.login
-//                        )
-//                    )
-//                )
-//
-//            } catch (e: Throwable) {
-//                call.respond(
-//                    HttpStatusCode.BadRequest,
-//                    "Can't fetch homeTasksInit: ${e.localizedMessage}"
-//                )
-//            }
-//        } else {
-//            call.respond(HttpStatusCode.Forbidden, "No permission")
-//        }
-//    }
 }

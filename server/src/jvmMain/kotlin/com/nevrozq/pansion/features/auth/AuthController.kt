@@ -48,11 +48,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.tokens.TokenDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
-import com.nevrozq.pansion.utils.isMember
-import com.nevrozq.pansion.utils.login
-import com.nevrozq.pansion.utils.nullUUID
-import com.nevrozq.pansion.utils.toId
-import com.nevrozq.pansion.utils.token
+import com.nevrozq.pansion.utils.*
 import kotlinx.coroutines.delay
 import org.mindrot.jbcrypt.BCrypt
 import server.DataLength
@@ -79,227 +75,177 @@ data class QRDevice(
 class AuthController {
 
     suspend fun fetchUserData(call: ApplicationCall) {
-        if (call.isMember) {
-            val r = call.receive<RFetchUserDataReceive>()
-            try {
-                val user = Users.fetchUser(r.login)
-
-                call.respond(
-                    RFetchUserDataResponse(
-                        fio = if (user != null) FIO(name = user.name, surname = user.surname, praname = user.praname) else null,
-                        avatarId = user?.avatarId ?: 1
-                    )
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch user data") {
+            val r = this.receive<RFetchUserDataReceive>()
+            val user = Users.fetchUser(r.login)
+            this.respond(
+                RFetchUserDataResponse(
+                    fio = if (user != null) FIO(
+                        name = user.name,
+                        surname = user.surname,
+                        praname = user.praname
+                    ) else null,
+                    avatarId = user?.avatarId ?: 1
                 )
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Conflict when get user data")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch user data: ${e.localizedMessage}"
-                )
-            }
+            ).done
         }
     }
 
     suspend fun fetchAboutMe(call: ApplicationCall) {
-        if (call.isMember) {
-            val r = call.receive<RFetchAboutMeReceive>()
-            try {
-                val form = Forms.fetchById(StudentsInForm.fetchFormIdOfLogin(r.studentLogin))
-                val ministry = StudentMinistry.fetchMinistryWithLogin(r.studentLogin) ?: StudentMinistryDTO(login = r.studentLogin, "0", "0")
-                val groups =
-                    StudentGroups.fetchGroupsOfStudent(r.studentLogin).filter { it.isActive }
-                val subjects =
-                    Subjects.fetchAllSubjects().filter { it.id in groups.map { it.subjectId } }
-                        .filter { it.isActive }
-                val teachers = (Users.fetchAllTeachers()
-                    .filter { it.isActive && it.login in groups.map { it.teacherLogin } } + Users.fetchAllMentors()
-                    .firstOrNull { it.login == form.mentorLogin }).filterNotNull()
-                var likes = 0
-                var dislikes = 0
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch about me") {
+            val r = this.receive<RFetchAboutMeReceive>()
+            val form = Forms.fetchById(StudentsInForm.fetchFormIdOfLogin(r.studentLogin))
+            val ministry = StudentMinistry.fetchMinistryWithLogin(r.studentLogin) ?: StudentMinistryDTO(
+                login = r.studentLogin,
+                "0",
+                "0"
+            )
+            val groups =
+                StudentGroups.fetchGroupsOfStudent(r.studentLogin).filter { it.isActive }
+            val subjects =
+                Subjects.fetchAllSubjects().filter { it.id in groups.map { it.subjectId } }
+                    .filter { it.isActive }
+            val teachers = (Users.fetchAllTeachers()
+                .filter { it.isActive && it.login in groups.map { it.teacherLogin } } + Users.fetchAllMentors()
+                .firstOrNull { it.login == form.mentorLogin }).filterNotNull()
+            var likes = 0
+            var dislikes = 0
 
-                StudentLines.fetchStudentLinesByLogin(r.studentLogin).forEach {
-                    if (it.isLiked == "t") {
-                        likes++
-                    } else if (it.isLiked == "f") {
-                        dislikes++
-                    }
+            StudentLines.fetchStudentLinesByLogin(r.studentLogin).forEach {
+                if (it.isLiked == "t") {
+                    likes++
+                } else if (it.isLiked == "f") {
+                    dislikes++
                 }
-
-
-                call.respond(
-                    RFetchAboutMeResponse(
-                        form = form.mapToForm(),
-                        groups = groups.map {
-                            Group(
-                                id = it.id,
-                                group = GroupInit(
-                                    name = it.name,
-                                    teacherLogin = it.teacherLogin,
-                                    subjectId = it.subjectId,
-                                    difficult = it.difficult
-                                ),
-                                isActive = it.isActive
-                            )
-                        },
-                        subjects = subjects.map {
-                            Subject(
-                                id = it.id,
-                                name = it.name,
-                                isActive = it.isActive
-                            )
-                        },
-                        teachers = HashMap(teachers.associateBy({
-                            it.login
-                        }, { "${it.surname} ${it.name[0]}. ${(it.praname ?: " ")[0]}." }
-                        )),
-                        likes = likes,
-                        dislikes = dislikes,
-                        giaSubjects = PickedGIA.fetchByStudent(r.studentLogin),
-                        ministryId = ministry.ministry,
-                        ministryLevel = ministry.lvl,
-                        pansCoins = if (r.studentLogin == call.login) PansCoins.fetchCount(r.studentLogin) else 0,
-                        avatars = if (r.studentLogin == call.login) AvatarsShop.fetchAvatars(r.studentLogin) else listOf()
-                    ))
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Conflict when get about me")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch about me: ${e.localizedMessage}"
-                )
             }
+
+
+            this.respond(
+                RFetchAboutMeResponse(
+                    form = form.mapToForm(),
+                    groups = groups.map {
+                        Group(
+                            id = it.id,
+                            group = GroupInit(
+                                name = it.name,
+                                teacherLogin = it.teacherLogin,
+                                subjectId = it.subjectId,
+                                difficult = it.difficult
+                            ),
+                            isActive = it.isActive
+                        )
+                    },
+                    subjects = subjects.map {
+                        Subject(
+                            id = it.id,
+                            name = it.name,
+                            isActive = it.isActive
+                        )
+                    },
+                    teachers = HashMap(teachers.associateBy({
+                        it.login
+                    }, { "${it.surname} ${it.name[0]}. ${(it.praname ?: " ")[0]}." }
+                    )),
+                    likes = likes,
+                    dislikes = dislikes,
+                    giaSubjects = PickedGIA.fetchByStudent(r.studentLogin),
+                    ministryId = ministry.ministry,
+                    ministryLevel = ministry.lvl,
+                    pansCoins = if (r.studentLogin == call.login) PansCoins.fetchCount(r.studentLogin) else 0,
+                    avatars = if (r.studentLogin == call.login) AvatarsShop.fetchAvatars(r.studentLogin) else listOf()
+                )).done
         }
     }
 
     suspend fun terminateDevice(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val r = call.receive<RTerminateDeviceReceive>()
-                Tokens.deleteTokenByIdAndLogin(id = r.id.toId(), login = call.login)
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Idk ERROR Terminate")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't Terminate: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(
-                HttpStatusCode.Forbidden
-            )
+        val perm = call.isMember
+
+        call.dRes(perm, "Can't terminate device") {
+            val r = this.receive<RTerminateDeviceReceive>()
+            Tokens.deleteTokenByIdAndLogin(id = r.id.toId(), login = this.login)
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun ActivateQRToken(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
+        val perm = call.isMember
+        call.dRes(perm, "Can't Activate TOKEN FIRST") {
+            val r = this.receive<RFetchQrTokenResponse>()
 
-                val r = call.receive<RFetchQrTokenResponse>()
+            val device = authQRDevice[r.token]!!
 
-                val device = authQRDevice[r.token]!!
-
-                call.respond(
-                    RActivateQrTokenResponse(
-                        deviceName = device.name,
-                        deviceType = device.type
-                    )
+            this.respond(
+                RActivateQrTokenResponse(
+                    deviceName = device.name,
+                    deviceType = device.type
                 )
-
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't Activate TOKEN FIRST: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(
-                HttpStatusCode.Forbidden
-            )
+            ).done
         }
     }
 
     suspend fun ActivateQRTokenAtAll(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
+        val perm = call.isMember
+        call.dRes(perm, "Can't Activate TOKEN") {
+            val r = call.receive<RFetchQrTokenResponse>()
+            val userDTO = Users.fetchUser(call.login)
+            val token = UUID.randomUUID()
 
-                val r = call.receive<RFetchQrTokenResponse>()
-                val userDTO = Users.fetchUser(call.login)
-                val token = UUID.randomUUID()
-
-                val device = authQRDevice[r.token]!!
-                Tokens.insert(
-                    TokenDTO(
-                        deviceId = device.id.toId(),
-                        login = userDTO!!.login,
-                        token = token,
-                        deviceName = device.name,
-                        deviceType = device.type,
-                        time = Clock.System.now()
-                            .toLocalDateTime(TimeZone.of("UTC+3")).toString()
-                            .cut(16)
-                    )
+            val device = authQRDevice[r.token]!!
+            Tokens.insert(
+                TokenDTO(
+                    deviceId = device.id.toId(),
+                    login = userDTO!!.login,
+                    token = token,
+                    deviceName = device.name,
+                    deviceType = device.type,
+                    time = Clock.System.now()
+                        .toLocalDateTime(TimeZone.of("UTC+3")).toString()
+                        .cut(16)
                 )
-                authQRCalls[r.token]!!.respond(
-                    LoginResponse(
-                        activation = ActivationResponse(
-                            token = token.toString(),
-                            user = UserInit(
-                                fio = FIO(
-                                    name = userDTO.name,
-                                    surname = userDTO.surname,
-                                    praname = userDTO.praname
-                                ),
-                                birthday = userDTO.birthday,
-                                role = userDTO.role,
-                                moderation = userDTO.moderation,
-                                isParent = userDTO.isParent
-                            ),
-                            login = userDTO.login
-                        ),
-                        avatarId = userDTO.avatarId
-                    )
-                )
-
-
-                call.respond(HttpStatusCode.OK)
-
-                authQRCalls.remove(r.token)
-                authQRIds.remove(device.id)
-                authQRDevice.remove(r.token)
-
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't Activate TOKEN: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(
-                HttpStatusCode.Forbidden
             )
+            authQRCalls[r.token]!!.respond(
+                LoginResponse(
+                    activation = ActivationResponse(
+                        token = token.toString(),
+                        user = UserInit(
+                            fio = FIO(
+                                name = userDTO.name,
+                                surname = userDTO.surname,
+                                praname = userDTO.praname
+                            ),
+                            birthday = userDTO.birthday,
+                            role = userDTO.role,
+                            moderation = userDTO.moderation,
+                            isParent = userDTO.isParent
+                        ),
+                        login = userDTO.login
+                    ),
+                    avatarId = userDTO.avatarId
+                )
+            )
+
+            call.respond(HttpStatusCode.OK)
+
+            authQRCalls.remove(r.token)
+            authQRIds.remove(device.id)
+            authQRDevice.remove(r.token)
+            true
         }
     }
 
     suspend fun QRTokenStartPolling(call: ApplicationCall) {
-        try {
+        call.dRes(true, "Can't Poll TOKEN") {
             authQRCalls[authQRIds[call.receive<RFetchQrTokenReceive>().deviceId]!!] = call
-
             delay(delayForNewQRToken)
-
-        } catch (e: Throwable) {
-            call.respond(
-                HttpStatusCode.BadRequest,
-                "Can't Poll TOKEN: ${e.localizedMessage}"
-            )
+            true
         }
     }
 
     suspend fun fetchQRToken(call: ApplicationCall) {
-        try {
-            val r = call.receive<RFetchQrTokenReceive>()
+        call.dRes(true, "Can't QR TOKEN") {
+            val r = this.receive<RFetchQrTokenReceive>()
             val token = "AUTH" + UUID.randomUUID().toString().cut(6)
             authQRIds[r.deviceId] = token
 
@@ -309,173 +255,122 @@ class AuthController {
                 type = r.deviceType
             )
 
-            call.respond(
+            this.respond(
                 RFetchQrTokenResponse(
                     token
                 )
-            )
-        } catch (e: Throwable) {
-            call.respond(
-                HttpStatusCode.BadRequest,
-                "Can't QR TOKEN: ${e.localizedMessage}"
-            )
+            ).done
         }
     }
 
     suspend fun changeSecondLogin(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-
-                val r = call.receive<RChangeLogin>()
-                throw Throwable("mem")
-                if (r.newLogin !in Users.fetchAll()
-                        .map { it.login } + SecondLogins.fetchAllNewLogins()
-                ) {
-                    SecondLogins.change(
-                        oldLogin = call.login,
-                        newLogin = r.newLogin
-                    )
-                    call.respond(HttpStatusCode.OK)
-                } else {
-                    throw Throwable()
-                }
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't Change Login: ${e.localizedMessage}"
+        val perm = call.isMember
+        call.dRes(perm, "Can't Change Login") {
+            val r = this.receive<RChangeLogin>()
+            if (r.newLogin !in Users.fetchAll()
+                    .map { it.login } + SecondLogins.fetchAllNewLogins()
+            ) {
+                SecondLogins.change(
+                    oldLogin = this.login,
+                    newLogin = r.newLogin
                 )
+                this.respond(HttpStatusCode.OK).done
+            } else {
+                throw Throwable()
             }
-        } else {
-            call.respond(
-                HttpStatusCode.Forbidden
-            )
         }
     }
 
     suspend fun fetchAllDevices(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val devices = Tokens.getTokensOfThisLogin(thisLogin = call.login).map {
-                    Device(
-                        deviceId = it.deviceId.toString(),
-                        deviceName = it.deviceName,
-                        deviceType = it.deviceType,
-                        time = it.time,
-                        isThisSession = it.token.toString() == call.token
-                    )
-                }
-                val secondLogin = SecondLogins.fetchSecondLogin(call.login)
-                call.respond(RFetchAllDevicesResponse(devices, secondLogin))
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Idk ERROR FETCH DEVICES")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch devices: ${e.localizedMessage}"
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch devices") {
+            val token = this.token
+            val login = this.login
+            val devices = Tokens.getTokensOfThisLogin(thisLogin = login).map {
+                Device(
+                    deviceId = it.deviceId.toString(),
+                    deviceName = it.deviceName,
+                    deviceType = it.deviceType,
+                    time = it.time,
+                    isThisSession = it.token.toString() == token
                 )
             }
-        } else {
-            call.respond(
-                HttpStatusCode.Forbidden
-            )
+            val secondLogin = SecondLogins.fetchSecondLogin(login)
+            this.respond(RFetchAllDevicesResponse(devices, secondLogin)).done
         }
     }
 
     suspend fun updateAvatarId(call: ApplicationCall) {
-        if (call.isMember) {
-            val r = call.receive<RChangeAvatarIdReceive>()
-            try {
-                Users.updateAvatarId(
-                    login = call.login,
-                    avatarId = r.avatarId
-                )
-                AvatarsShop.add(login = call.login, avatarId = r.avatarId)
-                PansCoins.add(login = call.login, plus = -r.price)
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Idk ERROR WHEN CHANGE AVATAR ID CONFLICT!!")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't change avatarId: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(
-                HttpStatusCode.Forbidden
+        val perm = call.isMember
+        call.dRes(perm, "Can't change avatarId") {
+
+            val r = this.receive<RChangeAvatarIdReceive>()
+            Users.updateAvatarId(
+                login = this.login,
+                avatarId = r.avatarId
             )
+            AvatarsShop.add(login = this.login, avatarId = r.avatarId)
+            PansCoins.add(login = this.login, plus = -r.price)
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun checkConnection(call: ApplicationCall) {
-        //val isTokenValid: Boolean,
-        //    val name: String,
-        //    val surname: String,
-        //    val praname: String,
-        //    val role: String,
-        //    val moderation: String,
-        //    val avatarId: Int
-        val isTokenValid: Boolean = Tokens.isTokenValid(call.token.toId())
-        var name: String = ""
-        var surname: String = ""
-        var praname: String? = ""
-        var role: String = ""
-        var moderation: String = ""
-        var avatarId: Int = 0
-        var isParent: Boolean = false
-        var birthday: String = ""
+        call.dRes(true, "Can't check connection") {
+            val isTokenValid: Boolean = Tokens.isTokenValid(this.token.toId())
+            var name: String = ""
+            var surname: String = ""
+            var praname: String? = ""
+            var role: String = ""
+            var moderation: String = ""
+            var avatarId: Int = 0
+            var isParent: Boolean = false
+            var birthday: String = ""
 
-        if (isTokenValid) {
-            val user = Users.fetchUser(call.login)!!
-            name = user.name
-            surname = user.surname
-            praname = user.praname
-            role = user.role
-            moderation = user.moderation
-            avatarId = user.avatarId
-            isParent = user.isParent
-            birthday = user.birthday
+            if (isTokenValid) {
+                val user = Users.fetchUser(this.login)!!
+                name = user.name
+                surname = user.surname
+                praname = user.praname
+                role = user.role
+                moderation = user.moderation
+                avatarId = user.avatarId
+                isParent = user.isParent
+                birthday = user.birthday
+            }
+            this.respond(
+                RCheckConnectionResponse(
+                    isTokenValid = isTokenValid,
+                    name = name,
+                    surname = surname,
+                    praname = praname,
+                    role = role,
+                    moderation = moderation,
+                    avatarId = avatarId,
+                    isParent = isParent,
+                    birthday = birthday,
+                    version = applicationVersion
+                )
+            ).done
         }
-        call.respond(
-            RCheckConnectionResponse(
-                isTokenValid = isTokenValid,
-                name = name,
-                surname = surname,
-                praname = praname,
-                role = role,
-                moderation = moderation,
-                avatarId = avatarId,
-                isParent = isParent,
-                birthday = birthday,
-                version = applicationVersion
-            )
-        )
     }
 
     suspend fun checkGIASubject(call: ApplicationCall) {
         val r = call.receive<RCheckGIASubjectReceive>()
-        if (call.isMember && r.login == call.login) {
-            try {
-                val dto = PickedGIADTO(
-                    studentLogin = r.login,
-                    subjectGIAId = r.subjectId
-                )
-                if (r.isChecked) {
-                    PickedGIA.insert(dto)
-                } else {
-                    PickedGIA.delete(dto)
-                }
-                call.respond(
-                    HttpStatusCode.OK
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't check GIA: ${e.localizedMessage}"
-                )
+        val perm = call.isMember && r.login == call.login
+        call.dRes(perm, "Can't check GIA") {
+            val dto = PickedGIADTO(
+                studentLogin = r.login,
+                subjectGIAId = r.subjectId
+            )
+            if (r.isChecked) {
+                PickedGIA.insert(dto)
+            } else {
+                PickedGIA.delete(dto)
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(
+                HttpStatusCode.OK
+            ).done
         }
     }
 
@@ -538,13 +433,11 @@ class AuthController {
 
                 }
             } else {
-                call.respond(HttpStatusCode.BadRequest, "No admin.users.User found")
+                call.respond(HttpStatusCode.BadRequest, "No User found")
             }
         } else {
             call.respond(HttpStatusCode.BadRequest, "NullableUID")
         }
-
-
     }
 
     suspend fun checkUserActivation(call: ApplicationCall) {

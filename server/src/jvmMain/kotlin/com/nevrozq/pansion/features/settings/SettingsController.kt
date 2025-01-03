@@ -1,9 +1,7 @@
 package com.nevrozq.pansion.features.settings
 
 import com.nevrozq.pansion.database.tokens.Tokens
-import com.nevrozq.pansion.utils.UUIDSerializer
-import com.nevrozq.pansion.utils.toId
-import com.nevrozq.pansion.utils.token
+import com.nevrozq.pansion.utils.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respond
@@ -12,8 +10,8 @@ import java.util.UUID
 
 class SettingsController {
     suspend fun logout(call: ApplicationCall) {
-        try {
-            if (call.token != null) {
+        call.dRes(true, "Can't logout") {
+            (if (call.token != null) {
                 if (Tokens.isTokenValid(call.token.toId())) {
                     Tokens.deleteToken(call.token.toId())
                 } else {
@@ -21,9 +19,7 @@ class SettingsController {
                 }
             } else {
                 call.respond(HttpStatusCode.Unauthorized, "There is nothing to delete")
-            }
-        } catch (e: Throwable) {
-            println(e.message)
+            }).done
         }
     }
 }

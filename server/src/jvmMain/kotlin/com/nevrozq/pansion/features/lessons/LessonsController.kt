@@ -89,12 +89,7 @@ import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.subjects.mapToSubject
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.lastTimeRatingUpdate
-import com.nevrozq.pansion.utils.isMember
-import com.nevrozq.pansion.utils.isMentor
-import com.nevrozq.pansion.utils.isModer
-import com.nevrozq.pansion.utils.isParent
-import com.nevrozq.pansion.utils.isTeacher
-import com.nevrozq.pansion.utils.login
+import com.nevrozq.pansion.utils.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -119,99 +114,66 @@ import rating.RatingItem
 import report.RMarkLessonReceive
 import report.UserMark
 import schedule.*
-import server.ExtraSubjectsId
-import server.Roles
-import server.getLocalDate
-import server.toMinutes
+import server.*
 
 class LessonsController() {
 
 
     suspend fun fetchGroupData(call: ApplicationCall) {
-        if (call.isMember) {
-            val r = call.receive<RFetchGroupDataReceive>()
-            try {
-                val group = Groups.getGroupById(r.groupId)
-                call.respond(
-                    RFetchGroupDataResponse(
-                        groupName = group?.name ?: "",
-                        subjectId = group?.subjectId,
-                        subjectName = if (group?.subjectId != null) Subjects.fetchName(group.subjectId) else "",
-                        teacherLogin = group?.teacherLogin ?: ""
-                    )
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch group data") {
+            val r = this.receive<RFetchGroupDataReceive>()
+            val group = Groups.getGroupById(r.groupId)
+            this.respond(
+                RFetchGroupDataResponse(
+                    groupName = group?.name ?: "",
+                    subjectId = group?.subjectId,
+                    subjectName = if (group?.subjectId != null) Subjects.fetchName(group.subjectId) else "",
+                    teacherLogin = group?.teacherLogin ?: ""
                 )
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Conflict when get group data")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch group data: ${e.localizedMessage}"
-                )
-            }
+            ).done
         }
     }
 
     suspend fun markLesson(call: ApplicationCall) {
-        val r = call.receive<RMarkLessonReceive>()
-        if (call.isTeacher) {
-            try {
-                Schedule.markLesson(lessonId = r.lessonId, lessonDate = r.date)
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Conflict!")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't mark lesson: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isTeacher
+        call.dRes(perm, "Can't mark lesson") {
+            val r = this.receive<RMarkLessonReceive>()
+            Schedule.markLesson(lessonId = r.lessonId, lessonDate = r.date)
+            this.respond(HttpStatusCode.OK).done
         }
     }
+
     suspend fun addStudentToGroupFromSubject(call: ApplicationCall) {
-        if (call.isModer) {
-            try {
-                val r = call.receive<RAddStudentToGroup>()
-                val login = Users.getLoginWithFIO(r.fio, itShouldBeStudent = true)!!
-                StudentGroups.insert(
-                    StudentGroupDTO(
-                        groupId = r.groupId,
-                        subjectId = r.subjectId,
-                        studentLogin = login
-                    )
+        val perm = call.isModer
+
+        call.dRes(perm, "Can't add student to group from subject") {
+            val r = this.receive<RAddStudentToGroup>()
+            val login = Users.getLoginWithFIO(r.fio, itShouldBeStudent = true)!!
+            StudentGroups.insert(
+                StudentGroupDTO(
+                    groupId = r.groupId,
+                    subjectId = r.subjectId,
+                    studentLogin = login
                 )
-                call.respond(
-                    HttpStatusCode.OK
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't add student to group from subject: ${e.localizedMessage}"
-                )
-            }
+            )
+            this.respond(
+                HttpStatusCode.OK
+            ).done
         }
     }
 
     suspend fun checkMainNotification(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val r = call.receive<RDeleteMainNotificationsReceive>()
-                CheckedNotifications.insert(
-                    CheckedNotificationsDTO(
-                        studentLogin = call.login,
-                        key = r.key
-                    )
+        val perm = call.isMember
+        call.dRes(perm, "Can't check notification") {
+            val r = this.receive<RDeleteMainNotificationsReceive>()
+            CheckedNotifications.insert(
+                CheckedNotificationsDTO(
+                    studentLogin = this.login,
+                    key = r.key
                 )
-                call.respond(HttpStatusCode.OK)
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't check notification: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            )
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
@@ -277,126 +239,109 @@ class LessonsController() {
     suspend fun fetchMainChildrenNotifications(
         call: ApplicationCall
     ) {
-        if (call.isMember) {
-            try {
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch children notifications") {
 
-                val checkedNotifications = CheckedNotifications.fetchByLogin(call.login)
-                val groups: List<GroupDTO> = Groups.getAllGroups()
-                val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
-                val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
-                    -2 to "Дисциплина",
-                    -3 to "Общественная работа",
-                    -4 to "Творчество"
-                )
+            val checkedNotifications = CheckedNotifications.fetchByLogin(this.login)
+            val groups: List<GroupDTO> = Groups.getAllGroups()
+            val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
+            val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
+                ExtraSubjectsId.mvd to "Дисциплина",
+                ExtraSubjectsId.social to "Общественная работа",
+                ExtraSubjectsId.creative to "Творчество"
+            )
 
-                val logins: MutableList<Person> = mutableListOf()
+            val logins: MutableList<Person> = mutableListOf()
 
 
-                if (call.isParent) {
-                    logins.addAll(Parents.fetchChildren(parentLogin = call.login).map {
-                        Person(
-                            login = it.login,
-                            fio = it.fio,
-                            isActive = it.isActive
-                        )
-                    }
+            if (this.isParent) {
+                logins.addAll(Parents.fetchChildren(parentLogin = this.login).map {
+                    Person(
+                        login = it.login,
+                        fio = it.fio,
+                        isActive = it.isActive
                     )
                 }
-
-                if (call.isMentor) {
-                    val forms = Forms.fetchMentorForms(call.login)
-                    logins.addAll(
-                        StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id }).mapNotNull {
-                            val user = Users.fetchUser(it)
-                            if (user != null) {
-                                Person(
-                                    login = it,
-                                    fio = FIO(
-                                        name = user.name,
-                                        surname = user.surname,
-                                        praname = user.praname
-                                    ),
-                                    isActive = user.isActive
-                                )
-                            } else null
-                        }
-                    )
-                }
-                val endLogins = logins.toSet().toList()
-                val end = endLogins.associate {
-                    it.login to fetchMainNotificationsServer(
-                        groups = groups,
-                        checkedNotifications = checkedNotifications,
-                        reports = reports,
-                        subjects = subjects,
-                        studentLogin = it.login
-                    )
-                }
-
-                call.respond(
-                    RFetchChildrenMainNotificationsResponse(
-                        students = endLogins.filter { !end[it.login].isNullOrEmpty() },
-                        notifications = end
-                    )
-                )
-            } catch (e: Throwable) {
-                println("SADDD: ${e}")
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch notifications: ${e.localizedMessage}"
                 )
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+
+            if (this.isMentor) {
+                val forms = Forms.fetchMentorForms(this.login)
+                logins.addAll(
+                    StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id }).mapNotNull {
+                        val user = Users.fetchUser(it)
+                        if (user != null) {
+                            Person(
+                                login = it,
+                                fio = FIO(
+                                    name = user.name,
+                                    surname = user.surname,
+                                    praname = user.praname
+                                ),
+                                isActive = user.isActive
+                            )
+                        } else null
+                    }
+                )
+            }
+            val endLogins = logins.toSet().toList()
+            val end = endLogins.associate {
+                it.login to fetchMainNotificationsServer(
+                    groups = groups,
+                    checkedNotifications = checkedNotifications,
+                    reports = reports,
+                    subjects = subjects,
+                    studentLogin = it.login
+                )
+            }
+
+            this.respond(
+                RFetchChildrenMainNotificationsResponse(
+                    students = endLogins.filter { !end[it.login].isNullOrEmpty() },
+                    notifications = end
+                )
+            ).done
         }
     }
 
     suspend fun fetchMainNotifications(
         call: ApplicationCall,
     ) {
-        if (call.isMember) {
-            try {
-                val r = call.receive<RFetchMainNotificationsReceive>()
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch notifications") {
+            val r = this.receive<RFetchMainNotificationsReceive>()
 
-                val checkedNotifications = CheckedNotifications.fetchByLogin(call.login)
-                val groups: List<GroupDTO> = Groups.getAllGroups()
-                val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
-                val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
-                    ExtraSubjectsId.mvd to "Дисциплина",
-                    ExtraSubjectsId.social to "Общественная работа",
-                    ExtraSubjectsId.creative to "Творчество"
-                )
+            val checkedNotifications = CheckedNotifications.fetchByLogin(this.login)
+            val groups: List<GroupDTO> = Groups.getAllGroups()
+            val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
+            val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
+                ExtraSubjectsId.mvd to "Дисциплина",
+                ExtraSubjectsId.social to "Общественная работа",
+                ExtraSubjectsId.creative to "Творчество"
+            )
 
-                val filtered = fetchMainNotificationsServer(
-                    groups = groups,
-                    checkedNotifications = checkedNotifications,
-                    reports = reports,
-                    subjects = subjects,
-                    studentLogin = r.studentLogin
-                )
+            val filtered = fetchMainNotificationsServer(
+                groups = groups,
+                checkedNotifications = checkedNotifications,
+                reports = reports,
+                subjects = subjects,
+                studentLogin = r.studentLogin
+            )
 
-                call.respond(
-                    RFetchMainNotificationsResponse(
-                        filtered
-                    )
+            this.respond(
+                RFetchMainNotificationsResponse(
+                    filtered
                 )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch notifications: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            ).done
         }
     }
 
     suspend fun fetchCalendar(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val calendar = Calendar.getAllModules()
-                call.respond(
-                    RFetchCalendarResponse(
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch calendar") {
+            val calendar = Calendar.getAllModules()
+            this.respond(
+                RFetchCalendarResponse(
                     items = calendar.map {
                         CalendarModuleItem(
                             num = it.num,
@@ -404,42 +349,27 @@ class LessonsController() {
                             halfNum = it.halfNum
                         )
                     }
-                ))
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch calendar: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+                )).done
         }
     }
 
     suspend fun updateCalendar(call: ApplicationCall) {
-        if (call.isModer) {
-            val r = call.receive<RUpdateCalendarReceive>()
-            try {
-                Calendar.insertList(r.items.map {
-                    CalendarDTO(
-                        num = it.num,
-                        start = it.start,
-                        halfNum = it.halfNum
-                    )
-                })
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Calendar already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create calendar: ${e.localizedMessage}"
+        val perm = call.isModer
+        call.dRes(perm, "Can't update calendar") {
+            val r = this.receive<RUpdateCalendarReceive>()
+            Calendar.insertList(r.items.map {
+                CalendarDTO(
+                    num = it.num,
+                    start = it.start,
+                    halfNum = it.halfNum
                 )
-            }
+            })
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun fetchRating(call: ApplicationCall) {
+        // NEXT TIME
         if (call.isMember) {
             val r = call.receive<RFetchSubjectRatingReceive>()
             try {
@@ -509,319 +439,258 @@ class LessonsController() {
     }
 
     suspend fun fetchScheduleSubjects(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val subjects = Subjects.fetchAllSubjects()
-                call.respond(
-                    RFetchScheduleSubjectsResponse(subjects.mapNotNull {
-                        ScheduleSubject(
-                            id = it.id,
-                            name = it.name,
-                            isActive = it.isActive
-                        )
-                    })
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch subjects: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch schedule subjects") {
+            val subjects = Subjects.fetchAllSubjects()
+            this.respond(
+                RFetchScheduleSubjectsResponse(subjects.mapNotNull {
+                    ScheduleSubject(
+                        id = it.id,
+                        name = it.name,
+                        isActive = it.isActive
+                    )
+                })
+            ).done
         }
     }
 
     suspend fun fetchSchedule(call: ApplicationCall) {
-        if (call.isMember) {
-            val r = call.receive<RFetchScheduleDateReceive>()
-            try {
-                val items = Schedule.getOnDate(r.day)
-                val conflictItems = ScheduleConflicts.fetchByDate(r.day)
-//                println(items.isEmpty())
-//                if (items.isEmpty()) {
-//                    items = Schedule.getOnDate(r.dayOfWeek)
-//                }
-                val map = mutableMapOf(
-                    r.day to items
-                )
-                val conflictMap = mutableMapOf(
-                    r.day to conflictItems.associate { it.lessonIndex to it.logins }.toMutableMap()
-                )
-                if (r.isFirstTime) {
-                    //DayOfWeek.MONDAY -> 1
-//                    DayOfWeek.TUESDAY -> 2
-//                    DayOfWeek.WEDNESDAY -> 3
-//                    DayOfWeek.THURSDAY -> 4
-//                    DayOfWeek.FRIDAY -> 5
-//                    DayOfWeek.SATURDAY -> 6
-//                    DayOfWeek.SUNDAY -> 7
-                    for (i in (1..5)) {
-                        map[i.toString()] = Schedule.getOnDate(i.toString())
-                        conflictMap[i.toString()] =
-                            ScheduleConflicts.fetchByDate(i.toString()).associate { it.lessonIndex to it.logins }
-                                .toMutableMap()
-                    }
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch schedule") {
+            val r = this.receive<RFetchScheduleDateReceive>()
+            val items = Schedule.getOnDate(r.day)
+            val conflictItems = ScheduleConflicts.fetchByDate(r.day)
+            val map = mutableMapOf(
+                r.day to items
+            )
+            val conflictMap = mutableMapOf(
+                r.day to conflictItems.associate { it.lessonIndex to it.logins }.toMutableMap()
+            )
+            if (r.isFirstTime) {
+                for (i in (1..5)) {
+                    map[i.toString()] = Schedule.getOnDate(i.toString())
+                    conflictMap[i.toString()] =
+                        ScheduleConflicts.fetchByDate(i.toString()).associate { it.lessonIndex to it.logins }
+                            .toMutableMap()
                 }
-                call.respond(
-                    RScheduleList(
-                        map.toMap(HashMap()),
-                        conflictList = conflictMap.toMap(HashMap())
-                    )
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch scheduleItems: ${e.message}"
-                )
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(
+                RScheduleList(
+                    map.toMap(HashMap()),
+                    conflictList = conflictMap.toMap(HashMap())
+                )
+            ).done
         }
     }
 
-//    suspend fun fetchPersonMarks
-
     suspend fun fetchPersonSchedule(call: ApplicationCall) {
-        if (call.isMember) {
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch personal Schedule") {
             val r = call.receive<RFetchPersonScheduleReceive>()
             val alreadyGroups = mutableListOf<Int>()
             val isTeacher = Users.getRole(r.login) != Roles.student
-            try {
-                val items = com.nevrozq.pansion.features.lessons.fetchSchedule(
-                    isTeacher = isTeacher,
-                    day = r.day,
-                    dayOfWeek = r.dayOfWeek,
-                    login = r.login
-                )
-
-                val subjects = Subjects.fetchAllSubjects()
-                val groups = Groups.getAllGroups()
-                val teachers = Users.fetchAllTeachers()
-
-                val students = Users.fetchAllStudents().filter { it.isActive }
-
-                val personItems = items.mapNotNull {
-                    val teacher =
-                        teachers.firstOrNull { teacher -> teacher.login == it.teacherLogin }
-                    val fio = FIO(
-                        name = teacher?.name ?: "null",
-                        surname = teacher?.surname ?: "null",
-                        praname = teacher?.praname
-                    )
-                    if (it.groupId !in listOf(-6, -11, 0)) {
-                        val group = groups.firstOrNull { group -> group.id == it.groupId }
-                        alreadyGroups.add(it.groupId)
-
-
-                        val marks = Marks.fetchUserByDate(login = r.login, date = r.day)
-                            .filter { x -> x.groupId == it.groupId }
-                        val stups = Stups.fetchUserByDate(login = r.login, date = r.day)
-                            .filter { x -> x.groupId == it.groupId }
-
-
-
-
-                        if (group != null) {
-                            PersonScheduleItem(
-                                groupId = it.groupId,
-                                cabinet = it.cabinet,
-                                start = it.t.start,
-                                end = it.t.end,
-                                subjectName = subjects.firstOrNull { it.id == group.subjectId }?.name.toString(),
-                                groupName = group.name,
-                                teacherFio = fio,
-                                marks = if ((alreadyGroups.find { x -> x == it.groupId }
-                                        ?: 0) > 1) listOf() else marks.mapNotNull {
-                                    if (it.groupId != null && it.reportId != null) {
-                                        UserMark(
-                                            id = it.id,
-                                            content = it.content,
-                                            reason = it.reason,
-                                            isGoToAvg = it.isGoToAvg,
-                                            groupId = it.groupId,
-                                            date = it.date,
-                                            reportId = it.reportId,
-                                            module = it.part
-                                        )
-                                    } else {
-                                        null
-                                    }
-                                },
-                                stupsSum = stups.sumOf { it.content.toInt() },
-                                isSwapped = it.teacherLoginBefore != it.teacherLogin,
-                                lessonIndex = it.index,
-                                isMarked = it.isMarked
-                            )
-                        } else {
-                            null
-                        }
-                    } else {
-                        if (it.groupId == -6) {
-                            val dopFio = if (!isTeacher) fio
-                            else {
-                                val users = students.filter { x -> it.custom.contains(x.login) }
-                                FIO(
-                                    name = "",
-                                    praname = null,
-                                    surname = "${users.map { "${it.surname} ${it.name[0]}" }}".replace("[", "").replace("]", "")
-                                )
-                            }
-                            PersonScheduleItem(
-                                groupId = it.groupId,
-                                cabinet = it.cabinet,
-                                start = it.t.start,
-                                end = it.t.end,
-                                subjectName = subjects.firstOrNull { x -> x.id == it.subjectId }?.name.toString(),
-                                groupName = "Доп с",
-                                teacherFio = dopFio,
-                                marks = listOf(),
-                                stupsSum = 0,
-                                isSwapped = it.teacherLoginBefore != it.teacherLogin,
-                                lessonIndex = it.index,
-                                isMarked = it.isMarked
-                            )
-                        } else if (it.groupId == -11) {
-                            PersonScheduleItem(
-                                groupId = it.groupId,
-                                cabinet = it.cabinet,
-                                start = it.t.start,
-                                end = it.t.end,
-                                subjectName = "",
-                                groupName = "",
-                                teacherFio = FIO("", "", ""),
-                                marks = listOf(),
-                                stupsSum = 0,
-                                isSwapped = it.teacherLoginBefore != it.teacherLogin,
-                                lessonIndex = it.index,
-                                isMarked = it.isMarked
-                            )
-                        } else {
-                            PersonScheduleItem(
-                                groupId = it.groupId,
-                                cabinet = it.cabinet,
-                                start = it.t.start,
-                                end = it.t.end,
-                                subjectName = it.custom.firstOrNull().toString(),
-                                groupName = "",
-                                teacherFio = FIO("", "", ""),
-                                marks = listOf(),
-                                stupsSum = 0,
-                                isSwapped = it.teacherLoginBefore != it.teacherLogin,
-                                lessonIndex = it.index,
-                                isMarked = it.isMarked
-                            )
-                        }
-                    }
-                }
-
-                call.respond(RPersonScheduleList((hashMapOf(r.day to personItems))))
-
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch personScheduleItems: ${e.message}"
-                )
-            }
-        } else {
-            call.respond(
-                HttpStatusCode.OK, "No permission"
+            val items = com.nevrozq.pansion.features.lessons.fetchSchedule(
+                isTeacher = isTeacher,
+                day = r.day,
+                dayOfWeek = r.dayOfWeek,
+                login = r.login
             )
-        }
-    }
 
-    suspend fun saveSchedule(call: ApplicationCall) {
-        if (call.isModer) {
-            val r = call.receive<RScheduleList>()
-            try {
-                val list = r.list.map { item ->
-                    val date = item.key
-                    item.value.map {
-                        ScheduleDTO(
-                            date = date,
-                            teacherLogin = it.teacherLogin,
+            val subjects = Subjects.fetchAllSubjects()
+            val groups = Groups.getAllGroups()
+            val teachers = Users.fetchAllTeachers()
+
+            val students = Users.fetchAllStudents().filter { it.isActive }
+
+            val personItems = items.mapNotNull {
+                val teacher =
+                    teachers.firstOrNull { teacher -> teacher.login == it.teacherLogin }
+                val fio = FIO(
+                    name = teacher?.name ?: "null",
+                    surname = teacher?.surname ?: "null",
+                    praname = teacher?.praname
+                )
+                if (it.groupId !in listOf(-6, -11, 0)) {
+                    val group = groups.firstOrNull { group -> group.id == it.groupId }
+                    alreadyGroups.add(it.groupId)
+                    val marks = Marks.fetchUserByDate(login = r.login, date = r.day)
+                        .filter { x -> x.groupId == it.groupId }
+                    val stups = Stups.fetchUserByDate(login = r.login, date = r.day)
+                        .filter { x -> x.groupId == it.groupId }
+                    if (group != null) {
+                        PersonScheduleItem(
                             groupId = it.groupId,
+                            cabinet = it.cabinet,
                             start = it.t.start,
                             end = it.t.end,
-                            cabinet = it.cabinet.toString(),
-                            teacherLoginBefore = it.teacherLoginBefore,
-                            formId = it.formId,
-                            custom = it.custom,
-                            id = it.index,
-                            subjectId = it.subjectId,
+                            subjectName = subjects.firstOrNull { it.id == group.subjectId }?.name.toString(),
+                            groupName = group.name,
+                            teacherFio = fio,
+                            marks = if ((alreadyGroups.find { x -> x == it.groupId }
+                                    ?: 0) > 1) listOf() else marks.mapNotNull {
+                                if (it.groupId != null && it.reportId != null) {
+                                    UserMark(
+                                        id = it.id,
+                                        content = it.content,
+                                        reason = it.reason,
+                                        isGoToAvg = it.isGoToAvg,
+                                        groupId = it.groupId,
+                                        date = it.date,
+                                        reportId = it.reportId,
+                                        module = it.part
+                                    )
+                                } else {
+                                    null
+                                }
+                            },
+                            stupsSum = stups.sumOf { it.content.toInt() },
+                            isSwapped = it.teacherLoginBefore != it.teacherLogin,
+                            lessonIndex = it.index,
+                            isMarked = it.isMarked
+                        )
+                    } else {
+                        null
+                    }
+                } else {
+                    if (it.groupId == ScheduleIds.extra) {
+                        val dopFio = if (!isTeacher) fio
+                        else {
+                            val users = students.filter { x -> it.custom.contains(x.login) }
+                            FIO(
+                                name = "",
+                                praname = null,
+                                surname = "${users.map { "${it.surname} ${it.name[0]}" }}".replace("[", "")
+                                    .replace("]", "")
+                            )
+                        }
+                        PersonScheduleItem(
+                            groupId = it.groupId,
+                            cabinet = it.cabinet,
+                            start = it.t.start,
+                            end = it.t.end,
+                            subjectName = subjects.firstOrNull { x -> x.id == it.subjectId }?.name.toString(),
+                            groupName = "Доп с",
+                            teacherFio = dopFio,
+                            marks = listOf(),
+                            stupsSum = 0,
+                            isSwapped = it.teacherLoginBefore != it.teacherLogin,
+                            lessonIndex = it.index,
+                            isMarked = it.isMarked
+                        )
+                    } else if (it.groupId == ScheduleIds.food) {
+                        PersonScheduleItem(
+                            groupId = it.groupId,
+                            cabinet = it.cabinet,
+                            start = it.t.start,
+                            end = it.t.end,
+                            subjectName = "",
+                            groupName = "",
+                            teacherFio = FIO("", "", ""),
+                            marks = listOf(),
+                            stupsSum = 0,
+                            isSwapped = it.teacherLoginBefore != it.teacherLogin,
+                            lessonIndex = it.index,
+                            isMarked = it.isMarked
+                        )
+                    } else {
+                        PersonScheduleItem(
+                            groupId = it.groupId,
+                            cabinet = it.cabinet,
+                            start = it.t.start,
+                            end = it.t.end,
+                            subjectName = it.custom.firstOrNull().toString(),
+                            groupName = "",
+                            teacherFio = FIO("", "", ""),
+                            marks = listOf(),
+                            stupsSum = 0,
+                            isSwapped = it.teacherLoginBefore != it.teacherLogin,
+                            lessonIndex = it.index,
                             isMarked = it.isMarked
                         )
                     }
                 }
-                val conflictList = r.conflictList.map { item ->
-                    val date = item.key
-                    item.value.map {
-                        ScheduleConflictsDTO(
-                            date = date,
-                            lessonIndex = it.key,
-                            logins = it.value
-                        )
-                    }
-                }
-                transaction {
-                    val dates: List<String> = list.flatMap { it.map { it.date } }
-                    Schedule.deleteWhere {
-                        (date.inList(dates))
-                    }
-                    list.forEach {
-                        Schedule.insertList(
-                            it
-                        )
-                    }
-                    val conflictDates: List<String> = conflictList.flatMap { it.map { it.date } }
-                    ScheduleConflicts.deleteWhere {
-                        (date.inList(conflictDates))
-                    }
-                    conflictList.forEach {
-                        ScheduleConflicts.insertList(
-                            it
-                        )
-                    }
-                }
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Schedules already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create schedule: ${e.localizedMessage}"
-                )
             }
+
+            this.respond(RPersonScheduleList((hashMapOf(r.day to personItems)))).done
+        }
+    }
+
+    suspend fun saveSchedule(call: ApplicationCall) {
+        val perm = call.isModer
+        call.dRes(perm, "Can't save schedule") {
+            val r = this.receive<RScheduleList>()
+
+            val list = r.list.map { item ->
+                val date = item.key
+                item.value.map {
+                    ScheduleDTO(
+                        date = date,
+                        teacherLogin = it.teacherLogin,
+                        groupId = it.groupId,
+                        start = it.t.start,
+                        end = it.t.end,
+                        cabinet = it.cabinet.toString(),
+                        teacherLoginBefore = it.teacherLoginBefore,
+                        formId = it.formId,
+                        custom = it.custom,
+                        id = it.index,
+                        subjectId = it.subjectId,
+                        isMarked = it.isMarked
+                    )
+                }
+            }
+            val conflictList = r.conflictList.map { item ->
+                val date = item.key
+                item.value.map {
+                    ScheduleConflictsDTO(
+                        date = date,
+                        lessonIndex = it.key,
+                        logins = it.value
+                    )
+                }
+            }
+            transaction {
+                val dates: List<String> = list.flatMap { it.map { it.date } }
+                Schedule.deleteWhere {
+                    (date.inList(dates))
+                }
+                list.forEach {
+                    Schedule.insertList(
+                        it
+                    )
+                }
+                val conflictDates: List<String> = conflictList.flatMap { it.map { it.date } }
+                ScheduleConflicts.deleteWhere {
+                    (date.inList(conflictDates))
+                }
+                conflictList.forEach {
+                    ScheduleConflicts.insertList(
+                        it
+                    )
+                }
+            }
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun fetchAllSubjects(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val subjects = Subjects.fetchAllSubjects()
-
-                call.respond(
-                    RFetchAllSubjectsResponse(subjects.map { it.mapToSubject() })
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch subjects: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch all subjects") {
+            val subjects = Subjects.fetchAllSubjects()
+            this.respond(
+                RFetchAllSubjectsResponse(subjects.map { it.mapToSubject() })
+            ).done
         }
     }
 
     suspend fun fetchAllTeachersForGroups(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val teachers = Users.fetchAllTeachers()
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch all teachers") {
+            val teachers = Users.fetchAllTeachers()
 
-                call.respond(
-                    RFetchTeachersResponse(
-                        teachers.filter { it.isActive }.map {
+            this.respond(
+                RFetchTeachersResponse(
+                    teachers.filter { it.isActive }.map {
                         TeacherPerson(
                             login = it.login,
                             fio = FIO(
@@ -833,473 +702,323 @@ class LessonsController() {
                             subjectId = it.subjectId
                         )
                     }
-                ))
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch teachers: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+                )).done
         }
     }
 
     suspend fun fetchAllMentorsForGroups(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val mentors = Users.fetchAllMentors()
-                val result = mentors.filter { it.isActive }.map {
-                    Person(
-                        login = it.login,
-                        fio = FIO(
-                            name = it.name,
-                            surname = it.surname,
-                            praname = it.praname
-                        ),
-                        isActive = true
-                    )
-                }
-                call.respond(
-                    RFetchMentorsResponse(
-                        result
-                    )
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch mentors: ${e.localizedMessage}"
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch mentors") {
+            val mentors = Users.fetchAllMentors()
+            val result = mentors.filter { it.isActive }.map {
+                Person(
+                    login = it.login,
+                    fio = FIO(
+                        name = it.name,
+                        surname = it.surname,
+                        praname = it.praname
+                    ),
+                    isActive = true
                 )
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(
+                RFetchMentorsResponse(
+                    result
+                )
+            ).done
         }
     }
 
 
     suspend fun fetchInitSchedule(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val teachers = mutableListOf<SchedulePerson>()
-                val students = mutableListOf<SchedulePerson>()
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch init schedule") {
+            val teachers = mutableListOf<SchedulePerson>()
+            val students = mutableListOf<SchedulePerson>()
 
 
-                val ff = Forms.getAllForms().filter { it.isActive }
-                val fs = StudentsInForm.fetchAll()
-                val forms = ff.map {
-                    it.formId to ScheduleFormValue(
-                        num = it.classNum,
-                        shortTitle = it.shortTitle,
-                        logins = fs.filter { x -> x.formId == it.formId }.map { it.login }
-                    )
-                }.toMap(HashMap())
-
-                val tt = Users.fetchAllTeachers().filter { it.isActive }
-                val ss = Users.fetchAllStudents().filter { it.isActive }
-                val gg = Groups.getAllGroups().sortedBy { it.isActive }
-                val gs = StudentGroups.fetchAll()
-                val subjects = Subjects.fetchAllSubjects()
-
-                tt.forEach { t ->
-                    val groups =
-                        gg.filter { it.teacherLogin == t.login }.map { Pair(it.id, it.isActive) }
-                    teachers.add(
-                        SchedulePerson(
-                            login = t.login,
-                            fio = FIO(
-                                name = t.name,
-                                surname = t.surname,
-                                praname = t.praname
-                            ),
-                            groups = groups,
-                            subjectId = t.subjectId
-                        )
-                    )
-                }
-
-                ss.forEach { s ->
-                    val groups =
-                        gs.filter { it.studentLogin == s.login }.filter {
-                            true
-//                            val id = it.groupId
-//                            gg.firstOrNull { it.id == id }?.isActive == true
-                        }.map { xs ->
-                            Pair(
-                                xs.groupId,
-                                gg.firstOrNull { it.id == xs.groupId }?.isActive == true
-                            )
-                        }
-
-                    students.add(
-                        SchedulePerson(
-                            login = s.login,
-                            fio = FIO(
-                                name = s.name,
-                                surname = s.surname,
-                                praname = s.praname
-                            ),
-                            groups = groups,
-                            subjectId = s.subjectId
-                        )
-                    )
-                }
-
-                call.respond(
-                    RFetchInitScheduleResponse(
-                        teachers = teachers.filter { it.groups.isNotEmpty() },
-                        students = students.filter { it.groups.isNotEmpty() },
-                        groups = gg.map {
-                            ScheduleGroup(
-                                id = it.id,
-                                subjectId = it.subjectId,
-                                name = it.name
-                            )
-                        },
-                        subjects = subjects.map {
-                            ScheduleSubject(
-                                id = it.id,
-                                name = it.name,
-                                isActive = it.isActive
-                            )
-                        },
-                        forms = forms
-                    )
+            val ff = Forms.getAllForms().filter { it.isActive }
+            val fs = StudentsInForm.fetchAll()
+            val forms = ff.map {
+                it.formId to ScheduleFormValue(
+                    num = it.classNum,
+                    shortTitle = it.shortTitle,
+                    logins = fs.filter { x -> x.formId == it.formId }.map { it.login }
                 )
+            }.toMap(HashMap())
 
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch schedule: ${e.localizedMessage}"
+            val tt = Users.fetchAllTeachers().filter { it.isActive }
+            val ss = Users.fetchAllStudents().filter { it.isActive }
+            val gg = Groups.getAllGroups().sortedBy { it.isActive }
+            val gs = StudentGroups.fetchAll()
+            val subjects = Subjects.fetchAllSubjects()
+
+            tt.forEach { t ->
+                val groups =
+                    gg.filter { it.teacherLogin == t.login }.map { Pair(it.id, it.isActive) }
+                teachers.add(
+                    SchedulePerson(
+                        login = t.login,
+                        fio = FIO(
+                            name = t.name,
+                            surname = t.surname,
+                            praname = t.praname
+                        ),
+                        groups = groups,
+                        subjectId = t.subjectId
+                    )
                 )
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+
+            ss.forEach { s ->
+                val groups =
+                    gs.filter { it.studentLogin == s.login }.filter {
+                        true
+//                            val id = it.groupId
+//                            gg.firstOrNull { it.id == id }?.isActive == true
+                    }.map { xs ->
+                        Pair(
+                            xs.groupId,
+                            gg.firstOrNull { it.id == xs.groupId }?.isActive == true
+                        )
+                    }
+
+                students.add(
+                    SchedulePerson(
+                        login = s.login,
+                        fio = FIO(
+                            name = s.name,
+                            surname = s.surname,
+                            praname = s.praname
+                        ),
+                        groups = groups,
+                        subjectId = s.subjectId
+                    )
+                )
+            }
+
+            this.respond(
+                RFetchInitScheduleResponse(
+                    teachers = teachers.filter { it.groups.isNotEmpty() },
+                    students = students.filter { it.groups.isNotEmpty() },
+                    groups = gg.map {
+                        ScheduleGroup(
+                            id = it.id,
+                            subjectId = it.subjectId,
+                            name = it.name
+                        )
+                    },
+                    subjects = subjects.map {
+                        ScheduleSubject(
+                            id = it.id,
+                            name = it.name,
+                            isActive = it.isActive
+                        )
+                    },
+                    forms = forms
+                )
+            ).done
         }
     }
 
     suspend fun fetchCutedGroups(call: ApplicationCall) {
-        val r = call.receive<RFetchGroupsReceive>()
-        if (call.isMember) {
-            try {
-                val groups = Groups.fetchGroupOfSubject(r.subjectId).filter { it.isActive }
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch groupsOfThisSubject") {
+            val r = this.receive<RFetchGroupsReceive>()
+            val groups = Groups.fetchGroupOfSubject(r.subjectId).filter { it.isActive }
 
-                call.respond(
-                    RFetchCutedGroupsResponse(groups.map { it.mapToCutedGroup() })
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch groupsOfThisSubject: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(
+                RFetchCutedGroupsResponse(groups.map { it.mapToCutedGroup() })
+            ).done
         }
     }
 
     suspend fun fetchGroups(call: ApplicationCall) {
-        val r = call.receive<RFetchGroupsReceive>()
-        if (call.isMember) {
-            try {
-                val groups = Groups.fetchGroupOfSubject(r.subjectId).map { it.mapToGroup() }
+        val perm = call.isMember
 
-                call.respond(
-                    RFetchGroupsResponse(groups)
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch groupsOfThisSubject: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        call.dRes(perm, "Can't fetch groupsOfThisSubject") {
+            val r = this.receive<RFetchGroupsReceive>()
+            val groups = Groups.fetchGroupOfSubject(r.subjectId).map { it.mapToGroup() }
+
+            this.respond(
+                RFetchGroupsResponse(groups)
+            ).done
         }
     }
 
 
     suspend fun fetchAllCabinets(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val cabinets = Cabinets.getAllCabinets()
-                call.respond(
-                    RFetchCabinetsResponse(
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch cabinets") {
+            val cabinets = Cabinets.getAllCabinets()
+            this.respond(
+                RFetchCabinetsResponse(
                     cabinets.map {
                         CabinetItem(
                             login = it.login,
                             cabinet = it.cabinet
                         )
                     }
-                ))
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch cabinets: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+                )).done
         }
     }
 
 
     suspend fun fetchAllForms(call: ApplicationCall) {
-        if (call.isMember) {
-            try {
-                val forms = Forms.getAllForms()
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch forms") {
+            val forms = Forms.getAllForms()
 
-                call.respond(
-                    RFetchFormsResponse(forms.map { it.mapToForm() })
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch forms: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(
+                RFetchFormsResponse(forms.map { it.mapToForm() })
+            ).done
         }
     }
 
     suspend fun updateCabinets(call: ApplicationCall) {
-        if (call.isModer) {
-            val r = call.receive<RUpdateCabinetsReceive>()
-            try {
-                Cabinets.insertList(r.cabinets.map {
-                    CabinetsDTO(
-                        login = it.login,
-                        cabinet = it.cabinet
-                    )
-                })
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Cabinet already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create cabinet: ${e.localizedMessage}"
+        val perm = call.isModer
+        call.dRes(perm, "Can't update cabinet") {
+            val r = this.receive<RUpdateCabinetsReceive>()
+            Cabinets.insertList(r.cabinets.map {
+                CabinetsDTO(
+                    login = it.login,
+                    cabinet = it.cabinet
                 )
-            }
+            })
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun createGroup(call: ApplicationCall) {
-        val r = call.receive<RCreateGroupReceive>()
-        if (call.isModer) {
-            try {
-                Groups.insert(
-                    GroupDTO(
-                        name = r.group.name,
-                        teacherLogin = r.group.teacherLogin,
-                        subjectId = r.group.subjectId,
-                        difficult = r.group.difficult,
-                        isActive = true
-                    )
-                )
+        val perm = call.isModer
 
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Group already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create group: ${e.localizedMessage}"
+        call.dRes(perm, "Can't create group") {
+            val r = this.receive<RCreateGroupReceive>()
+            Groups.insert(
+                GroupDTO(
+                    name = r.group.name,
+                    teacherLogin = r.group.teacherLogin,
+                    subjectId = r.group.subjectId,
+                    difficult = r.group.difficult,
+                    isActive = true
                 )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            )
+
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun editGroup(call: ApplicationCall) {
-        if (call.isModer) {
-            val r = call.receive<REditGroupReceive>()
-            try {
-                Groups.update(id = r.id, r)
-
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Group already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't edit group: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isModer
+        call.dRes(perm, "Can't edit group") {
+            val r = this.receive<REditGroupReceive>()
+            Groups.update(id = r.id, r)
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun createForm(call: ApplicationCall) {
         val r = call.receive<CreateFormReceive>()
-        if (call.isModer) {
-            try {
-                Forms.insert(
-                    FormDTO(
-                        title = r.form.title,
-                        classNum = r.form.classNum,
-                        mentorLogin = r.form.mentorLogin,
-                        shortTitle = r.form.shortTitle,
-                        isActive = true
-                    )
+        val perm = call.isModer
+        call.dRes(perm, "Can't create form") {
+            Forms.insert(
+                FormDTO(
+                    title = r.form.title,
+                    classNum = r.form.classNum,
+                    mentorLogin = r.form.mentorLogin,
+                    shortTitle = r.form.shortTitle,
+                    isActive = true
                 )
+            )
 
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Form already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create group: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun editForm(call: ApplicationCall) {
-        if (call.isModer) {
-            val r = call.receive<REditFormReceive>()
-            try {
+        val perm = call.isModer
+        call.dRes(perm, "Can't edit form") {
+            val r = this.receive<REditFormReceive>()
 
-                Forms.update(r)
+            Forms.update(r)
 
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Form already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create group: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
 
     suspend fun deleteFormGroup(call: ApplicationCall) {
-        val r = call.receive<RCreateFormGroupReceive>()
-        if (call.isModer) {
-            try {
 
-                FormGroups.delete(
-                    FormGroupDTO(
-                        formId = r.formId,
-                        groupId = r.groupId,
-                        subjectId = r.subjectId
-                    )
+        val perm = call.isModer
+        call.dRes(perm, "Can't delete formGroup") {
+            val r = this.receive<RCreateFormGroupReceive>()
+            FormGroups.delete(
+                FormGroupDTO(
+                    formId = r.formId,
+                    groupId = r.groupId,
+                    subjectId = r.subjectId
                 )
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "wtfIsGoingOn")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't delete: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            )
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun deleteStudentGroup(call: ApplicationCall) {
-        val r = call.receive<RCreateStudentGroupReceive>()
-        if (call.isModer) {
-            try {
-                StudentGroups.delete(
-                    StudentGroupDTO(
-                        studentLogin = r.studentLogin,
-                        groupId = r.groupId,
-                        subjectId = r.subjectId
-                    )
+
+        val perm = call.isModer
+        call.dRes(perm, "Can't delete studentGroup") {
+            val r = this.receive<RCreateStudentGroupReceive>()
+            StudentGroups.delete(
+                StudentGroupDTO(
+                    studentLogin = r.studentLogin,
+                    groupId = r.groupId,
+                    subjectId = r.subjectId
                 )
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "wtfIsGoingOn")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't delete: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            )
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun createStudentGroup(call: ApplicationCall) {
-        val r = call.receive<RCreateStudentGroupReceive>()
-        if (call.isModer) {
-            try {
-                StudentGroups.insert(
-                    StudentGroupDTO(
-                        studentLogin = r.studentLogin,
-                        groupId = r.groupId,
-                        subjectId = r.subjectId
-                    )
+        val perm = call.isModer
+
+        call.dRes(perm, "Can't create studentGroup") {
+            val r = this.receive<RCreateStudentGroupReceive>()
+            StudentGroups.insert(
+                StudentGroupDTO(
+                    studentLogin = r.studentLogin,
+                    groupId = r.groupId,
+                    subjectId = r.subjectId
                 )
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "StudentGroup already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create group: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            )
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun createFormGroup(call: ApplicationCall) {
-        val r = call.receive<RCreateFormGroupReceive>()
-        if (call.isModer) {
-            try {
-                FormGroups.insert(
-                    FormGroupDTO(
-                        formId = r.formId,
-                        groupId = r.groupId,
-                        subjectId = r.subjectId
-                    )
+        val perm = call.isModer
+        call.dRes(perm, "Can't create formGroup") {
+            val r = this.receive<RCreateFormGroupReceive>()
+            FormGroups.insert(
+                FormGroupDTO(
+                    formId = r.formId,
+                    groupId = r.groupId,
+                    subjectId = r.subjectId
                 )
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "FormGroup already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create group: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            )
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun fetchFormGroups(call: ApplicationCall) {
-        val r = call.receive<RFetchFormGroupsReceive>()
-        if (call.isMember) {
-            try {
-                val forms = FormGroups.getGroupsOfThisForm(r.formId)
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch formGroups") {
+            val r = this.receive<RFetchFormGroupsReceive>()
+            val forms = FormGroups.getGroupsOfThisForm(r.formId)
 
-                call.respond(
-                    RFetchFormGroupsResponse(forms.map { it.mapToFormGroup() })
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch formGroups(binding): ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(
+                RFetchFormGroupsResponse(forms.map { it.mapToFormGroup() })
+            ).done
         }
     }
 
@@ -1343,202 +1062,136 @@ class LessonsController() {
     }
 
     suspend fun fetchStudentGroups(call: ApplicationCall) {
-        val r = call.receive<RFetchStudentGroupsReceive>()
-        if (call.isMember) {
-            try {
-                call.respond(
-                    RFetchStudentGroupsResponse(
-                        StudentGroups.fetchGroupsOfStudent(r.studentLogin).map { it.mapToGroup() })
-                )
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch groups for students: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch groups for students") {
+            val r = this.receive<RFetchStudentGroupsReceive>()
+            this.respond(
+                RFetchStudentGroupsResponse(
+                    StudentGroups.fetchGroupsOfStudent(r.studentLogin).map { it.mapToGroup() })
+            ).done
         }
     }
 
     suspend fun fetchTeacherGroups(call: ApplicationCall) {
-        if (call.isTeacher || call.isModer || call.isMentor) {
-            try {
-                val groups = if (call.isModer) {
-                    Groups.getAllGroups().filter { it.isActive }
-                } else if (call.isMentor) {
-                    val forms = Forms.fetchMentorForms(call.login)
-                    StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
-                        .flatMap { s ->
-                            StudentGroups.fetchGroupsOfStudent(s)
-                        }.toSet().toList().filter { it.isActive }
-                } else {
-                    Groups.getGroupsOfTeacher(call.login).filter { it.isActive }
-                }
-                call.respond(RFetchTeacherGroupsResponse(groups.map { it.mapToTeacherGroup(call.login) }))
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch teacher(cuted+) groups: ${e.localizedMessage}"
-                )
+        val perm = call.isTeacher || call.isModer || call.isMentor
+        call.dRes(perm, "Can't fetch teacher(cuted+) groups") {
+
+            val groups = if (this.isModer) {
+                Groups.getAllGroups().filter { it.isActive }
+            } else if (this.isMentor) {
+                val forms = Forms.fetchMentorForms(this.login)
+                StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
+                    .flatMap { s ->
+                        StudentGroups.fetchGroupsOfStudent(s)
+                    }.toSet().toList().filter { it.isActive }
+            } else {
+                Groups.getGroupsOfTeacher(this.login).filter { it.isActive }
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            this.respond(RFetchTeacherGroupsResponse(groups.map { it.mapToTeacherGroup(this.login) })).done
         }
     }
 
     suspend fun fetchStudentsInGroup(call: ApplicationCall) {
-        val r = call.receive<RFetchStudentsInGroupReceive>()
-        if (call.isMember) {
-            try {
-                val students = StudentGroups.fetchStudentsOfGroup(
-                    groupId = r.groupId
-                ).filter { it.isActive }
-                val deletedLogins = if (r.date != null && r.lessonId != null) {
-                    ScheduleConflicts.fetchByDateAndLessonId(r.date!!, r.lessonId!!)?.logins ?: listOf()
-                } else listOf()
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch students in group") {
+            val r = this.receive<RFetchStudentsInGroupReceive>()
+            val students = StudentGroups.fetchStudentsOfGroup(
+                groupId = r.groupId
+            ).filter { it.isActive }
+            val deletedLogins = if (r.date != null && r.lessonId != null) {
+                ScheduleConflicts.fetchByDateAndLessonId(r.date!!, r.lessonId!!)?.logins ?: listOf()
+            } else listOf()
 
-                call.respond(
-                    RFetchStudentsInGroupResponse(
+            this.respond(
+                RFetchStudentsInGroupResponse(
                     students.map {
                         PersonForGroup(
                             p = it,
                             isDeleted = it.login in deletedLogins
                         )
                     }
-                ))
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch students in group: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+                )).done
         }
     }
 
     suspend fun fetchStudentsInForm(call: ApplicationCall) {
-        val r = call.receive<RFetchStudentsInFormReceive>()
-        if (call.isMember) {
-            try {
-                call.respond(RFetchStudentsInFormResponse(fetchStudentsInFormNotCall(r.formId)))
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't fetch students in form: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+        val perm = call.isMember
+        call.dRes(perm, "Can't fetch students in form") {
+            val r = this.receive<RFetchStudentsInFormReceive>()
+            this.respond(RFetchStudentsInFormResponse(fetchStudentsInFormNotCall(r.formId))).done
         }
     }
 
     suspend fun bindStudentToForm(call: ApplicationCall) {
-        val r = call.receive<RBindStudentToFormReceive>()
-        if (call.isModer) {
-            try {
-                StudentsInForm.insert(
-                    StudentInFormDTO(
-                        formId = r.formId,
-                        login = r.studentLogin
-                    )
+        val perm = call.isModer
+        call.dRes(perm, "Can't bind student to form") {
+            val r = this.receive<RBindStudentToFormReceive>()
+            StudentsInForm.insert(
+                StudentInFormDTO(
+                    formId = r.formId,
+                    login = r.studentLogin
                 )
-//                val students = fetchStudentsInFormNotCall(r.currentFormId)
-                call.respond(HttpStatusCode.OK)
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't bind student to form: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            )
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun createSubject(call: ApplicationCall) {
-        val r = call.receive<RCreateSubjectReceive>()
-        if (call.isModer) {
-            try {
-                Subjects.insert(
-                    SubjectDTO(
-                        name = r.name,
-                        isActive = true
-                    )
-                )
 
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Subject already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't create subject: ${e.localizedMessage}"
+        val perm = call.isModer
+
+        call.dRes(perm, "Can't create subject") {
+            val r = this.receive<RCreateSubjectReceive>()
+
+            Subjects.insert(
+                SubjectDTO(
+                    name = r.name,
+                    isActive = true
                 )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            )
+
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun editSubject(call: ApplicationCall) {
-        if (call.isModer) {
-            val r = call.receive<REditSubjectReceive>()
-            try {
-                Subjects.update(r.subjectId, r.name)
+        val perm = call.isModer
+        call.dRes(perm, "Can't edit subject") {
+            val r = this.receive<REditSubjectReceive>()
 
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Subject already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't edit subject: ${e.localizedMessage}"
-                )
-            }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            Subjects.update(r.subjectId, r.name)
+
+            this.respond(HttpStatusCode.OK).done
         }
     }
 
     suspend fun deleteSubject(call: ApplicationCall) {
-        if (call.isModer) {
-            val r = call.receive<RDeleteSubject>()
-            try {
-                val groups = Groups.fetchGroupOfSubject(r.subjectId)
-                transaction {
-                    groups.forEach {
-                        Groups.update(
-                            it.id,
-                            REditGroupReceive(
-                                id = it.id,
-                                name = it.name,
-                                mentorLogin = it.teacherLogin,
-                                difficult = it.difficult,
-                                isActive = false
-                            )
+        val perm = call.isModer
+        call.dRes(perm, "Can't delete subject") {
+            val r = this.receive<RDeleteSubject>()
+            val groups = Groups.fetchGroupOfSubject(r.subjectId)
+            transaction {
+                groups.forEach {
+                    Groups.update(
+                        it.id,
+                        REditGroupReceive(
+                            id = it.id,
+                            name = it.name,
+                            mentorLogin = it.teacherLogin,
+                            difficult = it.difficult,
+                            isActive = false
                         )
-                    }
+                    )
                 }
-                Subjects.update(r.subjectId, null, false)
-                call.respond(HttpStatusCode.OK)
-            } catch (e: ExposedSQLException) {
-                call.respond(HttpStatusCode.Conflict, "Subject already exists")
-            } catch (e: Throwable) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Can't delete subject: ${e.localizedMessage}"
-                )
             }
-        } else {
-            call.respond(HttpStatusCode.Forbidden, "No permission")
+            Subjects.update(r.subjectId, null, false)
+            this.respond(HttpStatusCode.OK).done
         }
     }
 }
 
 fun fetchSchedule(
-    isTeacher: Boolean, day: String, dayOfWeek : String,
+    isTeacher: Boolean, day: String, dayOfWeek: String,
     login: String
 ): List<ScheduleItem> {
     var items = Schedule.getOnDate(day)
