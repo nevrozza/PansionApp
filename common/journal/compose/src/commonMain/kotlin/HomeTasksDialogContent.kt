@@ -30,6 +30,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -75,16 +77,10 @@ fun HomeTasksDialogContent(
                     CircularProgressIndicator()
                 }
 
-                NetworkState.Error -> Column(
-                    Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(nModel.error)
-                    Spacer(Modifier.height(7.dp))
-                    CustomTextButton("Попробовать ещё раз") {
-                        nModel.onFixErrorClick()
-                    }
-                }
+                NetworkState.Error -> DefaultErrorView(
+                    nModel,
+                    DefaultErrorViewPos.CenteredFull
+                )
             }
         }
     }

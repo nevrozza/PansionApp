@@ -488,18 +488,10 @@ fun SharedTransitionScope.ProfileContent(
                                     }
                                 }
 
-                                NetworkState.Error -> {
-                                    Column(
-                                        Modifier.fillMaxSize(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(nAboutMeModel.error)
-                                        Spacer(Modifier.height(7.dp))
-                                        CustomTextButton("Попробовать ещё раз") {
-                                            nAboutMeModel.onFixErrorClick()
-                                        }
-                                    }
-                                }
+                                NetworkState.Error -> DefaultErrorView(
+                                    nAboutMeModel,
+                                    DefaultErrorViewPos.CenteredFull
+                                )
 
                                 NetworkState.None -> {
                                     Column {

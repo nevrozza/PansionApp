@@ -73,7 +73,7 @@ class FormsExecutor(
                 }
             } catch (e: Throwable) {
                 println("EDITFORMERROR: ${e}")
-                editFormBottomSheet.nInterface.nError("Не удалось изменить этот класс") {
+                editFormBottomSheet.nInterface.nError("Не удалось изменить этот класс", e) {
                     editFormBottomSheet.nInterface.goToNone()
                 }
             }
@@ -105,8 +105,8 @@ class FormsExecutor(
                 val mentors = adminRepository.fetchAllMentors().mentors
                 dispatch(Message.MentorsUpdated(mentors))
                 creatingFormBottomSheet.nInterface.nSuccess()
-            } catch (_: Throwable) {
-                creatingFormBottomSheet.nInterface.nError("Не удалось загрузить список") {
+            } catch (e: Throwable) {
+                creatingFormBottomSheet.nInterface.nError("Не удалось загрузить список", e) {
                     updateMentors()
                 }
             }
@@ -127,7 +127,7 @@ class FormsExecutor(
                 } catch (e: Throwable) {
                     println(e)
 //                    dispatch(GroupsStore.Message.CurrentFormIdChanged(0, listOf()))
-                    nFormGroupsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nFormGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         this.launch {
                             updateFormGroups(formId)
                         }
@@ -159,10 +159,10 @@ class FormsExecutor(
 //                dispatch(GroupsStore.Message.FormCreated(forms))
                 creatingFormBottomSheet.fullySuccess()
                 //nInterfaceOfSheet
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
 //                dispatch(GroupsStore.Message.CreationFormError)
                 with(creatingFormBottomSheet.nInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
@@ -185,17 +185,17 @@ class FormsExecutor(
                 )
 //                dispatch(Message.FormGroupCreated)
 
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(nFormGroupsInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
             }
             try {
                 updateFormGroups(state().chosenFormId)
-            } catch (_: Throwable) {
-                nFormGroupsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+            } catch (e: Throwable) {
+                nFormGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     this.launch {
                         updateFormGroups(state().chosenFormId)
                     }
@@ -217,17 +217,17 @@ class FormsExecutor(
                 )
                 dispatch(Message.FormGroupCreated)
 
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(nFormGroupsInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
             }
             try {
                 updateFormGroups(state.chosenFormId)
-            } catch (_: Throwable) {
-                nFormGroupsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+            } catch (e: Throwable) {
+                nFormGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     this.launch {
                         updateFormGroups(state.chosenFormId)
                     }

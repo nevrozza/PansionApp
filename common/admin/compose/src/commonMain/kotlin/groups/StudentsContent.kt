@@ -154,18 +154,10 @@ fun StudentsContent(
                                         Crossfade(nSGModel.state) { ns ->
 
                                             when (ns) {
-                                                NetworkState.Error -> {
-                                                    Column(
-                                                        Modifier.fillMaxSize(),
-                                                        horizontalAlignment = Alignment.CenterHorizontally
-                                                    ) {
-                                                        Text(nSGModel.error)
-                                                        Spacer(Modifier.height(7.dp))
-                                                        CustomTextButton("Попробовать ещё раз") {
-                                                            nSGModel.onFixErrorClick()
-                                                        }
-                                                    }
-                                                }
+                                                NetworkState.Error -> DefaultErrorView(
+                                                    nSGModel,
+                                                    DefaultErrorViewPos.CenteredFull
+                                                )
 
                                                 else -> {
                                                     if (model.studentGroups.isNotEmpty() || ns == NetworkState.None) {

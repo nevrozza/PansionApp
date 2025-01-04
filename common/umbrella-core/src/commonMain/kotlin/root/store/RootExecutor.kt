@@ -177,8 +177,8 @@ class RootExecutor(
                     }
                 }
 
-            } catch (_: Throwable) {
-                checkNInterface.nError("Не удалось подключиться к серверу") {
+            } catch (e: Throwable) {
+                checkNInterface.nError("Не удалось подключиться к серверу", e) {
                     checkConnection()
                 }
             }

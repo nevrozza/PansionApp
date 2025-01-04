@@ -299,13 +299,7 @@ fun SchoolContent(
                                 contentAlignment = Alignment.Center
                             ) {
                                 when (cf) {
-                                    NetworkState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(nDutyModel.error, textAlign = TextAlign.Center)
-                                        Spacer(Modifier.height(7.dp))
-                                        CustomTextButton("Попробовать ещё раз") {
-                                            nDutyModel.onFixErrorClick()
-                                        }
-                                    }
+                                    NetworkState.Error -> DefaultErrorView(nDutyModel)
 
                                     NetworkState.Loading -> CircularProgressIndicator()
                                     NetworkState.None -> {

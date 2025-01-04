@@ -80,7 +80,7 @@ class AdminParentsExecutor(
             } catch (e: Throwable) {
 
                 nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     init()
                 }
@@ -157,7 +157,7 @@ class AdminParentsExecutor(
             } catch (e: Throwable) {
 
                 nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     init()
                 }

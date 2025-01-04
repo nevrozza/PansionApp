@@ -28,38 +28,38 @@ class KtorAuthRemoteDataSource(
 ) {
 
     suspend fun fetchGroupData(r: RFetchGroupDataReceive): RFetchGroupDataResponse =
-        hc.dPost(RequestPaths.WebLoad.FetchGroupData, r).body()
+        hc.dPost(RequestPaths.WebLoad.FetchGroupData, r).dBody()
 
     suspend fun fetchUserData(r: RFetchUserDataReceive): RFetchUserDataResponse =
-        hc.dPost(RequestPaths.WebLoad.FetchUserData, r).body()
+        hc.dPost(RequestPaths.WebLoad.FetchUserData, r).dBody()
 
     suspend fun fetchQRToken(r: RFetchQrTokenReceive): RFetchQrTokenResponse =
-        hc.dPost(RequestPaths.Auth.FetchQRToken, r, isBearer = false).body()
+        hc.dPost(RequestPaths.Auth.FetchQRToken, r, isBearer = false).dBody()
 
     suspend fun fetchLogins(r: FetchLoginsReceive): FetchLoginsResponse =
-        hc.dPost(RequestPaths.Registration.FetchLogins, r, isBearer = false).body()
+        hc.dPost(RequestPaths.Registration.FetchLogins, r, isBearer = false).dBody()
 
     suspend fun activateQRTokenAtAll(r: RFetchQrTokenResponse) =
         hc.dPost(RequestPaths.Auth.ActivateQRTokenAtAll, r).check()
 
     suspend fun activateQRToken(r: RFetchQrTokenResponse): RActivateQrTokenResponse =
-        hc.dPost(RequestPaths.Auth.ActivateQRToken, r).body()
+        hc.dPost(RequestPaths.Auth.ActivateQRToken, r).dBody()
 
     suspend fun pollQRToken(r: RFetchQrTokenReceive): LoginResponse =
         hc.dPost(RequestPaths.Auth.PollQRToken, r, isBearer = false) {
             this.timeout {
                 this.requestTimeoutMillis = delayForNewQRToken
             }
-        }.body()
+        }.dBody()
 
     suspend fun fetchAboutMe(r: RFetchAboutMeReceive): RFetchAboutMeResponse =
-        hc.dPost(RequestPaths.Auth.FetchAboutMe, r).body()
+        hc.dPost(RequestPaths.Auth.FetchAboutMe, r).dBody()
 
     suspend fun checkPickedGIA(r: RCheckGIASubjectReceive): Boolean =
         hc.dPost(RequestPaths.Auth.CheckGIASubject, r).check()
 
     suspend fun checkConnection(): RCheckConnectionResponse =
-        hc.dPost(RequestPaths.Auth.CheckConnection).body()
+        hc.dPost(RequestPaths.Auth.CheckConnection).dBody()
 
     suspend fun logout(token: String): Boolean =
         hc.dPost(RequestPaths.Auth.Logout, isBearer = false) {
@@ -72,11 +72,11 @@ class KtorAuthRemoteDataSource(
 
 
     suspend fun performLogin(r: LoginReceive): LoginResponse =
-        hc.dPost(RequestPaths.Auth.PerformLogin, r, isBearer = false).body()
+        hc.dPost(RequestPaths.Auth.PerformLogin, r, isBearer = false).dBody()
 
     suspend fun checkUserActivation(r: CheckActivationReceive): CheckActivationResponse =
-        hc.dPost(RequestPaths.Auth.CheckActivation, r, isBearer = false).body()
+        hc.dPost(RequestPaths.Auth.CheckActivation, r, isBearer = false).dBody()
 
     suspend fun activate(r: ActivationReceive): ActivationResponse =
-        hc.dPost(RequestPaths.Auth.ActivateProfile, r, isBearer = false).body()
+        hc.dPost(RequestPaths.Auth.ActivateProfile, r, isBearer = false).dBody()
 }

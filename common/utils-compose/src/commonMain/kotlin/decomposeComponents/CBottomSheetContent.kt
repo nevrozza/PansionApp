@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.CustomTextButton
+import components.DefaultErrorView
 import components.DefaultModalBottomSheet
 import components.LoadingAnimation
 import components.cBottomSheet.CBottomSheetComponent
@@ -85,13 +86,9 @@ fun CBottomSheetContent(
                 ) {
                     if (customLoadingScreen) {
                         when (it.state) {
-                            NetworkState.Error -> {
-                                Text(nModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Попробовать ещё раз") {
-                                    nModel.onFixErrorClick()
-                                }
-                            }
+                            NetworkState.Error -> DefaultErrorView(
+                                nModel
+                            )
 
                             else -> {
                                 content()

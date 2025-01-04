@@ -67,9 +67,9 @@ class ProfileExecutor(
                     ))
                     nAboutMeInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(nAboutMeInterface) {
-                    nError("Не удалось загрузить 'обо мне' =/", onFixErrorClick = {
+                    nError("Не удалось загрузить 'обо мне' =/", e, onFixErrorClick = {
                         init()
                     })
                 }
@@ -90,7 +90,7 @@ class ProfileExecutor(
                 }
             } catch (e: Throwable) {
                 with(nAvatarInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }

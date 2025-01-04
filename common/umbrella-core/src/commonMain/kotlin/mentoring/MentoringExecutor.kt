@@ -225,7 +225,7 @@ class MentoringExecutor(
                 }
             } catch (e: Throwable) {
                 scope.launch {
-                    nInterface.nError("Не удалось загрузить таблицу") {
+                    nInterface.nError("Не удалось загрузить таблицу", e) {
                         nInterface.goToNone()
                         dispatch(Message.ViewChanged(false))
                     }
@@ -326,8 +326,8 @@ class MentoringExecutor(
                     nPreAttendance.nSuccess()
                 }
 
-            } catch (_: Throwable) {
-                nPreAttendance.nError(text = "Не удалось сохранить ДО") {
+            } catch (e: Throwable) {
+                nPreAttendance.nError(text = "Не удалось сохранить ДО", e) {
                     savePreAttendance(login, date, start, end, reason, isGood)
                 }
             }
@@ -377,8 +377,8 @@ class MentoringExecutor(
                         nPreAttendance.nSuccess()
                     }
 
-                } catch (_: Throwable) {
-                    nPreAttendance.nError(text = "Не удалось загрузить уроки") {
+                } catch (e: Throwable) {
+                    nPreAttendance.nError(text = "Не удалось загрузить уроки", e) {
                         selectPreAttendance(login, date, dayOfWeek = dayOfWeek)
                     }
                 }
@@ -401,8 +401,8 @@ class MentoringExecutor(
                     )
                     nInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
-                nInterface.nError(text = "Не удалось загрузить учеников") {
+            } catch (e: Throwable) {
+                nInterface.nError(text = "Не удалось загрузить учеников", e) {
                     fetchStudents()
                 }
             }

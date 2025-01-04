@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.CustomTextButton
+import components.DefaultErrorView
 import components.GetAsyncAvatar
 import components.LoadingAnimation
 import components.networkInterface.NetworkInterface
@@ -107,18 +108,7 @@ fun LazyListScope.homeKidsContent(
                             }
                         }
 
-                        NetworkState.Error -> {
-                            Column(
-                                Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(nGradesModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Попробовать ещё раз") {
-                                    nGradesModel.onFixErrorClick()
-                                }
-                            }
-                        }
+                        NetworkState.Error -> DefaultErrorView(nGradesModel)
                     }
                 }
             }

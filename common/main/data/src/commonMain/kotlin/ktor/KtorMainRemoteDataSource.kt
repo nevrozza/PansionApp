@@ -60,14 +60,14 @@ class KtorMainRemoteDataSource(
 
 
     suspend fun fetchDuty(r: RFetchDutyReceive): RFetchDutyResponse =
-        hc.dPost(RequestPaths.Main.FetchDuty, r).body()
+        hc.dPost(RequestPaths.Main.FetchDuty, r).dBody()
 
 
     suspend fun fetchMinistrySettings(r: RFetchMinistryStudentsReceive): RFetchMinistrySettingsResponse =
-        hc.dPost(RequestPaths.Main.FetchMinistrySettings, r).body()
+        hc.dPost(RequestPaths.Main.FetchMinistrySettings, r).dBody()
 
     suspend fun createMinistryStudent(r: RCreateMinistryStudentReceive): RFetchMinistrySettingsResponse =
-        hc.dPost(RequestPaths.Main.CreateMinistryStudent, r).body()
+        hc.dPost(RequestPaths.Main.CreateMinistryStudent, r).dBody()
 
 
     suspend fun changeToUv(r: RChangeToUv): Boolean =
@@ -75,11 +75,11 @@ class KtorMainRemoteDataSource(
 
 
     suspend fun fetchSchoolData(r: RFetchSchoolDataReceive): RFetchSchoolDataResponse =
-        hc.dPost(RequestPaths.Main.FetchSchoolData, r).body()
+        hc.dPost(RequestPaths.Main.FetchSchoolData, r).dBody()
 
 
     suspend fun fetchJournalBySubjects(r: RFetchJournalBySubjectsReceive): RFetchJournalBySubjectsResponse =
-        hc.dPost(RequestPaths.Mentoring.FetchJournalBySubjects, r).body()
+        hc.dPost(RequestPaths.Mentoring.FetchJournalBySubjects, r).dBody()
 
     suspend fun openRegistrationQR(r: OpenRequestQRReceive): Boolean =
         hc.dPost(RequestPaths.Registration.OpenQR, r).check()
@@ -93,17 +93,17 @@ class KtorMainRemoteDataSource(
         hc.dPost(RequestPaths.Registration.CloseQR, r).check()
 
     suspend fun fetchMentorGroupIds(): RFetchMentorGroupIdsResponse =
-        hc.dPost(RequestPaths.Main.FetchMentorGroupIds).body()
+        hc.dPost(RequestPaths.Main.FetchMentorGroupIds).dBody()
 
 
     suspend fun fetchMainNotifications(r: RFetchMainNotificationsReceive): RFetchMainNotificationsResponse =
-        hc.dPost(RequestPaths.Main.FetchNotifications, r).body()
+        hc.dPost(RequestPaths.Main.FetchNotifications, r).dBody()
 
     suspend fun fetchChildrenMainNotifications(): RFetchChildrenMainNotificationsResponse =
-        hc.dPost(RequestPaths.Main.FetchChildrenNotifications).body()
+        hc.dPost(RequestPaths.Main.FetchChildrenNotifications).dBody()
 
     suspend fun fetchChildren(): RFetchChildrenResponse =
-        hc.dPost(RequestPaths.Main.FetchChildren).body()
+        hc.dPost(RequestPaths.Main.FetchChildren).dBody()
 
     suspend fun deleteMainNotification(r: RDeleteMainNotificationsReceive): Boolean =
         hc.dPost(RequestPaths.Main.CheckNotification, r).check()
@@ -113,45 +113,45 @@ class KtorMainRemoteDataSource(
         hc.dPost(RequestPaths.Mentoring.SavePreAttendanceDay, r).check()
 
     suspend fun fetchPreAttendanceDay(r: RFetchPreAttendanceDayReceive): RFetchPreAttendanceDayResponse =
-        hc.dPost(RequestPaths.Mentoring.FetchPreAttendanceDay, r).body()
+        hc.dPost(RequestPaths.Mentoring.FetchPreAttendanceDay, r).dBody()
 
 
     suspend fun fetchMentorStudents(): RFetchMentoringStudentsResponse =
-        hc.dPost(RequestPaths.Mentoring.FetchMentoringStudents).body()
+        hc.dPost(RequestPaths.Mentoring.FetchMentoringStudents).dBody()
 
 
     suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse =
-        hc.dPost(RequestPaths.Main.FetchScheduleSubjects).body()
+        hc.dPost(RequestPaths.Main.FetchScheduleSubjects).dBody()
 
 
     suspend fun fetchSubjectRating(r: RFetchSubjectRatingReceive): RFetchSubjectRatingResponse =
-        hc.dPost(RequestPaths.Main.FetchSubjectRating, r).body()
+        hc.dPost(RequestPaths.Main.FetchSubjectRating, r).dBody()
 
     suspend fun fetchPersonSchedule(r: RFetchPersonScheduleReceive): RPersonScheduleList =
-        hc.dPost(RequestPaths.Lessons.FetchPersonSchedule, r).body()
+        hc.dPost(RequestPaths.Lessons.FetchPersonSchedule, r).dBody()
 
 
     suspend fun fetchRecentGrades(r: RFetchRecentGradesReceive): RFetchRecentGradesResponse =
-        hc.dPost(RequestPaths.Reports.FetchRecentGrades, r).body()
+        hc.dPost(RequestPaths.Reports.FetchRecentGrades, r).dBody()
 
     suspend fun fetchTeacherGroups(): RFetchTeacherGroupsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchTeacherGroups).body()
+        hc.dPost(RequestPaths.Lessons.FetchTeacherGroups).dBody()
 
     suspend fun fetchMainAvg(r: RFetchMainAVGReceive): RFetchMainAVGResponse =
-        hc.dPost(RequestPaths.Main.FetchMainAVG, r).body()
+        hc.dPost(RequestPaths.Main.FetchMainAVG, r).dBody()
 
     suspend fun fetchMainHomeTasksCount(r: RFetchMainHomeTasksCountReceive): RFetchMainHomeTasksCountResponse =
-        hc.dPost(RequestPaths.Main.FetchHomeTasksCount, r).body()
+        hc.dPost(RequestPaths.Main.FetchHomeTasksCount, r).dBody()
 
     suspend fun fetchStudentInGroup(r: RFetchStudentsInGroupReceive): RFetchStudentsInGroupResponse =
-        hc.dPost(RequestPaths.Lessons.FetchStudentsInGroup, r).body()
+        hc.dPost(RequestPaths.Lessons.FetchStudentsInGroup, r).dBody()
 
     suspend fun fetchReportHeaders(): RFetchHeadersResponse =
-        hc.dPost(RequestPaths.Reports.FetchReportHeaders).body()
+        hc.dPost(RequestPaths.Reports.FetchReportHeaders).dBody()
 
     suspend fun createReport(r: RCreateReportReceive): RCreateReportResponse =
-        hc.dPost(RequestPaths.Reports.CreateReport, r).body()
+        hc.dPost(RequestPaths.Reports.CreateReport, r).dBody()
 
     suspend fun fetchReportData(r: RFetchReportDataReceive): RFetchReportDataResponse =
-        hc.dPost(RequestPaths.Reports.FetchReportData, r).body()
+        hc.dPost(RequestPaths.Reports.FetchReportData, r).dBody()
 }

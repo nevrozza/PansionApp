@@ -98,19 +98,10 @@ fun CalendarContent(
         }
         Crossfade(state) {
             when (it) {
-                "Error" -> {
-                    Column(
-                        Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(nModel.error)
-                        Spacer(Modifier.height(7.dp))
-                        CustomTextButton("Попробовать ещё раз") {
-                            nModel.onFixErrorClick()
-                        }
-                    }
-                }
+                "Error" -> DefaultErrorView(
+                    nModel,
+                    DefaultErrorViewPos.CenteredFull
+                )
                 "Loading" -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()

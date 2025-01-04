@@ -32,7 +32,7 @@ class DetailedStupsExecutor(
                 dispatch(Message.SubjectsUpdated(subjects))
                 nInterface.nSuccess()
             } catch (x: Throwable) {
-                nInterface.nError("Не удалось загрузить список ступеней") {
+                nInterface.nError("Не удалось загрузить список ступеней", x) {
                     init()
                 }
             }

@@ -36,8 +36,7 @@ class StudentReportDialogExecutor(
                     dialog.nInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-                println(e)
-                dialog.nInterface.nError("Не удалось собрать данные") {
+                dialog.nInterface.nError("Не удалось собрать данные", e) {
                     openDialog(login, reportId)
                 }
             }

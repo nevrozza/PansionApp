@@ -513,18 +513,5 @@ fun DefaultGroupsErrorScreen(
 //    isFabShowing: MutableState<Boolean>,
     nInterface: NetworkInterface
 ) {
-//    val coroutineScope = rememberCoroutineScope()
-    Column(
-        Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Text(nInterface.networkModel.value.error)
-        Spacer(Modifier.height(7.dp))
-        CustomTextButton("Попробовать ещё раз") {
-            nInterface.fixError()
-
-        }
-    }
+    DefaultErrorView(nInterface.networkModel.value, DefaultErrorViewPos.CenteredFull)
 }

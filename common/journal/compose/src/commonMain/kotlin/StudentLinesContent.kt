@@ -17,10 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
-import components.CustomTextButton
-import components.GetAsyncIcon
+import components.*
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.HazeState
 import report.ClientStudentLine
@@ -71,13 +68,18 @@ fun StudentLinesContent(
             Crossfade(nModel.state) { state ->
                 when (state) {
                     NetworkState.None -> CLazyColumn(padding, hazeState = hazeState) {
-                        itemsIndexed(items = model.studentLines, key = { i, sl -> i  }) { i, sl ->
+                        itemsIndexed(items = model.studentLines, key = { i, sl -> i }) { i, sl ->
 
                             if (i == model.studentLines.indexOfFirst { it.date == sl.date }) {
                                 if (i != 0) {
                                     Spacer(Modifier.height(15.dp))
                                 }
-                                Text(sl.date, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 10.dp))
+                                Text(
+                                    sl.date,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                    fontWeight = FontWeight.Black,
+                                    modifier = Modifier.padding(start = 10.dp)
+                                )
                             }
                             ClientStudentLineContent(sl = sl) {
                                 component.studentReportDialog.onEvent(
@@ -96,19 +98,8 @@ fun StudentLinesContent(
                         }
                     }
 
-                    NetworkState.Error -> {
-                        Column(
-                            Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(nModel.error)
-                            Spacer(Modifier.height(7.dp))
-                            CustomTextButton("Попробовать ещё раз") {
-                                nModel.onFixErrorClick()
-                            }
-                        }
-                    }
+                    NetworkState.Error -> DefaultErrorView(nModel, DefaultErrorViewPos.CenteredFull)
+                    
                 }
             }
         }
@@ -138,7 +129,12 @@ private fun ClientStudentLineContent(
                 buildAnnotatedString {
                     append(sl.subjectName)
                     append(" ")
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.titleMedium.fontSize)) {
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize
+                        )
+                    ) {
                         append(sl.groupName)
                         withStyle(SpanStyle()) {
                             append(" в ${sl.time}")

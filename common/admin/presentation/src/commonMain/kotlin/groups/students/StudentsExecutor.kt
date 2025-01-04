@@ -54,17 +54,17 @@ class StudentsExecutor(
                 dispatch(Message.FormGroupCreated)
                 afterAll()
 
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(nStudentGroupsInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
             }
             try {
                 updateStudentsGroups(state().chosenStudentLogin)
-            } catch (_: Throwable) {
-                nStudentGroupsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+            } catch (e: Throwable) {
+                nStudentGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     this.launch {
                         updateStudentsGroups(state().chosenStudentLogin)
                     }
@@ -91,17 +91,17 @@ class StudentsExecutor(
 //                )
                 dispatch(Message.FormGroupCreated)
 
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(nStudentGroupsInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
             }
             try {
                 updateStudentsGroups(state().chosenStudentLogin)
-            } catch (_: Throwable) {
-                nStudentGroupsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+            } catch (e: Throwable) {
+                nStudentGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     this.launch {
                         updateStudentsGroups(state().chosenStudentLogin)
                     }
@@ -165,8 +165,8 @@ class StudentsExecutor(
                     delay(200)
                     nInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
-                formsListComponent.nInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+            } catch (e: Throwable) {
+                formsListComponent.nInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     bindStudentToForm(state, formId)
                 })
             }
@@ -183,7 +183,7 @@ class StudentsExecutor(
                 nStudentGroupsInterface.nSuccess()
             }
         } catch (e: Throwable) {
-            nStudentGroupsInterface.nError("Что-то пошло не так", onFixErrorClick = {
+            nStudentGroupsInterface.nError("Что-то пошло не так", e, onFixErrorClick = {
                 scope.launch {
                     updateStudentsGroups(studentLogin)
                 }
@@ -200,7 +200,7 @@ class StudentsExecutor(
                 nStudentsInterface.nSuccess()
             }
         } catch (e: Throwable) {
-            nStudentsInterface.nError("Что-то пошло не так", onFixErrorClick = {
+            nStudentsInterface.nError("Что-то пошло не так", e, onFixErrorClick = {
                 scope.launch {
                     updateStudentsInForm(formId)
                 }

@@ -86,9 +86,9 @@ class UsersExecutor(
             try {
                 val r = adminRepository.registerExcelStudents(students)
                 cUserBottomSheet.nInterface.nSuccess()
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(cUserBottomSheet.nInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
@@ -120,9 +120,9 @@ class UsersExecutor(
                 )
                 eDeleteDialog.fullySuccess()
                 eUserBottomSheet.fullySuccess()
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(eDeleteDialog.nInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
@@ -138,9 +138,9 @@ class UsersExecutor(
             try {
                 adminRepository.clearUserPassword(state.eLogin)
                 eUserBottomSheet.fullySuccess()
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(eUserBottomSheet.nInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
@@ -173,9 +173,9 @@ class UsersExecutor(
                     subjectId = state.eSubjectId
                 )
                 eUserBottomSheet.fullySuccess()
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(eUserBottomSheet.nInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
@@ -239,9 +239,9 @@ class UsersExecutor(
                     subjectId = state.cSubjectId
                     )
                 dispatch(Message.UserCreated(r.login, r.parents))
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(cUserBottomSheet.nInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
@@ -263,6 +263,7 @@ class UsersExecutor(
 
                     nUsersInterface.nError(
                         if (e.message!!.contains("403 Forbidden")) "Доступ запрещён" else "Что-то пошло не так",
+                        e,
                         onFixErrorClick = if (e.message!!.contains("403 Forbidden")) {
                             {}
                         } else {

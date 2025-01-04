@@ -479,6 +479,7 @@ class ReportsController() {
                         )
                     } else null
                 }
+                print(1/0)
                 val stups = Stups.fetchForUserGroup(
                     login = s.login,
                     groupId = r.groupId

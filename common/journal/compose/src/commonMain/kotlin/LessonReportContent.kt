@@ -192,18 +192,10 @@ fun LessonReportContent(
                             }
                         }
 
-                        it == NetworkState.Error -> {
-                            Column(
-                                Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(nModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Попробовать ещё раз") {
-                                    nModel.onFixErrorClick()
-                                }
-                            }
-                        }
+                        it == NetworkState.Error -> DefaultErrorView(
+                            nModel,
+                            DefaultErrorViewPos.CenteredFull
+                        )
                     }
                 }
                 val reasonColumnName = try {

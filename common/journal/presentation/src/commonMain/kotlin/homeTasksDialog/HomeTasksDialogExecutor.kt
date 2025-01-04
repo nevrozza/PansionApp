@@ -30,8 +30,8 @@ class HomeTasksDialogExecutor(
                     dispatch(Message.HomeTasksUpdated(tasks.reversed()))
                 }
                 nInterface.nSuccess()
-            } catch (_: Throwable) {
-                nInterface.nError("Не удалось загрузить ДЗ") {
+            } catch (e: Throwable) {
+                nInterface.nError("Не удалось загрузить ДЗ", e) {
                     init()
                 }
             }

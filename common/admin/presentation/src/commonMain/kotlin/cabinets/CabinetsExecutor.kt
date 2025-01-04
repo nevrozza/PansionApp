@@ -33,7 +33,7 @@ class CabinetsExecutor(
                 nInterface.nSuccess()
             } catch (e: Throwable) {
                 nInterface.nError(
-                    "Не удалось отправить на сервер",
+                    "Не удалось отправить на сервер", e
                 ) { sendIt() }
             }
 
@@ -77,7 +77,7 @@ class CabinetsExecutor(
                 }
             } catch (e: Throwable) {
                 nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) { init() }
             }
 

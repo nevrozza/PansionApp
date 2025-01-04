@@ -38,7 +38,7 @@ class HomeAchievementsExecutor(
                 }
             } catch (e: Throwable) {
                 nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     init()
                 }

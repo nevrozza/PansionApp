@@ -67,37 +67,37 @@ class KtorAdminRemoteDataSource(
 
 
     suspend fun fetchParents(): RFetchParentsListResponse =
-        hc.dPost(RequestPaths.Parents.FetchParents).body()
+        hc.dPost(RequestPaths.Parents.FetchParents).dBody()
 
     suspend fun updateParents(r: RUpdateParentsListReceive): RFetchParentsListResponse =
-        hc.dPost(RequestPaths.Parents.UpdateParent, r).body()
+        hc.dPost(RequestPaths.Parents.UpdateParent, r).dBody()
 
     suspend fun createAchievement(r: RCreateAchievementReceive): RFetchAchievementsResponse =
-        hc.dPost(RequestPaths.Achievements.Create, r).body()
+        hc.dPost(RequestPaths.Achievements.Create, r).dBody()
 
     suspend fun editAchievement(r: REditAchievementReceive): RFetchAchievementsResponse =
-        hc.dPost(RequestPaths.Achievements.Edit, r).body()
+        hc.dPost(RequestPaths.Achievements.Edit, r).dBody()
 
     suspend fun updateGroupAchievement(r: RUpdateGroupOfAchievementsReceive): RFetchAchievementsResponse =
-        hc.dPost(RequestPaths.Achievements.UpdateGroup, r).body()
+        hc.dPost(RequestPaths.Achievements.UpdateGroup, r).dBody()
 
     suspend fun deleteAchievement(r: RDeleteAchievementReceive): RFetchAchievementsResponse =
-        hc.dPost(RequestPaths.Achievements.Delete, r).body()
+        hc.dPost(RequestPaths.Achievements.Delete, r).dBody()
 
     suspend fun fetchAllAchievements(): RFetchAchievementsResponse =
-        hc.dPost(RequestPaths.Achievements.FetchAll).body()
+        hc.dPost(RequestPaths.Achievements.FetchAll).dBody()
 
     suspend fun fetchSchedule(r: RFetchScheduleDateReceive): RScheduleList =
-        hc.dPost(RequestPaths.Lessons.FetchSchedule, r).body()
+        hc.dPost(RequestPaths.Lessons.FetchSchedule, r).dBody()
 
     suspend fun saveSchedule(r: RScheduleList) : Boolean =
         hc.dPost(RequestPaths.Lessons.SaveSchedule, r).check()
 
     suspend fun performRegistrationUser(r: RRegisterUserReceive): RCreateUserResponse =
-        hc.dPost(RequestPaths.UserManage.CreateUser, r).body()
+        hc.dPost(RequestPaths.UserManage.CreateUser, r).dBody()
 
     suspend fun performFetchAllUsers(): RFetchAllUsersResponse =
-        hc.dPost(RequestPaths.UserManage.FetchAllUsers).body()
+        hc.dPost(RequestPaths.UserManage.FetchAllUsers).dBody()
 
     suspend fun clearUserPassword(r: RClearUserPasswordReceive) : Boolean =
         hc.dPost(RequestPaths.UserManage.ClearPasswordAdmin, r).check()
@@ -112,26 +112,26 @@ class KtorAdminRemoteDataSource(
         hc.dPost(RequestPaths.Lessons.UpdateCalendar, r).check()
 
     suspend fun fetchCalendar(): RFetchCalendarResponse =
-        hc.dPost(RequestPaths.Lessons.FetchCalendar).body()
+        hc.dPost(RequestPaths.Lessons.FetchCalendar).dBody()
 
     suspend fun updateCabinets(r: RUpdateCabinetsReceive) : Boolean =
         hc.dPost(RequestPaths.Lessons.UpdateCabinets, r).check()
 
     suspend fun fetchCabinets(): RFetchCabinetsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchCabinets).body()
+        hc.dPost(RequestPaths.Lessons.FetchCabinets).dBody()
 
     suspend fun fetchInitSchedule(): RFetchInitScheduleResponse =
-        hc.dPost(RequestPaths.Lessons.FetchInitSchedule).body()
+        hc.dPost(RequestPaths.Lessons.FetchInitSchedule).dBody()
 
 
     suspend fun performFetchAllSubjects(): RFetchAllSubjectsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchAllSubjects).body()
+        hc.dPost(RequestPaths.Lessons.FetchAllSubjects).dBody()
 
     suspend fun performStudentsInForm(r: RFetchStudentsInFormReceive): RFetchStudentsInFormResponse =
-        hc.dPost(RequestPaths.Lessons.FetchStudentsInForm, r).body()
+        hc.dPost(RequestPaths.Lessons.FetchStudentsInForm, r).dBody()
 
     suspend fun performFormGroups(r: RFetchFormGroupsReceive): RFetchFormGroupsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchFormGroups, r).body()
+        hc.dPost(RequestPaths.Lessons.FetchFormGroups, r).dBody()
 
     suspend fun createNewSubject(r: RCreateSubjectReceive) : Boolean =
         hc.dPost(RequestPaths.Lessons.CreateSubject, r).check()
@@ -171,20 +171,20 @@ class KtorAdminRemoteDataSource(
         hc.dPost(RequestPaths.Lessons.EditForm, r).check()
 
     suspend fun performFetchGroups(r: RFetchGroupsReceive): RFetchGroupsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchGroups, r).body()
+        hc.dPost(RequestPaths.Lessons.FetchGroups, r).dBody()
 
     suspend fun performFetchStudentGroups(r: RFetchStudentGroupsReceive): RFetchStudentGroupsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchStudentGroups, r).body()
+        hc.dPost(RequestPaths.Lessons.FetchStudentGroups, r).dBody()
 
     suspend fun performFetchAllForms(): RFetchFormsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchAllForms).body()
+        hc.dPost(RequestPaths.Lessons.FetchAllForms).dBody()
 
     suspend fun performFetchTeachersForGroup(): RFetchTeachersResponse =
-        hc.dPost(RequestPaths.Lessons.FetchTeachersForGroup).body()
+        hc.dPost(RequestPaths.Lessons.FetchTeachersForGroup).dBody()
 
     suspend fun performFetchMentorsForGroups(): RFetchMentorsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchMentorsForGroup).body()
+        hc.dPost(RequestPaths.Lessons.FetchMentorsForGroup).dBody()
 
     suspend fun performFetchCutedGroups(r: RFetchGroupsReceive): RFetchCutedGroupsResponse =
-        hc.dPost(RequestPaths.Lessons.FetchCutedGroups, r).body()
+        hc.dPost(RequestPaths.Lessons.FetchCutedGroups, r).dBody()
 }

@@ -55,8 +55,8 @@ class SettingsExecutor(
                     else state().eSecondLogin
                 ))
                 changeLoginDialog.fullySuccess()
-            } catch (_: Throwable) {
-                changeLoginDialog.nInterface.nError("Что-то пошло не так") {
+            } catch (e: Throwable) {
+                changeLoginDialog.nInterface.nError("Что-то пошло не так", e) {
                     changeLoginDialog.nInterface.goToNone()
                 }
             }
@@ -93,8 +93,8 @@ class SettingsExecutor(
                     dispatch(Message.DevicesFetched(devices.tokens.reversed()))
                     dispatch(Message.SecondLoginChanged(devices.secondLogin))
                 }
-            } catch (_: Throwable) {
-                nDevicesInterface.nError("Ошибка") {
+            } catch (e: Throwable) {
+                nDevicesInterface.nError("Ошибка", e) {
                     fetchDevices()
                 }
             }

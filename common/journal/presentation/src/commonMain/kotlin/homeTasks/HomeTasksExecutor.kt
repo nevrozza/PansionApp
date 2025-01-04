@@ -53,7 +53,7 @@ class HomeTasksExecutor(
             }
         } catch (e: Throwable) {
             print("ht: ${e}")
-            nInitInterface.nError(text = "Не удалось загрузить данные\nоб уроках") {
+            nInitInterface.nError(text = "Не удалось загрузить данные\nоб уроках",e) {
                 init()
             }
         }
@@ -86,13 +86,13 @@ class HomeTasksExecutor(
                     nInterface.nSuccess()
                     dispatch(Message.LoadingDateChanged(null))
                 }
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 if (date == null) {
-                    nInitInterface.nError(text = "Не удалось загрузить задания") {
+                    nInitInterface.nError(text = "Не удалось загрузить задания",e) {
                         init()
                     }
                 } else {
-                    nInterface.nError(text = "Не удалось загрузить задания этого дня") {
+                    nInterface.nError(text = "Не удалось загрузить задания этого дня",e) {
                         fetchTasks(date)
                     }
                 }

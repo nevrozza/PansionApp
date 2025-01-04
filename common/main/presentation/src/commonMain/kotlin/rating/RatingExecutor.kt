@@ -66,7 +66,7 @@ class RatingExecutor(
                 }
             } catch (e: Throwable) {
                 println(e)
-                nInterface.nError("Не удалось загрузить рейтинг") {
+                nInterface.nError("Не удалось загрузить рейтинг", e) {
                     fetchRating(subjectId, period = period, forms = forms)
                 }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
@@ -100,7 +100,7 @@ class RatingExecutor(
                 }
             } catch (e: Throwable) {
                 println(e)
-                subjectsListComponent.nInterface.nError("Не удалось загрузить предметы") {
+                subjectsListComponent.nInterface.nError("Не удалось загрузить предметы",e) {
                     fetchSubjects()
                 }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })

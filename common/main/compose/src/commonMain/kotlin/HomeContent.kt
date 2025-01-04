@@ -285,7 +285,8 @@ fun TeacherHomeContent(
                             state = hazeState,
                             style = LocalHazeStyle.current
                         ) {
-                            mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                            mask =
+                                view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                            progressive = hazeProgressive
                         }
                         else Modifier
@@ -427,14 +428,15 @@ fun TeacherHomeContent(
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             when (it) {
-                                NetworkState.Error -> Column(
+                                NetworkState.Error -> DefaultErrorView(
+                                    component.journalComponent!!.nOpenReportInterface.networkModel.value,
+                                    pos = DefaultErrorViewPos.CenteredNotFull,
                                     modifier = Modifier.padding(10.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                                    text = "Не удалось загрузить отчёт",
+                                    buttonText = "Закрыть",
+                                    isCompact = true
                                 ) {
-                                    Text("Не удалось загрузить отчёт")
-                                    CustomTextButton("Закрыть") {
-                                        component.journalComponent!!.nOpenReportInterface.goToNone()
-                                    }
+                                    component.journalComponent!!.nOpenReportInterface.goToNone()
                                 }
 
                                 else -> CircularProgressIndicator(Modifier.padding(10.dp))
@@ -479,23 +481,24 @@ fun TeacherHomeContent(
                             }
 
                             NetworkState.Loading -> CircularProgressIndicator()
-                            NetworkState.Error -> Column(
+                            NetworkState.Error -> DefaultErrorView(
+                                component.journalComponent!!.nOpenReportInterface.networkModel.value,
+                                pos = DefaultErrorViewPos.CenteredNotFull,
                                 modifier = Modifier.padding(10.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                text = "Не удалось загрузить отчёт",
+                                buttonText = "Выбрать ещё раз"
                             ) {
-                                Text("Не удалось загрузить отчёт")
-                                CustomTextButton("Выбрать ещё раз") {
-                                    component.journalComponent!!.nOpenReportInterface.goToNone()
-                                }
+                                component.journalComponent!!.nOpenReportInterface.goToNone()
                             }
-
                         }
+
                     }
                 }
             }
         }
     }
 }
+
 
 
 @Composable
@@ -550,13 +553,10 @@ private fun RaspisanieTable(
                 }
 
                 NetworkState.Loading -> CircularProgressIndicator()
-                NetworkState.Error -> {
-                    Text(nScheduleModel.error)
-                    Spacer(Modifier.height(7.dp))
-                    CustomTextButton("Попробовать ещё раз") {
-                        nScheduleModel.onFixErrorClick()
-                    }
-                }
+                NetworkState.Error -> DefaultErrorView(
+                    nScheduleModel,
+                    pos = DefaultErrorViewPos.Unspecified
+                )
 
                 else -> {}
             }

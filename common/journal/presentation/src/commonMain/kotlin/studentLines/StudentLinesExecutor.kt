@@ -38,8 +38,8 @@ class StudentLinesExecutor(
                     ))
                     nInterface.goToNone()
                 }
-            } catch (_: Throwable) {
-                nInterface.nError("Что-то пошло не так =(") {
+            } catch (e: Throwable) {
+                nInterface.nError("Что-то пошло не так =(", e) {
                     init()
                 }
             }

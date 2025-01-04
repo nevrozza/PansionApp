@@ -73,8 +73,8 @@ class CalendarExecutor(
                     nInterface.nSuccess()
 //                    dispatch(Message.IsAnimationSaved(true))
                 }
-            } catch (_: Throwable) {
-                nInterface.nError("Не удалось загрузить календарь") {
+            } catch (e: Throwable) {
+                nInterface.nError("Не удалось загрузить календарь", e) {
                     init()
                 }
             }
@@ -90,8 +90,8 @@ class CalendarExecutor(
                     nInterface.nSuccess()
                     dispatch(Message.IsAnimationSaved(true))
                 }
-            } catch (_: Throwable) {
-                nInterface.nError("Не удалось обновить календарь") {
+            } catch (e: Throwable) {
+                nInterface.nError("Не удалось обновить календарь", e) {
                     send()
                 }
             }

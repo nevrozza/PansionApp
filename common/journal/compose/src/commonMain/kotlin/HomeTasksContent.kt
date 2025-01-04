@@ -117,19 +117,10 @@ fun HomeTasksContent(
                         }
                     }
 
-                    NetworkState.Error -> {
-                        Column(
-                            Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(nInitModel.error)
-                            Spacer(Modifier.height(7.dp))
-                            CustomTextButton("Попробовать ещё раз") {
-                                nInitModel.onFixErrorClick()
-                            }
-                        }
-                    }
+                    NetworkState.Error -> DefaultErrorView(
+                        nInitModel,
+                        DefaultErrorViewPos.CenteredFull
+                    )
                 }
             }
         }

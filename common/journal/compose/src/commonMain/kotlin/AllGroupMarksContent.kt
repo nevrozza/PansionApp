@@ -326,18 +326,10 @@ fun AllGroupMarksContent(
                             }
                         }
 
-                        NetworkState.Error -> {
-                            Column(
-                                Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(nModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Попробовать ещё раз") {
-                                    nModel.onFixErrorClick()
-                                }
-                            }
-                        }
+                        NetworkState.Error -> DefaultErrorView(
+                            nModel,
+                            DefaultErrorViewPos.CenteredFull
+                        )
                     }
                 }
             }
@@ -386,14 +378,15 @@ fun AllGroupMarksContent(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     when (it) {
-                        NetworkState.Error -> Column(
+                        NetworkState.Error -> DefaultErrorView(
+                            component.nOpenReportInterface.networkModel.value,
+                            DefaultErrorViewPos.CenteredNotFull,
                             modifier = Modifier.padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            text = "Не удалось загрузить отчёт",
+                            buttonText = "Закрыть",
+                            isCompact = true
                         ) {
-                            Text("Не удалось загрузить отчёт")
-                            CustomTextButton("Закрыть") {
-                                component.nOpenReportInterface.goToNone()
-                            }
+                            component.nOpenReportInterface.goToNone()
                         }
 
                         else -> CircularProgressIndicator(Modifier.padding(10.dp))

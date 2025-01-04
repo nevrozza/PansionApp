@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.CustomTextButton
+import components.DefaultErrorView
 import components.NotificationItem
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
@@ -78,20 +79,7 @@ fun LazyListScope.homeChildrenNotificationsContent(
                         }
                     }
 
-                    NetworkState.Error -> {
-                        Column(
-                            Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(nQuickTabModel.error)
-                            Spacer(Modifier.height(7.dp))
-                            CustomTextButton("Попробовать ещё раз") {
-                                nQuickTabModel.onFixErrorClick()
-                            }
-                        }
-
-
-                    }
+                    NetworkState.Error -> DefaultErrorView(nQuickTabModel)
                 }
             }
         }
@@ -117,7 +105,7 @@ fun LazyListScope.homeChildrenNotificationsContent(
                                     reportId = reportId
                                 )
                             )
-                                  },
+                        },
                         changeToUV = { reportId ->
                             component.onEvent(
                                 HomeStore.Intent.ChangeToUv(

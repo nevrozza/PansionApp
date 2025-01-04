@@ -18,7 +18,7 @@ class KtorSettingsRemoteDataSource(
     private val hc: HttpClient
 ) {
     suspend fun fetchDevices(): RFetchAllDevicesResponse =
-        hc.dPost(RequestPaths.Auth.FetchAllDevices).body()
+        hc.dPost(RequestPaths.Auth.FetchAllDevices).dBody()
 
     suspend fun changeLogin(r: RChangeLogin): Boolean =
         hc.dPost(RequestPaths.Auth.ChangeLogin, r).check()
@@ -29,7 +29,7 @@ class KtorSettingsRemoteDataSource(
 
 
     suspend fun scanRegistrationQR(r: ScanRequestQRReceive): ScanRequestQRResponse =
-        hc.dPost(RequestPaths.Registration.ScanQR, r).body()
+        hc.dPost(RequestPaths.Registration.ScanQR, r).dBody()
 
 
     suspend fun sendRegistrationRequest(r: SendRegistrationRequestReceive): Boolean =

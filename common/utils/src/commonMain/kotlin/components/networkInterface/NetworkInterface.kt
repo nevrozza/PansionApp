@@ -37,7 +37,7 @@ class NetworkInterface(
 
 
     fun nSuccess() {
-        _models.value = _models.value.copy(state = NetworkState.None, error = "")
+        _models.value = _models.value.copy(state = NetworkState.None, error = "", throwable = Throwable())
     }
 
     fun nStartLoading() {
@@ -57,12 +57,14 @@ class NetworkInterface(
             state = NetworkState.None,
             error = "",
             onFixErrorClick = {},
-            thanClear = true
+            thanClear = true,
+            throwable = Throwable()
         )
     }
 
     fun nError(
         text: String,
+        throwable: Throwable,
         thanClear: Boolean = true,
         onFixErrorClick: () -> Unit
     ) {
@@ -70,7 +72,8 @@ class NetworkInterface(
             state = NetworkState.Error,
             error = text,
             onFixErrorClick = onFixErrorClick,
-            thanClear = thanClear
+            thanClear = thanClear,
+            throwable = throwable
         )
     }
 
@@ -85,6 +88,7 @@ class NetworkInterface(
         val state: NetworkState = NetworkState.None,
         val error: String = "",
         val onFixErrorClick: () -> Unit = {},
-        val thanClear: Boolean = true
+        val thanClear: Boolean = true,
+        val throwable: Throwable = Throwable()
     )
 }

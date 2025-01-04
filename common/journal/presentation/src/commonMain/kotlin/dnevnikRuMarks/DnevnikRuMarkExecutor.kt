@@ -134,8 +134,8 @@ class DnevnikRuMarkExecutor(
                 nInterface.nSuccess()
 
                 updateMarkTable()
-            } catch (_: Throwable) {
-                nInterface.nError("Не удалось загрузить список оценок") {
+            } catch (e: Throwable) {
+                nInterface.nError("Не удалось загрузить список оценок", e) {
                     fetchSubjects()
                 }
             }
@@ -158,9 +158,9 @@ class DnevnikRuMarkExecutor(
                     )
                     fetchSubjects()
                 }
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
-                nInterface.nError("Не удалось загрузить список оценок") {
+                nInterface.nError("Не удалось загрузить список оценок", e) {
                     init()
                 }
             }

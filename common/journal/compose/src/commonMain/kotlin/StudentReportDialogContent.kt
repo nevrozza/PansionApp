@@ -19,10 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CustomTextButton
-import components.GetAsyncIcon
-import components.MarkContent
-import components.dashedBorder
+import components.*
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import dev.chrisbanes.haze.HazeState
@@ -201,16 +198,11 @@ fun StudentReportDialogContent(
                             }
                         }
 
-                    NetworkState.Error -> Column(
-                        Modifier.height(200.dp).fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(nModel.error)
-                        Spacer(Modifier.height(7.dp))
-                        CustomTextButton("Попробовать ещё раз") {
-                            nModel.onFixErrorClick()
-                        }
-                    }
+                    NetworkState.Error -> DefaultErrorView(
+                        nModel,
+                        pos = DefaultErrorViewPos.Centered,
+                        modifier = Modifier.height(200.dp)
+                    )
 
                     NetworkState.Loading -> Box(
                         Modifier.height(200.dp).fillMaxWidth(),

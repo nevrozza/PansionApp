@@ -149,8 +149,8 @@ class MinistryExecutor(
                     }
                 }
                 nUploadInterface.nSuccess()
-            } catch (_: Throwable) {
-                nUploadInterface.nError("Не удалось upload Stup") {
+            } catch (e: Throwable) {
+                nUploadInterface.nError("Не удалось upload Stup", e) {
                     uploadStup(
                         reason = reason,
                         login = login,
@@ -205,8 +205,8 @@ class MinistryExecutor(
                         }
                     }
                     nInterface.nSuccess()
-                } catch (_: Throwable) {
-                    nInterface.nError("Не удалось загрузить list") {
+                } catch (e: Throwable) {
+                    nInterface.nError("Не удалось загрузить list", e) {
                         updateList(ministryId, date)
                     }
                 }
@@ -229,8 +229,8 @@ class MinistryExecutor(
                 }
                 nInterface.nSuccess()
                 updateList(ministryId = r.pickedMinistry, date = state().currentDate.second)
-            } catch (_: Throwable) {
-                nInterface.nError("Не удалось загрузить header") {
+            } catch (e: Throwable) {
+                nInterface.nError("Не удалось загрузить header", e) {
                     init()
                 }
             }

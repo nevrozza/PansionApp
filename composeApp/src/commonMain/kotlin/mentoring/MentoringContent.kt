@@ -231,19 +231,10 @@ fun MentoringContent(
                     }
                 }
 
-                NetworkState.Error -> {
-                    Column(
-                        Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(nModel.error)
-                        Spacer(Modifier.height(7.dp))
-                        CustomTextButton("Попробовать ещё раз") {
-                            nModel.onFixErrorClick()
-                        }
-                    }
-                }
+                NetworkState.Error -> DefaultErrorView(
+                    nModel,
+                    DefaultErrorViewPos.CenteredFull
+                )
             }
         }
     }

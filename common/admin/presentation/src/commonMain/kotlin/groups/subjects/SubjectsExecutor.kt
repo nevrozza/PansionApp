@@ -115,7 +115,7 @@ class SubjectsExecutor(
                     }
                 } catch (e: Throwable) {
                     println(e)
-                    eGroupBottomSheet.nInterface.nError("Не удалось изменить группу") {
+                    eGroupBottomSheet.nInterface.nError("Не удалось изменить группу", e) {
                         eGroupBottomSheet.nInterface.goToNone()
                     }
                 }
@@ -127,9 +127,9 @@ class SubjectsExecutor(
         scope.launch {
             try {
                 updateSubjects()
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 cSubjectDialog.nInterface.nError(
-                    "Что-то пошло не так =/",
+                    "Что-то пошло не так =/", e,
                     onFixErrorClick = {
                         updateSubjects()
                     })
@@ -157,7 +157,7 @@ class SubjectsExecutor(
                     wtfUpdateSubjects()
                 } catch (e: Throwable) {
                     println(e)
-                    editSubjectDialog.nInterface.nError("Не удалось изменить урок") {
+                    editSubjectDialog.nInterface.nError("Не удалось изменить урок", e) {
                         editSubjectDialog.nInterface.goToNone()
                     }
                 }
@@ -171,8 +171,8 @@ class SubjectsExecutor(
                 deleteSubjectDialog.nInterface.nStartLoading()
                 adminRepository.deleteSubject(state().eSubjectId)
                 wtfUpdateSubjects()
-            } catch (_: Throwable) {
-                deleteSubjectDialog.nInterface.nError("Не удалось удалить урок") {
+            } catch (e: Throwable) {
+                deleteSubjectDialog.nInterface.nError("Не удалось удалить урок", e) {
                     deleteSubjectDialog.nInterface.goToNone()
                 }
             }
@@ -197,8 +197,8 @@ class SubjectsExecutor(
                         dispatch(Message.StudentsFetched(newMap.toMap(HashMap())))
                         nGroupInterface.nSuccess()
                     }
-                } catch (_: Throwable) {
-                    nGroupInterface.nError("Не удалось загрузить список учеников") {
+                } catch (e: Throwable) {
+                    nGroupInterface.nError("Не удалось загрузить список учеников", e) {
                         fetchStudents(groupId, openAfterThis)
                     }
                 }
@@ -227,7 +227,7 @@ class SubjectsExecutor(
                 update()
             } catch (e: Throwable) {
                 with(cSubjectDialog.nInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
@@ -261,9 +261,9 @@ class SubjectsExecutor(
 
                 updateGroups(state.chosenSubjectId)
 //                dispatch(GroupsStore.Message.GroupCreated(groups))
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 with(cGroupBottomSheet.nInterface) {
-                    nError("Что-то пошло не так =/", onFixErrorClick = {
+                    nError("Что-то пошло не так =/", e, onFixErrorClick = {
                         goToNone()
                     })
                 }
@@ -281,8 +281,8 @@ class SubjectsExecutor(
                 dispatch(Message.GroupsUpdated(groups))
                 nSubjectsInterface.nSuccess()
             }
-        } catch (_: Throwable) {
-            nSubjectsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+        } catch (e: Throwable) {
+            nSubjectsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                 scope.launch {
                     updateGroups(subjectId)
                 }

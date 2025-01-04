@@ -90,7 +90,7 @@ class QRExecutor(
                     nInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-                nInterface.nError("Не удалось") {
+                nInterface.nError("Не удалось", e) {
 
                 }
             }
@@ -141,8 +141,8 @@ class QRExecutor(
                     authBottomSheet.onEvent(CBottomSheetStore.Intent.HideSheet)
                     dispatch(Message.CodeChanged(""))
                 }
-            } catch (_: Throwable) {
-                nInterface.nError("Не удалось") {
+            } catch (e: Throwable) {
+                nInterface.nError("Не удалось", e) {
 
                 }
             }

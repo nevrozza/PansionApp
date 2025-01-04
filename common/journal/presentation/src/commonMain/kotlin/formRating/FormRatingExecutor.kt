@@ -123,7 +123,7 @@ class FormRatingExecutor(
                 } catch (e: Throwable) {
                     println("ss ${e}")
                     nInterface.nError(
-                        "Что-то пошло не так",
+                        "Что-то пошло не так", e
                     ) {
                         init(
                             formId = formId,
@@ -164,7 +164,7 @@ class FormRatingExecutor(
                 } catch (e: Throwable) {
                     println("wtf: ${e}")
                     formPickerDialog.nInterface.nError(
-                        "Что-то пошло не так",
+                        "Что-то пошло не так", e
                     ) {
                         initFormPicker()
                     }

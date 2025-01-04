@@ -121,7 +121,7 @@ class AdminAchievementsExecutor(
                 }
             } catch (e: Throwable) {
                 nBSInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     nBSInterface.goToNone()
                 }
@@ -152,7 +152,7 @@ class AdminAchievementsExecutor(
                 }
             } catch (e: Throwable) {
                 nBSInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     nBSInterface.goToNone()
                 }
@@ -188,7 +188,7 @@ class AdminAchievementsExecutor(
                 }
             } catch (e: Throwable) {
                 nBSInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     nBSInterface.goToNone()
                 }
@@ -230,7 +230,7 @@ class AdminAchievementsExecutor(
                 }
             } catch (e: Throwable) {
                 nBSInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     nBSInterface.goToNone()
                 }
@@ -256,7 +256,7 @@ class AdminAchievementsExecutor(
             } catch (e: Throwable) {
 
                 nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     init()
                 }

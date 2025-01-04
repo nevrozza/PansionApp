@@ -23,10 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import cGrade
-import components.CustomTextButton
-import components.GetAsyncAvatar
-import components.GetAsyncIcon
-import components.LoadingAnimation
+import components.*
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import home.HomeComponent
@@ -124,12 +121,11 @@ fun LazyListScope.homeStudentBar(
                         Crossfade(nQuickTabModel.state) {
                             Column {
                                 when (it) {
-                                    NetworkState.Error -> {
-                                        Text("Ошибка")
-                                        CustomTextButton("Попробовать ещё раз") {
-                                            nQuickTabModel.onFixErrorClick()
-                                        }
-                                    }
+                                    NetworkState.Error -> DefaultErrorView(
+                                        nQuickTabModel,
+                                        pos = DefaultErrorViewPos.Unspecified,
+                                        text = "Ошибка"
+                                    )
 
                                     else -> {
                                         QuickTabItem(
@@ -358,13 +354,10 @@ fun LazyListScope.homeStudentBar(
                         }
                     }
 
-                    NetworkState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(nGradesModel.error)
-                        Spacer(Modifier.height(7.dp))
-                        CustomTextButton("Попробовать ещё раз") {
-                            nGradesModel.onFixErrorClick()
-                        }
-                    }
+                    NetworkState.Error -> DefaultErrorView(
+                        nGradesModel,
+                        DefaultErrorViewPos.CenteredNotFull
+                    )
                 }
             }
         }

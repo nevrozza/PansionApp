@@ -52,8 +52,8 @@ class AllGroupMarksExecutor(
                 val reportData = journalRepository.fetchFullReportData(reportId)
                 nOpenReportInterface.nSuccess()
                 dispatch(Message.FullReportOpened(reportData))
-            } catch (_: Throwable) {
-                nOpenReportInterface.nError("Что-то пошло не так =/") {
+            } catch (e: Throwable) {
+                nOpenReportInterface.nError("Что-то пошло не так =/", e) {
                     nOpenReportInterface.nSuccess()
                 }
             }
@@ -77,8 +77,8 @@ class AllGroupMarksExecutor(
 
                 dispatch(Message.StudentsUpdated(r.students, r.firstHalfNums, dates, modules = dates.map { it.module }.toSet().toList()))
                 nInterface.nSuccess()
-            } catch (_: Throwable) {
-                nInterface.nError("Что-то пошло не так =/") {
+            } catch (e: Throwable) {
+                nInterface.nError("Что-то пошло не так =/", e) {
                     fetchMarks()
                 }
             }

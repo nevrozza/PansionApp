@@ -74,11 +74,11 @@ class SchoolExecutor(
                     dispatch(Message.MinistryListUpdated(newList))
                     ministryOverview.nInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 ministryOverview.nInterface.nError(
                     "Не загрузить данные о министерстве: ${
                         headerTitlesForMinistry[ministryOverviewId]
-                    }",
+                    }", e
                 ) {
                     openMinistryOverview(ministryOverviewId, date)
                 }
@@ -102,7 +102,7 @@ class SchoolExecutor(
             } catch (e: Throwable) {
 
                 nDutyInterface.nError(
-                    "Не удалось обновить дежурство",
+                    "Не удалось обновить дежурство", e
                 ) {
                     nDutyInterface.goToNone()
                 }
@@ -126,7 +126,7 @@ class SchoolExecutor(
             } catch (e: Throwable) {
 
                 nDutyInterface.nError(
-                    "Не удалось редактировать дежурство",
+                    "Не удалось редактировать дежурство", e
                 ) {
                     nDutyInterface.goToNone()
                 }
@@ -156,7 +156,7 @@ class SchoolExecutor(
             } catch (e: Throwable) {
 
                 openMinSettingsBottom.nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     openMinSettingsBottom.nInterface.goToNone()
                 }
@@ -184,7 +184,7 @@ class SchoolExecutor(
             } catch (e: Throwable) {
 
                 openMinSettingsBottom.nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     openMinistrySettings(reason)
                 }
@@ -212,7 +212,7 @@ class SchoolExecutor(
                 }
             } catch (e: Throwable) {
                 nDutyInterface.nError(
-                    "Не удалось загрузить график дежурств",
+                    "Не удалось загрузить график дежурств", e
                 ) {
                     fetchDuty()
                 }
@@ -246,7 +246,7 @@ class SchoolExecutor(
             } catch (e: Throwable) {
 
                 nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     init()
                 }

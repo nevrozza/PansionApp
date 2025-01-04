@@ -185,7 +185,7 @@ class HomeExecutor(
                     quickTabNInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-                quickTabNInterface.nError("Не удалось загрузить уведомления") {
+                quickTabNInterface.nError("Не удалось загрузить уведомления", e) {
                     fetchChildrenNotifications()
                 }
             }
@@ -240,7 +240,7 @@ class HomeExecutor(
                     gradesNInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-                gradesNInterface.nError("Не удалось загрузить список детей") {
+                gradesNInterface.nError("Не удалось загрузить список детей", e) {
                     fetchChildren()
                 }
             }
@@ -327,7 +327,7 @@ class HomeExecutor(
                 }
             } catch (e: Throwable) {
                 println(e)
-                scheduleNInterface.nError("Не удалось загрузить расписание") {
+                scheduleNInterface.nError("Не удалось загрузить расписание", e) {
                     fetchSchedule(dayOfWeek = dayOfWeek, date = date)
                 }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
@@ -347,7 +347,7 @@ class HomeExecutor(
                 }
             } catch (e: Throwable) {
                 println(e)
-                gradesNInterface.nError("Не удалось загрузить список оценок") {
+                gradesNInterface.nError("Не удалось загрузить список оценок", e) {
                     fetchGrades()
                 }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
@@ -368,7 +368,7 @@ class HomeExecutor(
                 }
             } catch (e: Throwable) {
                 println(e)
-                teacherNInterface.nError("Не удалось загрузить список групп") {
+                teacherNInterface.nError("Не удалось загрузить список групп", e) {
                     fetchTeacherGroups()
                 }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })
@@ -401,8 +401,8 @@ class HomeExecutor(
 
                     quickTabNInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
-                quickTabNInterface.nError("Ошибка") {
+            } catch (e: Throwable) {
+                quickTabNInterface.nError("Ошибка", e) {
                     fetchQuickTab(period, isFirst)
                 }
             }

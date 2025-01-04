@@ -353,8 +353,8 @@ class ScheduleExecutor(
                     nInterface.nSuccess()
                     updateCreateTeacherList()
                 }
-            } catch (_: Throwable) {
-                nInterface.nError("Не удалось скопировать") {
+            } catch (e: Throwable) {
+                nInterface.nError("Не удалось скопировать", e) {
                     nInterface.goToNone()
                 }
             }
@@ -376,8 +376,8 @@ class ScheduleExecutor(
                     dispatch(Message.IsSavedAnimation(true))
                     nInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
-                nInterface.nError("Не удалось сохранить") {
+            } catch (e: Throwable) {
+                nInterface.nError("Не удалось сохранить", e) {
                     saveItems()
                 }
             }
@@ -478,7 +478,7 @@ class ScheduleExecutor(
                 }
             } catch (e: Throwable) {
                 println(e)
-                nInterface.nError("Не удалось загрузить расписание") {
+                nInterface.nError("Не удалось загрузить расписание", e) {
                     fetchItems(dayOfWeek, date)
                     updateCreateTeacherList(true)
                 }
@@ -785,7 +785,7 @@ class ScheduleExecutor(
             } catch (e: Throwable) {
 
                 nInterface.nError(
-                    "Что-то пошло не так",
+                    "Что-то пошло не так", e
                 ) {
                     init()
                 }

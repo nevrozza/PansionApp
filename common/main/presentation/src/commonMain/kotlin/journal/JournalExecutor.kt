@@ -59,9 +59,9 @@ class JournalExecutor(
                         }
                         studentsInGroupCAlertDialogComponent.nInterface.nSuccess()
                         fetchHeaders()
-                    } catch (_: Throwable) {
+                    } catch (e: Throwable) {
                         studentsInGroupCAlertDialogComponent.nInterface.nError(
-                            "Не удалось создать отчёт"
+                            "Не удалось создать отчёт", e
                         ) {
                             studentsInGroupCAlertDialogComponent.nInterface.goToNone()
                         }
@@ -93,9 +93,9 @@ class JournalExecutor(
                             )
                         )
                         nOpenReportInterface.nSuccess()
-                    } catch (_: Throwable) {
+                    } catch (e: Throwable) {
                         nOpenReportInterface.nError(
-                            "Не удалось открыть отчёт"
+                            "Не удалось открыть отчёт", e
                         ) {
                             nOpenReportInterface.goToNone()
                         }
@@ -196,7 +196,7 @@ class JournalExecutor(
                 studentsInGroupCAlertDialogComponent.nInterface.nSuccess()
             } catch (e: Throwable) {
                 //CHECK
-                studentsInGroupCAlertDialogComponent.nInterface.nError(text = "Не удалось загрузить список учеников =/") {
+                studentsInGroupCAlertDialogComponent.nInterface.nError(text = "Не удалось загрузить список учеников =/", e) {
                     fetchStudentsInGroup(
                         groupId, date, lessonId
                     )
@@ -268,7 +268,7 @@ class JournalExecutor(
 
             } catch (e: Throwable) {
                 println(e)
-                nInterface.nError("Не удалось загрузить список") {
+                nInterface.nError("Не удалось загрузить список", e) {
                     fetchHeaders()
                 }
 //                groupListComponent.nInterface.nError("Не удалось загрузить список групп") {
@@ -297,7 +297,7 @@ class JournalExecutor(
                 groupListComponent.nInterface.nSuccess()
             } catch (e: Throwable) {
                 println(e)
-                groupListComponent.nInterface.nError("Не удалось загрузить список групп") {
+                groupListComponent.nInterface.nError("Не удалось загрузить список групп", e) {
                     fetchTeacherGroups()
                 }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })

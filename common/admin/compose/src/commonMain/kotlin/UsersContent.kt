@@ -958,16 +958,10 @@ private fun editUserSheet(
         val deleteNModel by component.eDeleteDialog.nModel.subscribeAsState()
         Crossfade(deleteNModel.state) {
             when (it) {
-                NetworkState.Error -> Column(
-                    Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(deleteNModel.error)
-                    Spacer(Modifier.height(7.dp))
-                    CustomTextButton("Попробовать ещё раз") {
-                        deleteNModel.onFixErrorClick()
-                    }
-                }
+                NetworkState.Error -> DefaultErrorView(
+                    deleteNModel,
+                    DefaultErrorViewPos.CenteredFull
+                )
 
                 NetworkState.Loading -> Box(
                     Modifier.fillMaxSize(),

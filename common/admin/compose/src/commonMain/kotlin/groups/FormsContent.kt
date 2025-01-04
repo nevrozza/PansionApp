@@ -181,18 +181,10 @@ fun FormsContent(
                                 if (model.chosenFormId == form.id) {
                                     Crossfade(nFGModel.state) { ns ->
                                         when (ns) {
-                                            NetworkState.Error -> {
-                                                Column(
-                                                    Modifier.fillMaxSize(),
-                                                    horizontalAlignment = Alignment.CenterHorizontally
-                                                ) {
-                                                    Text(nFGModel.error)
-                                                    Spacer(Modifier.height(7.dp))
-                                                    CustomTextButton("Попробовать ещё раз") {
-                                                        nFGModel.onFixErrorClick()
-                                                    }
-                                                }
-                                            }
+                                            NetworkState.Error -> DefaultErrorView(
+                                                nFGModel,
+                                                DefaultErrorViewPos.CenteredFull
+                                            )
 
                                             else -> {
                                                 if (model.formGroups.isNotEmpty() || ns == NetworkState.None) {

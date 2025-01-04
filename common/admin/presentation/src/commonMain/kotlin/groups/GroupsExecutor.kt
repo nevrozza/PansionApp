@@ -62,8 +62,8 @@ class GroupsExecutor(
                 dispatch(Message.FormsListChanged(forms))
                 nFormsInterface.nSuccess()
                 updateFormsList(forms)
-            } catch (_: Throwable) {
-                nFormsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+            } catch (e: Throwable) {
+                nFormsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     updateForms()
                 })
             }
@@ -77,8 +77,8 @@ class GroupsExecutor(
                 val subjects = adminRepository.fetchAllSubjects().subjects
                 dispatch(Message.SubjectListChanged(subjects))
                 nSubjectsInterface.nSuccess()
-            } catch (_: Throwable) {
-                nSubjectsInterface.nError("Что-то пошло не так =/", onFixErrorClick = {
+            } catch (e: Throwable) {
+                nSubjectsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     updateSubjects()
                 })
             }
@@ -110,7 +110,7 @@ class GroupsExecutor(
 //                subjectsComponent.onEvent(SubjectsStore.Intent.ClickOnSubject(subjectsA.first().id))
                 updateFormsList(formsA)
             } catch (e: Throwable) {
-                nGroupsInterface.nError("Что-то пошло не так =/") {
+                nGroupsInterface.nError("Что-то пошло не так =/", e) {
                         init()
                 }
                 println(e)

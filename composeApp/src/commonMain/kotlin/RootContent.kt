@@ -42,10 +42,7 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.essenty.backhandler.BackEvent
-import components.CustomTextButton
-import components.GetAsyncIcon
-import components.hazeHeader
-import components.hazeUnder
+import components.*
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
@@ -998,11 +995,10 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             when {
 
                                 it is NetworkState.Error -> {
-                                    Text(text = if (nCheckModel.error != "") nCheckModel.error else "Загрузка...")
-                                    Spacer(Modifier.height(7.dp))
-                                    CustomTextButton(text = "Попробовать ещё раз") {
-                                        nCheckModel.onFixErrorClick()
-                                    }
+                                    DefaultErrorView(
+                                        nCheckModel,
+                                        text = if (nCheckModel.error != "") nCheckModel.error else "Загрузка..."
+                                    )
                                     Spacer(Modifier.height(7.dp))
                                     CustomTextButton(text = "Продолжить без синхронизации") {
                                         component.checkNInterface.nSuccess()

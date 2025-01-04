@@ -548,11 +548,11 @@ class LessonReportExecutor(
                     dispatch(LessonReportStore.Message.IsHomeTasksSavedAnimation(true))
                     nHomeTasksInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 scope.launch {
                     dispatch(LessonReportStore.Message.IsHomeTasksErrorAnimation(true))
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
-                    nHomeTasksInterface.nError("Не удалось загрузить задания на сервер") {
+                    nHomeTasksInterface.nError("Не удалось загрузить задания на сервер", e) {
                         //TODO
                         nHomeTasksInterface.goToNone()
                     }
@@ -574,9 +574,9 @@ class LessonReportExecutor(
                     nHomeTasksInterface.nSuccess()
                     dispatch(LessonReportStore.Message.HomeTasksUpdated(tasks.tasks))
                 }
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 scope.launch {
-                    nHomeTasksInterface.nError("Не удалось загрузить данные с сервера") {
+                    nHomeTasksInterface.nError("Не удалось загрузить данные с сервера", e) {
                         fetchHomeTasks()
                     }
                 }
@@ -657,7 +657,7 @@ class LessonReportExecutor(
                 )
                 nInterface.nSuccess()
             } catch (e: Throwable) {
-                nInterface.nError("Что-то пошло не так//${e}") {
+                nInterface.nError("Что-то пошло не так", e) {
                     init()
                 }
             }
@@ -827,11 +827,11 @@ class LessonReportExecutor(
                     dispatch(LessonReportStore.Message.IsSavedAnimation(true))
                     nInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 scope.launch {
                     dispatch(LessonReportStore.Message.IsErrorAnimation(true))
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
-                    nInterface.nError("Что-то пошло не так") {
+                    nInterface.nError("Что-то пошло не так", e) {
                         nInterface.goToNone()
                     }
                 }
@@ -854,8 +854,8 @@ class LessonReportExecutor(
                     dispatch(LessonReportStore.Message.DetailedMarksFetched(marks))
                     marksDialogComponent.nInterface.nSuccess()
                 }
-            } catch (_: Throwable) {
-                marksDialogComponent.nInterface.nError("Что-то пошло не так") {
+            } catch (e: Throwable) {
+                marksDialogComponent.nInterface.nError("Что-то пошло не так", e) {
                     //TODO
                     openDetailedMarks(login)
                 }
