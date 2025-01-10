@@ -260,17 +260,11 @@ fun SchoolContent(
                 AnimatedVisibility(
                     nModel.state == NetworkState.Error
                 ) {
-                    Column(
-                        Modifier.fillMaxWidth(),//.height(100.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(Modifier.height(15.dp))
-                        Text(nModel.error)
-                        Spacer(Modifier.height(7.dp))
-                        CustomTextButton("Попробовать ещё раз") {
-                            nModel.onFixErrorClick()
-                        }
-                    }
+                    DefaultErrorView(
+                        model = nModel,
+                        pos = DefaultErrorViewPos.Centered,
+                        isCompact = true
+                    )
                 }
             }
             if (model.role in listOf(Roles.student) || model.moderation in listOf(Moderation.both, Moderation.mentor)) {

@@ -62,18 +62,7 @@ import com.nevrozq.pansion.database.holidays.Holidays
 import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
-import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
-import com.nevrozq.pansion.database.ratingTable.RatingModule1Table
-import com.nevrozq.pansion.database.ratingTable.RatingModule2Table
-import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek0Table
-import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek1Table
-import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek2Table
-import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
-import com.nevrozq.pansion.database.ratingTable.RatingWeek1Table
-import com.nevrozq.pansion.database.ratingTable.RatingWeek2Table
-import com.nevrozq.pansion.database.ratingTable.RatingYear0Table
-import com.nevrozq.pansion.database.ratingTable.RatingYear1Table
-import com.nevrozq.pansion.database.ratingTable.RatingYear2Table
+import com.nevrozq.pansion.database.ratingTable.*
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.reportHeaders.ReportHeadersDTO
 import com.nevrozq.pansion.database.schedule.Schedule
@@ -108,9 +97,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
-import rating.RFetchScheduleSubjectsResponse
-import rating.RFetchSubjectRatingReceive
-import rating.RFetchSubjectRatingResponse
+import rating.*
 import rating.RatingItem
 import report.RMarkLessonReceive
 import report.UserMark
@@ -352,7 +339,8 @@ class LessonsController() {
                         )
                     },
                     holidays = holidays
-                )).done
+                )
+            ).done
         }
     }
 
@@ -375,39 +363,26 @@ class LessonsController() {
     suspend fun fetchRating(call: ApplicationCall) {
         // NEXT TIME
         if (call.isMember) {
-            val r = call.receive<RFetchSubjectRatingReceive>()
             try {
-                val table = when (r.period) {
-                    1 -> when (r.forms) { //Module
-                        1 -> RatingModule1Table
-                        2 -> RatingModule2Table
-                        else -> RatingModule0Table
-                    }
-
-                    2 -> when (r.forms) { //Year
-                        1 -> RatingYear1Table
-                        2 -> RatingYear2Table
-                        else -> RatingYear0Table
-                    }
-
-                    3 -> when (r.forms) { //Year
-                        1 -> RatingPreviousWeek1Table
-                        2 -> RatingPreviousWeek2Table
-                        else -> RatingPreviousWeek0Table
-                    }
-
-                    else -> when (r.forms) { //0
-                        1 -> RatingWeek1Table
-                        2 -> RatingWeek2Table
-                        else -> RatingWeek0Table
-                    }
+                val r = call.receive<RFetchSubjectRatingReceive>()
+                val period = r.period ?: rating.PansionPeriod.Week(getCurrentWeek().num)
+                //Pair(0, "Все"), Pair(1, "5-8 классы"), Pair(2, "9-11 классы")
+                val table = when (r.forms) {
+                    1 -> RatingLowSchoolTable
+                    2 -> RatingHighSchoolTable
+                    else -> RatingCommonSchoolTable
                 }
-                val allItems = table.fetchAllRatings()
-                val items = allItems.filter { it.subjectId == r.subjectId }
+                val allItems = table.fetchAllRatings(
+                    subjectId = r.subjectId,
+                    edYear = getCurrentEdYear(),
+                    period = period
+                )
+                val items = allItems
                 val me = items.firstOrNull { it.login == r.login }
                 call.respond(
                     RFetchSubjectRatingResponse(
-                        hashMapOf(
+                        mapOf(
+                            period.toStr() to mapOf(
                             r.subjectId to items.map {
                                 RatingItem(
                                     login = it.login,
@@ -425,9 +400,11 @@ class LessonsController() {
                                     avg = it.avg
                                 )
                             }
-                        ),
-                        me = hashMapOf(
-                            r.subjectId to if (me != null) Pair(me.top, me.stups) else null
+                        )),
+                        me = mapOf(
+                            period.toStr() to mapOf(
+                                r.subjectId to if (me != null) Pair(me.top, me.stups) else null
+                            )
                         ),
                         lastTimeEdit = lastTimeRatingUpdate
                     ))
@@ -446,14 +423,20 @@ class LessonsController() {
         val perm = call.isMember
         call.dRes(perm, "Can't fetch schedule subjects") {
             val subjects = Subjects.fetchAllSubjects()
+            val module = getModuleByDate(getCurrentDate().second)
             this.respond(
-                RFetchScheduleSubjectsResponse(subjects.mapNotNull {
-                    ScheduleSubject(
-                        id = it.id,
-                        name = it.name,
-                        isActive = it.isActive
-                    )
-                })
+                RFetchScheduleSubjectsResponse(
+                    subjects.mapNotNull {
+                        ScheduleSubject(
+                            id = it.id,
+                            name = it.name,
+                            isActive = it.isActive
+                        )
+                    },
+                    holiday = Holidays.fetch(getCurrentEdYear()),
+                    currentModule = module?.num ?: 1,
+                    currentHalf = module?.halfNum ?: 1
+                )
             ).done
         }
     }

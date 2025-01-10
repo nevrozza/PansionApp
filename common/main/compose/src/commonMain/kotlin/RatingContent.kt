@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.*
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -24,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
+import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
@@ -32,13 +32,12 @@ import dev.chrisbanes.haze.HazeState
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
-import rating.RatingComponent
-import rating.RatingItem
-import rating.RatingStore
+import rating.*
 import resources.RIcons
 import view.*
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
     ExperimentalSharedTransitionApi::class
 )
 @Composable
@@ -126,7 +125,7 @@ fun SharedTransitionScope.RatingContent(
 
         },
         bottomBar = {
-            val me = model.me[model.currentSubject]
+            val me = model.me[model.period?.toStr()]?.get(model.currentSubject)
             val previousItem: MutableState<RatingItem?> = remember {
                 mutableStateOf(
                     null
@@ -170,6 +169,7 @@ fun SharedTransitionScope.RatingContent(
 
         }
     ) { padding ->
+        val items = model.items[model.period?.toStr()]?.get(model.currentSubject)
         Box(Modifier.fillMaxSize()) {
             CLazyColumn(
                 padding = padding,
@@ -224,30 +224,31 @@ fun SharedTransitionScope.RatingContent(
                             ListDialogDesktopContent(component.formsListComponent)
                         }
                         Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Недели",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Week,
+                            component = component.weekListComponent
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Модули",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Module,
+                            component = component.moduleListComponent
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Периоды",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Year || model.period is PansionPeriod.Half,
+                            component = component.periodListComponent
+                        )
 
-                        Box() {
-                            AssistChip(
-                                onClick = { component.periodListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
-                                label = {
-                                    AnimatedContent(
-                                        component.periodListComponent.state.value.list.firstOrNull { it.id.toInt() == model.period }?.text
-                                            ?: "Загрузка.."
-
-                                    ) {
-                                        Text(
-                                            it, maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.animateContentSize()
-                            )
-                            ListDialogDesktopContent(component.periodListComponent)
-                        }
                         Spacer(Modifier.width(15.dp))
                     }
                 }
-                val items = model.items[model.currentSubject]
+
                 if (!items.isNullOrEmpty()) {
 
                     items(items.sortedBy { it.top }) { i ->
@@ -280,15 +281,50 @@ fun SharedTransitionScope.RatingContent(
 
 
             ListDialogMobileContent(component.subjectsListComponent, title = "Предмет")
-            ListDialogMobileContent(component.periodListComponent, title = "Период")
+//            ListDialogMobileContent(component.periodListComponent, title = "Период")
             ListDialogMobileContent(component.formsListComponent, title = "Классы")
             PullRefreshIndicator(
                 modifier = Modifier.align(alignment = Alignment.TopCenter),
-                refreshing = nModel.state == NetworkState.Loading && model.items[model.currentSubject].isNullOrEmpty(),
+                refreshing = nModel.state == NetworkState.Loading &&
+                        items.isNullOrEmpty(),
                 state = refreshState,
                 topPadding = padding.calculateTopPadding()
             )
         }
+    }
+}
+
+@Composable
+private fun PeriodButton(
+    inActiveText: String,
+    currentPeriod: String,
+    isActive: Boolean,
+    component: ListComponent
+) {
+    val color = animateColorAsState(
+        if (isActive) MaterialTheme.colorScheme.primaryContainer
+        else Color.Transparent
+    )
+    Box() {
+        AssistChip(
+            onClick = { component.onEvent(ListDialogStore.Intent.ShowDialog) },
+            label = {
+                AnimatedContent(
+                    if (isActive) {
+                        component.state.value.list.firstOrNull { it.id == currentPeriod }?.text
+                                ?: "Загрузка.."
+                    } else {inActiveText}
+                ) {
+                    Text(
+                        it, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            },
+            modifier = Modifier.animateContentSize(),
+            colors = AssistChipDefaults.assistChipColors(containerColor = color.value)
+        )
+        ListDialogDesktopContent(component, mobileView = true)
     }
 }
 
@@ -314,11 +350,13 @@ private fun SharedTransitionScope.RatingCard(
         shadowElevation = if (isMe) 12.dp else 0.dp,
         onClick = {
             if (!(isMe || meLogin == item.login)) {
-                component.onOutput(RatingComponent.Output.NavigateToProfile(
-                    studentLogin = item.login,
-                    fio = item.fio,
-                    avatarId = item.avatarId
-                ))
+                component.onOutput(
+                    RatingComponent.Output.NavigateToProfile(
+                        studentLogin = item.login,
+                        fio = item.fio,
+                        avatarId = item.avatarId
+                    )
+                )
             }
         }
     ) {

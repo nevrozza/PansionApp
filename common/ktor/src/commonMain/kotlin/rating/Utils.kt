@@ -46,7 +46,7 @@ fun String.toPeriod(): PansionPeriod {
     val num = this.removePrefix("h")
         .removePrefix("m")
         .removePrefix("w")
-        .removePrefix("y").toInt()
+        .removePrefix("y").toIntOrNull() ?: 1
     return when (this[0]) {
         'h' -> PansionPeriod.Half(num)
         'm' -> PansionPeriod.Module(num)

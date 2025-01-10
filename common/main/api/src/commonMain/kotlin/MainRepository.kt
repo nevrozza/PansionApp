@@ -22,6 +22,7 @@ import mentoring.preAttendance.RFetchPreAttendanceDayReceive
 import mentoring.preAttendance.RFetchPreAttendanceDayResponse
 import mentoring.preAttendance.RSavePreAttendanceDayReceive
 import rating.RFetchScheduleSubjectsResponse
+import rating.RFetchSubjectRatingReceive
 import rating.RFetchSubjectRatingResponse
 import registration.CloseRequestQRReceive
 import registration.OpenRequestQRReceive
@@ -84,5 +85,5 @@ interface MainRepository {
 
     suspend fun fetchScheduleSubjects(): RFetchScheduleSubjectsResponse
 
-    suspend fun fetchSubjectRating(login: String, subjectId: Int, period: Int, forms: Int): RFetchSubjectRatingResponse
+    suspend fun fetchSubjectRating(r: RFetchSubjectRatingReceive): RFetchSubjectRatingResponse
 }

@@ -21,7 +21,10 @@ class RatingStoreFactory(
     private val subjectsListComponent: ListComponent,
     private val avatarId: Int,
     private val login: String,
-    private val fio: FIO
+    private val fio: FIO,
+    private val weeksListComponent: ListComponent,
+    private val moduleListComponent: ListComponent,
+    private val periodListComponent: ListComponent,
 ) {
 
     fun create(): RatingStore {
@@ -40,7 +43,10 @@ class RatingStoreFactory(
             executorFactory = { RatingExecutor(
                 mainRepository = mainRepository,
                 nInterface = nInterface,
-                subjectsListComponent = subjectsListComponent
+                subjectsListComponent = subjectsListComponent,
+                weeksListComponent = weeksListComponent,
+                moduleListComponent = moduleListComponent,
+                periodListComponent = periodListComponent
             ) },
             reducer = RatingReducer
         )

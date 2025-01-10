@@ -30,6 +30,7 @@ fun ListDialogDesktopContent(
     offset: DpOffset = DpOffset(x = 40.dp, y = -25.dp),
     modifier: Modifier = Modifier,
     title: String? = null,
+    mobileView: Boolean = false,
     onClick: (ListItem) -> Unit = {}
 ) {
     val model by component.model.subscribeAsState()
@@ -37,7 +38,7 @@ fun ListDialogDesktopContent(
     val coroutineScope = rememberCoroutineScope()
     val viewManager = LocalViewManager.current
     val isShowingCostil = remember { mutableStateOf(false) }
-    val isTooltip = viewManager.orientation.value != WindowScreen.Vertical
+    val isTooltip = viewManager.orientation.value != WindowScreen.Vertical || mobileView
     val focusRequester = remember { FocusRequester() }
 //    if(model.isDialogShowing) {
 //        AlertDialog({}){}

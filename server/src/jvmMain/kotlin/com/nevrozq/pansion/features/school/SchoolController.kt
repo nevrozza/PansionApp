@@ -14,6 +14,9 @@ import com.nevrozq.pansion.database.forms.FormDTO
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
+import com.nevrozq.pansion.database.ratingTable.RatingCommonSchoolTable
+import com.nevrozq.pansion.database.ratingTable.RatingHighSchoolTable
+import com.nevrozq.pansion.database.ratingTable.RatingLowSchoolTable
 import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
@@ -569,7 +572,12 @@ class SchoolController {
                 } else {
                     formName = "$formNum-${form.title.uppercase()}"
                 }
-                top = RatingWeek0Table.fetchRatingOf(
+                val table = when(formNum) {
+                    1 -> RatingLowSchoolTable
+                    2 -> RatingHighSchoolTable
+                    else -> RatingCommonSchoolTable
+                }
+                top = table.fetchRatingOf(
                     r.login,
                     ExtraSubjectsId.common,
                     edYear = getCurrentEdYear(),

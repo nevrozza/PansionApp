@@ -64,9 +64,17 @@ open class RatingTable : Table() {
 
     }
 
-    fun fetchAllRatings(): List<RatingTableDTO> {
+    fun fetchAllRatings(
+        subjectId: Int,
+        edYear: Int,
+        period: PansionPeriod
+    ): List<RatingTableDTO> {
         return transaction {
-            this@RatingTable.selectAll().map {
+            this@RatingTable.select {
+                (this@RatingTable.subjectId eq subjectId) and
+                        (this@RatingTable.edYear eq edYear) and
+                        (this@RatingTable.period eq period.toStr())
+            }.map {
                 RatingTableDTO(
                     login = it[login],
                     name = it[name],
@@ -79,13 +87,14 @@ open class RatingTable : Table() {
                     formNum = it[formNum],
                     formShortTitle = it[formShortTitle],
                     avg = it[avg],
-                    subjectId = it[subjectId],
-                    edYear = it[edYear],
-                    period = it[period].toPeriod()
+                    subjectId = it[this@RatingTable.subjectId],
+                    edYear = it[this@RatingTable.edYear],
+                    period = it[this@RatingTable.period].toPeriod()
                 )
             }
         }
     }
+
     fun fetchRatingOf(
         login: String,
         subjectId: Int,
@@ -93,7 +102,7 @@ open class RatingTable : Table() {
         period: PansionPeriod
     ): RatingTableDTO? {
         return transaction {
-            this@RatingTable.select{
+            this@RatingTable.select {
                 (this@RatingTable.login eq login) and
                         (this@RatingTable.subjectId eq subjectId) and
                         (this@RatingTable.edYear eq edYear) and

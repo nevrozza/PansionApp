@@ -10,13 +10,13 @@ import kotlinx.serialization.Serializable
 data class RFetchSubjectRatingReceive(
     val login: String,
     val subjectId: Int,
-    val period: Int,
+    val period: PansionPeriod?,
     val forms: Int
 )
 
 @Serializable
 data class RFetchSubjectRatingResponse(
-    val hash: HashMap<Int, List<RatingItem>>,
-    val me: HashMap<Int, Pair<Int, Int>?>,
+    val hash: Map<String, Map<Int, List<RatingItem>>>,
+    val me: Map<String, Map<Int, Pair<Int, Int>?>>,
     val lastTimeEdit: String
 )

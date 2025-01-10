@@ -16,14 +16,14 @@ interface RatingStore : Store<Intent, State, Label> {
         val login: String,
         val fio: FIO,
         val currentSubject: Int = -1,
-        val me: Map<Int, Pair<Int, Int>?> = hashMapOf(),
+        val me: Map<String, Map<Int, Pair<Int, Int>?>> = hashMapOf(),
         val subjects: List<ScheduleSubject> = listOf(
            startSubject,
             mvdSubject
         ),
         val lastEditTime: String = "",
-        val items: Map<Int, List<RatingItem>> = hashMapOf(),
-        val period: Int = 0, // Week, Module, Year
+        val items: Map<String, Map<Int, List<RatingItem>>> = hashMapOf(),
+        val period: PansionPeriod? = null, // Week, Module, Year
         val forms: Int = 0, //All, 5-8, 9-11
     )
 
@@ -31,15 +31,15 @@ interface RatingStore : Store<Intent, State, Label> {
         data object Init : Intent
         data class ClickOnSubject(val subjectId: Int) : Intent
         data class ClickOnForm(val formNum: Int) : Intent
-        data class ClickOnPeriod(val period: Int) : Intent
+        data class ClickOnPeriod(val period: String) : Intent
     }
 
     sealed interface Message {
-        data class SubjectsUpdated(val subjects: List<ScheduleSubject>) : Message
-        data class RatingUpdated(val items: Map<Int, List<RatingItem>>, val me: Map<Int, Pair<Int, Int>?>, val lastEditTime: String) : Message
+        data class SubjectsUpdated(val subjects: List<ScheduleSubject>, val currentPeriod: PansionPeriod) : Message
+        data class RatingUpdated(val items: Map<String, Map<Int, List<RatingItem>>>, val me: Map<String, Map<Int, Pair<Int, Int>?>>, val lastEditTime: String) : Message
         data class OnSubjectClicked(val subjectId: Int) : Message
         data class OnFormClicked(val formNum: Int) : Message
-        data class OnPeriodClicked(val period: Int) : Message
+        data class OnPeriodClicked(val period: PansionPeriod) : Message
     }
 
     sealed interface Label

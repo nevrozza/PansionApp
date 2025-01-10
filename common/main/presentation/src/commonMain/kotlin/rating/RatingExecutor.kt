@@ -7,6 +7,7 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
+import getWeeks
 import kotlinx.coroutines.launch
 import rating.RatingStore.Intent
 import rating.RatingStore.Label
@@ -17,6 +18,9 @@ class RatingExecutor(
     private val mainRepository: MainRepository,
     private val nInterface: NetworkInterface,
     private val subjectsListComponent: ListComponent,
+    private val weeksListComponent: ListComponent,
+    private val moduleListComponent: ListComponent,
+    private val periodListComponent: ListComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
@@ -32,8 +36,8 @@ class RatingExecutor(
             }
 
             is Intent.ClickOnPeriod -> {
-                dispatch(Message.OnPeriodClicked(intent.period))
-                fetchRating(state().currentSubject, intent.period, forms = state().forms)
+                dispatch(Message.OnPeriodClicked(intent.period.toPeriod()))
+                fetchRating(state().currentSubject, intent.period.toPeriod(), forms = state().forms)
             }
         }
     }
@@ -43,15 +47,18 @@ class RatingExecutor(
         fetchRating(state().currentSubject, state().period, state().forms)
     }
 
-    private fun fetchRating(subjectId: Int, period: Int, forms: Int) {
+    private fun fetchRating(subjectId: Int, period: PansionPeriod?, forms: Int) {
         scope.launch(CDispatcher) {
             try {
                 nInterface.nStartLoading()
                 val r = mainRepository.fetchSubjectRating(
-                    login = state().login,
-                    subjectId = subjectId,
-                    period = period,
-                    forms = forms
+                    RFetchSubjectRatingReceive(
+                        login = state().login,
+                        subjectId = subjectId,
+                        period = period,
+                        forms = forms
+                    )
+
                 )
 
                 scope.launch {
@@ -78,29 +85,76 @@ class RatingExecutor(
         scope.launch(CDispatcher) {
             try {
                 subjectsListComponent.nInterface.nStartLoading()
+                val r = mainRepository.fetchScheduleSubjects()
                 val subjects =
-                    mainRepository.fetchScheduleSubjects().subjects.toMutableList()
+                    r.subjects.toMutableList()
+
+                val weeks = getWeeks(
+                    holidays = r.holiday.filter { it.isForAll }
+                )
+
                 subjects.add(0, startSubject)
                 subjects.add(1, mvdSubject)
                 subjects.add(2, socialWorkSubject)
                 subjects.add(3, creativeSubject)
                 scope.launch {
-                    dispatch(Message.SubjectsUpdated(subjects))
-                    subjectsListComponent.onEvent(ListDialogStore.Intent.InitList(
-                        subjects.mapNotNull {
-                            if(it.isActive) {
+                    dispatch(Message.SubjectsUpdated(subjects, rating.PansionPeriod.Week(weeks.last().num)))
+                    subjectsListComponent.onEvent(
+                        ListDialogStore.Intent.InitList(
+                            subjects.mapNotNull {
+                                if (it.isActive) {
+                                    ListItem(
+                                        id = it.id.toString(),
+                                        text = it.name
+                                    )
+                                } else null
+                            }
+                        ))
+
+                    weeksListComponent.onEvent(
+                        ListDialogStore.Intent.InitList(
+                            weeks.map {
                                 ListItem(
-                                    id = it.id.toString(),
-                                    text = it.name
+                                    id = PansionPeriod.Week(it.num).toStr(),
+                                    text = "${it.num} неделя"
                                 )
-                            } else null
-                        }
-                    ))
+                            }.reversed()
+                        )
+                    )
+                    moduleListComponent.onEvent(
+                        ListDialogStore.Intent.InitList(
+                            (1..r.currentModule).map {
+                                ListItem(
+                                    id = PansionPeriod.Module(it).toStr(),
+                                    text = "${it} модуль"
+                                )
+                            }.reversed()
+                        )
+                    )
+                    if (r.currentHalf > 1) periodListComponent.onEvent(
+                        ListDialogStore.Intent.InitList(
+                            (
+                                    (1..r.currentHalf).map {
+                                        ListItem(
+                                            id = PansionPeriod.Half(it).toStr(),
+                                            text = "$it полугодие"
+                                        )
+                                    }
+                                            +
+                                            ListItem(
+                                                id = PansionPeriod.Year.toStr(),
+                                                text = "За год"
+                                            )
+                                    ).reversed()
+
+                        )
+                    )
+
                     subjectsListComponent.nInterface.nSuccess()
                 }
             } catch (e: Throwable) {
                 println(e)
-                subjectsListComponent.nInterface.nError("Не удалось загрузить предметы",e) {
+                subjectsListComponent.nInterface.nError("Не удалось загрузить предметы", e) {
                     fetchSubjects()
                 }
 //                groupListComponent.onEvent(ListDialogStore.Intent.CallError("Не удалось загрузить список групп =/") { fetchTeacherGroups() })

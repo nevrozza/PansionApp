@@ -47,20 +47,34 @@ class RatingComponent(
         name = "RatingFormNumsListComponent",
         onItemClick = {onFormItemClick(it.id.toInt())}
     )
+    val weekListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "RatingWeekListComponent",
+        onItemClick = {onPeriodItemClick(it.id)}
+    )
+    val moduleListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "RatingModuleListComponent",
+        onItemClick = {onPeriodItemClick(it.id)}
+    )
     val periodListComponent = ListComponent(
         componentContext,
         storeFactory,
         name = "RatingPeriodListComponent",
-        onItemClick = {onPeriodItemClick(it.id.toInt())}
+        onItemClick = {onPeriodItemClick(it.id)}
     )
 
     private fun onFormItemClick(id: Int) {
         onEvent(RatingStore.Intent.ClickOnForm(id))
         formsListComponent.onEvent(ListDialogStore.Intent.HideDialog)
     }
-    private fun onPeriodItemClick(id: Int) {
+    private fun onPeriodItemClick(id: String) {
         onEvent(RatingStore.Intent.ClickOnPeriod(id))
-        periodListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+        listOf(weekListComponent, moduleListComponent, periodListComponent).forEach {
+            it.onEvent(ListDialogStore.Intent.HideDialog)
+        }
     }
 
     private fun onSubjectItemClick(id: Int) {
@@ -80,7 +94,10 @@ class RatingComponent(
                 subjectsListComponent = subjectsListComponent,
                 avatarId = avatarId,
                 login = login,
-                fio = fio
+                fio = fio,
+                weeksListComponent = weekListComponent,
+                moduleListComponent = moduleListComponent,
+                periodListComponent = periodListComponent
             ).create()
         }
 
@@ -110,9 +127,9 @@ class RatingComponent(
         )
         periodListComponent.onEvent(
             ListDialogStore.Intent.InitList(
-                listOf(Pair(0, "За неделю"), Pair(3, "За прошлую неделю"), Pair(1, "За модуль"), Pair(2, "За год")).map {
+                listOf(Pair(PansionPeriod.Year, "За год")).map {
                     ListItem(
-                        id = it.first.toString(),
+                        id = it.first.toStr(),
                         text = it.second
                     )
                 }
