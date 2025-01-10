@@ -8,3 +8,12 @@ data class CalendarModuleItem(
     val start: String,
     val halfNum: Int
 )
+
+@Serializable
+data class Holiday(
+    val id: Int,
+    val edYear: Int,
+    val start: String,
+    val end: String,
+    val isForAll: Boolean
+)

@@ -3,6 +3,7 @@ package profile
 import AuthRepository
 import CDispatcher
 import auth.RCheckGIASubjectReceive
+import auth.RFetchAboutMeReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import kotlinx.coroutines.launch
@@ -50,7 +51,12 @@ class ProfileExecutor(
         scope.launch(CDispatcher) {
             nAboutMeInterface.nStartLoading()
             try {
-                val aboutMe = authRepository.fetchAboutMe(state().studentLogin)
+                val aboutMe = authRepository.fetchAboutMe(
+                    RFetchAboutMeReceive(
+                        studentLogin = state().studentLogin,
+                        edYear = state().edYear
+                    )
+                )
                 scope.launch {
                     dispatch(Message.AboutMeUpdated(
                         form = aboutMe.form,

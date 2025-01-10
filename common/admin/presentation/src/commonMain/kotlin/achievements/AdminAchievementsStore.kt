@@ -5,12 +5,14 @@ import com.arkivanov.mvikotlin.core.store.Store
 import achievements.AdminAchievementsStore.Intent
 import achievements.AdminAchievementsStore.Label
 import achievements.AdminAchievementsStore.State
+import server.getCurrentEdYear
 
 interface AdminAchievementsStore : Store<Intent, State, Label> {
     data class State(
         val achievements: List<AchievementsDTO> = emptyList(),
         val students: List<Person> = emptyList(),
         val subjects: Map<Int, String> = emptyMap(),
+        val edYear: Int = getCurrentEdYear(),
 
         val bsId: Int? = null,
         val bsStudentLogin: String = "",

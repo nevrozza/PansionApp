@@ -1,5 +1,7 @@
 package com.nevrozq.pansion.database.ratingTable
 
+import rating.PansionPeriod
+
 data class RatingTableDTO(
     val login: String,
     val name: String,
@@ -11,6 +13,10 @@ data class RatingTableDTO(
     val top: Int,
     val groupName: String,
     val formNum: Int,
-    val subjectId: Int,
     val formShortTitle: String,
+
+    val subjectId: Int,
+
+    val period: PansionPeriod,
+    val edYear: Int
 )

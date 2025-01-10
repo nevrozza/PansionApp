@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RFetchAllGroupMarksReceive(
     val subjectId: Int,
-    val groupId: Int
+    val groupId: Int,
+    val edYear: Int
 )
 
 @Serializable

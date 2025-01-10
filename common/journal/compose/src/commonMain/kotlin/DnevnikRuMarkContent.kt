@@ -2,7 +2,7 @@
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class
 )
-
+import dev.chrisbanes.haze.HazeInputScale
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
@@ -63,6 +63,7 @@ fun DnevnikRuMarkContent(
                         hazeState,
                         style = LocalHazeStyle.current
                     ) {
+                        inputScale = HazeInputScale.Fixed(0.7f)
                         mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = hazeProgressive
                     }

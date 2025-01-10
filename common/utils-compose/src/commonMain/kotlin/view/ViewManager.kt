@@ -1,11 +1,12 @@
 package view
 
-import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -46,8 +47,6 @@ class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
 //}
 
 
-
-
 val LocalViewManager: ProvidableCompositionLocal<ViewManager> = compositionLocalOf {
     error("No ViewManager provided")
 }
@@ -69,10 +68,40 @@ val Float.esp: TextUnit
     }
 
 
+fun Brush.Companion.easedGradient(
+    easing: Easing,
+    start: Offset = Offset.Zero,
+    end: Offset = Offset.Infinite,
+    numStops: Int = 8,
+    isReversed: Boolean
+): Brush {
+    val colors = List(numStops) { i ->
+        val x = i * 1f / (numStops - 1)
+        Color.Black.copy(alpha = 1f - easing.transform(x))
+    }
+
+    return linearGradient(colors = if(isReversed) colors.reversed() else colors, start = start, end = end)
+}
+
+fun Brush.Companion.easedVerticalGradient(
+    easing: Easing,
+    startY: Float = 0.0f,
+    endY: Float = Float.POSITIVE_INFINITY,
+    numStops: Int = 8,
+    isReversed: Boolean = false
+): Brush = easedGradient(
+    easing = easing,
+    numStops = numStops,
+    start = Offset(x = 0f, y = startY),
+    end = Offset(x = 0f, y = endY),
+    isReversed = isReversed
+)
 
 
-val hazeProgressive = dev.chrisbanes.haze.HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0.0f, easing = FastOutLinearInEasing)
-val hazeMask = Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Magenta.copy(.82f), Color.Transparent))
+//val hazeProgressive = dev.chrisbanes.haze.HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0.0f, easing = FastOutLinearInEasing)
+val hazeMask =
+    Brush.easedVerticalGradient(EaseInQuart)//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Magenta.copy(.82f), Color.Transparent))
+
 @Composable
 expect fun rememberImeState(): State<Boolean>
 
@@ -92,7 +121,7 @@ fun Modifier.bringIntoView(
     }
     this
         .onGloballyPositioned { coordinates ->
-            scrollToPosition = coordinates.positionInRoot().y/divider
+            scrollToPosition = coordinates.positionInRoot().y / divider
         }
 
 

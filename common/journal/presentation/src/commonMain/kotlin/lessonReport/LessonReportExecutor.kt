@@ -17,14 +17,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lessonReport.LessonReportStore.Intent
-import report.AddStudentLine
-import report.Attended
-import report.RFetchReportStudentsReceive
-import report.RFetchReportStudentsResponse
-import report.RUpdateReportReceive
-import report.ReportHeader
-import report.ServerRatingUnit
-import report.ServerStudentLine
+import report.*
 import server.getDate
 import server.getLocalDate
 import server.getSixTime
@@ -818,7 +811,8 @@ class LessonReportExecutor(
                     editTime = editTime,
                     isMentorWas = state().isMentorWas,
                     marks = marks,
-                    stups = stups
+                    stups = stups,
+                    edYear = state().edYear
                 )
 
                 journalRepository.updateWholeReport(r)
@@ -846,9 +840,12 @@ class LessonReportExecutor(
                 marksDialogComponent.nInterface.nStartLoading()
                 marksDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
                 val marks = journalRepository.fetchSubjectQuarterMarks(
-                    login,
-                    subjectId = state().subjectId,
-                    quartersNum = state().module.toString()
+                    RFetchSubjectQuarterMarksReceive(
+                        login = login,
+                        subjectId = state().subjectId,
+                        quartersNum = state().module.toString(),
+                        edYear = state().edYear
+                    )
                 ).marks.sortedBy { getLocalDate(it.date).toEpochDays() }.reversed()
                 if (login == state().detailedMarksLogin) {
                     dispatch(LessonReportStore.Message.DetailedMarksFetched(marks))

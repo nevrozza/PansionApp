@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 import report.DnevnikRuMarksSubject
 import report.ServerRatingUnit
 import report.UserMark
+import server.getCurrentEdYear
 import server.getPreviousWeekDays
 import server.getWeekDays
 
@@ -22,7 +23,7 @@ interface DnevnikRuMarkStore : Store<Intent, State, Label> {
         val isQuarters: Boolean? = null,
         val tabIndex: Int? = null,
         val tabsCount: Int = 0,
-
+        val edYear: Int = getCurrentEdYear(),
         val pickedSubjectId: Int = 0,
 
         val isTableView: Boolean,

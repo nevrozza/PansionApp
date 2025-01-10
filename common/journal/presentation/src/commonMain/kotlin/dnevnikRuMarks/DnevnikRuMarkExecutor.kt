@@ -16,6 +16,7 @@ import dnevnikRuMarks.DnevnikRuMarkStore.State
 import dnevnikRuMarks.DnevnikRuMarkStore.Message
 import kotlinx.coroutines.launch
 import report.DnevnikRuMarksSubject
+import report.RFetchDnevnikRuMarksReceive
 import server.sortedDate
 import studentReportDialog.StudentReportComponent
 import studentReportDialog.StudentReportDialogStore
@@ -126,9 +127,12 @@ class DnevnikRuMarkExecutor(
             nInterface.nStartLoading()
             try {
                 val subjects = journalRepository.fetchDnevnikRuMarks(
-                    state().studentLogin,
-                    quartersNum = state().tabIndex!!.toString(),
-                    isQuarters = state().isQuarters!!
+                    RFetchDnevnikRuMarksReceive(
+                        login = state().studentLogin,
+                        quartersNum = state().tabIndex!!.toString(),
+                        isQuarters = state().isQuarters!!,
+                        edYear = state().edYear
+                    )
                 ).subjects
                 dispatch(Message.SubjectsUpdated(subjects))
                 nInterface.nSuccess()

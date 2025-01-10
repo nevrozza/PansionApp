@@ -14,6 +14,7 @@ data class StudentLinesDTO(
     val groupName: String,
     val time: String,
     val date: String,
+    val edYear: Int,
     val module: String
 )
 

@@ -113,7 +113,7 @@ class AuthController {
             var likes = 0
             var dislikes = 0
 
-            StudentLines.fetchStudentLinesByLogin(r.studentLogin).forEach {
+            StudentLines.fetchStudentLinesByLogin(r.studentLogin, r.edYear).forEach {
                 if (it.isLiked == "t") {
                     likes++
                 } else if (it.isLiked == "f") {

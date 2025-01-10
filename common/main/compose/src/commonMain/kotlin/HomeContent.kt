@@ -58,6 +58,7 @@ import report.UserMark
 import resources.RIcons
 import server.*
 import view.*
+import dev.chrisbanes.haze.HazeInputScale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @ExperimentalLayoutApi
@@ -625,6 +626,7 @@ fun StudentHomeContent(
                     if (isHaze) Modifier.hazeChild(
                         hazeState
                     ) {
+                        inputScale = HazeInputScale.Fixed(0.7f)
                         mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = hazeProgressive
                     }

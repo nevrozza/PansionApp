@@ -12,6 +12,7 @@ import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import kotlinx.coroutines.launch
 import lessonReport.LessonReportStore
+import report.RFetchAllGroupMarksReceive
 
 class AllGroupMarksExecutor(
     private val nInterface: NetworkInterface,
@@ -65,8 +66,11 @@ class AllGroupMarksExecutor(
             nInterface.nStartLoading()
             try {
                 val r = journalRepository.fetchAllGroupMarks(
-                    state().groupId,
-                    subjectId = state().subjectId
+                    RFetchAllGroupMarksReceive(
+                        groupId = state().groupId,
+                        subjectId = state().subjectId,
+                        edYear = state().edYear
+                    )
                 )
                 val dates =
                     (r.students.flatMap {

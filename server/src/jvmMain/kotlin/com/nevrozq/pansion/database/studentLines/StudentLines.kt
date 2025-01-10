@@ -28,6 +28,7 @@ object StudentLines : Table() {
     val groupN = this.varchar("GroupName", 50)
     val timeN = this.varchar("time", 5)
     val dateN = this.varchar("date", 10)
+    val edYear = this.integer("edYear")
 
 
     private fun deleteStudentLine(login: String, reportId: Int) {
@@ -61,6 +62,7 @@ object StudentLines : Table() {
                     it[timeN] = studentLinesDTO.time
                     it[dateN] = studentLinesDTO.date
                     it[module] = studentLinesDTO.module
+                    it[edYear] = studentLinesDTO.edYear
                 }
             }
         } catch (e: Throwable) {
@@ -96,7 +98,8 @@ object StudentLines : Table() {
                         groupName = it[groupN],
                         time = it[timeN],
                         date = it[dateN],
-                        module = it[module]
+                        module = it[module],
+                        edYear = it[edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -106,11 +109,14 @@ object StudentLines : Table() {
         }
     }
 
-    fun fetchStudentLinesByLogin(login: String): List<StudentLinesDTO> {
+    fun fetchStudentLinesByLogin(login: String, edYear: Int): List<StudentLinesDTO> {
         return transaction {
             try {
                 val studentLines =
-                    StudentLines.select(StudentLines.login eq login)
+                    StudentLines.select(
+                        (StudentLines.login eq login) and
+                                (StudentLines.edYear eq edYear)
+                    )
                 studentLines.map {
                     StudentLinesDTO(
                         reportId = it[reportId],
@@ -124,7 +130,8 @@ object StudentLines : Table() {
                         groupName = it[groupN],
                         time = it[timeN],
                         date = it[dateN],
-                        module = it[module]
+                        module = it[module],
+                        edYear = it[StudentLines.edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -134,11 +141,13 @@ object StudentLines : Table() {
         }
     }
 
-    fun fetchStudentLinesByLoginAndGroup(login: String, groupId: Int): List<StudentLinesDTO> {
+    fun fetchStudentLinesByLoginAndGroup(login: String, groupId: Int, edYear: Int): List<StudentLinesDTO> {
         return transaction {
             try {
                 val studentLines =
-                    StudentLines.select{(StudentLines.login eq login) and (StudentLines.groupId eq groupId)}
+                    StudentLines.select {
+                        (StudentLines.login eq login) and (StudentLines.groupId eq groupId) and (StudentLines.edYear eq edYear)
+                    }
                 studentLines.map {
                     StudentLinesDTO(
                         reportId = it[reportId],
@@ -152,7 +161,8 @@ object StudentLines : Table() {
                         groupName = it[groupN],
                         time = it[timeN],
                         date = it[dateN],
-                        module = it[module]
+                        module = it[module],
+                        edYear = it[StudentLines.edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -162,11 +172,13 @@ object StudentLines : Table() {
         }
     }
 
-    fun fetchClientStudentLines(login: String): List<ClientStudentLine> {
+    fun fetchClientStudentLines(login: String, edYear: Int): List<ClientStudentLine> {
         return transaction {
             try {
                 val studentLines =
-                    StudentLines.select(StudentLines.login eq login)
+                    StudentLines.select(
+                        (StudentLines.login eq login) and (StudentLines.edYear eq edYear)
+                    )
                 studentLines.map {
                     val reportHeader = ReportHeaders.fetchHeader(it[reportId])
 
@@ -192,7 +204,7 @@ object StudentLines : Table() {
                         groupName = it[groupN],
                         time = it[timeN],
                         date = it[dateN],
-                        login= it[StudentLines.login],
+                        login = it[StudentLines.login],
                         topic = reportHeader.topic
                     )
                 }
@@ -202,6 +214,7 @@ object StudentLines : Table() {
             }
         }
     }
+
     fun fetchClientStudentLines(login: String, date: String): List<ClientStudentLine> {
         return transaction {
             try {
@@ -232,7 +245,7 @@ object StudentLines : Table() {
                         groupName = it[groupN],
                         time = it[timeN],
                         date = it[dateN],
-                        login= it[StudentLines.login],
+                        login = it[StudentLines.login],
                         topic = reportHeader.topic
                     )
                 }

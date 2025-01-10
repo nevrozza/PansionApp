@@ -8,6 +8,7 @@ import com.arkivanov.mvikotlin.core.store.Store
 import profile.ProfileStore.Intent
 import profile.ProfileStore.Label
 import profile.ProfileStore.State
+import server.getCurrentEdYear
 
 interface ProfileStore : Store<Intent, State, Label> {
     data class State(
@@ -27,6 +28,8 @@ interface ProfileStore : Store<Intent, State, Label> {
         val giaSubjects: List<Int> = emptyList(),
         val ministryId: String = "0",
         val ministryLvl: String = "0",
+
+        val edYear: Int = getCurrentEdYear(),
 
         val pansCoins: Int = 0,
         val avatars: List<Int>? = null

@@ -17,7 +17,8 @@ data class RUpdateReportReceive(
     val isMentorWas: Boolean,
     val students: List<ServerStudentLine>,
     val marks: List<ServerRatingUnit>,
-    val stups: List<ServerRatingUnit>
+    val stups: List<ServerRatingUnit>,
+    val edYear: Int
 )
 
 

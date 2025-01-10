@@ -25,6 +25,8 @@ import report.RCreateReportReceive
 import report.RUpdateReportReceive
 import report.ServerRatingUnit
 import server.getDate
+import server.getEdYear
+import server.getLocalDate
 import server.getSixTime
 import javax.management.monitor.StringMonitor
 import kotlin.math.abs
@@ -147,7 +149,8 @@ object ReportHeaders : Table() {
                         groupName = groupN,
                         time = getSixTime(),
                         date = getDate(),
-                        module = module
+                        module = module,
+                        edYear = getEdYear(getLocalDate(r.date))
                     ),
                     isDelete = false
                 )
@@ -258,7 +261,8 @@ object ReportHeaders : Table() {
                             deployTime = i.deployTime,
                             deployLogin = i.deployLogin,
                             deployDate = i.deployDate,
-                            custom = i.custom
+                            custom = i.custom,
+                            edYear = r.edYear
                         ),
                         isDelete = false
                     )

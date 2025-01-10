@@ -8,6 +8,7 @@ import ministry.MinistryStore.Intent
 import ministry.MinistryStore.Label
 import ministry.MinistryStore.State
 import server.getCurrentDate
+import server.getCurrentEdYear
 import server.getDates
 
 interface MinistryStore : Store<Intent, State, Label> {
@@ -17,7 +18,6 @@ interface MinistryStore : Store<Intent, State, Label> {
         val isMultiMinistry: Boolean? = null,
         val pickedMinistry: String = "0",
         val ministryList: List<MinistryListItem> = emptyList(),
-
         val mvdLogin: String = "",
         val mvdReportId: Int? = null,
         val mvdCustom: String = "",

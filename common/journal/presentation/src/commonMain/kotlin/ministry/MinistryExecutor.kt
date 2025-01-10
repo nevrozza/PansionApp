@@ -17,6 +17,8 @@ import ministry.MinistryStore.Intent
 import ministry.MinistryStore.Label
 import ministry.MinistryStore.Message
 import ministry.MinistryStore.State
+import server.getEdYear
+import server.getLocalDate
 
 class MinistryExecutor(
     private val nInterface: NetworkInterface,
@@ -106,11 +108,13 @@ class MinistryExecutor(
                 val oldStup = oldItem.kids.first { it.login == login }
                     .dayStups.firstOrNull { s -> s.reportId == reportId && s.reason == reason }
                 if (oldStup != newStup) {
+                    val date = state().currentDate.second
                     journalRepository.uploadMinistryStup(
                         RUploadMinistryStup(
                             studentLogin = login,
                             stup = newStup,
-                            date = state().currentDate.second
+                            date = date,
+                            edYear = getEdYear(getLocalDate(date))
                         )
                     )
 

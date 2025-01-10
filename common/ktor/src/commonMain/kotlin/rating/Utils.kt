@@ -2,6 +2,7 @@ package rating
 
 import FIO
 import kotlinx.serialization.Serializable
+import server.twoNums
 
 @Serializable
 data class RatingItem(
@@ -15,3 +16,43 @@ data class RatingItem(
     val formShortTitle: String,
     val avg: String
 )
+
+
+@Serializable
+sealed interface PansionPeriod {
+    @Serializable
+    data class Week(val num: Int) : PansionPeriod
+
+    @Serializable
+    data class Module(val num: Int) : PansionPeriod
+
+    @Serializable
+    data class Half(val num: Int) : PansionPeriod
+
+    @Serializable
+    data object Year : PansionPeriod
+}
+
+fun PansionPeriod.toStr(): String {
+    return when (this) {
+        is PansionPeriod.Half -> "h${this.num}"
+        is PansionPeriod.Module -> "m${this.num.twoNums()}"
+        is PansionPeriod.Week -> "w${this.num.twoNums()}"
+        PansionPeriod.Year -> "y"
+    }
+}
+
+fun String.toPeriod(): PansionPeriod {
+    val num = this.removePrefix("h")
+        .removePrefix("m")
+        .removePrefix("w")
+        .removePrefix("y").toInt()
+    return when (this[0]) {
+        'h' -> PansionPeriod.Half(num)
+        'm' -> PansionPeriod.Module(num)
+        'w' -> PansionPeriod.Week(num)
+
+        'y' -> PansionPeriod.Year
+        else -> rating.PansionPeriod.Year
+    }
+}

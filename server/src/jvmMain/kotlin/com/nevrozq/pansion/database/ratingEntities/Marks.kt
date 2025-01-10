@@ -8,10 +8,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import report.RIsQuartersReceive
 
 object Marks : RatingEntity() {
-    fun fetchAVG(login: String, subjectId: Int): ForAvg {
+    fun fetchAVG(login: String, subjectId: Int, edYear: Int): ForAvg {
         return transaction {
             val isQuarter = isQuarter(RIsQuartersReceive(login))
-            val marks = Marks.fetchForUserSubjectQuarter(login, subjectId, if(isQuarter) "4" else "34")
+            val marks = Marks.fetchForUserSubjectQuarter(login, subjectId, if(isQuarter) "4" else "34", edYear)
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }
@@ -37,18 +37,18 @@ object Marks : RatingEntity() {
             )
         }
     }
-    fun fetchYearSubjectAVG(login: String, subjectId: Int): ForAvg {
+    fun fetchYearSubjectAVG(login: String, subjectId: Int, edYear: Int): ForAvg {
         return transaction {
-            val marks = fetchForUser(login).filter { it.subjectId == subjectId }
+            val marks = fetchForUser(login, edYear).filter { it.subjectId == subjectId }
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }
             )
         }
     }
-    fun fetchModuleSubjectAVG(login: String, subjectId: Int, module: String): ForAvg {
+    fun fetchModuleSubjectAVG(login: String, subjectId: Int, module: String, edYear: Int): ForAvg {
         return transaction {
-            val marks = fetchForUser(login).filter { it.subjectId == subjectId && it.part == module}
+            val marks = fetchForUser(login, edYear).filter { it.subjectId == subjectId && it.part == module}
             ForAvg(
                 count = marks.size,
                 sum = marks.sumOf { it.content.toInt() }
@@ -76,9 +76,9 @@ object Marks : RatingEntity() {
             )
         }
     }
-    fun fetchYearAVG(login: String): ForAvg {
+    fun fetchYearAVG(login: String, edYear: Int): ForAvg {
         return transaction {
-            val marks = fetchForUser(login)
+            val marks = fetchForUser(login, edYear)
 
             ForAvg(
                 count = marks.size,
@@ -86,9 +86,9 @@ object Marks : RatingEntity() {
             )
         }
     }
-    fun fetchModuleAVG(login: String, module: String): ForAvg {
+    fun fetchModuleAVG(login: String, module: String, edYear: Int): ForAvg {
         return transaction {
-            val marks = fetchForUser(login).filter { it.part == module}
+            val marks = fetchForUser(login, edYear).filter { it.part == module}
 
             ForAvg(
                 count = marks.size,
@@ -97,11 +97,11 @@ object Marks : RatingEntity() {
         }
     }
 
-    fun fetchHalfYearAVG(login: String, module: String): ForAvg {
+    fun fetchHalfYearAVG(login: String, module: String, edYear: Int): ForAvg {
         return transaction {
             val c = Calendar.getHalfOfModule(module.toInt())
             val x = Calendar.getAllModulesOfHalfAsString(c)
-            val marks = fetchForUser(login).filter { it.part in x.map { it.toString() } }
+            val marks = fetchForUser(login, edYear).filter { it.part in x.map { it.toString() } }
 
             ForAvg(
                 count = marks.size,
@@ -109,10 +109,10 @@ object Marks : RatingEntity() {
             )
         }
     }
-    fun fetchHalfYearAVG(login: String, halfYear: Int): ForAvg {
+    fun fetchHalfYearAVG(login: String, halfYear: Int, edYear: Int): ForAvg {
         return transaction {
             val x = Calendar.getAllModulesOfHalfAsString(halfYear)
-            val marks = fetchForUser(login).filter { it.part in x.map { it.toString() } }
+            val marks = fetchForUser(login, edYear).filter { it.part in x.map { it.toString() } }
 
             ForAvg(
                 count = marks.size,

@@ -2,6 +2,7 @@ package studentLines
 
 import com.arkivanov.mvikotlin.core.store.Store
 import report.ClientStudentLine
+import server.getCurrentEdYear
 import studentLines.StudentLinesStore.Intent
 import studentLines.StudentLinesStore.Label
 import studentLines.StudentLinesStore.State
@@ -9,6 +10,7 @@ import studentLines.StudentLinesStore.State
 interface StudentLinesStore : Store<Intent, State, Label> {
     data class State(
         val studentLines: List<ClientStudentLine> = emptyList(),
+        val edYear: Int = getCurrentEdYear(),
         val login: String
     )
 

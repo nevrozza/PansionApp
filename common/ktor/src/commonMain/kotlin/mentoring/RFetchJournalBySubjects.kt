@@ -10,7 +10,8 @@ import report.UserMarkPlus
 
 @Serializable
 data class RFetchJournalBySubjectsReceive(
-    val forms: List<Int>
+    val forms: List<Int>,
+    val edYear: Int
 )
 
 @Serializable

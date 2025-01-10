@@ -20,6 +20,9 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import rating.PansionPeriod
+import rating.toPeriod
+import rating.toStr
 import report.RCreateReportReceive
 import report.RUpdateReportReceive
 import report.ServerRatingUnit
@@ -38,6 +41,8 @@ open class RatingTable : Table() {
     private val formShortTitle = varchar("formShortTitle", 11)
     private val formNum = integer("formNum")
     private val subjectId = integer("subjectId")
+    val edYear = integer("edYear")
+    private val period = this.varchar("period", 5)
 
     fun insert(i: RatingTableDTO) {
         this@RatingTable.insert {
@@ -53,6 +58,8 @@ open class RatingTable : Table() {
             it[formShortTitle] = i.formShortTitle
             it[avg] = i.avg
             it[subjectId] = i.subjectId
+            it[period] = i.period.toStr()
+            it[edYear] = i.edYear
         }
 
     }
@@ -72,14 +79,26 @@ open class RatingTable : Table() {
                     formNum = it[formNum],
                     formShortTitle = it[formShortTitle],
                     avg = it[avg],
-                    subjectId = it[subjectId]
+                    subjectId = it[subjectId],
+                    edYear = it[edYear],
+                    period = it[period].toPeriod()
                 )
             }
         }
     }
-    fun fetchRatingOf(login: String, subjectId: Int): RatingTableDTO? {
+    fun fetchRatingOf(
+        login: String,
+        subjectId: Int,
+        edYear: Int,
+        period: PansionPeriod
+    ): RatingTableDTO? {
         return transaction {
-            this@RatingTable.select{(this@RatingTable.login eq login) and (this@RatingTable.subjectId eq subjectId)}.map {
+            this@RatingTable.select{
+                (this@RatingTable.login eq login) and
+                        (this@RatingTable.subjectId eq subjectId) and
+                        (this@RatingTable.edYear eq edYear) and
+                        (this@RatingTable.period eq period.toStr())
+            }.map {
                 RatingTableDTO(
                     login = it[this@RatingTable.login],
                     name = it[name],
@@ -92,7 +111,9 @@ open class RatingTable : Table() {
                     formNum = it[formNum],
                     formShortTitle = it[formShortTitle],
                     avg = it[avg],
-                    subjectId = it[this@RatingTable.subjectId]
+                    subjectId = it[this@RatingTable.subjectId],
+                    edYear = it[this@RatingTable.edYear],
+                    period = it[this@RatingTable.period].toPeriod()
                 )
             }.firstOrNull()
         }
@@ -100,7 +121,6 @@ open class RatingTable : Table() {
 
     fun saveRatings(list: List<RatingTableDTO>) {
         return transaction {
-            this@RatingTable.deleteAll()
             list.forEach { i ->
                 this@RatingTable.insert {
                     it[login] = i.login
@@ -115,6 +135,8 @@ open class RatingTable : Table() {
                     it[formShortTitle] = i.formShortTitle
                     it[avg] = i.avg
                     it[subjectId] = i.subjectId
+                    it[period] = i.period.toStr()
+                    it[edYear] = i.edYear
                 }
             }
         }

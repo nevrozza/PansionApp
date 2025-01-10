@@ -24,7 +24,7 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
     }
 
 const val applicationVersion = 22
-const val applicationVersionString = "1.2.21"
+const val applicationVersionString = "1.2.22"
 
 
 const val isTestMode = true//false

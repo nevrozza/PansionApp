@@ -95,8 +95,8 @@ class AdminRepositoryImpl(
         return remoteDataSource.fetchCalendar()
     }
 
-    override suspend fun updateCalendar(calendar: List<CalendarModuleItem>) {
-        remoteDataSource.updateCalendar(RUpdateCalendarReceive(items = calendar))
+    override suspend fun updateCalendar(r: RUpdateCalendarReceive) {
+        remoteDataSource.updateCalendar(r)
     }
 
     override suspend fun fetchCabinets(): RFetchCabinetsResponse {

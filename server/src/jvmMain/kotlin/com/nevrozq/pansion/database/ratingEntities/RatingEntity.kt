@@ -26,6 +26,7 @@ open class RatingEntity : Table() {
     val content = this.varchar("content", 5)
     val reason = this.varchar("reason", 5)
     val id = this.integer("id")
+    val edYear = this.integer("edYear")
     val part = this.varchar("part", 1)
     val date = this.varchar("date", 10)
     val isGoToAvg = this.bool("isGoToAvg")
@@ -69,6 +70,7 @@ open class RatingEntity : Table() {
                     it[deployTime] = r.deployTime
                     it[deployLogin] = r.deployLogin
                     it[custom] = r.custom
+                    it[edYear] = r.edYear
                 }
             }
         } catch (e: Throwable) {
@@ -105,7 +107,8 @@ open class RatingEntity : Table() {
                         deployDate = it[deployDate],
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -115,11 +118,15 @@ open class RatingEntity : Table() {
         }
     }
 
-    fun fetchForReportQuarters(reportId: Int, quartersNum: String) : List<RatingEntityDTO> {
+    fun fetchForReportQuarters(reportId: Int, quartersNum: String, edYear: Int) : List<RatingEntityDTO> {
         return transaction {
             try {
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.reportId eq reportId) and (this@RatingEntity.part inList quartersNum.map { it.toString() }) }
+                    this@RatingEntity.select {
+                        (this@RatingEntity.reportId eq reportId) and
+                                (this@RatingEntity.part inList quartersNum.map { it.toString() }) and
+                                (this@RatingEntity.edYear eq edYear)
+                    }
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],
@@ -135,7 +142,8 @@ open class RatingEntity : Table() {
                         deployLogin = it[deployLogin],
                         deployTime = it[deployTime],
                         deployDate = it[deployDate],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[this@RatingEntity.edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -165,7 +173,8 @@ open class RatingEntity : Table() {
                         deployDate = it[deployDate],
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -194,7 +203,8 @@ open class RatingEntity : Table() {
                         deployDate = it[deployDate],
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -209,7 +219,8 @@ open class RatingEntity : Table() {
             try {
 
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.isGoToAvg eq true) and (this@RatingEntity.date eq date) }.reversed()
+                    this@RatingEntity.select {
+                        (this@RatingEntity.login eq login) and (this@RatingEntity.isGoToAvg eq true) and (this@RatingEntity.date eq date) }.reversed()
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],
@@ -225,7 +236,8 @@ open class RatingEntity : Table() {
                         deployDate = it[deployDate],
                         deployLogin = it[deployLogin],
                         deployTime = it[deployTime],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -236,12 +248,16 @@ open class RatingEntity : Table() {
     }
 
 
-    fun fetchRecentForUser(login: String, limit: Int) : List<RatingEntityDTO> {
+    fun fetchRecentForUser(login: String, limit: Int, edYear: Int) : List<RatingEntityDTO> {
         return transaction {
             try {
 
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.isGoToAvg eq true)}.reversed()
+                    this@RatingEntity.select {
+                        (this@RatingEntity.login eq login) and
+                                (this@RatingEntity.isGoToAvg eq true) and
+                                (this@RatingEntity.edYear eq edYear)
+                    }.reversed()
 
                 val n = if(limit > ratingEntities.size) ratingEntities.size else limit
                 ratingEntities.slice(0..n-1).map {
@@ -259,7 +275,8 @@ open class RatingEntity : Table() {
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
                         deployDate = it[deployDate],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[this@RatingEntity.edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -269,11 +286,14 @@ open class RatingEntity : Table() {
         }
     }
 
-    fun fetchForUser(login: String) : List<RatingEntityDTO> {
+    fun fetchForUser(login: String, edYear: Int) : List<RatingEntityDTO> {
         return transaction {
             try {
                 val ratingEntities =
-                    this@RatingEntity.select { this@RatingEntity.login eq login }
+                    this@RatingEntity.select {
+                        (this@RatingEntity.login eq login) and
+                                (this@RatingEntity.edYear eq edYear)
+                    }
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],
@@ -289,7 +309,8 @@ open class RatingEntity : Table() {
                         deployDate = it[deployDate],
                         deployLogin = it[deployLogin],
                         deployTime = it[deployTime],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[this@RatingEntity.edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -299,14 +320,17 @@ open class RatingEntity : Table() {
         }
     }
 
-    fun fetchForUserQuarters(login: String, quartersNum: String, isQuarters: Boolean) : List<RatingEntityDTO> {
-
+    fun fetchForUserQuarters(login: String, quartersNum: String, isQuarters: Boolean, edYear: Int) : List<RatingEntityDTO> {
         val x = if(isQuarters) quartersNum else Calendar.getAllModulesOfHalfAsString(quartersNum.toInt())
         val quartersList = x.map { it.toString() }
         return transaction {
             try {
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.part inList quartersList) }
+                    this@RatingEntity.select {
+                        (this@RatingEntity.login eq login) and
+                                (this@RatingEntity.part inList quartersList) and
+                                (this@RatingEntity.edYear eq edYear)
+                    }
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],
@@ -322,7 +346,8 @@ open class RatingEntity : Table() {
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
                         deployDate = it[deployDate],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[this@RatingEntity.edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -332,11 +357,16 @@ open class RatingEntity : Table() {
         }
     }
 
-    fun fetchForUserSubjectQuarter(login: String, subjectId: Int, quartersNum: String) : List<RatingEntityDTO> {
+    fun fetchForUserSubjectQuarter(login: String, subjectId: Int, quartersNum: String, edYear: Int) : List<RatingEntityDTO> {
         return transaction {
             try {
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.subjectId eq subjectId)  and (this@RatingEntity.part inList quartersNum.map { it.toString() }) }
+                    this@RatingEntity.select {
+                        (this@RatingEntity.login eq login) and
+                                (this@RatingEntity.subjectId eq subjectId)  and
+                                (this@RatingEntity.part inList quartersNum.map { it.toString() }) and
+                                (this@RatingEntity.edYear eq edYear)
+                    }
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],
@@ -352,7 +382,8 @@ open class RatingEntity : Table() {
                         deployDate = it[deployDate],
                         deployLogin = it[deployLogin],
                         deployTime = it[deployTime],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[this@RatingEntity.edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -362,11 +393,15 @@ open class RatingEntity : Table() {
         }
     }
 
-    fun fetchForUserSubject(login: String, subjectId: Int) : List<RatingEntityDTO> {
+    fun fetchForUserSubject(login: String, subjectId: Int, edYear: Int) : List<RatingEntityDTO> {
         return transaction {
             try {
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.subjectId eq subjectId) }
+                    this@RatingEntity.select {
+                        (this@RatingEntity.login eq login) and
+                                (this@RatingEntity.subjectId eq subjectId) and
+                                (this@RatingEntity.edYear eq edYear)
+                    }
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],
@@ -382,7 +417,8 @@ open class RatingEntity : Table() {
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
                         deployDate = it[deployDate],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[this@RatingEntity.edYear]
                     )
                 }
             } catch (e: Throwable) {
@@ -391,11 +427,12 @@ open class RatingEntity : Table() {
             }
         }
     }
-    fun fetchForUserGroup(login: String, groupId: Int) : List<RatingEntityDTO> {
+    fun fetchForUserGroup(login: String, groupId: Int, edYear: Int) : List<RatingEntityDTO> {
         return transaction {
             try {
                 val ratingEntities =
-                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.groupId eq groupId) }
+                    this@RatingEntity.select { (this@RatingEntity.login eq login) and (this@RatingEntity.groupId eq groupId) and
+                                (this@RatingEntity.edYear eq edYear) }
                 ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[this@RatingEntity.groupId],
@@ -411,7 +448,8 @@ open class RatingEntity : Table() {
                         deployTime = it[deployTime],
                         deployLogin = it[deployLogin],
                         deployDate = it[deployDate],
-                        custom = it[custom]
+                        custom = it[custom],
+                        edYear = it[this@RatingEntity.edYear]
                     )
                 }
             } catch (e: Throwable) {

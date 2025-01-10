@@ -91,8 +91,8 @@ class JournalRepositoryImpl(
         return remoteDataSource.fetchReportStudents(r)
     }
 
-    override suspend fun fetchDnevnikRuMarks(login: String, quartersNum: String, isQuarters: Boolean): RFetchDnevnikRuMarksResponse {
-        return remoteDataSource.fetchDnevnikRuMarks(RFetchDnevnikRuMarksReceive(login, quartersNum, isQuarters))
+    override suspend fun fetchDnevnikRuMarks(r: RFetchDnevnikRuMarksReceive): RFetchDnevnikRuMarksResponse {
+        return remoteDataSource.fetchDnevnikRuMarks(r)
     }
 
     override suspend fun fetchFullReportData(reportId: Int): ReportData {
@@ -100,34 +100,24 @@ class JournalRepositoryImpl(
     }
 
     override suspend fun fetchSubjectQuarterMarks(
-        login: String,
-        subjectId: Int,
-        quartersNum: String
+        r: RFetchSubjectQuarterMarksReceive
     ): RFetchSubjectQuarterMarksResponse {
-        return remoteDataSource.fetchSubjectQuarterMarks(RFetchSubjectQuarterMarksReceive(
-            subjectId = subjectId,
-            login = login,
-            quartersNum = quartersNum
-        ))
+        return remoteDataSource.fetchSubjectQuarterMarks(r)
     }
 
     override suspend fun fetchIsQuarter(login: String): RIsQuartersResponse {
         return remoteDataSource.fetchIsQuarter(RIsQuartersReceive(login))
     }
 
-    override suspend fun fetchAllStups(login: String): RFetchDetailedStupsResponse {
-        return remoteDataSource.fetchAllStups(RFetchDetailedStupsReceive(login))
+    override suspend fun fetchAllStups(r: RFetchDetailedStupsReceive): RFetchDetailedStupsResponse {
+        return remoteDataSource.fetchAllStups(r)
     }
 
     override suspend fun fetchAllGroupMarks(
-        groupId: Int,
-        subjectId: Int
+        r: RFetchAllGroupMarksReceive
     ): RFetchAllGroupMarksResponse {
         return remoteDataSource.fetchAllGroupMarks(
-            RFetchAllGroupMarksReceive(
-                subjectId = subjectId,
-                groupId = groupId
-            )
+            r
         )
     }
 }

@@ -76,10 +76,12 @@ class MentoringController {
                 s.first to x.flatMap { subjectId ->
                     (Marks.fetchForUserSubject(
                         login = s.first,
-                        subjectId = subjectId
+                        subjectId = subjectId,
+                        edYear = r.edYear
                     ) + Stups.fetchForUserSubject(
                         login = s.first,
-                        subjectId = subjectId
+                        subjectId = subjectId,
+                        edYear = r.edYear
                     )).mapNotNull {
                         if (it.groupId != null && it.reportId != null) {
                             UserMarkPlus(
@@ -109,7 +111,7 @@ class MentoringController {
 
             val nki = students.toList().associate { s ->
                 s.first to s.second.flatMap { g ->
-                    val sLines = StudentLines.fetchStudentLinesByLoginAndGroup(s.first, g)
+                    val sLines = StudentLines.fetchStudentLinesByLoginAndGroup(s.first, g, edYear = r.edYear)
                     sLines.mapNotNull {
                         if (it.attended !in listOf(
                                 null,

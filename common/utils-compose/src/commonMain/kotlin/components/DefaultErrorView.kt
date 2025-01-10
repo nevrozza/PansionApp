@@ -51,7 +51,7 @@ fun DefaultErrorView(
             val chevronRotation = animateFloatAsState(if (isErrorExpanded.value) 90f else -90f)
             GetAsyncIcon(
                 path = RIcons.ChevronLeft,
-                modifier = Modifier.padding(start = 10.dp).rotate(chevronRotation.value),
+                modifier = Modifier.padding(start = 5.dp).offset(y = 1.dp).rotate(chevronRotation.value),
                 size = 15.dp
             )
         }

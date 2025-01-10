@@ -58,6 +58,7 @@ import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.groups.mapToCutedGroup
 import com.nevrozq.pansion.database.groups.mapToGroup
 import com.nevrozq.pansion.database.groups.mapToTeacherGroup
+import com.nevrozq.pansion.database.holidays.Holidays
 import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
@@ -198,7 +199,7 @@ class LessonsController() {
             )
         }
         val nKiOpozd =
-            StudentLines.fetchStudentLinesByLogin(login = studentLogin).mapNotNull { x ->
+            StudentLines.fetchStudentLinesByLogin(login = studentLogin, edYear = getCurrentEdYear()).mapNotNull { x ->
                 val isL = x.isLiked in listOf("f", "t")
                 val isNka = x.attended == "1" || x.attended == "2"
                 val group = groups.firstOrNull { it.id == x.groupId }
@@ -340,6 +341,7 @@ class LessonsController() {
         val perm = call.isMember
         call.dRes(perm, "Can't fetch calendar") {
             val calendar = Calendar.getAllModules()
+            val holidays = Holidays.fetchAll()
             this.respond(
                 RFetchCalendarResponse(
                     items = calendar.map {
@@ -348,7 +350,8 @@ class LessonsController() {
                             start = it.start,
                             halfNum = it.halfNum
                         )
-                    }
+                    },
+                    holidays = holidays
                 )).done
         }
     }
@@ -364,6 +367,7 @@ class LessonsController() {
                     halfNum = it.halfNum
                 )
             })
+            Holidays.insertList(r.holidays)
             this.respond(HttpStatusCode.OK).done
         }
     }

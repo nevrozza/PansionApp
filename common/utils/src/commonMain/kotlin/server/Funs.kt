@@ -1,15 +1,19 @@
 package server
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
-import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.todayIn
+import kotlinx.datetime.*
 
+fun getCurrentEdYear(): Int {
+    val today = Clock.System.now().toLocalDateTime(appTimeZone).date
+    return getEdYear(today)
+}
+
+fun getEdYear(today: LocalDate): Int {
+    return if (today.monthNumber > 6) {
+        today.year
+    } else {
+        today.year - 1
+    }
+}
 
 fun String.toMinutes(): Int {
     val parts = this.split(":")
@@ -31,8 +35,11 @@ fun getLocalDate(date: String): LocalDate {
     )
 }
 
-fun getCurrentDayTime() : String {
-    val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
+fun LocalDateTime.to10() = date.to10()//"${date.dayOfMonth.twoNums()}.${date.monthNumber.twoNums()}.${date.year}"
+fun LocalDate.to10() = "${dayOfMonth.twoNums()}.${monthNumber.twoNums()}.${year}"
+
+fun getCurrentDayTime(): String {
+    val today = Clock.System.now().toLocalDateTime(appTimeZone)
     return "${today.time.hour.twoNums()}:${today.time.minute.twoNums()}"
 }
 
@@ -48,6 +55,7 @@ fun isTimeFormat(str: String): Boolean {
         return (pattern.matches(str) && start < end)
     } else return false
 }
+
 fun getWeekDays(): List<String> {
     val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).date
     val days = mutableListOf<LocalDate>()
@@ -65,7 +73,8 @@ fun getWeekDays(): List<String> {
 fun getPreviousWeekDays(): List<String> {
     val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).date
     val days = mutableListOf<LocalDate>()
-    val firstWeekDay = today.daysShift(-DayOfWeek.entries.indexOf(today.dayOfWeek) - 7) // Calculate the first day of the previous week
+    val firstWeekDay =
+        today.daysShift(-DayOfWeek.entries.indexOf(today.dayOfWeek) - 7) // Calculate the first day of the previous week
 
     for (i in 0 until 7) { // Iterate for 7 days for the previous week
         days.add(firstWeekDay.daysShift(i))
@@ -79,7 +88,7 @@ fun getPreviousWeekDays(): List<String> {
 }
 
 fun fetchReason(reasonId: String): String {
-    return if(reasonId.subSequence(0,3) == "!ds") {
+    return if (reasonId.subSequence(0, 3) == "!ds") {
         fetchTitle(reasonId)
     } else {
         return when (reasonId.subSequence(0, 3)) {
@@ -117,7 +126,7 @@ fun fetchTitle(reasonId: String): String {
         }
 
         "!st" -> {
-            when(reasonId.last()) {
+            when (reasonId.last()) {
                 '1' -> "ДЗ"
                 '2' -> "М/К"
                 '3' -> "Тетрадь"
@@ -128,7 +137,7 @@ fun fetchTitle(reasonId: String): String {
         }
 
         "!ds" -> {
-            when(reasonId.last()) {
+            when (reasonId.last()) {
                 '1' -> "Готовность"
                 '2' -> "Поведение"
                 '3' -> "Нарушение"
@@ -143,7 +152,7 @@ fun fetchTitle(reasonId: String): String {
 //        "!zd6" to "Причёски",
 //        "!zd7" to "Ногти, макияж"
         "!zd" -> {
-            when(reasonId.last()) {
+            when (reasonId.last()) {
                 '1' -> "Манжеты"
                 '2' -> "Ворот"
                 '3' -> "Утюг"
@@ -164,9 +173,11 @@ fun LocalDate.daysShift(days: Int): LocalDate = when {
     days < 0 -> {
         minus(1, DateTimeUnit.DayBased(-days))
     }
+
     days > 0 -> {
         plus(1, DateTimeUnit.DayBased(days))
     }
+
     else -> this
 }
 
@@ -186,11 +197,13 @@ fun getSixteenTime(): String {
             "${time.month.toString().subSequence(0, 3)}-" +
             "${time.year.toString().subSequence(2, 4)}"
 }
+
 fun getSixTime(): String {
     val time = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
     return "${time.hour.twoNums()}:" +
             time.minute.twoNums()
 }
+
 fun getDate(): String {
     val time = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
     return "${time.dayOfMonth.twoNums()}." +
@@ -204,10 +217,10 @@ fun Float.roundTo(numFractionDigits: Int): String {
     } else {
         //wasm fix... why(
         val strFirst = this.toString()
-        val cutLength = strFirst.split(".")[0].length+1+ numFractionDigits
+        val cutLength = strFirst.split(".")[0].length + 1 + numFractionDigits
         var str = strFirst.cut(cutLength)
-        if (strFirst.cut(cutLength+1).last().toString().toInt() >= 5) {
-            str = strFirst.cut(cutLength-1) + (str.last().toString().toInt()+1)
+        if (strFirst.cut(cutLength + 1).last().toString().toInt() >= 5) {
+            str = strFirst.cut(cutLength - 1) + (str.last().toString().toInt() + 1)
         }
         return str
 //        println("FULL OF SADNESS: ${str}")
@@ -220,8 +233,8 @@ fun Float.roundTo(numFractionDigits: Int): String {
 }
 
 fun Int.toSixTime(): String {
-    val hour = this/60
-    val minutes = this - 60*hour
+    val hour = this / 60
+    val minutes = this - 60 * hour
 
     return "${hour.twoNums()}:" +
             minutes.twoNums()

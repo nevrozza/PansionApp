@@ -11,7 +11,8 @@ import report.StudentNka
 data class RUploadMinistryStup(
     val studentLogin: String,
     val stup: MinistryStup,
-    val date: String
+    val date: String,
+    val edYear: Int
 )
 
 

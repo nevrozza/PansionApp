@@ -70,8 +70,8 @@ class AuthRepositoryImpl(
         remoteDataSource.checkPickedGIA(r)
     }
 
-    override suspend fun fetchAboutMe(studentLogin: String): RFetchAboutMeResponse {
-        return remoteDataSource.fetchAboutMe(RFetchAboutMeReceive(studentLogin = studentLogin))
+    override suspend fun fetchAboutMe(r: RFetchAboutMeReceive): RFetchAboutMeResponse {
+        return remoteDataSource.fetchAboutMe(r)
     }
 
     override suspend fun checkConnection(): RCheckConnectionResponse {

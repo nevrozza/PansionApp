@@ -5,6 +5,7 @@ import detailedStups.DetailedStupsStore.Intent
 import detailedStups.DetailedStupsStore.Label
 import detailedStups.DetailedStupsStore.State
 import report.DetailedStupsSubject
+import server.getCurrentEdYear
 import server.getWeekDays
 
 interface DetailedStupsStore : Store<Intent, State, Label> {
@@ -13,7 +14,7 @@ interface DetailedStupsStore : Store<Intent, State, Label> {
         val reason: String,
         val weekDays: List<String> = getWeekDays(),
         val subjects: List<DetailedStupsSubject> = emptyList(),
-
+        val edYear: Int = getCurrentEdYear(),
         val name: String,
         val avatarId: Int,
     )

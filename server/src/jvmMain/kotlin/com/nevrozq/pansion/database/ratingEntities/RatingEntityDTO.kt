@@ -17,6 +17,7 @@ data class RatingEntityDTO(
     val part: String,
     val isGoToAvg: Boolean,
     val date: String,
+    val edYear: Int,
     val deployDate: String,
     val deployTime: String,
     val deployLogin: String,

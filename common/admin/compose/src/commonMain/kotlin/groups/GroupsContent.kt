@@ -1,5 +1,5 @@
 package groups
-
+import dev.chrisbanes.haze.HazeInputScale
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -102,6 +102,7 @@ fun GroupsContent(
                         state = hazeState,
                         style = LocalHazeStyle.current
                     ) {
+                        inputScale = HazeInputScale.Fixed(0.7f)
                         mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = hazeProgressive
                     }

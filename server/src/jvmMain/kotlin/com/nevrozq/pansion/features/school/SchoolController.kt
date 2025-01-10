@@ -164,6 +164,7 @@ class SchoolController {
 
     suspend fun fetchMinistryList(call: ApplicationCall) {
         val perm = call.isMember
+        val edYear = getCurrentEdYear()
         call.dRes(perm, "Can't fetch ministry list") {
             val r = call.receive<RMinistryListReceive>()
             val ministry = StudentMinistry.fetchMinistryWithLogin(call.login)
@@ -249,7 +250,7 @@ class SchoolController {
                     listOf()
                 }
 
-                val stups = Stups.fetchForUser(login = it.login).filter {
+                val stups = Stups.fetchForUser(login = it.login, edYear = edYear).filter {
                     if (r.ministryId == Ministries.MVD) it.reason.subSequence(0, 3) == "!ds"
                     else if (r.ministryId == Ministries.DressCode) it.reason.subSequence(0, 3) == "!zd"
                     else false
@@ -429,7 +430,7 @@ class SchoolController {
             } else listOf(r.formId)
 
             val studentsForRating: MutableList<FormRatingStudent> = mutableListOf()
-
+            val edYear = getCurrentEdYear()
             formIds.forEach { formId ->
                 val studentLogins = StudentsInForm.fetchStudentsLoginsByFormId(formId)
                 studentLogins.forEach { login ->
@@ -444,9 +445,9 @@ class SchoolController {
                         val avg = when (r.period) {
                             0 -> Marks.fetchWeekAVG(login)
                             1 -> Marks.fetchPreviousWeekAVG(login)
-                            2 -> Marks.fetchModuleAVG(login, module!!.num.toString())
-                            3 -> Marks.fetchHalfYearAVG(login, module!!.halfNum)
-                            else -> Marks.fetchYearAVG(login)
+                            2 -> Marks.fetchModuleAVG(login, module!!.num.toString(), edYear)
+                            3 -> Marks.fetchHalfYearAVG(login, module!!.halfNum, edYear)
+                            else -> Marks.fetchYearAVG(login, edYear)
                         }
 
                         val stups = when (r.period) {
@@ -455,16 +456,16 @@ class SchoolController {
                             2 -> Stups.fetchForUserQuarters(
                                 login,
                                 quartersNum = module!!.num.toString(),
-                                isQuarters = true
+                                isQuarters = true, edYear
                             )
 
                             3 -> Stups.fetchForUserQuarters(
                                 login,
                                 quartersNum = module!!.halfNum.toString(),
-                                isQuarters = false
+                                isQuarters = false, edYear
                             )
 
-                            else -> Stups.fetchForUser(login)
+                            else -> Stups.fetchForUser(login, edYear)
                         }.map {
                             FormRatingStup(
                                 subjectId = it.subjectId,
@@ -568,7 +569,12 @@ class SchoolController {
                 } else {
                     formName = "$formNum-${form.title.uppercase()}"
                 }
-                top = RatingWeek0Table.fetchRatingOf(r.login, -1)?.top
+                top = RatingWeek0Table.fetchRatingOf(
+                    r.login,
+                    ExtraSubjectsId.common,
+                    edYear = getCurrentEdYear(),
+                    period = rating.PansionPeriod.Week(getCurrentWeek().num)
+                )?.top
             } else if (role != Moderation.nothing) {
                 val form = Forms.fetchMentorForms(r.login).firstOrNull()
                 if (form != null) {

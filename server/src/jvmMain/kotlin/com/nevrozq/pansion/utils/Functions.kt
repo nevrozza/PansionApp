@@ -1,9 +1,12 @@
 package com.nevrozq.pansion.utils
 
+import Week
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
+import com.nevrozq.pansion.database.holidays.Holidays
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
+import getWeeks
 import io.ktor.http.*
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.*
@@ -12,12 +15,24 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import server.Moderation
-import server.Roles
-import server.cut
-import server.getLocalDate
-import server.latin
+import server.*
 import java.util.UUID
+
+
+
+
+
+
+fun getCurrentWeek(): Week {
+    val edYear = getCurrentEdYear()
+    return getWeeks(
+        holidays = Holidays.fetch(edYear),
+        edYear = edYear
+    ).last()
+}
+
+
+
 
 
 val Unit.done: Boolean

@@ -3,6 +3,8 @@ package calendar
 import AdminRepository
 import CDispatcher
 import admin.calendar.CalendarModuleItem
+import admin.calendar.Holiday
+import admin.calendar.RUpdateCalendarReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import calendar.CalendarStore.Intent
 import calendar.CalendarStore.Label
@@ -29,11 +31,37 @@ class CalendarExecutor(
             )
 
             Intent.DeleteModule -> deleteModule()
+            is Intent.DeleteHoliday -> deleteHoliday(intent.id)
             is Intent.IsSavedAnimation -> dispatch(Message.IsAnimationSaved(intent.isSaved))
+
+
+            is Intent.CreateHoliday -> createHoliday(intent.start, intent.end, intent.isForAll)
+            is Intent.OpenRangePicker -> dispatch(Message.DateRangePickerOpened(intent.selectedHolidayId))
         }
     }
 
 
+    private fun createHoliday(startDate: String, endDate: String, isForAll: Boolean) {
+        scope.launch(CDispatcher) {
+            val newHolidays = state().holidays.toMutableList()
+            val previousHoliday = state().holidays.firstOrNull { it.id == state().selectedHolidayId }
+            if (previousHoliday != null) {
+                newHolidays.remove(previousHoliday)
+            }
+            newHolidays.add(
+                Holiday(
+                    id = state().selectedHolidayId!!,
+                    start = startDate,
+                    end = endDate,
+                    isForAll = isForAll,
+                    edYear = state().edYear
+                )
+            )
+            scope.launch {
+                dispatch(Message.HolidaysUpdated(newHolidays))
+            }
+        }
+    }
 
     private fun createModule(startDate: String) {
         scope.launch(CDispatcher) {
@@ -62,6 +90,15 @@ class CalendarExecutor(
             }
         }
     }
+    private fun deleteHoliday(id: Int) {
+        scope.launch(CDispatcher) {
+            val newHolidays = state().holidays.toMutableList()
+            newHolidays.removeAll { it.id == id}
+            scope.launch {
+                dispatch(Message.HolidaysUpdated(newHolidays))
+            }
+        }
+    }
 
     private fun init() {
         scope.launch(CDispatcher) {
@@ -70,6 +107,7 @@ class CalendarExecutor(
                 val r = adminRepository.fetchCalendar()
                 scope.launch {
                     dispatch(Message.ModulesUpdated(r.items))
+                    dispatch(Message.HolidaysUpdated(r.holidays))
                     nInterface.nSuccess()
 //                    dispatch(Message.IsAnimationSaved(true))
                 }
@@ -85,7 +123,10 @@ class CalendarExecutor(
         scope.launch(CDispatcher) {
             nInterface.nStartLoading()
             try {
-                adminRepository.updateCalendar(state().modules)
+                adminRepository.updateCalendar(RUpdateCalendarReceive(
+                    items = state().modules,
+                    holidays = state().holidays
+                ))
                 scope.launch {
                     nInterface.nSuccess()
                     dispatch(Message.IsAnimationSaved(true))

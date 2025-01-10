@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RFetchCalendarResponse(
-    val items: List<CalendarModuleItem>
+    val items: List<CalendarModuleItem>,
+    val holidays: List<Holiday>,
 )

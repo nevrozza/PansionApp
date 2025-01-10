@@ -8,6 +8,7 @@ import allGroupMarks.AllGroupMarksStore.State
 import lessonReport.LessonReportStore
 import report.AllGroupMarksStudent
 import report.UserMark
+import server.getCurrentEdYear
 import server.getPreviousWeekDays
 import server.getWeekDays
 
@@ -37,7 +38,7 @@ interface AllGroupMarksStore : Store<Intent, State, Label> {
         val isTableView: Boolean,
         val dates: List<DateModule> = emptyList(),
         val modules: List<String> = emptyList(),
-
+        val edYear: Int = getCurrentEdYear(),
         val dateFilter: DatesFilter = DatesFilter.Week,
 
         val weekDays: List<String> = getWeekDays(),

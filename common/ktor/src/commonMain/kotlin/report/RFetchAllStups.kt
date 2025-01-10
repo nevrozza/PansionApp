@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RFetchDetailedStupsReceive(
-    val login: String
+    val login: String,
+    val edYear: Int
 )
 
 @Serializable

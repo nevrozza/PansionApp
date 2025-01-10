@@ -8,6 +8,7 @@ import admin.cabinets.CabinetItem
 import admin.cabinets.RFetchCabinetsResponse
 import admin.calendar.CalendarModuleItem
 import admin.calendar.RFetchCalendarResponse
+import admin.calendar.RUpdateCalendarReceive
 import admin.groups.forms.RFetchCutedGroupsResponse
 import admin.groups.forms.RFetchFormGroupsResponse
 import admin.groups.forms.outside.REditFormReceive
@@ -47,7 +48,7 @@ interface AdminRepository {
 
     suspend fun fetchCalendar(): RFetchCalendarResponse
 
-    suspend fun updateCalendar(calendar: List<CalendarModuleItem>)
+    suspend fun updateCalendar(r: RUpdateCalendarReceive)
 
     suspend fun fetchCabinets(): RFetchCabinetsResponse
 

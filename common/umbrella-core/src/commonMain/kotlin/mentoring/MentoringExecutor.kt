@@ -20,6 +20,7 @@ import registration.CloseRequestQRReceive
 import registration.OpenRequestQRReceive
 import registration.RegistrationRequest
 import registration.SolveRequestReceive
+import server.getCurrentEdYear
 import server.getLocalDate
 
 class MentoringExecutor(
@@ -163,7 +164,8 @@ class MentoringExecutor(
             try {
                 val r = mainRepository.fetchJournalBySubjects(
                     RFetchJournalBySubjectsReceive(
-                        forms = state().formsForSummary
+                        forms = state().formsForSummary,
+                        edYear = getCurrentEdYear()
                     )
                 )
 

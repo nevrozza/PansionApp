@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import server.getDate
+import server.getEdYear
 import server.getLocalDate
 
 object Achievements: Table() {
@@ -72,6 +73,28 @@ object Achievements: Table() {
                     subjectId = it[subjectId],
                     stups = it[stups]
                 )
+            }
+        }
+    }
+
+
+    fun fetchAllByLogin(login: String, edYear: Int): List<AchievementsDTO> {
+        return transaction {
+            Achievements.select { (Achievements.studentLogin eq login) }.mapNotNull {
+                val xDate = if((it[showDate]?.length ?: 0 ) > 5) it[showDate] ?: it[date] else it[date]
+
+                if (getLocalDate(xDate) <= getLocalDate(getDate()) && getEdYear(getLocalDate(it[date])) == edYear) {
+                    AchievementsDTO(
+                        id = it[Achievements.id],
+                        studentLogin = it[studentLogin],
+                        creatorLogin = it[creatorLogin],
+                        date = it[date],
+                        text = it[text],
+                        showDate = it[showDate],
+                        subjectId = it[subjectId],
+                        stups = it[stups]
+                    )
+                } else null
             }
         }
     }

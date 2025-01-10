@@ -20,7 +20,7 @@ interface AuthRepository {
 
     suspend fun checkGIASubject(r: RCheckGIASubjectReceive)
 
-    suspend fun fetchAboutMe(studentLogin: String): RFetchAboutMeResponse
+    suspend fun fetchAboutMe(r: RFetchAboutMeReceive): RFetchAboutMeResponse
 
     suspend fun checkConnection(): RCheckConnectionResponse
 

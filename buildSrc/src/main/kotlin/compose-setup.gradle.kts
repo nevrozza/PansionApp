@@ -12,8 +12,9 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.foundation)
             implementation(compose.material3)
-            implementation("dev.chrisbanes.haze:haze:1.0.0")
-            implementation("dev.chrisbanes.haze:haze-materials:1.0.0")
+
+            implementation("dev.chrisbanes.haze:haze:1.1.1")
+            implementation("dev.chrisbanes.haze:haze-materials:1.1.1")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.common)

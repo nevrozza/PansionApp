@@ -7,10 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.HazeInputScale
+import dev.chrisbanes.haze.*
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import view.ViewManager
@@ -21,8 +19,9 @@ fun Modifier.hazeUnder(
     hazeState: HazeState?
 ) =
     if (hazeState != null && viewManager.hazeHardware.value) {
+
         this.haze(
-            state = hazeState,
+            state = hazeState
             //style = viewManager.hazeStyle!!.value
         )
     } else this
@@ -49,8 +48,12 @@ fun Modifier.hazeHeader(
             ) {
                 if (isMasked) {
                     mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                    inputScale = HazeInputScale.Fixed(0.7f)
                 //                progressive = view.hazeProgressive
                 }
+
+
+
             //            this.
             }.background(Color.Transparent)
         } else this.background(if (isTransparentHaze) Color.Transparent else elseColor)

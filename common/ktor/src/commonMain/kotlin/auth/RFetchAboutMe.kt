@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RFetchAboutMeReceive(
-    val studentLogin: String
+    val studentLogin: String,
+    val edYear: Int
 )
 
 @Serializable

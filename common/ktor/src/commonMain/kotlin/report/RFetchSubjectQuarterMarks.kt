@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 data class RFetchSubjectQuarterMarksReceive(
     val subjectId: Int,
     val login: String,
-    val quartersNum: String
+    val quartersNum: String,
+    val edYear: Int
 )
 
 @Serializable

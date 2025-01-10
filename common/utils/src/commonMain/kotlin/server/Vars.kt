@@ -1,8 +1,11 @@
 package server
 
+import kotlinx.datetime.TimeZone
+
 
 const val delayForNewQRToken : Long = 1000 * 60 * 5
 
+val appTimeZone = TimeZone.of("UTC+3")
 
 object ExtraSubjectsId {
     const val common = -1

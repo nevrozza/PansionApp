@@ -34,6 +34,7 @@ import resources.RIcons
 import server.headerTitlesForMinistry
 import view.LocalViewManager
 import view.esp
+import dev.chrisbanes.haze.HazeInputScale
 
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -64,6 +65,7 @@ fun SharedTransitionScope.MinistryContent(
                         state = hazeState,
                         style = LocalHazeStyle.current
                     ) {
+                        inputScale = HazeInputScale.Fixed(0.7f)
                         mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = view.hazeProgressive
                     }

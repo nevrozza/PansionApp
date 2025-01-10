@@ -27,7 +27,7 @@ class StudentLinesExecutor(
         scope.launch(CDispatcher) {
             try {
                 nInterface.nStartLoading()
-                val r = journalRepository.fetchStudentLines(RFetchStudentLinesReceive(login = state().login))
+                val r = journalRepository.fetchStudentLines(RFetchStudentLinesReceive(login = state().login, edYear = state().edYear))
                 scope.launch {
                     dispatch(Message.StudentLinesInited(
                         r.studentLines.sortedWith(

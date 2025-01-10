@@ -81,12 +81,7 @@ import report.StudentNka
 import report.StudentReportInfo
 import report.UserMark
 import report.UserMarkPlus
-import server.getCurrentDate
-import server.getDate
-import server.getLocalDate
-import server.getSixTime
-import server.getWeekDays
-import server.toMinutes
+import server.*
 
 class ReportsController() {
 
@@ -105,7 +100,7 @@ class ReportsController() {
         call.dRes(perm, "Can't fetch studentLines") {
             val r = this.receive<RFetchStudentLinesReceive>()
 
-            val studentLines = StudentLines.fetchClientStudentLines(login = r.login)
+            val studentLines = StudentLines.fetchClientStudentLines(login = r.login, edYear = r.edYear)
 
             this.respond(
                 RFetchStudentLinesResponse(
@@ -366,7 +361,7 @@ class ReportsController() {
 
                 }
             }
-
+            val edYear = getCurrentEdYear()
             when (r.period) {
                 "0" -> { //week
                     avg = Marks.fetchWeekAVG(r.login)
@@ -378,32 +373,35 @@ class ReportsController() {
 
                 "1" -> { //module
 
-                    avg = Marks.fetchModuleAVG(r.login, module)
+                    avg = Marks.fetchModuleAVG(r.login, module, edYear)
                     val stups = Stups.fetchForUserQuarters(
                         login = r.login,
                         quartersNum = module,
-                        isQuarters = true
+                        isQuarters = true,
+                        edYear = edYear
                     )
                     stStups = stups.filter { it.reason.subSequence(0, 3) == "!st" }
                         .map { it.content.toInt() }.sum()
                 }
 
                 "2" -> { //halfyear
-                    avg = Marks.fetchHalfYearAVG(r.login, module)
+                    avg = Marks.fetchHalfYearAVG(r.login, module, edYear)
                     val c = Calendar.getHalfOfModule(module.toInt())
                     val stups = Stups.fetchForUserQuarters(
                         login = r.login,
                         quartersNum = c.toString(),
-                        isQuarters = false
+                        isQuarters = false,
+                        edYear = edYear
                     )
                     stStups = stups.filter { it.reason.subSequence(0, 3) == "!st" }
                         .map { it.content.toInt() }.sum()
                 }
 
                 "3" -> {
-                    avg = Marks.fetchYearAVG(r.login)
+                    avg = Marks.fetchYearAVG(r.login, edYear)
                     val stups = Stups.fetchForUser(
-                        login = r.login
+                        login = r.login,
+                        edYear = edYear
                     )
                     stStups = stups.filter { it.reason.subSequence(0, 3) == "!st" }
                         .map { it.content.toInt() }.sum()
@@ -459,7 +457,8 @@ class ReportsController() {
                 val isQuarter = isQuarter(RIsQuartersReceive(s.login))
                 val marks = Marks.fetchForUserGroup(
                     login = s.login,
-                    groupId = r.groupId
+                    groupId = r.groupId,
+                    edYear = r.edYear
                 ).sortedBy { it.deployTime.toMinutes() }.mapNotNull {
                     if (it.groupId != null && it.reportId != null) {
                         UserMarkPlus(
@@ -479,10 +478,11 @@ class ReportsController() {
                         )
                     } else null
                 }
-                print(1/0)
+
                 val stups = Stups.fetchForUserGroup(
                     login = s.login,
-                    groupId = r.groupId
+                    groupId = r.groupId,
+                    edYear = r.edYear
                 ).sortedWith(
                     compareBy(
                         { getLocalDate(it.deployDate).toEpochDays() },
@@ -512,7 +512,8 @@ class ReportsController() {
                 val nki = mutableListOf<StudentNka>()
                 StudentLines.fetchStudentLinesByLoginAndGroup(
                     login = s.login,
-                    groupId = r.groupId
+                    groupId = r.groupId,
+                    edYear = r.edYear
                 ).filter { it.attended != null && it.attended != "0" }.map { x ->
                     nki.add(StudentNka(x.date, isUv = x.attended == "2", module = x.module))
                 }
@@ -548,7 +549,8 @@ class ReportsController() {
             val marks = Marks.fetchForUserSubjectQuarter(
                 login = r.login,
                 subjectId = r.subjectId,
-                quartersNum = if (isQuarter) r.quartersNum else modules
+                quartersNum = if (isQuarter) r.quartersNum else modules,
+                edYear = r.edYear
             ).sortedWith(
                 compareBy(
                     { getLocalDate(it.deployDate).toEpochDays() },
@@ -576,18 +578,20 @@ class ReportsController() {
 
     suspend fun fetchRecentGrades(call: ApplicationCall) {
         val perm = call.isMember
+        val edYear = getCurrentEdYear()
         call.dRes(perm, "Can't fetch recent grades") {
             val r = this.receive<RFetchRecentGradesReceive>()
             val subjects = Subjects.fetchAllSubjects()
             val limit = 7
-            val stups = Stups.fetchForUser(r.login).filter {
+            val stups = Stups.fetchForUser(r.login, edYear).filter {
                 (it.reason.subSequence(0, 3) == "!st" ||
                         it.content.toInt() < 0)
             }
             val n = if (limit > stups.size) stups.size else limit
             val preGrades = (Marks.fetchRecentForUser(
                 login = r.login,
-                limit = limit
+                limit = limit,
+                edYear = edYear
             ) + //Stups.fetchRecentForUser(r.login, 7))
                     stups.slice(0..n - 1)
                     )
@@ -616,7 +620,7 @@ class ReportsController() {
         call.dRes(perm, "Can't fetch detailed stups") {
             val r = this.receive<RFetchDetailedStupsReceive>()
             val allSubjects = Subjects.fetchAllSubjects()
-            val stups = Stups.fetchForUser(login = r.login)
+            val stups = Stups.fetchForUser(login = r.login, edYear = r.edYear)
 
             val responseList = mutableListOf<DetailedStupsSubject>()
 
@@ -669,7 +673,8 @@ class ReportsController() {
             val marks = Marks.fetchForUserQuarters(
                 login = r.login,
                 quartersNum = r.quartersNum,
-                isQuarters = r.isQuarters
+                isQuarters = r.isQuarters,
+                edYear = r.edYear
             ).sortedWith(
                 compareBy(
                     { getLocalDate(it.deployDate).toEpochDays() },
@@ -678,7 +683,8 @@ class ReportsController() {
             val stups = Stups.fetchForUserQuarters(
                 login = r.login,
                 quartersNum = r.quartersNum,
-                isQuarters = r.isQuarters
+                isQuarters = r.isQuarters,
+                edYear = r.edYear
             )
 
             val responseList = mutableListOf<DnevnikRuMarksSubject>()
@@ -735,7 +741,8 @@ class ReportsController() {
                         },
                         nki = StudentLines.fetchStudentLinesByLoginAndGroup(
                             login = r.login,
-                            groupId = groupIds[s.id] ?: 0
+                            groupId = groupIds[s.id] ?: 0,
+                            edYear = r.edYear
                         ).mapNotNull {
                             if (it.attended !in listOf(
                                     null,
@@ -781,7 +788,7 @@ class ReportsController() {
                             Marks.fetchModuleSubjectAVG(
                                 it.login,
                                 Groups.fetchSubjectIdOfGroup(it.groupId),
-                                module = r.module.toString()
+                                module = r.module.toString(), getEdYear(getLocalDate(r.date))
                             )
                         var preAttendance = PreAttendance.fetchPreAttendanceByDateAndLogin(
                             date = r.date,

@@ -9,6 +9,7 @@ import detailedStups.DetailedStupsStore.State
 import detailedStups.DetailedStupsStore.Message
 import dnevnikRuMarks.DnevnikRuMarkStore
 import kotlinx.coroutines.launch
+import report.RFetchDetailedStupsReceive
 
 class DetailedStupsExecutor(
     private val nInterface: NetworkInterface,
@@ -27,7 +28,12 @@ class DetailedStupsExecutor(
 //                val subjects = journalRepository.fetchDnevnikRuMarks(state().studentLogin, getQuartersNum()).subjects
 //                dispatch(DnevnikRuMarkStore.Message.SubjectsUpdated(subjects))
 //                journalRepository.fe
-                val subjects = journalRepository.fetchAllStups(state().login).stups
+                val subjects = journalRepository.fetchAllStups(
+                    RFetchDetailedStupsReceive(
+                        login = state().login,
+                        edYear = state().edYear
+                    )
+                ).stups
             
                 dispatch(Message.SubjectsUpdated(subjects))
                 nInterface.nSuccess()

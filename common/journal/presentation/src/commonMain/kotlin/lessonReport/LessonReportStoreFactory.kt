@@ -10,6 +10,8 @@ import components.listDialog.ListComponent
 import components.networkInterface.NetworkInterface
 import server.Moderation
 import server.fetchTitle
+import server.getEdYear
+import server.getLocalDate
 
 class LessonReportStoreFactory(
     private val storeFactory: StoreFactory,
@@ -43,6 +45,7 @@ class LessonReportStoreFactory(
                 groupId = data.header.groupId,
                 teacherName = data.header.teacherName,
                 date = data.header.date,
+                edYear = getEdYear(getLocalDate(data.header.date)),
                 time = data.header.time,
                 editTime = data.editTime,
                 topic = data.header.theme,

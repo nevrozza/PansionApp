@@ -49,7 +49,8 @@ object Stups : RatingEntity() {
                         deployDate = getCurrentDate().second,
                         deployTime = getSixTime(),
                         deployLogin = deployLogin,
-                        custom = r.stup.custom
+                        custom = r.stup.custom,
+                        edYear = r.edYear
                     ),
                     isDelete = false
                 )

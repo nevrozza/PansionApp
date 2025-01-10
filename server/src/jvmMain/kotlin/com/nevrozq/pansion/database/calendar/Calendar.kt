@@ -1,18 +1,21 @@
 package com.nevrozq.pansion.database.calendar
 
+import com.nevrozq.pansion.database.holidays.Holidays
+import getWeeks
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import server.getCurrentEdYear
 
 object Calendar : Table() {
     private val num = Calendar.integer("num")
     private val start = Calendar.varchar("start", 12)
     private val halfNum = Calendar.integer("halfNum")
     fun insertList(calendarDTOs: List<CalendarDTO>) {
-        try {
+
             transaction {
                 Calendar.deleteAll()
                 calendarDTOs.forEach { calendarDTO ->
@@ -24,9 +27,7 @@ object Calendar : Table() {
                     }
                 }
             }
-        } catch (e: Throwable) {
-            println(e)
-        }
+
     }
 
 

@@ -3,12 +3,15 @@
 //import root.RootComponent.Child.AdminMentors
 import admin.AdminComponent
 import androidx.compose.animation.*
+import androidx.compose.animation.core.EaseInQuart
+import androidx.compose.animation.core.EaseInQuint
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,6 +47,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.essenty.backhandler.BackEvent
 import components.*
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import forks.splitPane.ExperimentalSplitPaneApi
@@ -72,6 +76,7 @@ import server.Roles
 import server.cut
 import server.getDate
 import view.*
+import dev.chrisbanes.haze.HazeInputScale
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -88,129 +93,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
     val model by component.model.subscribeAsState()
     val nCheckModel by component.checkNInterface.networkModel.subscribeAsState()
 
-
-    LaunchedEffect(model.startRouting) {
-        if (model.startRouting != null) {
-            if (model.startRouting !in listOf(QuickRoutings.HomeAllGroupMarks, QuickRoutings.LessonReport)) {
-                val login = component.urlArgs["login"]!!
-                val config = if (model.startUser != null) {
-                    val user = model.startUser!!
-                    if (user.fio != null) {
-                        when (model.startRouting) {
-                            QuickRoutings.HomeAchievements -> Config.HomeAchievements(
-                                studentLogin = login,
-                                avatarId = user.avatarId,
-                                name = user.fio!!.name
-                            )
-
-                            QuickRoutings.SecondView -> {
-                                val isMentoring = component.urlArgs["isM"]?.toBoolean() ?: false
-                                Config.SecondView(
-                                    login = login,
-                                    fio = user.fio!!,
-                                    avatarId = user.avatarId,
-                                    config = Config.MainHome,
-                                    isMentoring = isMentoring
-                                )
-                            }
-
-                            null -> null
-                            QuickRoutings.HomeAllGroupMarks -> null
-                            QuickRoutings.HomeDetailedStups -> {
-                                val reason = component.urlArgs["reason"] ?: "0"
-                                Config.HomeDetailedStups(
-                                    studentLogin = login,
-                                    name = user.fio!!.name,
-                                    avatarId = user.avatarId,
-                                    reason = reason
-                                )
-                            }
-
-                            QuickRoutings.HomeDnevnikRuMarks -> Config.HomeDnevnikRuMarks(login)
-                            QuickRoutings.HomeProfile -> {
-                                val deviceLogin = component.authRepository.fetchLogin()
-                                Config.HomeProfile(
-                                    studentLogin = login,
-                                    fio = user.fio!!,
-                                    avatarId = user.avatarId,
-                                    isOwner = deviceLogin == login,
-                                    isCanEdit = deviceLogin == login
-                                )
-                            }
-
-                            QuickRoutings.HomeStudentLines -> Config.HomeStudentLines(login)
-                            QuickRoutings.HomeTasks -> Config.HomeTasks(
-                                studentLogin = login,
-                                avatarId = user.avatarId,
-                                name = user.fio!!.name
-                            )
-
-                            QuickRoutings.LessonReport -> null
-                        }
-                    } else {
-                        Config.ErrorScreen(
-                            reason = "Пользователь не найден",
-                            path = component.wholePath
-                        )
-                    }
-                } else {
-                    Config.ErrorScreen(
-                        reason = "Произошла ошибка",
-                        path = component.wholePath
-                    )
-                }
-                component.onEvent(RootStore.Intent.DeleteStart)
-                component.startOutput(config!!)
-            } else if (model.startRouting is QuickRoutings.HomeAllGroupMarks) {
-                val groupId = component.urlArgs["groupId"]!!.toIntOrNull() ?: 0
-                val config = if (model.startGroup != null) {
-                    val group = model.startGroup!!
-                    if (group.subjectId != null) {
-                        Config.HomeAllGroupMarks(
-                            groupId = groupId,
-                            groupName = group.groupName,
-                            subjectId = group.subjectId!!,
-                            subjectName = group.subjectName,
-                            teacherLogin = group.teacherLogin
-                        )
-                    } else {
-                        Config.ErrorScreen(
-                            reason = "Группа не найдена",
-                            path = component.wholePath
-                        )
-                    }
-                } else {
-                    Config.ErrorScreen(
-                        reason = "Произошла ошибка",
-                        path = component.wholePath
-                    )
-                }
-                component.onEvent(RootStore.Intent.DeleteStart)
-                component.startOutput(config)
-            } else if (model.startRouting is QuickRoutings.LessonReport) {
-//                val reportId = component.urlArgs["id"]!!.toIntOrNull() ?: 0
-                val config = if (model.startReport != null) {
-                    val report = model.startReport!!
-
-                    Config.LessonReport(report)
-//                    if (report.subjectId != null) {
-//                    } else {
-//                        Config.ErrorScreen(
-//                            reason = "Группа не найдена",
-//                            path = component.wholePath
-//                        )
-//                    }
-                } else {
-                    Config.ErrorScreen(
-                        reason = "Произошла ошибка\nВозможно, введён неправильный id",
-                        path = component.wholePath
-                    )
-                }
-                component.onEvent(RootStore.Intent.DeleteStart)
-                component.startOutput(config)
-            }
-        }
-    }
+    DeepLinkErrorCatcher(
+        component, model
+    )
 
 
 
@@ -229,55 +114,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                     this.maxHeight
                 )
             ) == WindowScreen.Vertical
-        val items = listOf<NavigationItem?>(
-            NavigationItem(
-                iconPath = RIcons.Home,
-                label = "Главная",
-                category = if (isExpanded && getCategory(childStack.active.configuration as Config) == Journal) Journal
-                else Home,
-                onClickOutput = RootComponent.Output.NavigateToHome
-            ),
-            if (!isExpanded && (model.role == Roles.teacher || model.moderation in listOf(
-                    Moderation.moderator,
-                    Moderation.mentor,
-                    Moderation.both
-                )) && component.isMentoring == null
-            ) NavigationItem(
-                iconPath = RIcons.Book,//Icons.AutoMirrored.Rounded.LibraryBooks,
-                label = "Журнал",
-                size = 20.dp,
-                category = Journal,
-                onClickOutput = RootComponent.Output.NavigateToJournal
-            ) else null,
-            NavigationItem(
-                iconPath = RIcons.School,//Icons.Rounded.Token,
-                size = 24.dp,
-                label = "Пансион",
-                category = School,
-                onClickOutput = RootComponent.Output.NavigateToSchool
-            ),
-            if (model.moderation != Moderation.nothing
-                && component.isMentoring == null
-            ) NavigationItem(
-                iconPath = RIcons.Group,//Icons.Rounded.Diversity1,
-                        label = "Ученики",
-                size = 24.dp,
-                category = Mentoring,
-                onClickOutput = RootComponent.Output.NavigateToMentoring
-            ) else null,
-            if (model.moderation in listOf(
-                    Moderation.moderator,
-                    Moderation.both
-                ) && component.isMentoring == null
-            ) NavigationItem(
-                iconPath = RIcons.SovietSettings, //Icons.Rounded.GridView,
-                        label = "Админ",
-                category = Admin,
-                size = 20.dp,
-                onClickOutput = RootComponent.Output.NavigateToAdmin
-            ) else null,
+
+        val items = getNavItems(
+            isExpanded,
+            component,
+            model,
+            childStack
         )
-//    var bottomBarAnimationScope: AnimatedVisibilityScope? = null
+
 
         Scaffold(
             Modifier.fillMaxSize(),
@@ -352,6 +196,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             }
                         },
                         selector = { initialBackEvent, exit, enter ->
+                            val shape = RoundedCornerShape(
+                                size = 40.dp
+                            )
                             if (
                                 initialBackEvent.swipeEdge == BackEvent.SwipeEdge.RIGHT ||
                                 (
@@ -363,14 +210,21 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                         )
                             ) {
 
-                                materialPredictiveBackAnimatable(initialBackEvent = initialBackEvent)
+                                materialPredictiveBackAnimatable(initialBackEvent = initialBackEvent,
+                                    shape = { progress, edge ->
+                                        shape
+                                    })
 
                             } else {
                                 predictiveBackAnimatable(
                                     initialBackEvent = initialBackEvent,
-                                    exitModifier = { progress, _ -> Modifier.slideExitModifier(progress = progress) },
+                                    exitModifier = { progress, _ -> Modifier
+
+                                        .slideExitModifier(progress = progress) },
                                     enterModifier = { progress, _ ->
-                                        Modifier.slideEnterModifier(
+                                        Modifier
+
+                                            .slideEnterModifier(
                                             progress = progress
                                         )
                                     },
@@ -1227,6 +1081,7 @@ fun MultiPaneAdmin(
     }
 }
 
+@OptIn(ExperimentalSplitPaneApi::class)
 @Composable
 fun MultiPaneSplit(
     isExpanded: Boolean,
@@ -1252,154 +1107,3 @@ fun MultiPaneSplit(
     }
 }
 
-
-data class NavigationItem(
-    val iconPath: String,
-    val label: String,
-    val category: RootComponent.RootCategories,
-    val onClickOutput: RootComponent.Output,
-    val size: Dp = 22.dp
-)
-
-
-@Composable
-fun CustomNavigationBar(
-    viewManager: ViewManager,
-    component: RootComponent,
-    model: RootStore.State,
-    childStack: ChildStack<*, Child>,
-    items: List<NavigationItem?>
-) {
-    val density = LocalDensity.current
-
-    NavigationBar(
-        modifier = Modifier.then(
-            if (viewManager.hazeHardware.value) Modifier.hazeChild(
-                GlobalHazeState.current,
-                style = LocalHazeStyle.current
-            ) {
-//                this.blurRadius = 525.dp
-                mask = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent, Color.Magenta.copy(.82f), Color.Magenta//.copy(alpha = 1.0f)
-                    ),
-//                    startY = with(density) { (5.dp).toPx() },
-//                    endY = with(density) { (40.dp).toPx() }
-                )
-//                    Color.Transparent, Color.Transparent,
-//                    Color.Magenta, Color.Magenta, Color.Magenta))
-//                progressive = view.hazeProgressive.copy(endIntensity = 1f, startIntensity = 0f)
-            }
-            else Modifier
-        ).fillMaxWidth(),
-        containerColor = if (viewManager.hazeHardware.value) Color.Transparent else MaterialTheme.colorScheme.background,
-        tonalElevation = 0.dp
-    ) {
-        items.filterNotNull().forEach { item ->
-            NavigationBarItem(
-                selected = getCategory(childStack.active.configuration as Config) == item.category,
-                onClick = { component.onOutput(item.onClickOutput) },
-                icon = {
-                    Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
-                        GetAsyncIcon(
-                            path = item.iconPath,
-                            size = item.size
-                        )
-                    }
-                },
-                label = { Text(item.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-            )
-        }
-    }
-
-
-}
-
-@Composable
-fun CustomNavigationRail(
-    isVertical: Boolean,
-    component: RootComponent,
-    model: RootStore.State,
-    childStack: ChildStack<*, Child>,
-    items: List<NavigationItem?>
-) {
-    AnimatedVisibility(
-        visible = !isVertical && childStack.active.configuration !is Config.AuthActivation && childStack.active.configuration !is Config.AuthLogin,
-        enter = fadeIn(animationSpec = tween(300)) +
-                slideInHorizontally { -it },
-        exit = fadeOut(animationSpec = tween(300)) + slideOutHorizontally { -it },
-        modifier = Modifier.width(80.dp)
-    ) {
-        NavigationRail() {
-            Column(
-                Modifier.fillMaxHeight().verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
-            ) {
-                items.filterNotNull().forEach { item ->
-                    NavigationRailItem(
-                        selected = getCategory(childStack.active.configuration as Config) == item.category,
-                        onClick = { component.onOutput(item.onClickOutput) },
-                        icon = {
-                            Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
-                                GetAsyncIcon(
-                                    path = item.iconPath,
-                                    size = item.size
-                                )
-                            }
-                               },
-                        label = { Text(item.label) }
-                    )
-                }
-            }
-
-        }
-    }
-}
-
-private fun isBottomBarShowing(config: Config): Boolean {
-    return config in listOf(
-        Config.MainHome,
-        Config.MainSchool,
-        Config.MainAdmin,
-        Config.MainJournal,
-        Config.MainMentoring
-    )
-}
-
-private fun getCategory(config: Config): RootComponent.RootCategories {
-    return when (config) {
-        Config.AdminCabinets -> Admin
-        Config.AdminCalendar -> Admin
-        Config.AdminGroups -> Admin
-        is Config.AdminSchedule -> School
-        Config.AdminUsers -> Admin
-        Config.AdminAchievements -> Admin
-        Config.AdminParents -> Admin
-
-        Config.AuthActivation -> Home
-        is Config.AuthLogin -> Home
-
-        is Config.HomeAllGroupMarks -> Home
-        is Config.HomeDetailedStups -> Home
-        is Config.HomeDnevnikRuMarks -> Home
-        is Config.HomeProfile -> Home
-        Config.HomeSettings -> Home
-        is Config.HomeTasks -> Home
-        is Config.HomeAchievements -> Home
-        is Config.HomeStudentLines -> Home
-
-        Config.MainAdmin -> Admin
-        Config.MainHome -> Home
-        Config.MainJournal -> Journal
-        Config.MainRating -> School
-
-        is Config.LessonReport -> Journal
-        Config.MainMentoring -> Mentoring
-        is Config.SecondView -> Mentoring
-        is Config.QRScanner -> Home
-        Config.MainSchool -> School
-        is Config.SchoolFormRating -> School
-        Config.SchoolMinistry -> School
-        is Config.ErrorScreen -> Home
-    }
-}

@@ -6,6 +6,8 @@ import homework.CreateReportHomeworkItem
 import report.Attended
 import report.ReportHeader
 import report.UserMark
+import server.getEdYear
+import server.getLocalDate
 
 interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.State, LessonReportStore.Label> {
     data class State(
@@ -18,6 +20,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         val groupId: Int,
         val teacherName: String,
         val date: String,
+        val edYear: Int,
         val time: String,
         val editTime: String,
         val topic: String,

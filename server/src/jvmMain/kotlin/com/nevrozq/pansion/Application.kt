@@ -12,6 +12,7 @@ import com.nevrozq.pansion.database.duty.DutySettings
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.groups.Groups
+import com.nevrozq.pansion.database.holidays.Holidays
 import com.nevrozq.pansion.database.homework.HomeTasks
 import com.nevrozq.pansion.database.homework.HomeTasksDone
 import com.nevrozq.pansion.database.pansCoins.PansCoins
@@ -20,19 +21,7 @@ import com.nevrozq.pansion.database.pickedGIA.PickedGIA
 import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
-import com.nevrozq.pansion.database.ratingTable.RatingModule0Table
-import com.nevrozq.pansion.database.ratingTable.RatingModule1Table
-import com.nevrozq.pansion.database.ratingTable.RatingModule2Table
-import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek0Table
-import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek1Table
-import com.nevrozq.pansion.database.ratingTable.RatingPreviousWeek2Table
-import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
-import com.nevrozq.pansion.database.ratingTable.RatingWeek1Table
-import com.nevrozq.pansion.database.ratingTable.RatingWeek2Table
-import com.nevrozq.pansion.database.ratingTable.RatingYear0Table
-import com.nevrozq.pansion.database.ratingTable.RatingYear1Table
-import com.nevrozq.pansion.database.ratingTable.RatingYear2Table
-import com.nevrozq.pansion.database.ratingTable.updateRatings
+import com.nevrozq.pansion.database.ratingTable.*
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.scheduleConflicts.ScheduleConflicts
@@ -56,6 +45,7 @@ import com.nevrozq.pansion.features.user.manage.configureRegisterRouting
 import com.nevrozq.pansion.plugins.configureCORS
 import com.nevrozq.pansion.plugins.configureRouting
 import com.nevrozq.pansion.plugins.configureSerialization
+import getWeeks
 import io.ktor.server.application.Application
 import io.ktor.server.engine.*
 import io.ktor.server.netty.Netty
@@ -68,6 +58,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
+import server.getCurrentEdYear
 import server.getSixTime
 import java.io.File
 import java.io.FileInputStream
@@ -101,18 +92,9 @@ fun main() {
             Stups,
             Cabinets,
             Schedule,
-            RatingWeek0Table,
-            RatingWeek1Table,
-            RatingWeek2Table,
-            RatingPreviousWeek0Table,
-            RatingPreviousWeek1Table,
-            RatingPreviousWeek2Table,
-            RatingModule0Table,
-            RatingModule1Table,
-            RatingModule2Table,
-            RatingYear0Table,
-            RatingYear1Table,
-            RatingYear2Table,
+            RatingCommonSchoolTable,
+            RatingHighSchoolTable,
+            RatingLowSchoolTable,
             Calendar,
             HomeTasks,
             HomeTasksDone,
@@ -129,7 +111,8 @@ fun main() {
             DutyCount,
             ScheduleConflicts,
             PansCoins,
-            AvatarsShop
+            AvatarsShop,
+            Holidays
         )
 
     }
@@ -137,7 +120,7 @@ fun main() {
     GlobalScope.launch {
         while (true) {
             transaction {
-                updateRatings()
+                updateRatings(getCurrentEdYear())
             }
             lastTimeRatingUpdate = getSixTime()
             delay((1000 * 60 * ratingDelay).toLong())
@@ -147,19 +130,6 @@ fun main() {
         embeddedServer(
             factory = Netty,
             port = h_port,
-            //        environment = applicationEnvironment {
-            //            log = LoggerFactory.getLogger("ktor.application")
-            //        },
-            //        configure = {
-            //            configureSSLConnectors(
-            //                host = "0.0.0.0",
-            //                sslPort = https_port.toString(),
-            //                sslKeyStorePath = "keystore.jks",
-            //                sslPrivateKeyPassword = sslPass,
-            //                sslKeyStorePassword = sslPass,
-            //                sslKeyAlias = sslAlias
-            //            )
-            //        },
             module = Application::module
         )
     else
