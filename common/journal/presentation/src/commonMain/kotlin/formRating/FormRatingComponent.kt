@@ -10,10 +10,15 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
 import components.listDialog.ListComponent
+import components.listDialog.ListDialogStore
+import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import di.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
+import rating.PansionPeriod
+import rating.toPeriod
+import rating.toStr
 
 class FormRatingComponent(
     componentContext: ComponentContext,
@@ -49,6 +54,32 @@ class FormRatingComponent(
     )
 
 
+    val weekListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "RatingWeekListComponent",
+        onItemClick = {onPeriodItemClick(it.id)}
+    )
+    val moduleListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "RatingModuleListComponent",
+        onItemClick = {onPeriodItemClick(it.id)}
+    )
+    val periodListComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "RatingPeriodListComponent",
+        onItemClick = {onPeriodItemClick(it.id)}
+    )
+
+    private fun onPeriodItemClick(id: String) {
+        onEvent(FormRatingStore.Intent.ChangePeriod(id.toPeriod()))
+        listOf(weekListComponent, moduleListComponent, periodListComponent).forEach {
+            it.onEvent(ListDialogStore.Intent.HideDialog)
+        }
+    }
+
 
 
     private val nInterfaceName = "FormRatingInterfaceName"
@@ -69,7 +100,10 @@ class FormRatingComponent(
                 formId = formId,
                 formNum = formNum,
                 formPickerDialog = formPickerDialog,
-                stupsDialog = stupsDialogComponent
+                stupsDialog = stupsDialogComponent,
+                weeksListComponent = weekListComponent,
+                moduleListComponent = moduleListComponent,
+                periodListComponent = periodListComponent
             ).create()
         }
 
@@ -89,6 +123,17 @@ class FormRatingComponent(
 
     init {
         onEvent(FormRatingStore.Intent.Init)
+
+        periodListComponent.onEvent(
+            ListDialogStore.Intent.InitList(
+                listOf(Pair(PansionPeriod.Year, "За год")).map {
+                    ListItem(
+                        id = it.first.toStr(),
+                        text = it.second
+                    )
+                }
+            )
+        )
     }
 
     sealed class Output {

@@ -31,6 +31,8 @@ import dev.chrisbanes.haze.HazeState
 import formRating.FormRatingComponent
 import formRating.FormRatingStore
 import rating.FormRatingStudent
+import rating.PansionPeriod
+import rating.toStr
 import resources.RIcons
 import server.Roles
 import server.fetchReason
@@ -40,6 +42,7 @@ import view.LocalViewManager
 import view.WindowScreen
 import view.esp
 import view.toColor
+import androidx.compose.animation.core.animateFloatAsState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -48,6 +51,7 @@ fun SharedTransitionScope.FormRatingContent(
     isVisible: Boolean
 ) {
     val model by component.model.subscribeAsState()
+    val formPickerModel by component.formPickerDialog.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val nFormPickerModel by component.formPickerDialog.nInterface.networkModel.subscribeAsState()
     val viewManager = LocalViewManager.current
@@ -92,7 +96,7 @@ fun SharedTransitionScope.FormRatingContent(
                     }
                 },
                 actionRow = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically ) {
                         if (model.role != Roles.student) {
                             Box(contentAlignment = Alignment.Center) {
                                 Crossfade(nFormPickerModel.state) { cf ->
@@ -114,6 +118,7 @@ fun SharedTransitionScope.FormRatingContent(
                                                 this@Row.AnimatedVisibility(
                                                     model.availableForms.size > 1 || (model.formId == null && model.availableForms.size == 1)
                                                 ) {
+                                                    val chevronRotation = animateFloatAsState(if (formPickerModel.isDialogShowing) 90f else -90f)
                                                     IconButton(onClick = {
                                                         component.formPickerDialog.onEvent(
                                                             ListDialogStore.Intent.ShowDialog
@@ -121,7 +126,7 @@ fun SharedTransitionScope.FormRatingContent(
                                                     }) {
                                                         GetAsyncIcon(
                                                             RIcons.ChevronLeft,
-                                                            modifier = Modifier.rotate(90f)
+                                                            modifier = Modifier.rotate(chevronRotation.value)
                                                         )
                                                     }
                                                 }
@@ -158,32 +163,55 @@ fun SharedTransitionScope.FormRatingContent(
                         hazeState = hazeState
                     ) {
                         item {
+
                             Row(
                                 modifier = Modifier.horizontalScroll(
                                     rememberScrollState()
                                 )
                             ) {
-                                listOf(
-                                    Pair(0, "За неделю"),
-                                    Pair(1, "За прошлую неделю"),
-                                    Pair(2, "За модуль"),
-                                    Pair(3, "За полугодие"),
-                                    Pair(4, "За год")
-                                ).forEach { item ->
-
-                                    CFilterChip(
-                                        label = item.second,
-                                        isSelected = model.period == item.first,
-                                        state = state,
-                                        coroutineScope = coroutineScope
-                                    ) {
-                                        component.onEvent(
-                                            FormRatingStore.Intent.ChangePeriod(item.first)
-                                        )
-                                    }
-                                    Spacer(Modifier.width(5.dp))
-                                }
+                                Spacer(Modifier.width(5.dp))
+                                PeriodButton(
+                                    inActiveText = "Недели",
+                                    currentPeriod = model.period?.toStr() ?: "",
+                                    isActive = model.period is PansionPeriod.Week,
+                                    component = component.weekListComponent
+                                )
+                                Spacer(Modifier.width(5.dp))
+                                PeriodButton(
+                                    inActiveText = "Модули",
+                                    currentPeriod = model.period?.toStr() ?: "",
+                                    isActive = model.period is PansionPeriod.Module,
+                                    component = component.moduleListComponent
+                                )
+                                Spacer(Modifier.width(5.dp))
+                                PeriodButton(
+                                    inActiveText = "Периоды",
+                                    currentPeriod = model.period?.toStr() ?: "",
+                                    isActive = model.period is PansionPeriod.Year || model.period is PansionPeriod.Half,
+                                    component = component.periodListComponent
+                                )
                             }
+//                                listOf(
+//                                    Pair(0, "За неделю"),
+//                                    Pair(1, "За прошлую неделю"),
+//                                    Pair(2, "За модуль"),
+//                                    Pair(3, "За полугодие"),
+//                                    Pair(4, "За год")
+//                                ).forEach { item ->
+//
+//                                    CFilterChip(
+//                                        label = item.second,
+//                                        isSelected = model.period == item.first,
+//                                        state = state,
+//                                        coroutineScope = coroutineScope
+//                                    ) {
+//                                        component.onEvent(
+//                                            FormRatingStore.Intent.ChangePeriod(item.first)
+//                                        )
+//                                    }
+//                                    Spacer(Modifier.width(5.dp))
+//                                }
+//                            }
                         }
                         if (page != null) {
                             items(page.topEd.toList(), key = { it }) { (top, students) ->

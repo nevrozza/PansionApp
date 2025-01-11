@@ -109,4 +109,13 @@ class SettingsRepositoryImpl(
         cacheDataSource.saveFontType(fontType)
     }
     override fun fetchFontType(): Int = cacheDataSource.fetchFontType()
+    override fun saveIsAmoled(isAmoled: Boolean) = cacheDataSource.saveIsAmoledEnabled(isAmoled)
+    override fun fetchIsAmoled(): Boolean = cacheDataSource.fetchIsAmoledEnabled()
+
+    override fun saveIsRefreshButtons(isRefreshButtons: Boolean) = cacheDataSource.saveIsRefreshButtonsEnabled(isRefreshButtons)
+
+    override fun fetchIsRefreshButtons(): Boolean = cacheDataSource.fetchIsRefreshButtonsEnabled()
+    override fun saveIsAvatars(isAvatars: Boolean) = cacheDataSource.saveIsAvatarsEnabled(isAvatars)
+
+    override fun fetchIsAvatars(): Boolean = cacheDataSource.fetchIsAvatarsEnabled()
 }

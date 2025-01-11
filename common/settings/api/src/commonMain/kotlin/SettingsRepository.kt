@@ -52,6 +52,15 @@ interface SettingsRepository {
 
     fun saveFontType(fontType: Int)
     fun fetchFontType() : Int
+
+    fun saveIsAmoled(isAmoled: Boolean)
+    fun fetchIsAmoled(): Boolean
+
+    fun saveIsRefreshButtons(isRefreshButtons: Boolean)
+    fun fetchIsRefreshButtons(): Boolean
+
+    fun saveIsAvatars(isAvatars: Boolean)
+    fun fetchIsAvatars(): Boolean
 //    fun fetchSettingsScreenData(): SettingsScreenData
 }
 

@@ -1,6 +1,7 @@
 package com.nevrozq.pansion.features.school
 
 import FIO
+import ForAvg
 import PersonPlus
 import admin.groups.forms.CutedForm
 import admin.groups.forms.Form
@@ -12,6 +13,7 @@ import com.nevrozq.pansion.database.duty.DutySettings
 import com.nevrozq.pansion.database.duty.DutySettingsDTO
 import com.nevrozq.pansion.database.forms.FormDTO
 import com.nevrozq.pansion.database.forms.Forms
+import com.nevrozq.pansion.database.holidays.Holidays
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingCommonSchoolTable
@@ -26,6 +28,7 @@ import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.*
+import getWeeks
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -35,11 +38,7 @@ import main.RFetchSchoolDataResponse
 import main.school.*
 import mentoring.MentorForms
 import org.jetbrains.exposed.exceptions.ExposedSQLException
-import rating.FormRatingStudent
-import rating.FormRatingStup
-import rating.RFetchFormRatingReceive
-import rating.RFetchFormRatingResponse
-import rating.RFetchFormsForFormResponse
+import rating.*
 import server.*
 
 class SchoolController {
@@ -434,6 +433,8 @@ class SchoolController {
 
             val studentsForRating: MutableList<FormRatingStudent> = mutableListOf()
             val edYear = getCurrentEdYear()
+            val weeks = getWeeks(edYear = edYear, holidays = Holidays.fetch(edYear).filter { it.isForAll })
+
             formIds.forEach { formId ->
                 val studentLogins = StudentsInForm.fetchStudentsLoginsByFormId(formId)
                 studentLogins.forEach { login ->
@@ -444,29 +445,48 @@ class SchoolController {
                         //List<FormRatingStup>
                         //likes dislikes
 
-
                         val avg = when (r.period) {
-                            0 -> Marks.fetchWeekAVG(login)
-                            1 -> Marks.fetchPreviousWeekAVG(login)
-                            2 -> Marks.fetchModuleAVG(login, module!!.num.toString(), edYear)
-                            3 -> Marks.fetchHalfYearAVG(login, module!!.halfNum, edYear)
+                            is PansionPeriod.Week -> {
+                                val marks = Marks.fetchForPeriod(
+                                    login = login,
+                                    period = weeks.first { x -> x.num == (r.period as PansionPeriod.Week).num }.dates
+                                )
+                                ForAvg(count = marks.size, sum = marks.sumOf { it.content.toInt() })
+                            }
+                            is PansionPeriod.Module -> {
+                                Marks.fetchModuleAVG(
+                                    login,
+                                    module = (r.period as PansionPeriod.Module).num.toString(),
+                                    edYear = edYear
+                                )
+                            }
+                            is PansionPeriod.Half -> {
+                                Marks.fetchHalfYearAVG(login, (r.period as PansionPeriod.Half).num, edYear)
+                            }
                             else -> Marks.fetchYearAVG(login, edYear)
                         }
 
                         val stups = when (r.period) {
-                            0 -> Stups.fetchForAWeek(login)
-                            1 -> Stups.fetchForAPreviousWeek(login)
-                            2 -> Stups.fetchForUserQuarters(
-                                login,
-                                quartersNum = module!!.num.toString(),
-                                isQuarters = true, edYear
-                            )
-
-                            3 -> Stups.fetchForUserQuarters(
-                                login,
-                                quartersNum = module!!.halfNum.toString(),
-                                isQuarters = false, edYear
-                            )
+                            is PansionPeriod.Week -> {
+                                Stups.fetchForPeriod(
+                                    login = login,
+                                    period = weeks.first { x -> x.num == (r.period as PansionPeriod.Week).num }.dates
+                                )
+                            }
+                            is PansionPeriod.Module -> {
+                                Stups.fetchForUserQuarters(
+                                    login,
+                                    quartersNum = (r.period as PansionPeriod.Module).num.toString(),
+                                    isQuarters = true, edYear
+                                )
+                            }
+                            is PansionPeriod.Half -> {
+                                Stups.fetchForUserQuarters(
+                                    login,
+                                    quartersNum = (r.period as PansionPeriod.Half).num.toString(),
+                                    isQuarters = false, edYear
+                                )
+                            }
 
                             else -> Stups.fetchForUser(login, edYear)
                         }.map {
@@ -512,7 +532,10 @@ class SchoolController {
             call.respond(
                 RFetchFormRatingResponse(
                     studentsForRating,
-                    Subjects.fetchAllSubjectsAsMap()
+                    Subjects.fetchAllSubjectsAsMap(),
+                    currentModule = module?.num ?: 1,
+                    currentHalf = module?.halfNum ?: 1,
+                    currentWeek = weeks.last().num
                 )
             ).done
         }
@@ -572,7 +595,7 @@ class SchoolController {
                 } else {
                     formName = "$formNum-${form.title.uppercase()}"
                 }
-                val table = when(formNum) {
+                val table = when (formNum) {
                     1 -> RatingLowSchoolTable
                     2 -> RatingHighSchoolTable
                     else -> RatingCommonSchoolTable

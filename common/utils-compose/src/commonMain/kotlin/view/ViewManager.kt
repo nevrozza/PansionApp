@@ -2,6 +2,7 @@ package view
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -34,6 +35,11 @@ class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
     val isTransitionsEnabled: MutableState<Boolean> = mutableStateOf(true),
     val fontSize: MutableState<Float> = mutableFloatStateOf(1f),
     val fontType: MutableState<Int> = mutableStateOf(5),
+
+
+    val showAvatars: MutableState<Boolean> = mutableStateOf(false),
+    val isAmoled: MutableState<Boolean> = mutableStateOf(false),
+    val isRefreshButtons: MutableState<Boolean> = mutableStateOf(false),
 )
 //
 //@Composable
@@ -80,7 +86,7 @@ fun Brush.Companion.easedGradient(
         Color.Black.copy(alpha = 1f - easing.transform(x))
     }
 
-    return linearGradient(colors = if(isReversed) colors.reversed() else colors, start = start, end = end)
+    return linearGradient(colors = if (isReversed) colors.reversed() else colors, start = start, end = end)
 }
 
 fun Brush.Companion.easedVerticalGradient(

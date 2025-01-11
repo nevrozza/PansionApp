@@ -294,39 +294,7 @@ fun SharedTransitionScope.RatingContent(
     }
 }
 
-@Composable
-private fun PeriodButton(
-    inActiveText: String,
-    currentPeriod: String,
-    isActive: Boolean,
-    component: ListComponent
-) {
-    val color = animateColorAsState(
-        if (isActive) MaterialTheme.colorScheme.primaryContainer
-        else Color.Transparent
-    )
-    Box() {
-        AssistChip(
-            onClick = { component.onEvent(ListDialogStore.Intent.ShowDialog) },
-            label = {
-                AnimatedContent(
-                    if (isActive) {
-                        component.state.value.list.firstOrNull { it.id == currentPeriod }?.text
-                                ?: "Загрузка.."
-                    } else {inActiveText}
-                ) {
-                    Text(
-                        it, maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            },
-            modifier = Modifier.animateContentSize(),
-            colors = AssistChipDefaults.assistChipColors(containerColor = color.value)
-        )
-        ListDialogDesktopContent(component, mobileView = true)
-    }
-}
+
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable

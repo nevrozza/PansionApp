@@ -83,7 +83,8 @@ fun LazyListScope.homeStudentBar(
                                         visible = isSharedVisible
                                     )
                                     else Modifier
-                                )
+                                ),
+                                ignoreShowAvatars = true
                             )
                         }
                     }

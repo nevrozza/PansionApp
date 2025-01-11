@@ -6,6 +6,7 @@ import formRating.FormRatingStore.Intent
 import formRating.FormRatingStore.Label
 import formRating.FormRatingStore.State
 import rating.FormRatingStudent
+import rating.PansionPeriod
 
 
 // 0 - week
@@ -15,7 +16,7 @@ import rating.FormRatingStudent
 // 4 - year
 
 data class FormRatingPage(
-    val period: Int,
+    val period: PansionPeriod,
     val formId: Int,
     val students: List<FormRatingStudent>,
     val topEd: Map<Int, List<String>>,
@@ -30,7 +31,7 @@ interface FormRatingStore : Store<Intent, State, Label> {
         val formId: Int?,
         val formNum: Int?,
         val formName: String?,
-        val period: Int = 0,
+        val period: PansionPeriod? = null,
         val availableForms: List<CutedForm> = emptyList(),
         val formRatingPages: List<FormRatingPage> = emptyList(),
 
@@ -45,7 +46,7 @@ interface FormRatingStore : Store<Intent, State, Label> {
         ) : Intent
 
         data class ChangePeriod(
-            val period: Int
+            val period: PansionPeriod
         ) : Intent
 
         data class SelectStupsLogin(
@@ -56,7 +57,7 @@ interface FormRatingStore : Store<Intent, State, Label> {
     sealed interface Message {
         data class AvailableFormsUpdated(val availableForms: List<CutedForm>) : Message
         data class FormChanged(val formId: Int, val formNum: Int, val formName: String) : Message
-        data class PeriodChanged(val period: Int) : Message
+        data class PeriodChanged(val period: PansionPeriod) : Message
         data class FormRatingPagesUpdated(val pages: List<FormRatingPage>, val subjects: Map<Int, String>) : Message
         data class StupsLoginSelected(val login: String) : Message
     }

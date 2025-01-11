@@ -25,6 +25,9 @@ class FormRatingStoreFactory(
     private val formNum: Int?,
     private val formId: Int?,
     private val formName: String?,
+    private val weeksListComponent: ListComponent,
+    private val moduleListComponent: ListComponent,
+    private val periodListComponent: ListComponent,
 ) {
 
     fun create(): FormRatingStore {
@@ -46,7 +49,10 @@ class FormRatingStoreFactory(
                 nInterface = nInterface,
                 journalRepository = journalRepository,
                 formPickerDialog = formPickerDialog,
-                stupsDialog = stupsDialog
+                stupsDialog = stupsDialog,
+                weeksListComponent = weeksListComponent,
+                moduleListComponent = moduleListComponent,
+                periodListComponent = periodListComponent
             ) },
             reducer = FormRatingReducer
         )

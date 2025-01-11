@@ -86,14 +86,22 @@ class SettingsDataSource(
     fun saveFontType(fontType: Int) {
         settings[fontTypeKey] = fontType// fontSize.coerceAtLeast(0.2f)
     }
-    //fun saveIsMarkTable(isMarkTable: Boolean)
-//    fun fetchIsMarkTable() : Boolean
-//
-//    fun saveIsShowingPlusDs(isShowing: Boolean)
-//    fun fetchIsShowingPlusDS() : Boolean
-//
-//    fun saveIsTransitionsEnabled(isEnabled: Bo
 
+
+    fun saveIsAmoledEnabled(isEnabled: Boolean) {
+        settings[isAmoledEnabledKey] = isEnabled
+    }
+    fun fetchIsAmoledEnabled() = settings[isAmoledEnabledKey, false]
+
+    fun saveIsAvatarsEnabled(isEnabled: Boolean) {
+        settings[isAvatarsEnabledKey] = isEnabled
+    }
+    fun fetchIsAvatarsEnabled() = settings[isAvatarsEnabledKey, true]
+
+    fun saveIsRefreshButtonsEnabled(isEnabled: Boolean) {
+        settings[isRefreshButtonsEnabledKey] = isEnabled
+    }
+    fun fetchIsRefreshButtonsEnabled() = settings[isRefreshButtonsEnabledKey, true]
 
     companion object {
         const val languageKey = "languageKey"
@@ -107,6 +115,10 @@ class SettingsDataSource(
         const val isMarkTableKey = "isMarkTableKey"
         const val isShowingPlusDSKey = "isShowingPlusDSKey"
         const val isTransitionsEnabledKey = "isTransitionsEnabledKey"
+
+        const val isAmoledEnabledKey = "isAmoledEnabledKey"
+        const val isRefreshButtonsEnabledKey = "isRefreshButtonsEnabledKey"
+        const val isAvatarsEnabledKey = "isAvatarsEnabledKeyKey"
     }
 
 }

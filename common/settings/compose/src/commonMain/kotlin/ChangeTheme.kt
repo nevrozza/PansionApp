@@ -13,6 +13,25 @@ fun changeTint(viewManager: ViewManager, tint: ThemeTint) {
     repository.saveTint(tint.name)
 }
 
+fun changeAmoled(viewManager: ViewManager, isAmoled: Boolean) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.isAmoled.value = isAmoled
+    repository.saveIsAmoled(isAmoled)
+    changeTint(viewManager, ThemeTint.Dark)
+}
+
+fun changeAvatarsShow(viewManager: ViewManager, isShowing: Boolean) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.showAvatars.value = isShowing
+    repository.saveIsAvatars(isShowing)
+}
+
+fun changeIsRefreshButtons(viewManager: ViewManager, isRefreshButtons: Boolean) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.isRefreshButtons.value = isRefreshButtons
+    repository.saveIsRefreshButtons(isRefreshButtons)
+}
+
 fun changeColorSeed(viewManager: ViewManager, colorSeed: String) {
     val repository: SettingsRepository = Inject.instance()
     val color = colorSeed.toRGB()
@@ -57,6 +76,9 @@ fun setViewManager(viewManager: ViewManager) {
     viewManager.hazeHardware.value = repository.fetchIsTransitionsEnabled()
     viewManager.fontSize.value = repository.fetchFontSize()
     viewManager.fontType.value = repository.fetchFontType()
+    viewManager.isAmoled.value = repository.fetchIsAmoled()
+    viewManager.isRefreshButtons.value = repository.fetchIsRefreshButtons()
+    viewManager.showAvatars.value = repository.fetchIsAvatars()
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)

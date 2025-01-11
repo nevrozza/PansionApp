@@ -35,6 +35,7 @@ import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
 import resources.RIcons
 import view.*
+import kotlin.time.Duration.Companion.seconds
 
 
 @ExperimentalSplitPaneApi
@@ -209,48 +210,60 @@ fun SettingsView(
                     }
                 }
                 Spacer(Modifier.height(10.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                SettingsSwitchRow(
+                    text = "Прозрачность элементов",
+                    checked = isHaze.value
                 ) {
-                    Text(
-                        text = "Прозрачность элементов",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Switch(
-                        checked = isHaze.value,
-                        onCheckedChange = {
-                            isHaze.value = it
-                            if (it) {
-                                isHazeNeedToUpdate.value = true
-                            } else {
-                                changeOffHaze(viewManager)
-                            }
-                        },
-                        modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
-                    )
+                    isHaze.value = it
+                    if (it) {
+                        isHazeNeedToUpdate.value = true
+                    } else {
+                        changeOffHaze(viewManager)
+                    }
                 }
                 Spacer(Modifier.height(15.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                SettingsSwitchRow(
+                    text = "Анимированные переходы",
+                    checked = viewManager.isTransitionsEnabled.value
                 ) {
-                    Text(
-                        text = "Анимированные переходы",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Switch(
-                        checked = viewManager.isTransitionsEnabled.value,
-                        onCheckedChange = {
-                            changeIsTransitionsEnabled(viewManager, it)
-                        },
-                        modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
-                    )
+                    changeIsTransitionsEnabled(viewManager, it)
                 }
+                Spacer(Modifier.height(15.dp))
+                SettingsSwitchRow(
+                    text = "Отображать аватарки",
+                    checked = viewManager.showAvatars.value
+                ) {
+                    changeAvatarsShow(viewManager, it)
+                }
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    text = "Аватар будет отображаться только на главном экране",
+                    modifier = Modifier.fillMaxWidth().alpha(.5f),
+                    textAlign = TextAlign.Center,
+                    fontSize = 10.esp,
+                    lineHeight = 10.esp
+                )
+                Spacer(Modifier.height(10.dp))
+                SettingsSwitchRow(
+                    text = "Amoled (beta)",
+                    checked = viewManager.isAmoled.value
+                ) {
+                    changeAmoled(viewManager, it)
+                }
+                Spacer(Modifier.height(15.dp))
+                SettingsSwitchRow(
+                    text = "Кнопка \"Обновить\"",
+                    checked = viewManager.isRefreshButtons.value
+                ) {
+                    changeIsRefreshButtons(viewManager, it)
+                }
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    text = "Нажимайте F5 или тяните вниз, чтобы обновить",
+                    modifier = Modifier.fillMaxWidth().alpha(.5f),
+                    textAlign = TextAlign.Center,
+                    fontSize = 10.esp
+                )
                 Spacer(Modifier.height(20.dp))
                 Row(
                     Modifier.fillMaxWidth(),
@@ -317,44 +330,19 @@ fun SettingsView(
                 Text("Таблицы", fontSize = 23.esp, fontWeight = FontWeight.Black)
 
                 Spacer(Modifier.height(7.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                SettingsSwitchRow(
+                    text = "Использовать по умолчанию",
+                    checked = model.isMarkTableDefault
                 ) {
-                    Text(
-                        text = "Использовать по умолчанию",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Switch(
-                        checked = model.isMarkTableDefault,
-                        onCheckedChange = {
-                            component.onEvent(SettingsStore.Intent.ChangeIsMarkTableDefault)
-                        },
-                        modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
-                    )
+                    component.onEvent(SettingsStore.Intent.ChangeIsMarkTableDefault)
                 }
                 Spacer(Modifier.height(16.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                SettingsSwitchRow(
+                    text = "Отображать +1 за МВД",
+                    checked = model.isPlusDsStupsEnabled
                 ) {
-                    Text(
-                        text = "Отображать +1 за МВД",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Switch(
-                        checked = model.isPlusDsStupsEnabled,
-                        onCheckedChange = {
-                            component.onEvent(SettingsStore.Intent.ChangeIsPlusDsStupsEnabled)
-                        },
-                        modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
-                    )
+                    component.onEvent(SettingsStore.Intent.ChangeIsPlusDsStupsEnabled)
                 }
-
 
                 Spacer(Modifier.height(14.dp))
                 Row(
@@ -590,6 +578,30 @@ fun SettingsView(
             }
 
         }
+    }
+}
+
+@Composable
+private fun SettingsSwitchRow(
+    text: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = text,
+            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+            fontWeight = FontWeight.SemiBold
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = { onCheckedChange(it) },
+            modifier = Modifier.height(20.dp)//.scale(.7f).offset(y = (-0.05).dp)
+        )
     }
 }
 

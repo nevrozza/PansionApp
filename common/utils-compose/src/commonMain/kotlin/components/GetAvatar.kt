@@ -68,11 +68,11 @@ fun GetAsyncAvatar(
     modifier: Modifier = Modifier,
     isHighQuality: Boolean = true,
     prePath: String? = null,
+    ignoreShowAvatars: Boolean = false,
     isCrossfade: Boolean = true
 ) {
     val viewManager = LocalViewManager.current
-    val isDark = if (viewManager.tint.value == ThemeTint.Auto) isSystemInDarkTheme()
-    else viewManager.tint.value == ThemeTint.Dark
+    val isDark = viewManager.isDark.value
     val path = prePath ?: if (avatarId !in listOf(0, 1)) getAvatarPath(avatarId) else null
 
     Box(
@@ -91,7 +91,7 @@ fun GetAsyncAvatar(
         ),
         contentAlignment = Alignment.Center
     ) {
-        if (path == null) { //avatarId in listOf(0, 1) TODOIK
+        if (path == null || (!viewManager.showAvatars.value && !ignoreShowAvatars)) { //avatarId in listOf(0, 1) TODOIK
             Text(
                 name[0].toString(),
                 fontSize = textSize,

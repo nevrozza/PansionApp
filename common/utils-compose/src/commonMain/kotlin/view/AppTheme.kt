@@ -30,14 +30,17 @@ fun AppTheme(content: @Composable () -> Unit) {
         else -> GeologicaFont
     }
 
-    val isDark =
+    viewManager.isDark.value =
         if (viewManager.tint.value == ThemeTint.Auto) isSystemInDarkTheme()
         else viewManager.tint.value == ThemeTint.Dark
+    if (!viewManager.isDark.value) {
+        viewManager.isAmoled.value = false
+    }
     val fontMultiply = viewManager.fontSize.value
     //kill me
     DynamicMaterialTheme(
-        seedColor = viewManager.seedColor.value, //Black + Monochrome
-        useDarkTheme = isDark,
+        seedColor = viewManager.seedColor.value,
+        useDarkTheme = viewManager.isDark.value,
         style = PaletteStyle.Rainbow,
         typography = MaterialTheme.typography.copy(
             displayLarge = MaterialTheme.typography.displayLarge.copy(
@@ -116,7 +119,8 @@ fun AppTheme(content: @Composable () -> Unit) {
                 lineHeight = MaterialTheme.typography.labelSmall.lineHeight * fontMultiply
             )
         ),
-        animate = true
+        animate = true,
+        withAmoled = viewManager.isAmoled.value
     ) {
         CompositionLocalProvider(
             LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = font)
