@@ -28,14 +28,6 @@ import pansion.common.utils_compose.generated.resources.Geologica_SemiBoldItalic
 import pansion.common.utils_compose.generated.resources.Geologica_Thin
 import pansion.common.utils_compose.generated.resources.Geologica_ThinItalic
 import pansion.common.utils_compose.generated.resources.Res
-import pansion.common.utils_compose.generated.resources.emoji0
-import pansion.common.utils_compose.generated.resources.*
-import pansion.common.utils_compose.generated.resources.emoji1
-import pansion.common.utils_compose.generated.resources.emoji2
-import pansion.common.utils_compose.generated.resources.emoji3
-import pansion.common.utils_compose.generated.resources.emoji4
-import pansion.common.utils_compose.generated.resources.emoji5
-import pansion.common.utils_compose.generated.resources.emoji6
 
 //Прости меня, Господи
 
@@ -868,20 +860,15 @@ data object Images {
     }
 
     data object Emoji {
-        val emoji0: ImageBitmap
-            @Composable get() = imageResource(Res.drawable.emoji0)
-        val emoji1: ImageBitmap
-            @Composable get() = imageResource(Res.drawable.emoji1)
-        val emoji2: ImageBitmap
-            @Composable get() = imageResource(Res.drawable.emoji2)
-        val emoji3: ImageBitmap
-            @Composable get() = imageResource(Res.drawable.emoji3)
-        val emoji4: ImageBitmap
-            @Composable get() = imageResource(Res.drawable.emoji4)
-        val emoji5: ImageBitmap
-            @Composable get() = imageResource(Res.drawable.emoji5)
-        val emoji6: ImageBitmap
-            @Composable get() = imageResource(Res.drawable.emoji6)
+        val pathEmoji = "emojis/"
+        val emoji0 = "${pathEmoji}emoji0.webp"
+        val emoji1 = "${pathEmoji}emoji1.webp"
+        val emoji2 = "${pathEmoji}emoji2.webp"
+        val emoji3 = "${pathEmoji}emoji3.webp"
+        val emoji4 = "${pathEmoji}emoji4.webp"
+        val emoji5 = "${pathEmoji}emoji5.webp"
+        val emoji6 = "${pathEmoji}emoji6.webp"
+        val emoji7 = "${pathEmoji}emoji7.webp"
     }
 }
 

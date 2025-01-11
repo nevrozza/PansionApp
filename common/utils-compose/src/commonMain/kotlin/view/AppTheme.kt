@@ -122,10 +122,24 @@ fun AppTheme(content: @Composable () -> Unit) {
         animate = true,
         withAmoled = viewManager.isAmoled.value
     ) {
-        CompositionLocalProvider(
-            LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = font)
+        val newBackgroundColor =
+            if (!viewManager.isAmoled.value) MaterialTheme.colorScheme.background.blend(
+                MaterialTheme.colorScheme.primary,
+                if (viewManager.isDark.value) 0.007f else 0.08f
+            )
+            else MaterialTheme.colorScheme.background
+        MaterialTheme(
+            colorScheme = MaterialTheme.colorScheme.copy(
+                surface = newBackgroundColor,
+                background = newBackgroundColor,
+
+                )
         ) {
-            content()
+            CompositionLocalProvider(
+                LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = font)
+            ) {
+                content()
+            }
         }
     }
 }

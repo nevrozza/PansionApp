@@ -10,5 +10,6 @@ data class RScheduleList(
 
 @Serializable
 data class RPersonScheduleList(
-    val list: HashMap<String, List<PersonScheduleItem>>
+    val list: HashMap<String, List<PersonScheduleItem>>,
+    val lastUpdate: String
 )

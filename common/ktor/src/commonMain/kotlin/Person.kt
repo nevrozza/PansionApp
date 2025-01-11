@@ -19,7 +19,8 @@ data class PersonParent(
     val fio: FIO,
     val isActive: Boolean,
     val isParent: Boolean,
-    val isStudent: Boolean
+    val isStudent: Boolean,
+    val formId: Int?
 )
 @Serializable
 data class PersonPlus(

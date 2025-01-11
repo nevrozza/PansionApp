@@ -15,6 +15,7 @@ import parents.AdminParentsStore.Intent
 import parents.AdminParentsStore.Label
 import parents.AdminParentsStore.State
 import parents.AdminParentsStore.Message
+import server.updateSafe
 
 class AdminParentsExecutor(
     private val adminRepository: AdminRepository,
@@ -33,11 +34,16 @@ class AdminParentsExecutor(
     }
 
     private fun createChild(login: String) {
-        dispatch(
-            Message.KidsUpdated(
-                state().kids + login
+        val formId = state().users.firstOrNull { it.login == login }?.formId
+        if (formId != null) {
+            val newKids = state().kids.toMutableMap()
+            newKids.updateSafe(formId, login)
+            dispatch(
+                Message.KidsUpdated(
+                    newKids
+                )
             )
-        )
+        }
         childCreatePicker.onEvent(ListDialogStore.Intent.HideDialog)
         scope.launch {
             updateChildPicker(state())
@@ -62,7 +68,8 @@ class AdminParentsExecutor(
                         dispatch(
                             Message.Inited(
                                 users = r.users,
-                                lines = r.lines
+                                lines = r.lines,
+                                forms = r.forms
                             )
                         )
 
@@ -109,7 +116,7 @@ class AdminParentsExecutor(
     private fun updateChildPicker(state: State) {
         childCreatePicker.onEvent(
             ListDialogStore.Intent.InitList(
-                state.users.filter { it.login !in state().kids && !it.isParent && it.isActive && it.isStudent}.map {
+                state.users.filter { it.login !in state().kids.flatMap { it.value } && !it.isParent && it.isActive && it.isStudent}.map {
                     ListItem(
                         id = it.login,
                         text = "${it.fio.surname} ${it.fio.name} ${it.fio.praname}"
@@ -137,14 +144,21 @@ class AdminParentsExecutor(
             nInterface.nStartLoading()
             try {
                 val r = adminRepository.fetchParents()
+                val oldKids = r.lines.map { it.studentLogin }.toSet().toList()
                 scope.launch {
                     dispatch(Message.Inited(
                         users = r.users,
-                        lines = r.lines
+                        lines = r.lines,
+                        forms = r.forms
                     ))
                     dispatch(
                         Message.KidsUpdated(
-                            kids = r.lines.map { it.studentLogin }.toSet().toList()
+                            kids = r.forms.associate {
+                                it.id to oldKids.filter { x ->
+                                    val u = r.users.firstOrNull { it.login == x }
+                                    u?.formId == it.id
+                                }
+                            }
                         )
                     )
 

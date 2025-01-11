@@ -1,6 +1,7 @@
 package admin.groups.forms
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmName
 
 @Serializable
 data class FormInit(
@@ -22,4 +23,13 @@ data class CutedForm(
     val id: Int,
     val title: String,
     val classNum: Int
+)
+
+@JvmName("CutedFormListSort")
+fun List<CutedForm>.formSort() = this.sortedWith(
+    compareBy({ it.classNum }, { it.title })
+)
+@JvmName("FormListSort")
+fun List<Form>.formSort() = this.sortedWith(
+    compareBy({ it.form.classNum }, { it.form.title })
 )

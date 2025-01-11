@@ -51,7 +51,8 @@ class UserManageController() {
                     ),
                     isActive = it.isActive,
                     isParent = it.isParent,
-                    isStudent = it.role == Roles.student
+                    isStudent = it.role == Roles.student,
+                    formId = StudentsInForm.fetchFormIdOfLoginNullable(it.login)
                 )
             }.sortedBy { it.fio.surname }.sortedBy { !it.isActive }
 
@@ -60,7 +61,8 @@ class UserManageController() {
             call.respond(
                 RFetchParentsListResponse(
                     users = users,
-                    lines = lines
+                    lines = lines,
+                    forms = Forms.getAllForms().filter {it.isActive}.map { CutedForm(id = it.formId, title = it.title, classNum = it.classNum) }
                 )
             ).done
         }

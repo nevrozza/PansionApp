@@ -43,6 +43,7 @@ import view.handy
 fun LazyListScope.homeStudentBar(
     model: HomeStore.State,
     nGradesModel: NetworkInterface.NetworkModel,
+    nTeacherModel: NetworkInterface.NetworkModel,
     nQuickTabModel: NetworkInterface.NetworkModel,
     component: HomeComponent,
     coroutineScope: CoroutineScope,
@@ -246,58 +247,34 @@ fun LazyListScope.homeStudentBar(
                     )
                     Spacer(Modifier.height(5.dp))
 
-                    if (model.homeWorkEmojiCount != null) {
+                    if (nTeacherModel.state != NetworkState.Loading) {
                         Row(
                             Modifier.fillMaxWidth()
                                 .padding(end = 5.dp, bottom = 5.dp),
                             horizontalArrangement = Arrangement.End
                         ) {
-                            val deathsCount = ((model.homeWorkEmojiCount!! - 4) / 2)
+                            val deathsCount = (((model.homeWorkEmojiCount ?: 4) - 4) / 2)
                             if (deathsCount > 0) {
                                 for (i in 0..<deathsCount) {
-                                    Image(
-                                        Images.Emoji.emoji6,
-                                        null,
-                                        modifier = Modifier.size(25.dp),
-                                        contentScale = ContentScale.Crop,
-                                        filterQuality = FilterQuality.Low
+                                    GetAsyncImage(
+                                        Images.Emoji.emoji6
                                     )
                                 }
                             } else {
-                                val emoji = when (model.homeWorkEmojiCount!!) {
+                                val emoji = when (model.homeWorkEmojiCount) {
                                     0 -> Images.Emoji.emoji0
                                     1 -> Images.Emoji.emoji1
                                     2 -> Images.Emoji.emoji2
                                     3 -> Images.Emoji.emoji3
                                     4 -> Images.Emoji.emoji4
+                                    null -> Images.Emoji.emoji7
                                     else -> Images.Emoji.emoji5
                                 }
-                                Image(
-                                    emoji,
-                                    null,
-                                    modifier = Modifier.size(25.dp),
-                                    contentScale = ContentScale.Crop,
-                                    filterQuality = FilterQuality.None
+
+                                GetAsyncImage(
+                                    emoji
                                 )
                             }
-                            //fun getEmoji(count: Int): String {
-//    return when(count) {
-//        0 -> Emojis.check
-//        1 -> Emojis.smileTeeth
-//        2 -> Emojis.smile
-//        3 -> Emojis.normal
-//        4 -> Emojis.scared
-//        5 -> Emojis.horror
-//        else -> {
-//            val deathsCount = ((count - 6) / 2)
-//            var d = Emojis.death
-//            for (i in 0..<deathsCount) {
-//                d += Emojis.death
-//            }
-//            return d
-//        }
-//    }
-//}
                         }
                     } else {
                         Box(

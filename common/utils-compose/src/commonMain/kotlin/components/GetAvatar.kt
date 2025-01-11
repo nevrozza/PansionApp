@@ -60,6 +60,28 @@ fun GetAsyncIcon(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
+fun GetAsyncImage(
+    path: String,
+    modifier: Modifier = Modifier.size(25.dp),
+    contentDescription: String? = null,
+    contentScale: ContentScale = ContentScale.Crop,
+    filterQuality: FilterQuality = FilterQuality.None
+) {
+    AsyncImage(
+        ImageRequest.Builder(LocalPlatformContext.current)
+            .data(Res.getUri("drawable/${path}"))
+            .crossfade(true)
+            .build(),
+        modifier = modifier,
+        contentDescription = contentDescription,
+        contentScale = contentScale,
+        filterQuality = filterQuality
+    )
+}
+
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
 fun GetAsyncAvatar(
     avatarId: Int,
     name: String,

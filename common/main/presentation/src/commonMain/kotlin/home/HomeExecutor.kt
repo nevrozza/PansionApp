@@ -119,7 +119,7 @@ class HomeExecutor(
                 } ?: listOf()
                 scope.launch {
                     dispatch(
-                        Message.ItemsUpdated(newSchedule.toMap(HashMap()))
+                        Message.ItemsUpdated(newSchedule.toMap(HashMap()), lastUpdate = state().lastUpdate)
                     )
                 }
             } catch (e: Throwable) {
@@ -249,6 +249,7 @@ class HomeExecutor(
 
     private fun fetchHomeTasksCount() {
         scope.launch(CDispatcher) {
+            teacherNInterface.nStartLoading()
             try {
                 val count = mainRepository.fetchMainHomeTasksCount(
                     RFetchMainHomeTasksCountReceive(
@@ -261,9 +262,10 @@ class HomeExecutor(
                             count
                         )
                     )
+                    teacherNInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-
+                teacherNInterface.nSuccess()
             }
         }
     }
@@ -322,7 +324,7 @@ class HomeExecutor(
                     newList[it.key] = items
                 }
                 scope.launch {
-                    dispatch(Message.ItemsUpdated(newList.toMap(HashMap())))
+                    dispatch(Message.ItemsUpdated(newList.toMap(HashMap()), lastUpdate = response.lastUpdate))
                     scheduleNInterface.nSuccess()
                 }
             } catch (e: Throwable) {

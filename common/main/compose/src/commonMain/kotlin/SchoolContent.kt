@@ -983,7 +983,7 @@ private fun MinistrySettingsItem(
                 size = 25.dp
             )
         }
-        Text("${ministryStudent.fio.surname} ${ministryStudent.fio.name}${if (ministryStudent.form.isNotBlank()) " ${ministryStudent.form}" else ""}")
+        Text("${ministryStudent.fio.surname} ${ministryStudent.fio.name}${if (ministryStudent.form.isNotBlank()) " ${ministryStudent.form}" else " ${ministryStudent.fio.praname}"}")
         if (isDeleteButton) {
             IconButton(
                 onClick = { onDeleteClick() },

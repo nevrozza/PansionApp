@@ -11,7 +11,7 @@ object HomeReducer : Reducer<State, Message> {
                 ?: achievements)
             is Message.TeacherGroupUpdated -> copy(teacherGroups = msg.teacherGroups)
             is Message.GradesUpdated -> copy(grades = msg.grades)
-            is Message.ItemsUpdated -> copy(items = msg.items)
+            is Message.ItemsUpdated -> copy(items = msg.items, lastUpdate = msg.lastUpdate)
             Message.IsDatesShownChanged -> copy(isDatesShown = !isDatesShown)
             is Message.DateChanged -> copy(currentDate = msg.date)
             is Message.SomeHeadersUpdated -> copy(someHeaders = msg.someHeaders)

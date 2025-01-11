@@ -2,6 +2,19 @@ package server
 
 import kotlinx.datetime.*
 
+
+
+
+fun <K, V> MutableMap<K, List<V>>.updateSafe(key: K?, value: V) {
+    if (key != null) {
+        if (this.containsKey(key)) {
+            this[key] = this[key]!! + value
+        } else {
+            this[key] = listOf(value)
+        }
+    }
+}
+
 fun getCurrentEdYear(): Int {
     val today = Clock.System.now().toLocalDateTime(appTimeZone).date
     return getEdYear(today)
@@ -282,6 +295,11 @@ fun String.latin() = this
     .replace("ю", "yu")
     .replace("я", "ya")
     .replace("й", "y")
+
+
+fun getStringDayTime(): String {
+    return "${getCurrentDate().second}-${getSixTime()}"
+}
 
 fun getCurrentDate(): Pair<Int, String> {
     val today = Clock.System.todayIn(TimeZone.of("UTC+3"))

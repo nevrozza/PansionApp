@@ -19,7 +19,6 @@ import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingCommonSchoolTable
 import com.nevrozq.pansion.database.ratingTable.RatingHighSchoolTable
 import com.nevrozq.pansion.database.ratingTable.RatingLowSchoolTable
-import com.nevrozq.pansion.database.ratingTable.RatingWeek0Table
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
 import com.nevrozq.pansion.database.studentMinistry.StudentMinistryDTO
@@ -37,7 +36,6 @@ import main.RFetchSchoolDataReceive
 import main.RFetchSchoolDataResponse
 import main.school.*
 import mentoring.MentorForms
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import rating.*
 import server.*
 

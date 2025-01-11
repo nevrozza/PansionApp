@@ -58,8 +58,10 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
+import server.getCurrentDate
 import server.getCurrentEdYear
 import server.getSixTime
+import server.getStringDayTime
 import java.io.File
 import java.io.FileInputStream
 import java.security.KeyStore
@@ -69,6 +71,7 @@ import java.security.KeyStore
 // уроки +направление, группы +обязательность к классам, +проверка есть ли такой урок в классе
 
 var lastTimeRatingUpdate: String = getSixTime()
+var lastTimeScheduleUpdate: String = getStringDayTime()
 
 @OptIn(DelicateCoroutinesApi::class)
 fun main() {

@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
@@ -10,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,6 +40,9 @@ fun AdminParentsContent(
     val nModel by component.nInterface.networkModel.subscribeAsState()
 
     val hazeState = remember { HazeState() }
+
+
+    val clipboardManager = LocalClipboardManager.current
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -90,67 +96,149 @@ fun AdminParentsContent(
     ) { padding ->
         Crossfade(nModel.state, modifier = Modifier.fillMaxSize()) { state ->
             when (state) {
-                NetworkState.None -> CLazyColumn(padding = padding, modifier = Modifier.horizontalScroll(
-                    rememberScrollState()), hazeState = hazeState) {
-                    items(model.kids) { s ->
-
-                        val p = model.users.firstOrNull { it.login == s}
-                        if (p != null) {
-
-                            val parents = model.lines.filter { it.studentLogin == s }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("${p.fio.surname} ${p.fio.name} ${p.fio.praname} ($s)", fontWeight = FontWeight.Bold, fontSize = 18.esp)
-                                Spacer(Modifier.width(5.dp))
-                                if (parents.size < 2) {
-                                    Box {
-                                        IconButton(
-                                            onClick = {
-                                                component.onEvent(
-                                                    AdminParentsStore.Intent.AddToStudent(
-                                                        p.login
+                NetworkState.None -> CLazyColumn(
+                    padding = padding, modifier = Modifier.horizontalScroll(
+                        rememberScrollState()
+                    ), hazeState = hazeState
+                ) {
+                    items(model.forms, key = { it.id }) { form ->
+                        val kids = model.kids[form.id]
+                        val title = "${form.classNum} ${form.title}"
+                        if (!kids.isNullOrEmpty()) {
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                title,
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                                fontWeight = FontWeight.Black,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.cClickable {
+                                    clipboardManager.setText(
+                                        buildAnnotatedString {
+                                            append("$title\n")
+                                            kids.forEach { s ->
+                                                val p = model.users.firstOrNull { it.login == s }
+                                                if (p != null) {
+                                                    append(
+                                                        "Ребёнок:\n" +
+                                                        "${p.fio.surname} ${p.fio.name} ${p.fio.praname} - $s\n"
                                                     )
-                                                )
-                                            },
-                                            modifier = Modifier.size(20.dp)
-                                        ) {
-                                            GetAsyncIcon(
-                                                RIcons.Add
-                                            )
-                                        }
-                                        if (model.addToStudent == p.login) {
-                                            ListDialogDesktopContent(
-                                                component = component.parentEditPicker
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            parents.forEach { x ->
-                                val xp = model.users.firstOrNull { it.login == x.parentLogin }
-                                if (xp != null) {
-                                    Row {
-                                        Text(" * ${xp.fio.surname} ${xp.fio.name} ${xp.fio.praname} (${x.parentLogin})")
-                                        Spacer(Modifier.width(5.dp))
-                                        Box() {
-                                            IconButton(
-                                                onClick = {
-                                                    component.onEvent(
-                                                        AdminParentsStore.Intent.EditId(
-                                                            x.id
+                                                    val parents = model.lines.filter { it.studentLogin == s }
+                                                    if (parents.isNotEmpty()) {
+                                                        append(
+                                                            "Родители:\n"
                                                         )
-                                                    )
-                                                },
-                                                modifier = Modifier.size(20.dp)
-                                            ) {
-                                                GetAsyncIcon(
-                                                    RIcons.Edit,
-                                                    size = 17.dp
-                                                )
+                                                        parents.forEach { x ->
+                                                            val xp = model.users.firstOrNull { it.login == x.parentLogin }
+                                                            if (xp != null) {
+                                                                append("${xp.fio.surname} ${xp.fio.name} ${xp.fio.praname} - ${x.parentLogin}\n")
+                                                            } else {
+                                                                append("null\n")
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    append("Ребёнок не найден")
+                                                }
+                                                append("\n")
                                             }
-                                            if (model.editId == x.id) {
-                                                ListDialogDesktopContent(
-                                                    component = component.parentEditPicker
+                                        }
+                                    )
+                                }
+                            )
+                            kids.forEach { s ->
+                                val p = model.users.firstOrNull { it.login == s }
+                                Column(Modifier.cClickable(shape = 24) {
+                                    clipboardManager.setText(
+                                        buildAnnotatedString {
+                                            if (p != null) {
+                                                append(
+                                                    "Ребёнок:\n" +
+                                                            "${p.fio.surname} ${p.fio.name} ${p.fio.praname} - $s\n"
                                                 )
+                                                val parents = model.lines.filter { it.studentLogin == s }
+                                                if (parents.isNotEmpty()) {
+                                                    append(
+                                                        "Родители:\n"
+                                                    )
+                                                    parents.forEach { x ->
+                                                        val xp = model.users.firstOrNull { it.login == x.parentLogin }
+                                                        if (xp != null) {
+                                                            append("${xp.fio.surname} ${xp.fio.name} ${xp.fio.praname} - ${x.parentLogin}\n")
+                                                        } else {
+                                                            append("null\n")
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                append("Ребёнок не найден")
+                                            }
+                                        }
+                                    )
+                                }) {
+                                    if (p != null) {
+
+                                        val parents = model.lines.filter { it.studentLogin == s }
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                "${p.fio.surname} ${p.fio.name} ${p.fio.praname} ($s)",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 18.esp
+                                            )
+                                            Spacer(Modifier.width(5.dp))
+                                            if (parents.size < 2) {
+                                                Box {
+                                                    IconButton(
+                                                        onClick = {
+                                                            component.onEvent(
+                                                                AdminParentsStore.Intent.AddToStudent(
+                                                                    p.login
+                                                                )
+                                                            )
+                                                        },
+                                                        modifier = Modifier.size(20.dp)
+                                                    ) {
+                                                        GetAsyncIcon(
+                                                            RIcons.Add
+                                                        )
+                                                    }
+                                                    if (model.addToStudent == p.login) {
+                                                        ListDialogDesktopContent(
+                                                            component = component.parentEditPicker
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        parents.forEach { x ->
+                                            val xp = model.users.firstOrNull { it.login == x.parentLogin }
+                                            if (xp != null) {
+                                                Row {
+                                                    Text(" * ${xp.fio.surname} ${xp.fio.name} ${xp.fio.praname} (${x.parentLogin})")
+                                                    Spacer(Modifier.width(5.dp))
+                                                    Box() {
+                                                        IconButton(
+                                                            onClick = {
+                                                                component.onEvent(
+                                                                    AdminParentsStore.Intent.EditId(
+                                                                        x.id
+                                                                    )
+                                                                )
+                                                            },
+                                                            modifier = Modifier.size(20.dp)
+                                                        ) {
+                                                            GetAsyncIcon(
+                                                                RIcons.Edit,
+                                                                size = 17.dp
+                                                            )
+                                                        }
+                                                        if (model.editId == x.id) {
+                                                            ListDialogDesktopContent(
+                                                                component = component.parentEditPicker
+                                                            )
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }

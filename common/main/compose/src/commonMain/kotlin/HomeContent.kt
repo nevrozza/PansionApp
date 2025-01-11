@@ -501,7 +501,6 @@ fun TeacherHomeContent(
 }
 
 
-
 @Composable
 private fun RaspisanieTable(
     model: HomeStore.State,
@@ -549,6 +548,15 @@ private fun RaspisanieTable(
                                 )
                                 Spacer(Modifier.padding(10.dp))
                             }
+
+
+                        Spacer(Modifier.height(5.dp))
+                        Text(
+                            text = "Обновлено: ${model.lastUpdate}",
+                            modifier = Modifier.fillMaxWidth().alpha(.5f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 10.esp
+                        )
                     }
 
                 }
@@ -593,6 +601,7 @@ fun StudentHomeContent(
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
+    val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
 
     val viewManager = LocalViewManager.current
     val lazyListState = rememberLazyListState()
@@ -740,7 +749,8 @@ fun StudentHomeContent(
                     component = component,
                     coroutineScope = coroutineScope,
                     sharedTransitionScope = sharedTransitionScope,
-                    isSharedVisible = isSharedVisible
+                    isSharedVisible = isSharedVisible,
+                    nTeacherModel = nTeacherModel
                 )
                 this.homeStudentNotifications(
                     model = model,

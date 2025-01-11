@@ -79,6 +79,7 @@ import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.subjects.mapToSubject
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.lastTimeRatingUpdate
+import com.nevrozq.pansion.lastTimeScheduleUpdate
 import com.nevrozq.pansion.utils.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -383,24 +384,24 @@ class LessonsController() {
                     RFetchSubjectRatingResponse(
                         mapOf(
                             period.toStr() to mapOf(
-                            r.subjectId to items.map {
-                                RatingItem(
-                                    login = it.login,
-                                    fio = FIO(
-                                        name = it.name,
-                                        surname = it.surname,
-                                        praname = it.praname
-                                    ),
-                                    avatarId = it.avatarId,
-                                    stups = it.stups,
-                                    top = it.top,
-                                    groupName = it.groupName,
-                                    formNum = it.formNum,
-                                    formShortTitle = it.formShortTitle,
-                                    avg = it.avg
-                                )
-                            }
-                        )),
+                                r.subjectId to items.map {
+                                    RatingItem(
+                                        login = it.login,
+                                        fio = FIO(
+                                            name = it.name,
+                                            surname = it.surname,
+                                            praname = it.praname
+                                        ),
+                                        avatarId = it.avatarId,
+                                        stups = it.stups,
+                                        top = it.top,
+                                        groupName = it.groupName,
+                                        formNum = it.formNum,
+                                        formShortTitle = it.formShortTitle,
+                                        avg = it.avg
+                                    )
+                                }
+                            )),
                         me = mapOf(
                             period.toStr() to mapOf(
                                 r.subjectId to if (me != null) Pair(me.top, me.stups) else null
@@ -598,7 +599,12 @@ class LessonsController() {
                 }
             }
 
-            this.respond(RPersonScheduleList((hashMapOf(r.day to personItems)))).done
+            this.respond(
+                RPersonScheduleList(
+                    (hashMapOf(r.day to personItems)),
+                    lastUpdate = lastTimeScheduleUpdate
+                )
+            ).done
         }
     }
 
@@ -656,6 +662,7 @@ class LessonsController() {
                     )
                 }
             }
+            lastTimeScheduleUpdate = getStringDayTime()
             this.respond(HttpStatusCode.OK).done
         }
     }

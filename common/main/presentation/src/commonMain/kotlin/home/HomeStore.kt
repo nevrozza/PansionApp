@@ -63,7 +63,8 @@ interface HomeStore : Store<Intent, State, Label> {
         val children: List<PersonPlus> = emptyList(),
 
         val childrenNotifications: Map<String, List<ClientMainNotification>> = emptyMap(),
-        val notChildren: List<Person> = emptyList()
+        val notChildren: List<Person> = emptyList(),
+        val lastUpdate: String = "???"
     )
 
     sealed interface Intent {
@@ -108,7 +109,7 @@ interface HomeStore : Store<Intent, State, Label> {
 
         data class GradesUpdated(val grades: List<Grade>) : Message
 
-        data class ItemsUpdated(val items: HashMap<String, List<PersonScheduleItemWithNum>>) : Message
+        data class ItemsUpdated(val items: HashMap<String, List<PersonScheduleItemWithNum>>, val lastUpdate: String) : Message
 
         data class DateChanged(val date: Pair<Int, String>) : Message
 

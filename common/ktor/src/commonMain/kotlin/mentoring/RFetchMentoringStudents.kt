@@ -3,6 +3,7 @@ package mentoring
 import MentorPerson
 import kotlinx.serialization.Serializable
 import registration.RegistrationRequest
+import kotlin.jvm.JvmName
 
 @Serializable
 data class RFetchMentoringStudentsResponse(
@@ -19,4 +20,9 @@ data class MentorForms(
     val num: Int,
     val title: String,
     val isQrActive: Boolean
+)
+
+@JvmName("MentorFormListSort")
+fun List<MentorForms>.formSort() = this.sortedWith(
+    compareBy({ it.num }, { it.title })
 )
