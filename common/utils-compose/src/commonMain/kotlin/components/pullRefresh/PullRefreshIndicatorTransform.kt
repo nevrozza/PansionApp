@@ -44,7 +44,7 @@ fun Modifier.pullRefreshIndicatorTransform(
             }
         }
         .graphicsLayer {
-            translationY = state.position - size.height
+            translationY = state.position - (size.height)
 
             if (scale && !state.refreshing) {
                 val scaleFraction = LinearOutSlowInEasing

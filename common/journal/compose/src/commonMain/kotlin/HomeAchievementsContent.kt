@@ -1,5 +1,6 @@
 
 import achievements.HomeAchievementsComponent
+import achievements.HomeAchievementsStore
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,6 +36,7 @@ fun SharedTransitionScope.HomeAchievementsContent(
     component: HomeAchievementsComponent,
     isVisible: Boolean
 ) {
+
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val hazeState = remember { HazeState() }

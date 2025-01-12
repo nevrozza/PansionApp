@@ -2,6 +2,7 @@ package formRating
 
 import CDispatcher
 import JournalRepository
+import admin.groups.forms.formSort
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
@@ -194,10 +195,11 @@ class FormRatingExecutor(
                 formPickerDialog.nInterface.nStartLoading()
                 try {
                     val r = journalRepository.fetchFormsForFormRating()
+                    val forms = r.forms.formSort()
                     scope.launch {
                         formPickerDialog.onEvent(
                             ListDialogStore.Intent.InitList(
-                                r.forms.map {
+                                forms.map {
                                     ListItem(
                                         id = it.id.toString(),
                                         text = it.title
@@ -208,7 +210,7 @@ class FormRatingExecutor(
                         formPickerDialog.nInterface.nSuccess()
                         dispatch(
                             Message.AvailableFormsUpdated(
-                                r.forms
+                                forms
 //                        r.forms.size > 1 || (state().formId == null && r.forms.size == 1)
                             )
                         )

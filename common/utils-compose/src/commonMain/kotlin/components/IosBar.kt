@@ -14,7 +14,7 @@ import view.LocalViewManager
 @Composable
 fun AppBar(
     modifier: Modifier = Modifier.padding(top = 10.dp).padding(horizontal = 10.dp),
-    title: @Composable () -> Unit = {},
+    title: @Composable RowScope.() -> Unit = {},
     navigationRow: @Composable () -> Unit = {},
     actionRow: @Composable () -> Unit = {},
     containerColor: Color = MaterialTheme.colorScheme.surface,

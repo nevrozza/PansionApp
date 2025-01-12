@@ -22,6 +22,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 
@@ -34,6 +35,7 @@ fun CustomTextButton(
     fontSize: TextUnit = TextUnit.Unspecified,
     textAlign: TextAlign = TextAlign.Center,
     isButtonEnabled: Boolean = true,
+    maxLines: Int = Int.MAX_VALUE,
     onClick: () -> Unit
 ) {
     CustomTextButton(text = buildAnnotatedString {
@@ -43,7 +45,7 @@ fun CustomTextButton(
                 text
             )
         }
-    }, color = color, onClick = onClick, modifier = modifier, fontSize = fontSize, isButtonEnabled = isButtonEnabled, textAlign = textAlign)
+    }, color = color, maxLines = maxLines, onClick = onClick, modifier = modifier, fontSize = fontSize, isButtonEnabled = isButtonEnabled, textAlign = textAlign)
 }
 
 @Composable
@@ -54,6 +56,7 @@ fun CustomTextButton(
     fontSize: TextUnit = TextUnit.Unspecified,
     textAlign: TextAlign = TextAlign.Center,
     isButtonEnabled: Boolean = true,
+    maxLines: Int = Int.MAX_VALUE,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -64,7 +67,7 @@ fun CustomTextButton(
         targetValue = if (isDark) color.hv() else color
     )
 //    Color(1.0f, 1.0f, 1.0f)
-    Text(text, textAlign = textAlign, color = color.copy(alpha = if(isButtonEnabled) 1f else .5f), fontSize = fontSize,
+    Text(text, maxLines = maxLines, overflow = TextOverflow.Ellipsis, textAlign = textAlign, color = color.copy(alpha = if(isButtonEnabled) 1f else .5f), fontSize = fontSize,
         modifier = modifier.then(Modifier.hoverable(interactionSource)
             .clickable(interactionSource = interactionSource, indication = null, enabled = isButtonEnabled) {
                 onClick()

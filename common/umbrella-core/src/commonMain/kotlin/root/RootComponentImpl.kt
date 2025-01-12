@@ -88,6 +88,7 @@ import root.store.RootStore
 import root.store.RootStoreFactory
 import schedule.ScheduleComponent
 import school.SchoolComponent
+import school.SchoolStore
 import server.Moderation
 import server.Roles
 import studentLines.StudentLinesComponent
@@ -734,7 +735,7 @@ class RootComponentImpl(
             SchoolComponent.Output.NavigateBack -> popOnce(Child.MainSchool::class)
 
             SchoolComponent.Output.NavigateToRating -> {
-                mainRatingComponent?.onEvent(RatingStore.Intent.Init)
+                //mainRatingComponent?.onEvent(RatingStore.Intent.Init)
                 navigation.bringToFront(Config.MainRating)
             }
 
@@ -824,9 +825,10 @@ class RootComponentImpl(
                     } else {
                         if (stack.value.items.size == 1 && onBackButtonPress != null) onBackButtonPress.invoke()
                         else navigation.pop {
-                            (stack.active.instance as? Child.HomeAllGroupMarks)?.allGroupMarksComponent?.onEvent(
-                                AllGroupMarksStore.Intent.Init
-                            )
+                            // Changed to LaunchedEffect(Unit)
+//                            (stack.active.instance as? Child.HomeAllGroupMarks)?.allGroupMarksComponent?.onEvent(
+//                                AllGroupMarksStore.Intent.Init
+//                            )
                             mainJournalComponent?.onEvent(JournalStore.Intent.Refresh)
                         }
                     }
@@ -1067,23 +1069,118 @@ class RootComponentImpl(
         when (output) {
 
             RootComponent.Output.NavigateToHome -> {
+                val items = stack.items
+                val config = items.lastOrNull {
+                    val c = it.configuration
+                    c in listOf(
+                        Config.MainHome
+                    ) ||
+                    c is Config.LessonReport ||
+                    c is Config.HomeAllGroupMarks ||
+                    c is Config.HomeAchievements ||
+                    c is Config.HomeDetailedStups ||
+                    c is Config.HomeDnevnikRuMarks ||
+                    c is Config.HomeProfile ||
+                    c is Config.HomeStudentLines ||
+                    c is Config.HomeTasks
+                }?.configuration
                 navigation.bringToFront(
                     Config.MainHome
-                )
+                ) {
+                    if (config !is Config.MainHome) {
+                        bringToFrontSavely(config)
+                    }
+                }
             }
 
-            RootComponent.Output.NavigateToJournal -> navigation.bringToFront(Config.MainJournal)
+            RootComponent.Output.NavigateToJournal -> {
+                val items = stack.items
+                val config = items.lastOrNull {
+                    it.configuration in listOf(
+                        Config.MainJournal
+                    ) || it.configuration is Config.LessonReport
+                }?.configuration
+                mainJournalComponent?.onEvent(JournalStore.Intent.Refresh)
 
-            RootComponent.Output.NavigateToAdmin -> navigation.bringToFront(Config.MainAdmin)
+                navigation.bringToFront(Config.MainJournal) {
+                    if (config !is Config.MainJournal) {
+                        bringToFrontSavely(config)
+                    }
+                }
+            }
+
+            RootComponent.Output.NavigateToAdmin -> {
+                val items = stack.items
+                val config = items.lastOrNull {
+                    it.configuration in listOf(
+                        Config.MainAdmin,
+                        Config.AdminParents,
+                        Config.AdminAchievements,
+                        Config.AdminCalendar,
+                        Config.AdminCabinets,
+                        Config.AdminGroups,
+                        Config.AdminUsers,
+
+                        ) || it.configuration is Config.AdminSchedule
+                }?.configuration
+                navigation.bringToFront(Config.MainAdmin) {
+                    if (config !is Config.MainAdmin) {
+                        bringToFrontSavely(
+                            config
+                        )
+                    }
+                }
+            }
 
             RootComponent.Output.NavigateToSchedule -> navigation.bringToFront(Config.AdminSchedule(isModerator = true))
 
-            RootComponent.Output.NavigateToSchool -> navigation.bringToFront(Config.MainSchool)
+            RootComponent.Output.NavigateToSchool -> {
+                val items = stack.items
+                val config = items.lastOrNull {
+                    val c = it.configuration
+                    c in listOf(
+                        Config.SchoolMinistry,
+                        Config.MainSchool,
+                        Config.MainRating
+                    ) ||
+                    c is Config.SchoolFormRating ||
+                    c is Config.AdminSchedule
+                }?.configuration
+                mainSchoolComponent?.onEvent(SchoolStore.Intent.Init)
+                navigation.bringToFront(Config.MainSchool) {
+                    if (config !is Config.MainSchool) {
+                        bringToFrontSavely(config)
+                    }
+                }
+            }
 
             RootComponent.Output.NavigateToAuth ->
                 navigation.replaceAll(Config.AuthActivation)
 
-            RootComponent.Output.NavigateToMentoring -> navigation.bringToFront(Config.MainMentoring)
+            RootComponent.Output.NavigateToMentoring -> {
+                mainMentoringComponent?.onEvent(MentoringStore.Intent.FetchStudents)
+                val model = mainMentoringComponent?.model?.value
+                if (model?.isTableView == true) {
+                    mainMentoringComponent?.onEvent(MentoringStore.Intent.ChangeView)
+                }
+
+                navigation.bringToFront(Config.MainMentoring) {
+                    if (model?.chosenLogin != null) {
+                        val student = model.students.firstOrNull { it.login == model.chosenLogin }
+                        if (student != null) {
+                            mainMentoringComponent?.onOutput(
+                                MentoringComponent.Output.CreateSecondView(
+                                    login = model.chosenLogin,
+                                    fio = student.fio,
+                                    avatarId = student.avatarId,
+                                    config = Config.MainHome
+                                )
+                            )
+                        }
+                    }
+
+                }
+            }
         }
 
 
@@ -1167,7 +1264,10 @@ class RootComponentImpl(
                 listOf(getFirstScreen())
             }
 
-            is DeepLink.Web -> if (authRepository.isUserLoggedIn()) setOf(getConfigForPath(deepLink.path), Config.MainHome).toList() else listOf(Config.AuthActivation)
+            is DeepLink.Web -> if (authRepository.isUserLoggedIn()) setOf(
+                getConfigForPath(deepLink.path),
+                Config.MainHome
+            ).toList() else listOf(Config.AuthActivation)
         }
 
     private fun getPathForConfig(config: Config): String =
@@ -1195,6 +1295,7 @@ class RootComponentImpl(
                     component.model.value.lessonReportId
                 } else 0
             }"
+
             Config.MainAdmin -> "/$WEB_PATH_MAIN_ADMIN"
             Config.MainHome -> "/$WEB_PATH_MAIN_HOME"
             Config.MainJournal -> "/$WEB_PATH_MAIN_JOURNAL"
@@ -1359,5 +1460,14 @@ class RootComponentImpl(
         )
     }
 
+    fun bringToFrontSavely(config: Config?) {
+        if (config != null) {
+            navigation.bringToFront(
+                config
+            )
+        }
+    }
+
 }
+
 

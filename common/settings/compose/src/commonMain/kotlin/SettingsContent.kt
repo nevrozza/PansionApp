@@ -12,7 +12,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -88,6 +90,8 @@ fun SettingsView(
     val isHazeNeedToUpdate = remember { mutableStateOf(false) }
     val isHaze = remember { mutableStateOf(viewManager.hazeHardware.value) }
 
+    val focusManager = LocalFocusManager.current
+
     val hazeState = remember { HazeState() }
     if (isHazeNeedToUpdate.value) {
         changeOnHaze(viewManager = viewManager)
@@ -141,350 +145,389 @@ fun SettingsView(
             )
         }
     ) { padding ->
-        Box(Modifier.hazeUnder(viewManager, hazeState).padding(horizontal = 15.dp)) {
-            Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)
-                    .imePadding()
+        Box(Modifier) { //.hazeUnder(viewManager, hazeState).padding(horizontal = 15.dp)
+            CLazyColumn(
+                padding = padding,
+                hazeState = hazeState
             ) {
-                Column(
-                    Modifier.fillMaxWidth()
-                        .padding(top = (8 * 5).dp, bottom = (8 * 6).dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AnimatedContent(
-                        model.secondLogin ?: model.login,
-                        transitionSpec = { fadeIn().togetherWith(fadeOut()) }) {
-                        Text(
-                            it,
-                            fontWeight = FontWeight.Black,
-                            fontSize = 30.esp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    CustomTextButton(
-                        text = "Сменить логин",
-                        modifier = Modifier.handy()
+                item {
+                    Column(
+                        Modifier.fillMaxWidth()
+                            .padding(top = (8 * 5).dp, bottom = (8 * 6).dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        component.changeLoginDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                    }
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Персонализация", fontSize = 23.esp, fontWeight = FontWeight.Black)
-                    IconButton(
-                        onClick = {
-                            isColorMenuOpened.value = !isColorMenuOpened.value
-                        },
-                        modifier = Modifier.size(25.dp)
-                    ) {
-                        GetAsyncIcon(
-                            RIcons.BigBrush
-                        )
-                    }
-                }
-                Spacer(Modifier.height(7.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Цветовой режим",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Box() {
+                        AnimatedContent(
+                            model.secondLogin ?: model.login,
+                            transitionSpec = { fadeIn().togetherWith(fadeOut()) }) {
+                            Text(
+                                it,
+                                fontWeight = FontWeight.Black,
+                                fontSize = 30.esp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                         CustomTextButton(
-                            text = colorModes[viewManager.colorMode.value].toString()
+                            text = "Сменить логин",
+                            modifier = Modifier.handy()
                         ) {
-                            component.colorModeListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                            component.changeLoginDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
                         }
-                        ListDialogDesktopContent(
-                            component = component.colorModeListComponent,
-                            isFullHeight = true
-                        )
                     }
                 }
-                Spacer(Modifier.height(10.dp))
-                SettingsSwitchRow(
-                    text = "Прозрачность элементов",
-                    checked = isHaze.value
-                ) {
-                    isHaze.value = it
-                    if (it) {
-                        isHazeNeedToUpdate.value = true
-                    } else {
-                        changeOffHaze(viewManager)
-                    }
-                }
-                Spacer(Modifier.height(15.dp))
-                SettingsSwitchRow(
-                    text = "Анимированные переходы",
-                    checked = viewManager.isTransitionsEnabled.value
-                ) {
-                    changeIsTransitionsEnabled(viewManager, it)
-                }
-                Spacer(Modifier.height(15.dp))
-                SettingsSwitchRow(
-                    text = "Отображать аватарки",
-                    checked = viewManager.showAvatars.value
-                ) {
-                    changeAvatarsShow(viewManager, it)
-                }
-                Spacer(Modifier.height(5.dp))
-                Text(
-                    text = "Аватар будет отображаться только на главном экране",
-                    modifier = Modifier.fillMaxWidth().alpha(.5f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 10.esp,
-                    lineHeight = 10.esp
-                )
-                Spacer(Modifier.height(10.dp))
-                SettingsSwitchRow(
-                    text = "Amoled (beta)",
-                    checked = viewManager.isAmoled.value
-                ) {
-                    changeAmoled(viewManager, it)
-                }
-                Spacer(Modifier.height(15.dp))
-                SettingsSwitchRow(
-                    text = "Кнопка \"Обновить\"",
-                    checked = viewManager.isRefreshButtons.value
-                ) {
-                    changeIsRefreshButtons(viewManager, it)
-                }
-                Spacer(Modifier.height(5.dp))
-                Text(
-                    text = "Нажимайте F5 или тяните вниз, чтобы обновить",
-                    modifier = Modifier.fillMaxWidth().alpha(.5f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 10.esp
-                )
-                Spacer(Modifier.height(20.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Шрифт", fontSize = 23.esp, fontWeight = FontWeight.Black)
-                    Box {
-                        val fontName = when (viewManager.fontType.value) {
-                            FontTypes.Geologica.ordinal -> "Geologica"
-                            FontTypes.Default.ordinal -> "Обычный"
-                            FontTypes.Monospace.ordinal -> "Monospace"
-                            FontTypes.SansSerif.ordinal -> "SansSerif"
-                            else -> "???"
-                        }
-                        //ListItem(FontTypes.Geologica.ordinal.toString(), "Geologica"),
-                        //                ListItem(FontTypes.Cursive.ordinal.toString(), "Cursive"),
-//                                        ListItem(FontTypes.Default.ordinal.toString(), "Обычный"),
-//                                        ListItem(FontTypes.Monospace.ordinal.toString(), "Monospace"),
-//                                        ListItem(FontTypes.SansSerif.ordinal.toString(), "SansSerif"),
-                        AnimatedContent(fontName) { aText ->
-                            CustomTextButton(
-                                text = aText
+
+                item {
+                    SettingsBlock(
+                        header = "Персонализация",
+                        headerContent = {
+                            IconButton(
+                                onClick = {
+                                    isColorMenuOpened.value = !isColorMenuOpened.value
+                                },
+                                modifier = Modifier.size(25.dp)
                             ) {
-                                component.fontTypeListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                                GetAsyncIcon(
+                                    RIcons.BigBrush
+                                )
                             }
                         }
-
-
-                        ListDialogDesktopContent(
-                            component = component.fontTypeListComponent,
-                            isFullHeight = true,
-                            offset = DpOffset(x = 40.dp, y = 0.dp)
-                        ) {
-                            changeFontType(
-                                viewManager = viewManager,
-                                fontType = it.id.toInt()
-                            )
-                            component.fontTypeListComponent.onEvent(ListDialogStore.Intent.HideDialog)
-                        }
-                    }
-                }
-                Slider(
-                    value = viewManager.fontSize.value,
-                    onValueChange = {
-                        changeFontSize(
-                            viewManager,
-                            fontSize = it
-                        )
-                    },
-                    valueRange = 0.75f..1.25f,
-                    steps = 9
-                )
-                Text(
-                    text = "Возможны визуальные баги",
-                    modifier = Modifier.fillMaxWidth().alpha(.5f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 10.esp
-                )
-
-
-                Spacer(Modifier.height(10.dp))
-
-                Text("Таблицы", fontSize = 23.esp, fontWeight = FontWeight.Black)
-
-                Spacer(Modifier.height(7.dp))
-                SettingsSwitchRow(
-                    text = "Использовать по умолчанию",
-                    checked = model.isMarkTableDefault
-                ) {
-                    component.onEvent(SettingsStore.Intent.ChangeIsMarkTableDefault)
-                }
-                Spacer(Modifier.height(16.dp))
-                SettingsSwitchRow(
-                    text = "Отображать +1 за МВД",
-                    checked = model.isPlusDsStupsEnabled
-                ) {
-                    component.onEvent(SettingsStore.Intent.ChangeIsPlusDsStupsEnabled)
-                }
-
-                Spacer(Modifier.height(14.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Устройства", fontSize = 23.esp, fontWeight = FontWeight.Black)
-                    IconButton(
-                        onClick = { component.onOutput(SettingsComponent.Output.GoToScanner) }
                     ) {
-                        GetAsyncIcon(
-                            path = RIcons.Qr
+                        Spacer(Modifier.height(7.dp))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Цветовой режим",
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Box() {
+                                CustomTextButton(
+                                    text = colorModes[viewManager.colorMode.value].toString(),
+                                    maxLines = 1
+                                ) {
+                                    component.colorModeListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                                }
+                                ListDialogDesktopContent(
+                                    component = component.colorModeListComponent,
+                                    isFullHeight = true
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        SettingsSwitchRow(
+                            text = "Прозрачность элементов",
+                            checked = isHaze.value
+                        ) {
+                            isHaze.value = it
+                            if (it) {
+                                isHazeNeedToUpdate.value = true
+                            } else {
+                                changeOffHaze(viewManager)
+                            }
+                        }
+                        Spacer(Modifier.height(15.dp))
+                        SettingsSwitchRow(
+                            text = "Анимированные переходы",
+                            checked = viewManager.isTransitionsEnabled.value
+                        ) {
+                            changeIsTransitionsEnabled(viewManager, it)
+                        }
+                        Spacer(Modifier.height(15.dp))
+                        SettingsSwitchRow(
+                            text = "Отображать аватарки",
+                            checked = viewManager.showAvatars.value
+                        ) {
+                            changeAvatarsShow(viewManager, it)
+                        }
+                        Spacer(Modifier.height(5.dp))
+                        Text(
+                            text = "Аватар будет отображаться только на главном экране",
+                            modifier = Modifier.fillMaxWidth().alpha(.5f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 10.esp,
+                            lineHeight = 10.esp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        SettingsSwitchRow(
+                            text = "Amoled (beta)",
+                            checked = viewManager.isAmoled.value
+                        ) {
+                            changeAmoled(viewManager, it)
+                        }
+                        Spacer(Modifier.height(15.dp))
+                        SettingsSwitchRow(
+                            text = "Кнопка \"Обновить\"",
+                            checked = viewManager.isRefreshButtons.value
+                        ) {
+                            changeIsRefreshButtons(viewManager, it)
+                        }
+                        Spacer(Modifier.height(5.dp))
+                        Text(
+                            text = "Нажимайте F5 или тяните вниз, чтобы обновить",
+                            modifier = Modifier.fillMaxWidth().alpha(.5f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 10.esp,
+                            lineHeight = 10.esp
                         )
                     }
-                    AnimatedVisibility(nDevicesModel.state == NetworkState.Loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                    }
-                    AnimatedVisibility(nDevicesModel.state == NetworkState.Error) {
-                        IconButton(
-                            onClick = {
-                                nDevicesModel.onFixErrorClick.invoke()
-                            }
-                        ) {
-                            GetAsyncIcon(
-                                path = RIcons.Repeat
-                            )
-                        }
-                    }
                 }
-                Spacer(Modifier.height(7.dp))
-                AnimatedVisibility(model.deviceList.isNotEmpty()) {
-                    Column {
-                        model.deviceList.forEach { device ->
-                            Surface(
-                                Modifier.fillMaxWidth(),
-                                tonalElevation = 4.dp,
-                                shape = RoundedCornerShape(15.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .padding(vertical = 4.dp, horizontal = 6.dp),
-//                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Spacer(Modifier.width(5.dp))
-                                    GetAsyncIcon(
-                                        path = getDeviceIcon(
-                                            deviceType = device.deviceType,
-                                            deviceName = device.deviceName ?: ""
-                                        ),
-                                        contentDescription = "PlatformIcon",
-                                        size = 30.dp
-                                    )
-                                    Spacer(Modifier.width(15.dp))
-                                    Column() {
-                                        Text(
-                                            device.deviceName ?: "Неизвестное устройство",
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 16.esp,
-                                            lineHeight = 16.esp
-                                        )
-                                        Row(
-                                            Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            val time = remember {
-                                                val globalParts = device.time.split("T")
-                                                val partDays = globalParts[0].split("-")
-                                                val partTime = globalParts[1].split(":")
-                                                val days = partDays[2]
-                                                val month = partDays[1]
-                                                val year = partDays[0]
 
-                                                val hours = partTime[0]
-                                                val minutes = partTime[1]
-                                                "$days.$month.$year ($hours:$minutes)"
-                                            }
-                                            Text(
-                                                time,
-                                                fontSize = 13.esp,
-                                                lineHeight = 13.esp,
-                                                color = MaterialTheme.colorScheme.onBackground.copy(
-                                                    alpha = .5f
-                                                )
-                                            )
-                                            CustomTextButton(
-                                                text = if (device.isThisSession) "Вы" else "Удалить",
-                                                fontSize = 13.esp
-                                            ) {
-                                                if (!device.isThisSession) {
-                                                    component.onEvent(
-                                                        SettingsStore.Intent.TerminateDevice(
-                                                            device.deviceId
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        }
+                item {
+                    Spacer(Modifier.height(10.dp))
+                }
+
+                item {
+                    CustomTextField(
+                        value = viewManager.hardwareStatus.value,
+                        onValueChange = {
+                            changeHardwareStatus(viewManager, it)
+                                        },
+                        text = "Статус",
+                        supText = "Только на вашем устройстве",
+                        isEnabled = true,
+                        imeAction = ImeAction.Done,
+                        isMoveUpLocked = true,
+                        autoCorrect = true,
+                        keyboardType = KeyboardType.Text,
+                        modifier = Modifier.fillMaxWidth(),
+                        onEnterClicked = {
+                            focusManager.clearFocus(true)
+                        }
+                    )
+                }
+
+                item {
+                    Spacer(Modifier.height(20.dp))
+                }
+
+                item {
+                    SettingsBlock(
+                        header = "Шрифт и его размер",
+                        headerContent = {
+                            Box {
+                                val fontName = when (viewManager.fontType.value) {
+                                    FontTypes.Geologica.ordinal -> "Geologica"
+                                    FontTypes.Default.ordinal -> "Обычный"
+                                    FontTypes.Monospace.ordinal -> "Monospace"
+                                    FontTypes.SansSerif.ordinal -> "SansSerif"
+                                    else -> "???"
+                                }
+                                AnimatedContent(fontName) { aText ->
+                                    CustomTextButton(
+                                        text = aText,
+                                        maxLines = 1
+                                    ) {
+                                        component.fontTypeListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
                                     }
+                                }
 
+
+                                ListDialogDesktopContent(
+                                    component = component.fontTypeListComponent,
+                                    isFullHeight = true,
+                                    offset = DpOffset(x = 40.dp, y = 0.dp)
+                                ) {
+                                    changeFontType(
+                                        viewManager = viewManager,
+                                        fontType = it.id.toInt()
+                                    )
+                                    component.fontTypeListComponent.onEvent(ListDialogStore.Intent.HideDialog)
                                 }
                             }
-                            Spacer(Modifier.height(5.dp))
+                        }
+                    ) {
+                        Slider(
+                            value = viewManager.fontSize.value,
+                            onValueChange = {
+                                changeFontSize(
+                                    viewManager,
+                                    fontSize = it
+                                )
+                            },
+                            valueRange = 0.75f..1.25f,
+                            steps = 9
+                        )
+                        Text(
+                            text = "Возможны визуальные баги",
+                            modifier = Modifier.fillMaxWidth().alpha(.5f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 10.esp
+                        )
+                    }
+                }
+
+                item {
+                    Spacer(Modifier.height(10.dp))
+                }
+
+                item {
+                    SettingsBlock(
+                        header = "Таблицы"
+                    ) {
+                        Spacer(Modifier.height(7.dp))
+                        SettingsSwitchRow(
+                            text = "Использовать по умолчанию",
+                            checked = model.isMarkTableDefault
+                        ) {
+                            component.onEvent(SettingsStore.Intent.ChangeIsMarkTableDefault)
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        SettingsSwitchRow(
+                            text = "Отображать +1 за МВД",
+                            checked = model.isPlusDsStupsEnabled
+                        ) {
+                            component.onEvent(SettingsStore.Intent.ChangeIsPlusDsStupsEnabled)
                         }
                     }
                 }
 
-                Spacer(Modifier.height(50.dp))
+                item {
+                    Spacer(Modifier.height(14.dp))
+                }
 
-                Box(
-                    Modifier.fillMaxWidth().padding(end = (7.5).dp)/*.padding(start = 10.dp)*/,
-                    contentAlignment = Alignment.Center
-                ) {
-                    TextButton(
-                        onClick = {
-                            component.quitDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = colorRed
-                        ),
-                        contentPadding = PaddingValues(horizontal = 15.dp)
+                item {
+                    SettingsBlock(
+                        header = "Устройства",
+                        headerContent = {
+                            IconButton(
+                                onClick = { component.onOutput(SettingsComponent.Output.GoToScanner) }
+                            ) {
+                                GetAsyncIcon(
+                                    path = RIcons.Qr
+                                )
+                            }
+                            AnimatedVisibility(nDevicesModel.state == NetworkState.Loading) {
+                                CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                            }
+                            AnimatedVisibility(nDevicesModel.state == NetworkState.Error) {
+                                IconButton(
+                                    onClick = {
+                                        nDevicesModel.onFixErrorClick.invoke()
+                                    }
+                                ) {
+                                    GetAsyncIcon(
+                                        path = RIcons.Repeat
+                                    )
+                                }
+                            }
+                        }
                     ) {
-                        GetAsyncIcon(
-                            path = RIcons.Logout,
-                            tint = colorRed,
-                            size = 25.dp
-                        )
-                        Spacer(Modifier.width(5.dp))
-                        Text(
-                            "Выйти из аккаунта",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            color = colorRed
-                        )
+                        Spacer(Modifier.height(7.dp))
+                        AnimatedVisibility(model.deviceList.isNotEmpty()) {
+                            Column {
+                                model.deviceList.forEach { device ->
+                                    Surface(
+                                        Modifier.fillMaxWidth(),
+                                        tonalElevation = 4.dp,
+                                        shape = RoundedCornerShape(15.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth()
+                                                .padding(vertical = 4.dp, horizontal = 6.dp),
+                                            //                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Spacer(Modifier.width(5.dp))
+                                            GetAsyncIcon(
+                                                path = getDeviceIcon(
+                                                    deviceType = device.deviceType,
+                                                    deviceName = device.deviceName ?: ""
+                                                ),
+                                                contentDescription = "PlatformIcon",
+                                                size = 30.dp
+                                            )
+                                            Spacer(Modifier.width(15.dp))
+                                            Column() {
+                                                Text(
+                                                    device.deviceName ?: "Неизвестное устройство",
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontSize = 16.esp,
+                                                    lineHeight = 16.esp
+                                                )
+                                                Row(
+                                                    Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    val time = remember {
+                                                        val globalParts = device.time.split("T")
+                                                        val partDays = globalParts[0].split("-")
+                                                        val partTime = globalParts[1].split(":")
+                                                        val days = partDays[2]
+                                                        val month = partDays[1]
+                                                        val year = partDays[0]
+
+                                                        val hours = partTime[0]
+                                                        val minutes = partTime[1]
+                                                        "$days.$month.$year ($hours:$minutes)"
+                                                    }
+                                                    Text(
+                                                        time,
+                                                        fontSize = 13.esp,
+                                                        lineHeight = 13.esp,
+                                                        color = MaterialTheme.colorScheme.onBackground.copy(
+                                                            alpha = .5f
+                                                        )
+                                                    )
+                                                    CustomTextButton(
+                                                        text = if (device.isThisSession) "Вы" else "Удалить",
+                                                        fontSize = 13.esp
+                                                    ) {
+                                                        if (!device.isThisSession) {
+                                                            component.onEvent(
+                                                                SettingsStore.Intent.TerminateDevice(
+                                                                    device.deviceId
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                    Spacer(Modifier.height(5.dp))
+                                }
+                            }
+                        }
                     }
                 }
-                Spacer(Modifier.height(50.dp))
+                item {
+                    Spacer(Modifier.height(25.dp))
 
-
+                    Box(
+                        Modifier.fillMaxWidth().padding(end = (7.5).dp)/*.padding(start = 10.dp)*/,
+                        contentAlignment = Alignment.Center
+                    ) {
+                        TextButton(
+                            onClick = {
+                                component.quitDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = colorRed
+                            ),
+                            contentPadding = PaddingValues(horizontal = 15.dp)
+                        ) {
+                            GetAsyncIcon(
+                                path = RIcons.Logout,
+                                tint = colorRed,
+                                size = 25.dp
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            Text(
+                                "Выйти из аккаунта",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                color = colorRed
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(50.dp))
+                }
             }
             BottomThemePanel(
                 viewManager,
@@ -582,21 +625,50 @@ fun SettingsView(
 }
 
 @Composable
+private fun SettingsBlock(
+    header: String,
+    headerContent: @Composable () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(Modifier.fillMaxWidth()) {
+        SettingsRow(header, isHeader = true) { headerContent() }
+        this.content()
+    }
+}
+
+@Composable
+private fun SettingsRow(
+    text: String,
+    isHeader: Boolean,
+    endContent: @Composable () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text,
+            fontSize = if (isHeader) 23.esp else MaterialTheme.typography.titleMedium.fontSize,
+            fontWeight = if (isHeader) FontWeight.Black else FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(.9f, false)
+        )
+        endContent()
+    }
+}
+
+@Composable
 private fun SettingsSwitchRow(
     text: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    Row(
-        Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    SettingsRow(
+        text,
+        isHeader = false
     ) {
-        Text(
-            text = text,
-            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-            fontWeight = FontWeight.SemiBold
-        )
         Switch(
             checked = checked,
             onCheckedChange = { onCheckedChange(it) },

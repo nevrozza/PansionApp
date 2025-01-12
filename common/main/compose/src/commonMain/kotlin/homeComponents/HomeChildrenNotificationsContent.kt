@@ -1,11 +1,6 @@
 package homeComponents
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.CustomTextButton
 import components.DefaultErrorView
+import components.LoadingAnimation
 import components.NotificationItem
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
@@ -72,10 +68,11 @@ fun LazyListScope.homeChildrenNotificationsContent(
 
                     NetworkState.Loading -> {
                         Box(
-                            Modifier.fillMaxWidth(),
+                            Modifier.height(60.dp).offset(y = 5.dp)
+                                .fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            LoadingAnimation()
                         }
                     }
 

@@ -61,6 +61,9 @@ interface SettingsRepository {
 
     fun saveIsAvatars(isAvatars: Boolean)
     fun fetchIsAvatars(): Boolean
+
+    fun saveHardwareStatus(status: String)
+    fun fetchHardwareStatus(): String
 //    fun fetchSettingsScreenData(): SettingsScreenData
 }
 

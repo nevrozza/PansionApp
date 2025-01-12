@@ -103,6 +103,11 @@ class SettingsDataSource(
     }
     fun fetchIsRefreshButtonsEnabled() = settings[isRefreshButtonsEnabledKey, true]
 
+    fun saveHardwareStatus(status: String) {
+        settings[hardwareStatusKey] = status
+    }
+    fun fetchHardwareStatus() = settings[hardwareStatusKey, ""]
+
     companion object {
         const val languageKey = "languageKey"
         const val tintKey = "tintKey"
@@ -118,7 +123,8 @@ class SettingsDataSource(
 
         const val isAmoledEnabledKey = "isAmoledEnabledKey"
         const val isRefreshButtonsEnabledKey = "isRefreshButtonsEnabledKey"
-        const val isAvatarsEnabledKey = "isAvatarsEnabledKeyKey"
+        const val isAvatarsEnabledKey = "isAvatarsEnabledKey"
+        const val hardwareStatusKey = "hardwareStatusKey"
     }
 
 }

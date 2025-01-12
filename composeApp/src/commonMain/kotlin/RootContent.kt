@@ -830,11 +830,12 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             modifier = Modifier.padding(bottom = if (isBirthday) 120.dp else 0.dp)
                         )
                         Text(
-                            text = applicationVersionString,
-                            modifier = Modifier.fillMaxWidth().alpha(.5f),
+                            text = if(viewManager.hardwareStatus.value.isBlank()) applicationVersionString else viewManager.hardwareStatus.value,
+                            modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.Black,
-                            fontSize = 10.esp
+                            fontSize = 10.esp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = .5f)
                         )
                     }
                     Crossfade(

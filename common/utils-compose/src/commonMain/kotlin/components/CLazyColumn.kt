@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -22,6 +23,9 @@ import androidx.compose.ui.platform.LocalScrollCaptureInProgress
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
+import pullRefresh.PullRefreshState
+import pullRefresh.pullRefresh
+import pullRefresh.pullRefreshContentTransform
 import view.LocalViewManager
 import view.WindowScreen
 
@@ -34,6 +38,7 @@ fun CLazyColumn(
     isBottomPaddingNeeded: Boolean = false,
     state: LazyListState = rememberLazyListState(),
     hazeState: HazeState?,
+    refreshState: PullRefreshState? = null,
     content: LazyListScope.() -> Unit
 ) {
     val viewManager = LocalViewManager.current
@@ -45,12 +50,17 @@ fun CLazyColumn(
             .fillMaxSize()
             .consumeWindowInsets(padding)
             .imePadding()
-            .hazeUnder(viewManager, hazeState).then(modifier),
+            .hazeUnder(viewManager, hazeState).then(modifier)
+        ,
         state = state
     ) {
         item {
-            Spacer(Modifier.height(padding.calculateTopPadding()))
+            Spacer(Modifier.pullRefreshContentTransform(refreshState).height(padding.calculateTopPadding()))
         }
+
+//        item {
+//            Spacer(modifier = Modifier)
+//        }
         content()
         if(isBottomPaddingNeeded) {
             item {

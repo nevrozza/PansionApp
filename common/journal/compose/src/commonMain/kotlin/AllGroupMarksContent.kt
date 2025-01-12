@@ -29,6 +29,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import dev.chrisbanes.haze.HazeState
 import homeTasksDialog.HomeTasksDialogStore
@@ -60,6 +61,9 @@ fun AllGroupMarksContent(
         component.onOutput(AllGroupMarksComponent.Output.OpenReport(reportData!!))
     }
 
+    LaunchedEffect(Unit) {
+        if(!nModel.isLoading) component.onEvent(AllGroupMarksStore.Intent.Init)
+    }
 
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())

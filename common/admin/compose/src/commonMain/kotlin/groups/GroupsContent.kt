@@ -38,6 +38,7 @@ import components.*
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogContent
@@ -65,6 +66,11 @@ fun GroupsContent(
 
     val model by component.model.subscribeAsState()
     val nModel by component.nGroupsInterface.networkModel.subscribeAsState()
+
+    LaunchedEffect(Unit) {
+        if (!nModel.isLoading) component.onEvent(GroupsStore.Intent.InitList)
+    }
+
     val subjectsModel by component.subjectsComponent.model.subscribeAsState()
     val formsModel by component.formsComponent.model.subscribeAsState()
     val studentsModel by component.studentsComponent.model.subscribeAsState()
@@ -87,12 +93,7 @@ fun GroupsContent(
 
     Scaffold(
 
-        modifier = Modifier.fillMaxSize().onKeyEvent {
-            if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-//                component.onEvent(UsersStore.Intent.FetchUsers)
-            }
-            false
-        },
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             val isBigView = viewManager.orientation.value in listOf(WindowScreen.Expanded, WindowScreen.Horizontal)
             val isHaze = viewManager.hazeHardware.value

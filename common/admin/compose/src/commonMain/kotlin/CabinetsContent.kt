@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import components.CustomTextField
 import components.GetAsyncIcon
 import components.hazeUnder
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import dev.chrisbanes.haze.HazeState
 import resources.RIcons
 import view.LocalViewManager
@@ -33,8 +35,17 @@ import view.LocalViewManager
 fun CabinetsContent(
     component: CabinetsComponent
 ) {
+
+    
+
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+
+
+    LaunchedEffect(Unit) {
+        if(!nModel.isLoading) component.onEvent(CabinetsStore.Intent.Init)
+    }
+
     val viewManager = LocalViewManager.current
     val hazeState = remember { HazeState() }
 

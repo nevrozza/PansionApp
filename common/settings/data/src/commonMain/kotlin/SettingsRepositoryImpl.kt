@@ -118,4 +118,7 @@ class SettingsRepositoryImpl(
     override fun saveIsAvatars(isAvatars: Boolean) = cacheDataSource.saveIsAvatarsEnabled(isAvatars)
 
     override fun fetchIsAvatars(): Boolean = cacheDataSource.fetchIsAvatarsEnabled()
+    override fun saveHardwareStatus(status: String) = cacheDataSource.saveHardwareStatus(status)
+
+    override fun fetchHardwareStatus(): String = cacheDataSource.fetchHardwareStatus()
 }

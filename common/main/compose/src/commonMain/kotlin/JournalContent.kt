@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -34,8 +33,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
+import components.refresh.RefreshButton
+import components.refresh.RefreshWithoutPullCircle
+import components.refresh.keyRefresh
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
@@ -102,19 +105,13 @@ private fun TrueJournalContent(
         component.openReport(model.openingReportData!!)
         component.onEvent(JournalStore.Intent.ResetReportData)
     }
-
+    val refreshing = nModel.isLoading || nORModel.isLoading
     val refreshState = rememberPullRefreshState(
-        nModel.state == NetworkState.Loading && model.headers.isNotEmpty(),
-        { onRefresh() })
+        refreshing,
+        { if (isExpanded) onRefresh() else component.onEvent(JournalStore.Intent.Refresh) })
 
     Scaffold(
-        Modifier.fillMaxSize()
-            .onKeyEvent {
-                if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-                    onRefresh()
-                }
-                false
-            },
+        Modifier.fillMaxSize().keyRefresh(refreshState),
         topBar = {
             AppBar(
                 title = {
@@ -127,12 +124,8 @@ private fun TrueJournalContent(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        AnimatedVisibility(nORModel.state == NetworkState.Loading) {
-                            Row() {
-                                Spacer(Modifier.width(10.dp))
-                                CircularProgressIndicator(Modifier.size(25.dp))
-                            }
-                        }
+
+                        RefreshWithoutPullCircle(refreshing, refreshState.position, model.headers.isNotEmpty())
                     }
                 },
                 actionRow = {
@@ -152,13 +145,7 @@ private fun TrueJournalContent(
                             component = component.groupListComponent
                         )
                     }
-                    IconButton(
-                        onClick = { if (isExpanded) onRefresh() else component.onEvent(JournalStore.Intent.Refresh) }
-                    ) {
-                        GetAsyncIcon(
-                            RIcons.Refresh
-                        )
-                    }
+                    RefreshButton(refreshState, viewManager)
                     if (isExpanded) {
                         IconButton(
                             onClick = {
@@ -176,7 +163,7 @@ private fun TrueJournalContent(
             )
         }
     ) { padding ->
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().pullRefresh(refreshState), contentAlignment = Alignment.Center) {
             val newState = when {
                 NetworkState.Error in listOf(nModel.state, nORModel.state) -> "Error"
                 nModel.state == NetworkState.Loading && model.headers.isNotEmpty() -> "None"
@@ -190,9 +177,10 @@ private fun TrueJournalContent(
                         "None" -> {
                             CLazyColumn(
                                 padding = padding,
-                                modifier = Modifier.pullRefresh(refreshState),
+                                modifier = Modifier,
                                 isBottomPaddingNeeded = true,
-                                hazeState = hazeState
+                                hazeState = hazeState,
+                                refreshState = refreshState
                             ) {
                                 item {
                                     Row(
@@ -340,13 +328,19 @@ private fun TrueJournalContent(
                                     .filter { if (model.filterMyChildren && model.childrenGroupIds.isNotEmpty()) it.groupId in model.childrenGroupIds else true }
                                     .sortedBy { it.reportId }
                                     .toList().reversed()
-                                itemsIndexed(headers,
+                                itemsIndexed(
+                                    headers,
                                     key = { i, item -> item.reportId }) { i, item ->
-                                    if(i == headers.indexOfFirst { it.date == item.date }) {
+                                    if (i == headers.indexOfFirst { it.date == item.date }) {
                                         if (i != 0) {
                                             Spacer(Modifier.height(5.dp))
                                         }
-                                        Text(item.date, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Black, modifier = Modifier.padding(start = 10.dp))
+                                        Text(
+                                            item.date,
+                                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                            fontWeight = FontWeight.Black,
+                                            modifier = Modifier.padding(start = 10.dp)
+                                        )
                                         Spacer(Modifier.height(5.dp))
                                     }
                                     JournalItemCompose(
@@ -373,22 +367,17 @@ private fun TrueJournalContent(
                         }
 
                         "Error" -> {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(if (nModel.state == NetworkState.Error) nModel.error else nORModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Печально") {
-                                    if (nModel.state == NetworkState.Error) nModel.onFixErrorClick() else nORModel.onFixErrorClick()
-                                }
-                            }
+                            val errorModel = if (nModel.state == NetworkState.Error) nModel else nORModel
+                            DefaultErrorView(
+                                errorModel,
+                                DefaultErrorViewPos.CenteredFull
+                            )
                         }
                     }
                 }
             }
 
-
             PullRefreshIndicator(
-                modifier = Modifier.align(alignment = Alignment.TopCenter),
-                refreshing = nModel.state == NetworkState.Loading && model.headers.isNotEmpty(),
                 state = refreshState,
                 topPadding = padding.calculateTopPadding()
             )
@@ -441,9 +430,10 @@ fun StudentsPreviewDialog(
 //                            ) {
                     Text(
                         "${it.p.fio.surname} ${it.p.fio.name} ${it.p.fio.praname}",
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp).alpha(if (it.isDeleted) .5f else 1f),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)
+                            .alpha(if (it.isDeleted) .5f else 1f),
                         textAlign = TextAlign.Center,
-                        textDecoration = if(it.isDeleted) TextDecoration.LineThrough else TextDecoration.None
+                        textDecoration = if (it.isDeleted) TextDecoration.LineThrough else TextDecoration.None
                     )
 //                            }
 
@@ -499,95 +489,99 @@ fun JournalItemCompose(
 //        },
 //        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
 //    ) {
-        FilledTonalButton(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).handy(),
-            onClick = {
-                onClick()
-            },
-            shape = RoundedCornerShape(30),
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    2.dp
-                ),
-                contentColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-            )
-        ) {
-            Column(Modifier.padding(horizontal = 2.dp).padding(top = 5.dp, bottom = 2.5.dp)) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    val bigTextSize = MaterialTheme.typography.titleLarge.fontSize// if (!isLarge) else 40.sp
-                    val smallTextSize = MaterialTheme.typography.titleSmall.fontSize//if (!isLarge)  else 28.sp
-                    val startPadding = 0.dp//if (!isLarge)  else 5.dp
-                    val isFullView = true
-                    Box() {
-                        if (isEnded) {
-                            Box(
-                                Modifier.offset(x = (-8).dp, y = (-10).dp)
-                                    .align(Alignment.CenterStart).size(5.dp).clip(
+    FilledTonalButton(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).handy(),
+        onClick = {
+            onClick()
+        },
+        shape = RoundedCornerShape(30),
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(
+                2.dp
+            ),
+            contentColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Column(Modifier.padding(horizontal = 2.dp).padding(top = 5.dp, bottom = 2.5.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val bigTextSize = MaterialTheme.typography.titleLarge.fontSize// if (!isLarge) else 40.sp
+                val smallTextSize = MaterialTheme.typography.titleSmall.fontSize//if (!isLarge)  else 28.sp
+                val startPadding = 0.dp//if (!isLarge)  else 5.dp
+                val isFullView = true
+                Box() {
+                    if (isEnded) {
+                        Box(
+                            Modifier.offset(x = (-8).dp, y = (-10).dp)
+                                .align(Alignment.CenterStart).size(5.dp).clip(
                                     CircleShape
                                 ).background(MaterialTheme.colorScheme.primary)
-                            )
-                        }
-                        Text(
-                            text = module.toString(),
-                            modifier = Modifier.offset(x = (-8).dp).align(Alignment.CenterStart)
                         )
-                        Box(
-                            Modifier.padding(start = startPadding).clip(RoundedCornerShape(15.dp))
+                    }
+                    Text(
+                        text = module.toString(),
+                        modifier = Modifier.offset(x = (-8).dp).align(Alignment.CenterStart)
+                    )
+                    Box(
+                        Modifier.padding(start = startPadding).clip(RoundedCornerShape(15.dp))
+                    ) {
+                        Column(
+                            Modifier.padding(horizontal = 3.dp)
                         ) {
-                            Column(
-                                Modifier.padding(horizontal = 3.dp)
-                            ) {
-                                Row {
-                                    Text(
-                                        text = buildAnnotatedString {
-                                            withStyle(
-                                                SpanStyle(
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            ) {
-                                                append(subjectName)
-                                            }
-                                            withStyle(
-                                                SpanStyle(
-                                                    fontWeight = FontWeight.Black,
-                                                    fontSize = smallTextSize,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(
-                                                        alpha = .5f
-                                                    )
-                                                )
-                                            ) {
-                                                append(" $groupName")
-                                            }
-                                        },
-                                        overflow = TextOverflow.Ellipsis,
-                                        fontSize = bigTextSize,
-                                        maxLines = 1,
-                                        style = androidx.compose.material3.LocalTextStyle.current.copy(
-                                            lineHeightStyle = LineHeightStyle(
-                                                alignment = LineHeightStyle.Alignment.Bottom,
-                                                trim = LineHeightStyle.Trim.LastLineBottom
+                            Row {
+                                Text(
+                                    text = buildAnnotatedString {
+                                        withStyle(
+                                            SpanStyle(
+                                                fontWeight = FontWeight.Bold
                                             )
+                                        ) {
+                                            append(subjectName)
+                                        }
+                                        withStyle(
+                                            SpanStyle(
+                                                fontWeight = FontWeight.Black,
+                                                fontSize = smallTextSize,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                    alpha = .5f
+                                                )
+                                            )
+                                        ) {
+                                            append(" $groupName")
+                                        }
+                                    },
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = bigTextSize,
+                                    maxLines = 1,
+                                    style = androidx.compose.material3.LocalTextStyle.current.copy(
+                                        lineHeightStyle = LineHeightStyle(
+                                            alignment = LineHeightStyle.Alignment.Bottom,
+                                            trim = LineHeightStyle.Trim.LastLineBottom
                                         )
                                     )
-                                }
-                                TeacherTime(
-                                    teacher,
-                                    time,
-                                    true,
-                                    separator = "  ",
-                                    yTextOffset = 1.dp
                                 )
                             }
+                            TeacherTime(
+                                teacher,
+                                time,
+                                true,
+                                separator = "  ",
+                                yTextOffset = 1.dp
+                            )
                         }
                     }
                 }
-                Spacer(Modifier.height(2.5.dp))
-                Text(text = theme.ifBlank { "Тема не выставлена" }, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
             }
+            Spacer(Modifier.height(2.5.dp))
+            Text(
+                text = theme.ifBlank { "Тема не выставлена" },
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
 //        }
     }
 }

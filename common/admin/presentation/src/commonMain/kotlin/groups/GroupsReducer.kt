@@ -11,10 +11,10 @@ object GroupsReducer : Reducer<State, Message> {
             is Message.ListInited -> copy(
                 subjects = msg.subjects,
                 teachers = msg.teachers,
-                forms = msg.forms.formSort()
+                forms = msg.forms//.formSort()
             )
             is Message.ViewChanged -> copy(view = msg.view)
-            is Message.FormsListChanged -> copy(forms = msg.forms.formSort())
+            is Message.FormsListChanged -> copy(forms = msg.forms) //.formSort()
             is Message.SubjectListChanged -> copy(subjects = msg.subjects,)
         }
     }

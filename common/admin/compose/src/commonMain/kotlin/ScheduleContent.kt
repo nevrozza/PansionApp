@@ -40,6 +40,7 @@ import components.listDialog.ListDialogStore
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
@@ -61,10 +62,20 @@ fun ScheduleContent(
     component: ScheduleComponent
 ) {
     LockScreenOrientation(-1)
+
+    
+
+
+
     val model by component.model.subscribeAsState()
     val mpModel by component.mpCreateItem.model.subscribeAsState()
     val mpEditModel by component.mpEditItem.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+
+    LaunchedEffect(Unit) {
+        if (!nModel.isLoading) component.onEvent(ScheduleStore.Intent.Init)
+    }
+
     val scrollState = rememberScrollState()
     val density = LocalDensity.current
 //    val hazeState = remember { HazeState() }

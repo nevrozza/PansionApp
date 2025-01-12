@@ -2,6 +2,7 @@ package groups
 
 import AdminRepository
 import admin.groups.forms.Form
+import admin.groups.forms.formSort
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import components.listDialog.ListComponent
@@ -57,7 +58,7 @@ class GroupsExecutor(
         scope.launch {
             nFormsInterface.nStartLoading()
             try {
-                val forms = adminRepository.fetchAllForms().forms
+                val forms = adminRepository.fetchAllForms().forms.formSort()
           
                 dispatch(Message.FormsListChanged(forms))
                 nFormsInterface.nSuccess()
@@ -91,7 +92,7 @@ class GroupsExecutor(
             try {
                 val teachersA = adminRepository.fetchAllTeachers().teachers
                 val subjectsA =  adminRepository.fetchAllSubjects().subjects
-                val formsA = adminRepository.fetchAllForms().forms
+                val formsA = adminRepository.fetchAllForms().forms.formSort()
                 updateMentorsInForms()
                 // async {
 

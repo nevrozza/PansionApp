@@ -38,13 +38,20 @@ import kotlin.math.pow
 fun rememberPullRefreshState(
     refreshing: Boolean,
     onRefresh: () -> Unit,
+    isNecessary: Boolean = false,
     refreshThreshold: Dp = PullRefreshDefaults.RefreshThreshold,
     refreshingOffset: Dp = PullRefreshDefaults.RefreshingOffset,
 ): PullRefreshState {
     require(refreshThreshold > 0.dp) { "The refresh trigger must be greater than zero!" }
 
     val scope = rememberCoroutineScope()
-    val onRefreshState = rememberUpdatedState(onRefresh)
+    val onRefreshState = rememberUpdatedState(
+        if (!refreshing || isNecessary) {
+            onRefresh
+        } else {
+            { Unit }
+        }
+    )
     val thresholdPx: Float
     val refreshingOffsetPx: Float
 
@@ -58,7 +65,9 @@ fun rememberPullRefreshState(
     }
 
     SideEffect {
-        state.setRefreshing(refreshing)
+        if (state.position > 0f) {
+            state.setRefreshing(refreshing)
+        }
         state.setThreshold(thresholdPx)
         state.setRefreshingOffset(refreshingOffsetPx)
     }
@@ -81,7 +90,7 @@ fun rememberPullRefreshState(
  */
 class PullRefreshState internal constructor(
     private val animationScope: CoroutineScope,
-    private val onRefreshState: State<() -> Unit>,
+    val onRefreshState: State<() -> Unit>,
     refreshingOffset: Float,
     threshold: Float,
 ) {
@@ -96,7 +105,7 @@ class PullRefreshState internal constructor(
     val progress get() = adjustedDistancePulled / threshold
 
     internal val refreshing get() = _refreshing
-    internal val position get() = _position
+    val position get() = _position
     internal val threshold get() = _threshold
 
     private val adjustedDistancePulled by derivedStateOf { distancePulled * DragMultiplier }
@@ -108,6 +117,7 @@ class PullRefreshState internal constructor(
     private var _refreshingOffset by mutableStateOf(refreshingOffset)
 
     internal fun onPull(pullDelta: Float): Float {
+
         if (_refreshing) return 0f // Already refreshing, do nothing.
 
         val newOffset = (distancePulled + pullDelta).coerceAtLeast(0f)
@@ -195,12 +205,12 @@ object PullRefreshDefaults {
      * If the indicator is below this threshold offset when it is released, a refresh
      * will be triggered.
      */
-    val RefreshThreshold = 80.dp
+    val RefreshThreshold = 36.dp
 
     /**
      * The offset at which the indicator should be rendered whilst a refresh is occurring.
      */
-    val RefreshingOffset = 56.dp
+    val RefreshingOffset = 36.dp
 }
 
 /**
@@ -209,4 +219,4 @@ object PullRefreshDefaults {
  * the refresh threshold, it is the indicator position, otherwise the indicator position is
  * derived from the progress).
  */
-private const val DragMultiplier = 0.5f
+private const val DragMultiplier = 0.35f

@@ -35,8 +35,11 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
+import components.refresh.RefreshButton
+import components.refresh.keyRefresh
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.LocalHazeStyle
@@ -46,10 +49,6 @@ import home.HomeStore
 import homeComponents.*
 import journal.JournalStore
 import journal.init.TeacherGroup
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
@@ -59,6 +58,7 @@ import resources.RIcons
 import server.*
 import view.*
 import dev.chrisbanes.haze.HazeInputScale
+import kotlinx.coroutines.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @ExperimentalLayoutApi
@@ -71,18 +71,23 @@ fun HomeContent(
 ) {
     val model by component.model.subscribeAsState()
     val hazeState = remember { HazeState() }
+    val coroutineScope = rememberCoroutineScope()
     when (model.role) {
         Roles.student -> {
             StudentHomeContent(
                 component = component,
                 sharedTransitionScope = sharedTransitionScope,
                 isSharedVisible = isSharedVisible,
-                hazeState = hazeState
+                hazeState = hazeState,
+                coroutineScope = coroutineScope
             )
         }
 
         Roles.teacher -> {
-            TeacherHomeContent(component, pickedLogin, hazeState)
+            TeacherHomeContent(
+                component, pickedLogin, hazeState,
+                coroutineScope = coroutineScope
+            )
         }
 
         else -> {
@@ -143,14 +148,22 @@ fun OtherHomeContent(
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nTeacherModel by component.teacherNInterface.networkModel.subscribeAsState()
 
+
+    val refreshing =
+        (
+                nQuickTabModel.isLoading ||
+                        nGradesModel.isLoading ||
+                        nTeacherModel.isLoading
+                )
+
+
+    val refreshState = rememberPullRefreshState(
+        refreshing,
+        { component.onEvent(HomeStore.Intent.Init) }
+    )
+
     Scaffold(
-        Modifier.fillMaxSize()
-            .onKeyEvent {
-                if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-                    component.onEvent(HomeStore.Intent.Init)
-                }
-                false
-            },
+        Modifier.fillMaxSize().keyRefresh(refreshState),
         topBar = {
             AppBar(
                 title = {
@@ -165,13 +178,7 @@ fun OtherHomeContent(
                 },
                 actionRow = {
                     if (viewManager.orientation.value != WindowScreen.Expanded) {
-                        IconButton(
-                            onClick = { component.onEvent(HomeStore.Intent.Init) }
-                        ) {
-                            GetAsyncIcon(
-                                RIcons.Refresh
-                            )
-                        }
+                        RefreshButton(refreshState, viewManager)
 
 
                         IconButton(
@@ -190,26 +197,38 @@ fun OtherHomeContent(
             )
         }
     ) { padding ->
-        CLazyColumn(padding, isBottomPaddingNeeded = true, hazeState = hazeState) {
-            this.homeKidsContent(
-                model = model,
-                nGradesModel = nGradesModel,
-                component = component,
-                pickedLogin = pickedLogin
-            )
-            this.homeTeacherGroupsContent(
-                model = model,
-                component = component,
-                teacherNInterface = nTeacherModel
-            )
+        Box(
+            Modifier.fillMaxSize()
+                .pullRefresh(refreshState)
+        ) {
+            CLazyColumn(
+                padding,
+                isBottomPaddingNeeded = true,
+                hazeState = hazeState,
+                refreshState = refreshState
+            ) {
+                this.homeKidsContent(
+                    model = model,
+                    nGradesModel = nGradesModel,
+                    component = component,
+                    pickedLogin = pickedLogin
+                )
+                this.homeTeacherGroupsContent(
+                    model = model,
+                    component = component,
+                    teacherNInterface = nTeacherModel
+                )
 
-            this.homeChildrenNotificationsContent(
-                model = model,
-                nQuickTabModel = nQuickTabModel,
-                viewManager = viewManager,
-                component = component
-            )
+                this.homeChildrenNotificationsContent(
+                    model = model,
+                    nQuickTabModel = nQuickTabModel,
+                    viewManager = viewManager,
+                    component = component
+                )
 
+            }
+
+            PullRefreshIndicator(refreshState, padding.calculateTopPadding())
         }
     }
 }
@@ -219,7 +238,8 @@ fun OtherHomeContent(
 fun TeacherHomeContent(
     component: HomeComponent,
     pickedLogin: String,
-    hazeState: HazeState
+    hazeState: HazeState,
+    coroutineScope: CoroutineScope
 ) {
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
@@ -251,7 +271,7 @@ fun TeacherHomeContent(
             lazyListState.firstVisibleItemIndex in (0..(groupsItems + childrenNotsItems + 1)).toList()
 
         val refreshing =
-            (nTeacherModel.state == NetworkState.Loading || nScheduleModel.state == NetworkState.Loading)
+            (nTeacherModel.isLoading || nScheduleModel.isLoading)
         val refreshState = rememberPullRefreshState(
             refreshing,
             { component.onEvent(HomeStore.Intent.Init) }
@@ -271,13 +291,7 @@ fun TeacherHomeContent(
         }
 
         Scaffold(
-            Modifier.fillMaxSize()
-                .onKeyEvent {
-                    if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-                        component.onEvent(HomeStore.Intent.Init)
-                    }
-                    false
-                },
+            Modifier.fillMaxSize().keyRefresh(refreshState),
             topBar = {
                 val isHaze = viewManager.hazeHardware.value
                 Column(
@@ -326,13 +340,7 @@ fun TeacherHomeContent(
                                 CalendarButton(component)
                             }
                             if (viewManager.orientation.value != WindowScreen.Expanded) {
-                                IconButton(
-                                    onClick = { component.onEvent(HomeStore.Intent.Init) }
-                                ) {
-                                    GetAsyncIcon(
-                                        RIcons.Refresh
-                                    )
-                                }
+                                RefreshButton(refreshState, viewManager)
 
 
                                 IconButton(
@@ -362,14 +370,17 @@ fun TeacherHomeContent(
                 }
             }
         ) { padding ->
-            Box(Modifier.fillMaxSize()) {
+            Box(
+                Modifier.fillMaxSize()
+                    .pullRefresh(refreshState)
+            ) {
                 CLazyColumn(
-                    modifier = Modifier
-                        .pullRefresh(refreshState),
+                    modifier = Modifier,
                     state = lazyListState,
                     padding = padding,
                     isBottomPaddingNeeded = true,
-                    hazeState = hazeState
+                    hazeState = hazeState,
+                    refreshState = refreshState
                 ) {
                     this.homeTeacherGroupsContent(
                         model = model,
@@ -406,8 +417,6 @@ fun TeacherHomeContent(
 
                 }
                 PullRefreshIndicator(
-                    modifier = Modifier.align(alignment = Alignment.TopCenter),
-                    refreshing = refreshing,
                     state = refreshState,
                     topPadding = padding.calculateTopPadding()
                 )
@@ -508,12 +517,22 @@ private fun RaspisanieTable(
     nScheduleModel: NetworkInterface.NetworkModel,
     component: HomeComponent
 ) {
+    val isLoadingTestMode = isTestMode && false
     val items = model.items[model.currentDate.second]
+    val dots = remember { mutableStateOf(".") }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(700)
+            if (dots.value.length < 3) dots.value += "."
+            else dots.value = "."
+        }
+    }
+
     Crossfade(nScheduleModel.state) { st ->
 
         Column {
-            when (st) {
-                NetworkState.None -> {
+            when {
+                st is NetworkState.None && !isLoadingTestMode -> {
                     if (items.isNullOrEmpty()) {
                         Text(
                             "Здесь пока ничего нет",
@@ -561,8 +580,23 @@ private fun RaspisanieTable(
 
                 }
 
-                NetworkState.Loading -> CircularProgressIndicator()
-                NetworkState.Error -> DefaultErrorView(
+                st is NetworkState.Loading || isLoadingTestMode -> {
+                    Row {
+                        Text("Загрузка")
+                        AnimatedContent(
+                            dots.value,
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(180))
+                                    .togetherWith(fadeOut(animationSpec = tween(180)))
+                            }
+
+                        ) { text ->
+                            Text("$text")
+                        }
+                    }
+                }
+
+                st is NetworkState.Error -> DefaultErrorView(
                     nScheduleModel,
                     pos = DefaultErrorViewPos.Unspecified
                 )
@@ -595,7 +629,8 @@ fun StudentHomeContent(
     component: HomeComponent,
     sharedTransitionScope: SharedTransitionScope,
     isSharedVisible: Boolean,
-    hazeState: HazeState
+    hazeState: HazeState,
+    coroutineScope: CoroutineScope
 ) {
     val model by component.model.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
@@ -605,14 +640,17 @@ fun StudentHomeContent(
 
     val viewManager = LocalViewManager.current
     val lazyListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
 
     val isMainView = lazyListState.firstVisibleItemIndex in (0..model.notifications.size + 1)
 
     val refreshing =
-        (nQuickTabModel.state == NetworkState.Loading || nGradesModel.state == NetworkState.Loading
-                || nScheduleModel.state == NetworkState.Loading)
+        (
+                nQuickTabModel.isLoading ||
+                        nGradesModel.isLoading ||
+                        nScheduleModel.isLoading ||
+                        nTeacherModel.isLoading
+                )
 
 
     val refreshState = rememberPullRefreshState(
@@ -621,13 +659,7 @@ fun StudentHomeContent(
     )
 
     Scaffold(
-        Modifier.fillMaxSize()
-            .onKeyEvent {
-                if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-                    component.onEvent(HomeStore.Intent.Init)
-                }
-                false
-            },
+        Modifier.fillMaxSize().keyRefresh(refreshState),
         topBar = {
             val isHaze = viewManager.hazeHardware.value
             Column(
@@ -697,13 +729,9 @@ fun StudentHomeContent(
                         ) {
                             CalendarButton(component)
                         }
-                        IconButton(
-                            onClick = { component.onEvent(HomeStore.Intent.Init) }
-                        ) {
-                            GetAsyncIcon(
-                                path = RIcons.Refresh
-                            )
-                        }
+                        RefreshButton(
+                            refreshState, viewManager
+                        )
                         if (viewManager.orientation.value != WindowScreen.Expanded) {
                             IconButton(
                                 onClick = {
@@ -732,15 +760,18 @@ fun StudentHomeContent(
             }
         }
     ) { padding ->
-        Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier.fillMaxSize()
+                .pullRefresh(refreshState)
+        ) {
             CLazyColumn(
                 modifier = Modifier
-                    .pullRefresh(refreshState)
                     .animateContentSize(),
                 state = lazyListState,
                 padding = padding,
                 isBottomPaddingNeeded = true,
-                hazeState = hazeState
+                hazeState = hazeState,
+                refreshState = refreshState
             ) {
                 this.homeStudentBar(
                     model = model,
@@ -776,8 +807,6 @@ fun StudentHomeContent(
             }
 
             PullRefreshIndicator(
-                modifier = Modifier.align(alignment = Alignment.TopCenter),
-                refreshing = refreshing,
                 state = refreshState,
                 topPadding = padding.calculateTopPadding()
             )

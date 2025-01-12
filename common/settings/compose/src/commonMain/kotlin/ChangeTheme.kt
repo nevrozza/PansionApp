@@ -63,6 +63,12 @@ fun changeColorMode(viewManager: ViewManager, colorMode: String) {
     repository.saveColorMode(colorMode)
 }
 
+fun changeHardwareStatus(viewManager: ViewManager, status: String) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.hardwareStatus.value = status
+    repository.saveHardwareStatus(status)
+}
+
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun setViewManager(viewManager: ViewManager) {
@@ -79,6 +85,7 @@ fun setViewManager(viewManager: ViewManager) {
     viewManager.isAmoled.value = repository.fetchIsAmoled()
     viewManager.isRefreshButtons.value = repository.fetchIsRefreshButtons()
     viewManager.showAvatars.value = repository.fetchIsAvatars()
+    viewManager.hardwareStatus.value = repository.fetchHardwareStatus()
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)

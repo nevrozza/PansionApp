@@ -111,13 +111,28 @@ class SchoolController {
                 user?.login!!
             } else null!!
 
-            var dutyList = Duty.fetchByMentorLogin(mentorLogin)
-            if (dutyList.isEmpty()) {
-                val forms = Forms.fetchMentorForms(mentorLogin)
+            var dutyList: MutableList<String> = Duty.fetchByMentorLogin(mentorLogin).toMutableList()
 
-                val logins = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
-                dutyList = Users.fetchByLoginsActivated(logins).sortedWith(compareBy({ it.surname }, { it.name }))
-                    .map { it.login }
+            val forms = Forms.fetchMentorForms(mentorLogin)
+            val logins = StudentsInForm.fetchStudentsLoginsByFormIds(forms.map { it.id })
+            val dutyListShouldBe =
+                Users.fetchByLoginsActivated(logins).sortedWith(compareBy({ it.surname }, { it.name }))
+                    .map { it.login }.toMutableList()
+
+            val sortedSetShould = dutyListShouldBe.toSortedSet()
+            val sortedSet = dutyList.toSortedSet()
+
+            if (dutyList.isEmpty()) {
+                dutyList = dutyListShouldBe
+                Duty.enterList(
+                    mentorLogin,
+                    dutyList
+                )
+            } else if (sortedSetShould != sortedSet) {
+                val toDelete = sortedSet - dutyListShouldBe
+                val toAdd = dutyListShouldBe - sortedSet
+                dutyList.removeAll(toDelete)
+                dutyList.addAll(toAdd)
                 Duty.enterList(
                     mentorLogin,
                     dutyList
@@ -451,6 +466,7 @@ class SchoolController {
                                 )
                                 ForAvg(count = marks.size, sum = marks.sumOf { it.content.toInt() })
                             }
+
                             is PansionPeriod.Module -> {
                                 Marks.fetchModuleAVG(
                                     login,
@@ -458,9 +474,11 @@ class SchoolController {
                                     edYear = edYear
                                 )
                             }
+
                             is PansionPeriod.Half -> {
                                 Marks.fetchHalfYearAVG(login, (r.period as PansionPeriod.Half).num, edYear)
                             }
+
                             else -> Marks.fetchYearAVG(login, edYear)
                         }
 
@@ -471,6 +489,7 @@ class SchoolController {
                                     period = weeks.first { x -> x.num == (r.period as PansionPeriod.Week).num }.dates
                                 )
                             }
+
                             is PansionPeriod.Module -> {
                                 Stups.fetchForUserQuarters(
                                     login,
@@ -478,6 +497,7 @@ class SchoolController {
                                     isQuarters = true, edYear
                                 )
                             }
+
                             is PansionPeriod.Half -> {
                                 Stups.fetchForUserQuarters(
                                     login,

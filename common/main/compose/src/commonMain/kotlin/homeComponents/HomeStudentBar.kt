@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
@@ -36,6 +37,7 @@ import server.roundTo
 import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
 import view.WindowScreen
+import view.esp
 import view.handy
 
 
@@ -53,6 +55,16 @@ fun LazyListScope.homeStudentBar(
 ) {
     item {
         val viewManager = LocalViewManager.current
+        if (viewManager.hardwareStatus.value.isNotBlank()) {
+            Text(
+                viewManager.hardwareStatus.value,
+                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
+                fontSize = 14.esp,
+                lineHeight = 15.esp,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = .7f)
+            )
+        }
         ElevatedCard(Modifier.fillMaxWidth()) {
             Box() {
                 Row(
@@ -182,75 +194,27 @@ fun LazyListScope.homeStudentBar(
                 }
             }
         }
+
         Spacer(Modifier.height(15.dp))
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
-            ElevatedCard(
-                Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
-                    .weight(1f)
-                    .handy()
-                    .clickable() {
-                        component.onOutput(
-                            HomeComponent.Output.NavigateToDnevnikRuMarks(
-                                model.login
-                            )
-                        )
-                    }
+            FeatureButton(
+                text = "Оценки",
+                decoration = RIcons.PlaylistAddCheckCircle,
+                isActive = false
             ) {
-                Column(
-                    Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
-                        .fillMaxHeight()
-                        .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Оценки",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.Bold
+                component.onOutput(
+                    HomeComponent.Output.NavigateToDnevnikRuMarks(
+                        model.login
                     )
-                    Spacer(Modifier.height(5.dp))
-                    Box(
-                        Modifier.fillMaxWidth()
-                            .padding(end = 5.dp, bottom = 5.dp),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        GetAsyncIcon(
-                            RIcons.PlaylistAddCheckCircle,
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                }
+                )
             }
             Spacer(Modifier.width(15.dp))
-            ElevatedCard(
-                Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
-                    .weight(1f)
-                    .clickable() {
-                        component.onOutput(
-                            HomeComponent.Output.NavigateToTasks(
-                                studentLogin = model.login,
-                                avatarId = model.avatarId,
-                                name = model.name
-                            )
-                        )
-                    }
-            ) {
-                Column(
-                    Modifier.padding(vertical = 10.dp, horizontal = 15.dp)
-                        .fillMaxHeight()
-                        .fillMaxWidth().defaultMinSize(minHeight = 80.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Домашние задания",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(5.dp))
-
+            FeatureButton(
+                text = "Домашние задания",
+                decoration = {
                     if (nTeacherModel.state != NetworkState.Loading) {
                         Row(
-                            Modifier.fillMaxWidth()
-                                .padding(end = 5.dp, bottom = 5.dp),
+                            Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
                             val deathsCount = (((model.homeWorkEmojiCount ?: 4) - 4) / 2)
@@ -277,23 +241,26 @@ fun LazyListScope.homeStudentBar(
                             }
                         }
                     } else {
-                        Box(
-                            Modifier.fillMaxWidth()
-                                .padding(end = 5.dp, bottom = 5.dp),
-                            contentAlignment = Alignment.BottomEnd
-                        ) {
-                            LoadingAnimation(
-                                circleColor = MaterialTheme.colorScheme.onSurface,
-                                circleSize = 8.dp,
-                                spaceBetween = 5.dp,
-                                travelDistance = 3.5.dp
-                            )
+
+                        LoadingAnimation(
+                            circleColor = MaterialTheme.colorScheme.onSurface,
+                            circleSize = 8.dp,
+                            spaceBetween = 5.dp,
+                            travelDistance = 3.5.dp
+                        )
 //                                        DotsFlashing(Modifier)
-                        }
                     }
 
-
-                }
+                },
+                isActive = false
+            ) {
+                component.onOutput(
+                    HomeComponent.Output.NavigateToTasks(
+                        studentLogin = model.login,
+                        avatarId = model.avatarId,
+                        name = model.name
+                    )
+                )
             }
         }
         Spacer(Modifier.height(5.dp))

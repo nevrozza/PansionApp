@@ -19,6 +19,7 @@ import calendar.CalendarStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import dev.chrisbanes.haze.HazeState
 import kotlinx.datetime.*
 import resources.RIcons
@@ -33,8 +34,15 @@ import view.esp
 fun CalendarContent(
     component: CalendarComponent
 ) {
+
+
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+
+
+    LaunchedEffect(Unit) {
+        if (!nModel.isLoading) component.onEvent(CalendarStore.Intent.Init)
+    }
 
     val hazeState = remember { HazeState() }
     var datePickerState = rememberDatePickerState()
@@ -278,7 +286,7 @@ fun CalendarContent(
 
                         LaunchedEffect(Unit) {
                             weeksLazyState.animateScrollToItem(
-                                weeks.indexOfFirst { model.today in it.dates }
+                                weeks.indexOfFirst { model.today in it.dates }.coerceAtLeast(0)
                             )
                         }
                     }
@@ -428,9 +436,6 @@ fun CalendarContent(
         SaveAnimation(model.isSavedAnimation) {
             component.onEvent(CalendarStore.Intent.IsSavedAnimation(false))
         }
-
-
-
 
 
     }

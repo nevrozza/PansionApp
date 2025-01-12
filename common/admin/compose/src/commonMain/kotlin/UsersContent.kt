@@ -42,7 +42,10 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.cBottomSheet.CBottomSheetStore
+import components.refresh.RefreshButton
+import components.refresh.keyRefresh
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
@@ -51,6 +54,7 @@ import excel.importStudents
 import kotlinx.datetime.*
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
+import pullRefresh.pullRefreshContentTransform
 import pullRefresh.rememberPullRefreshState
 import resources.RIcons
 import server.Roles
@@ -77,18 +81,22 @@ fun UsersContent(
     val hazeState = remember { HazeState() }
     val isTextFieldShown = remember { mutableStateOf(false) }
 
+    val refresh = nModel.isLoading
+
     val refreshState = rememberPullRefreshState(
-        (nModel.state == NetworkState.Loading) && model.users != null,
-        { component.onEvent(UsersStore.Intent.FetchUsers) })
+        refresh,
+        { component.onEvent(UsersStore.Intent.FetchUsers) },
+        isNecessary = true
+    )
+
+
+    LaunchedEffect(Unit) {
+        refreshState.onRefreshState.value()
+    }
 
     Scaffold(
 
-        modifier = Modifier.fillMaxSize().onKeyEvent {
-            if (it.key == Key.F5 && it.type == KeyEventType.KeyDown) {
-                component.onEvent(UsersStore.Intent.FetchUsers)
-            }
-            false
-        },
+        modifier = Modifier.fillMaxSize().keyRefresh(refreshState),
         topBar = {
             AppBar(
                 navigationRow = {
@@ -158,9 +166,11 @@ fun UsersContent(
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.cClickable { component.onEvent(
-                                UsersStore.Intent.FTeachers(!model.fTeachers)
-                            ) }
+                            modifier = Modifier.cClickable {
+                                component.onEvent(
+                                    UsersStore.Intent.FTeachers(!model.fTeachers)
+                                )
+                            }
                         ) {
                             CustomCheckbox(
                                 checked = model.fTeachers
@@ -257,13 +267,7 @@ fun UsersContent(
                 },
                 actionRow = {
                     if (model.users != null) {
-                        IconButton(
-                            onClick = { component.onEvent(UsersStore.Intent.FetchUsers) }
-                        ) {
-                            GetAsyncIcon(
-                                RIcons.Refresh
-                            )
-                        }
+                        RefreshButton(refreshState, viewManager)
                         IconButton(
                             onClick = {
                                 component.cUserBottomSheet.onEvent(CBottomSheetStore.Intent.ShowSheet)
@@ -309,9 +313,15 @@ fun UsersContent(
             if (model.fStudents) Roles.student else null
         )
 
-        Box(Modifier.fillMaxSize().hazeUnder(viewManager = viewManager, hazeState = hazeState).padding(padding)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .pullRefresh(refreshState)
+                .hazeUnder(viewManager = viewManager, hazeState = hazeState)
+
+        ) {
             Crossfade(targetState = nModel) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     when {
                         model.users != null -> {
                             val users = model.users!!.filter {
@@ -324,11 +334,12 @@ fun UsersContent(
                                 val fio = with(it.user.fio) {
                                     "$surname $name $praname"
                                 }
-                                ((it.login.lowercase().contains(model.userFindField.lowercase()) || fio.lowercase().contains(model.userFindField.lowercase())) || model.userFindField.isBlank())  && (it.user.role in roles
+                                ((it.login.lowercase().contains(model.userFindField.lowercase()) || fio.lowercase()
+                                    .contains(model.userFindField.lowercase())) || model.userFindField.isBlank()) && (it.user.role in roles
                                         && moder
                                         && isInActive
                                         && parent)
-                            }.sortedWith(compareBy({!it.isActive}, {it.user.fio.surname}))
+                            }.sortedWith(compareBy({ !it.isActive }, { it.user.fio.surname }))
                             TableScreen(
                                 columnNames,
                                 widthsInit = widthsInit,
@@ -385,7 +396,7 @@ fun UsersContent(
                                     )
 
                                 },
-                                modifier = Modifier.padding(8.dp).pullRefresh(refreshState)
+                                modifier = Modifier.padding(8.dp)
                             )
                         }
 
@@ -396,18 +407,11 @@ fun UsersContent(
                                 }
 
                                 else -> {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            it.error,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(Modifier.height(5.dp))
-                                        if (it.error != "Доступ запрещён") {
-                                            CustomTextButton("Попробовать ещё раз") {
-                                                component.onEvent(UsersStore.Intent.FetchUsersInit)
-                                            }
-                                        }
-                                    }
+                                    DefaultErrorView(
+                                        model = it,
+                                        pos = DefaultErrorViewPos.CenteredFull,
+                                        buttonText = if (it.error != "Доступ запрещён") "Попробовать ещё раз" else ""
+                                    )
                                 }
                             }
                         }
@@ -418,8 +422,6 @@ fun UsersContent(
             }
 
             PullRefreshIndicator(
-                modifier = Modifier.align(alignment = Alignment.TopCenter),
-                refreshing = nModel.state == NetworkState.Loading && model.users != null,
                 state = refreshState,
                 topPadding = padding.calculateTopPadding()
             )
@@ -611,18 +613,18 @@ private fun editUserSheet(
                     if (model.isDateDialogShowing) {
                         val datePickerState = rememberDatePickerState(
                             initialSelectedDateMillis =
-                            if (model.eBirthday.length == 8) {
-                                val day = model.eBirthday.substring(0, 2).toInt()
-                                val month = model.eBirthday.substring(2, 4).toInt()
-                                val year = model.eBirthday.substring(4).toInt()
-                                LocalDate(
-                                    year = year,
-                                    monthNumber = month,
-                                    dayOfMonth = day
-                                ).atStartOfDayIn(
-                                    TimeZone.UTC
-                                ).toEpochMilliseconds()
-                            } else null,
+                                if (model.eBirthday.length == 8) {
+                                    val day = model.eBirthday.substring(0, 2).toInt()
+                                    val month = model.eBirthday.substring(2, 4).toInt()
+                                    val year = model.eBirthday.substring(4).toInt()
+                                    LocalDate(
+                                        year = year,
+                                        monthNumber = month,
+                                        dayOfMonth = day
+                                    ).atStartOfDayIn(
+                                        TimeZone.UTC
+                                    ).toEpochMilliseconds()
+                                } else null,
                             yearRange = IntRange(1940, model.currentYear - 5)
                         )
                         DatePickerDialog(
@@ -796,7 +798,7 @@ private fun editUserSheet(
                                 // menu items
                                 (model.subjects).forEach { selectionOption ->
                                     DropdownMenuItem(
-                                        text = { Text("${selectionOption.key} ${selectionOption.value}" ) },
+                                        text = { Text("${selectionOption.key} ${selectionOption.value}") },
                                         onClick = {
                                             component.onEvent(
                                                 UsersStore.Intent.ChangeESubjectId(
@@ -1132,18 +1134,18 @@ private fun createUserSheet(
                         if (model.isDateDialogShowing) {
                             val datePickerState = rememberDatePickerState(
                                 initialSelectedDateMillis =
-                                if (model.cBirthday.length == 8) {
-                                    val day = model.cBirthday.substring(0, 2).toInt()
-                                    val month = model.cBirthday.substring(2, 4).toInt()
-                                    val year = model.cBirthday.substring(4).toInt()
-                                    LocalDate(
-                                        year = year,
-                                        monthNumber = month,
-                                        dayOfMonth = day
-                                    ).atStartOfDayIn(
-                                        TimeZone.UTC
-                                    ).toEpochMilliseconds()
-                                } else null,
+                                    if (model.cBirthday.length == 8) {
+                                        val day = model.cBirthday.substring(0, 2).toInt()
+                                        val month = model.cBirthday.substring(2, 4).toInt()
+                                        val year = model.cBirthday.substring(4).toInt()
+                                        LocalDate(
+                                            year = year,
+                                            monthNumber = month,
+                                            dayOfMonth = day
+                                        ).atStartOfDayIn(
+                                            TimeZone.UTC
+                                        ).toEpochMilliseconds()
+                                    } else null,
                                 yearRange = IntRange(1940, model.currentYear - 5)
                             )
                             DatePickerDialog(
@@ -1318,7 +1320,7 @@ private fun createUserSheet(
                                     // menu items
                                     (model.subjects).forEach { selectionOption ->
                                         DropdownMenuItem(
-                                            text = { Text("${selectionOption.key} ${selectionOption.value}" ) },
+                                            text = { Text("${selectionOption.key} ${selectionOption.value}") },
                                             onClick = {
                                                 component.onEvent(
                                                     UsersStore.Intent.ChangeCSubjectId(
@@ -1505,7 +1507,9 @@ private fun createUserSheet(
                         }
 
                         Spacer(Modifier.height(7.dp))
-                        val isSolo = (model.users?.filter { it.user.fio.name == model.cName && it.user.fio.surname == model.cSurname && it.user.birthday == model.cBirthday }?.size ?: 0) == 0
+                        val isSolo =
+                            (model.users?.filter { it.user.fio.name == model.cName && it.user.fio.surname == model.cSurname && it.user.birthday == model.cBirthday }?.size
+                                ?: 0) == 0
                         AnimatedCommonButton(
                             text = if (isSolo) "Создать" else "Существует",
                             modifier = Modifier.width(TextFieldDefaults.MinWidth),

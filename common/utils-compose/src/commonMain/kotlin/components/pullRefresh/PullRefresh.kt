@@ -15,6 +15,8 @@ package pullRefresh
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +26,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.platform.inspectable
@@ -44,25 +47,33 @@ import androidx.compose.ui.unit.Velocity
 // TODO(b/244423199): Move pullRefresh into its own material library similar to material-ripple.
 @Composable
 fun Modifier.pullRefresh(
-    state: PullRefreshState,
+    state: PullRefreshState?,
     enabled: Boolean = true,
 ) = inspectable(inspectorInfo = debugInspectorInfo {
     name = "pullRefresh"
     properties["state"] = state
     properties["enabled"] = enabled
 }) {
-    val rEnabled = remember { mutableStateOf(enabled) }
-    Modifier.pullRefresh(state::onPull, state::onRelease, rEnabled.value)
-        .pointerInput(Unit) {
-            awaitPointerEventScope {
-                while (true) {
-                    val event = awaitPointerEvent()
-                    if (event.type == PointerEventType.Scroll) {
-                        rEnabled.value = false
+    if (state != null) {
+        val rEnabled = remember { mutableStateOf(enabled) }
+        Modifier.pullRefresh(state::onPull, state::onRelease, rEnabled.value)
+            .pointerInput(Unit) {
+                // Check perfomance dude
+//                detectVerticalDragGestures { change, dragAmount ->
+//                    if (change.type != PointerType.Mouse) {
+//                        rEnabled.value = true
+//                    }
+//                }
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        if (event.type == PointerEventType.Scroll) {
+                            rEnabled.value = false
+                        }
                     }
                 }
             }
-        }
+    } else Modifier
 }
 
 /**

@@ -36,6 +36,7 @@ class NetworkInterface(
     val networkModel: Value<NetworkModel> = _models
 
 
+
     fun nSuccess() {
         _models.value = _models.value.copy(state = NetworkState.None, error = "", throwable = Throwable())
     }
@@ -92,3 +93,6 @@ class NetworkInterface(
         val throwable: Throwable = Throwable()
     )
 }
+
+val NetworkInterface.NetworkModel.isLoading : Boolean
+    get() = this.state == NetworkState.Loading

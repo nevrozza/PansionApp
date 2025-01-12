@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -64,12 +65,12 @@ fun CustomTextField(
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     val focusLocalManager = LocalFocusManager.current
-
+    
 
 
     var passwordVisible by rememberSaveable() { mutableStateOf(passwordVisibleInit ?: true) }
     OutlinedTextField(
-        modifier = modifier.heightIn(min = minHeight).width(width).onPreviewKeyEvent {
+        modifier = modifier.bringIntoViewRequester(bringIntoViewRequester).heightIn(min = minHeight).width(width).onPreviewKeyEvent {
             if (focusManager != null) {
                 onNextButtonClicked(it) {
                     focusManager.moveFocus(FocusDirection.Next)

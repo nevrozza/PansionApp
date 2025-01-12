@@ -40,6 +40,8 @@ class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
     val showAvatars: MutableState<Boolean> = mutableStateOf(false),
     val isAmoled: MutableState<Boolean> = mutableStateOf(false),
     val isRefreshButtons: MutableState<Boolean> = mutableStateOf(false),
+
+    val hardwareStatus: MutableState<String> = mutableStateOf("")
 )
 //
 //@Composable

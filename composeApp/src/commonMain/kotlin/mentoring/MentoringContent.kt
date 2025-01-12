@@ -25,11 +25,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
+import components.refresh.RefreshButton
+import components.refresh.RefreshWithoutPullCircle
+import components.refresh.keyRefresh
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import dev.chrisbanes.haze.HazeState
 import di.Inject
 import io.github.alexzhirkevich.qrose.options.*
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
+import pullRefresh.PullRefreshIndicator
+import pullRefresh.pullRefresh
+import pullRefresh.pullRefreshContentTransform
+import pullRefresh.rememberPullRefreshState
 import registration.RegistrationRequest
 import resources.RIcons
 import root.RootComponent.Config
@@ -55,8 +63,16 @@ fun MentoringContent(
 
     val coroutineScope = rememberCoroutineScope()
 
+    val refreshing = nModel.isLoading
+
+    val refreshState = rememberPullRefreshState(
+        refreshing,
+        { component.onEvent(MentoringStore.Intent.FetchStudents) }
+    )
+
+
     Scaffold(
-        Modifier.fillMaxSize(),
+        Modifier.fillMaxSize().keyRefresh(refreshState),
         topBar = {
             AppBar(
                 title = {
@@ -68,6 +84,7 @@ fun MentoringContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+
                     IconButton(
                         onClick = {
                             component.onOutput(MentoringComponent.Output.NavigateToAchievements)
@@ -77,6 +94,7 @@ fun MentoringContent(
                             RIcons.CuteCheck
                         )
                     }
+                    RefreshWithoutPullCircle(refreshing, refreshState.position, model.forms.isNotEmpty())
 
                 },
                 actionRow = {
@@ -95,147 +113,147 @@ fun MentoringContent(
                             )
                         }
                     }
-                    IconButton(
-                        onClick = {
-                            component.onEvent(MentoringStore.Intent.FetchStudents)
-                        }
-                    ) {
-                        GetAsyncIcon(
-                            RIcons.Refresh
-                        )
-                    }
+                    RefreshButton(
+                        refreshState,
+                        viewManager
+                    )
 
                 },
                 hazeState = hazeState
             )
         }
     ) { padding ->
-
-        Crossfade(nModel.state) {
-            when (it) {
-                NetworkState.Loading -> {
-                    Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        LoadingAnimation()
+        Box (Modifier.fillMaxSize().pullRefresh(refreshState)) {
+            Crossfade(nModel.state) {
+                when {
+                    it is NetworkState.Loading && model.forms.isEmpty() -> {
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingAnimation()
+                        }
                     }
-                }
 
-                NetworkState.None -> {
-                    Crossfade(model.isTableView) { cf ->
-                        if (cf) {
-                            Box(
-                                Modifier.fillMaxSize().padding(padding).padding(
-                                    bottom =
+                    it is NetworkState.None || model.forms.isNotEmpty() -> {
+                        Crossfade(model.isTableView) { cf ->
+                            if (cf) {
+                                Box(
+                                    Modifier.fillMaxSize().pullRefreshContentTransform(refreshState).padding(padding).padding(
+                                        bottom =
                                         if (viewManager.orientation.value != WindowScreen.Expanded) {
                                             padding.calculateBottomPadding() + 80.dp - 20.dp
                                         } else 0.dp
-                                ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(modifier = Modifier.offset(y = (-10).dp)) {
-                                    Row(
-                                        Modifier.horizontalScroll(rememberScrollState())
-                                            .offset(y = 10.dp)
-                                    ) {
-                                        CFilterChip(
-                                            label = "За неделю",
-                                            isSelected = model.dateFilter is DatesFilter.Week,
-                                            state = nModel.state,
-                                            coroutineScope = coroutineScope
+                                    ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(modifier = Modifier.offset(y = (-10).dp)) {
+                                        Row(
+                                            Modifier.horizontalScroll(rememberScrollState())
+                                                .offset(y = 10.dp)
                                         ) {
-                                            component.onEvent(
-                                                MentoringStore.Intent.ChangeFilterDate(
-                                                    DatesFilter.Week
-                                                )
-                                            )
-                                        }
-                                        Spacer(Modifier.width(5.dp))
-                                        CFilterChip(
-                                            label = "За прошлую неделю",
-                                            isSelected = model.dateFilter is DatesFilter.PreviousWeek,
-                                            state = nModel.state,
-                                            coroutineScope = coroutineScope
-                                        ) {
-                                            component.onEvent(
-                                                MentoringStore.Intent.ChangeFilterDate(
-                                                    DatesFilter.PreviousWeek
-                                                )
-                                            )
-                                        }
-                                        Spacer(Modifier.width(5.dp))
-                                        model.modules.forEach { module ->
                                             CFilterChip(
-                                                label = "За ${module} модуль",
-                                                isSelected = model.dateFilter is DatesFilter.Module && module in (model.dateFilter as DatesFilter.Module).modules,
+                                                label = "За неделю",
+                                                isSelected = model.dateFilter is DatesFilter.Week,
                                                 state = nModel.state,
                                                 coroutineScope = coroutineScope
                                             ) {
                                                 component.onEvent(
                                                     MentoringStore.Intent.ChangeFilterDate(
-                                                        DatesFilter.Module(
-                                                            listOf(module)
-                                                        )
+                                                        DatesFilter.Week
                                                     )
                                                 )
                                             }
                                             Spacer(Modifier.width(5.dp))
-                                        }
-                                    }
-                                    Row(Modifier.horizontalScroll(rememberScrollState())) {
-                                        model.filteredSubjects.forEach { s ->
                                             CFilterChip(
-                                                label = s.value,
-                                                isSelected = s.key == model.chosenSubject,
+                                                label = "За прошлую неделю",
+                                                isSelected = model.dateFilter is DatesFilter.PreviousWeek,
                                                 state = nModel.state,
                                                 coroutineScope = coroutineScope
                                             ) {
                                                 component.onEvent(
-                                                    MentoringStore.Intent.ChangeSubject(
-                                                        s.key
+                                                    MentoringStore.Intent.ChangeFilterDate(
+                                                        DatesFilter.PreviousWeek
                                                     )
                                                 )
                                             }
                                             Spacer(Modifier.width(5.dp))
+                                            model.modules.forEach { module ->
+                                                CFilterChip(
+                                                    label = "За ${module} модуль",
+                                                    isSelected = model.dateFilter is DatesFilter.Module && module in (model.dateFilter as DatesFilter.Module).modules,
+                                                    state = nModel.state,
+                                                    coroutineScope = coroutineScope
+                                                ) {
+                                                    component.onEvent(
+                                                        MentoringStore.Intent.ChangeFilterDate(
+                                                            DatesFilter.Module(
+                                                                listOf(module)
+                                                            )
+                                                        )
+                                                    )
+                                                }
+                                                Spacer(Modifier.width(5.dp))
+                                            }
                                         }
-                                    }
-                                    val settingsRepository: SettingsRepository = remember {
-                                        Inject.instance()
-                                    }
-                                    MarkTable(
-                                        fields = model.filteredStudents.associate { s -> s.login to "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}" },
-                                        dms = model.filteredDateMarks,
-                                        nki = model.filteredNki,
-                                        isDs1Init = settingsRepository.fetchIsShowingPlusDS()
-                                    )
-                                }
-                            }
-                        } else {
-                            CLazyColumn(padding = padding, isBottomPaddingNeeded = true, hazeState = hazeState) {
-                                items(model.forms) { f ->
-                                    val students = model.students.filter { it.formId == f.id }
-                                    val requests = model.requests.filter { it.formId == f.id }
-                                    if (requests.isNotEmpty() || students.isNotEmpty()) {
-                                        FormsItem(
-                                            form = f,
-                                            students = students,
-                                            component = component,
-                                            model = model,
-                                            requests = requests
+                                        Row(Modifier.horizontalScroll(rememberScrollState())) {
+                                            model.filteredSubjects.forEach { s ->
+                                                CFilterChip(
+                                                    label = s.value,
+                                                    isSelected = s.key == model.chosenSubject,
+                                                    state = nModel.state,
+                                                    coroutineScope = coroutineScope
+                                                ) {
+                                                    component.onEvent(
+                                                        MentoringStore.Intent.ChangeSubject(
+                                                            s.key
+                                                        )
+                                                    )
+                                                }
+                                                Spacer(Modifier.width(5.dp))
+                                            }
+                                        }
+                                        val settingsRepository: SettingsRepository = remember {
+                                            Inject.instance()
+                                        }
+                                        MarkTable(
+                                            fields = model.filteredStudents.associate { s -> s.login to "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}" },
+                                            dms = model.filteredDateMarks,
+                                            nki = model.filteredNki,
+                                            isDs1Init = settingsRepository.fetchIsShowingPlusDS()
                                         )
+                                    }
+                                }
+                            } else {
+                                CLazyColumn(padding = padding, isBottomPaddingNeeded = true, hazeState = hazeState, refreshState = refreshState) {
+                                    items(model.forms) { f ->
+                                        val students = model.students.filter { it.formId == f.id }
+                                        val requests = model.requests.filter { it.formId == f.id }
+                                        if (requests.isNotEmpty() || students.isNotEmpty()) {
+                                            FormsItem(
+                                                form = f,
+                                                students = students,
+                                                component = component,
+                                                model = model,
+                                                requests = requests
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                NetworkState.Error -> DefaultErrorView(
-                    nModel,
-                    DefaultErrorViewPos.CenteredFull
-                )
+                    it is NetworkState.Error -> DefaultErrorView(
+                        nModel,
+                        DefaultErrorViewPos.CenteredFull
+                    )
+                }
             }
+            PullRefreshIndicator(
+                refreshState,
+                padding.calculateTopPadding()
+            )
         }
     }
 }
@@ -253,16 +271,16 @@ private fun FormsItem(
     val isExpanded = remember { mutableStateOf(form.id in model.openedForms) }
     val onExpandClick = {
         isExpanded.value = !isExpanded.value
-                    component.onEvent(
-                        MentoringStore.Intent.UpdateOpenedForms(
+        component.onEvent(
+            MentoringStore.Intent.UpdateOpenedForms(
 
-                            if (isExpanded.value) {
-                                model.openedForms + form.id
-                            } else {
-                                model.openedForms - form.id
-                            }
-                        )
-                    )
+                if (isExpanded.value) {
+                    model.openedForms + form.id
+                } else {
+                    model.openedForms - form.id
+                }
+            )
+        )
     }
     Column(Modifier.animateContentSize()) {
         Row(
@@ -307,7 +325,7 @@ private fun FormsItem(
                     },
                     modifier = Modifier.size(35.dp)
                 ) {
-                    val addRotation = animateFloatAsState(if (form.isQrActive) 90f+45f else 0f)
+                    val addRotation = animateFloatAsState(if (form.isQrActive) 90f + 45f else 0f)
                     GetAsyncIcon(
                         path = RIcons.Add,
                         modifier = Modifier.rotate(addRotation.value),

@@ -163,7 +163,7 @@ private fun DateTasksItem(
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 6.dp)
                     )
-                    if (isCompleted) {
+                    AnimatedVisibility (isCompleted) {
                         GetAsyncIcon(
                             path = RIcons.Check,
                             tint = MaterialTheme.colorScheme.primary

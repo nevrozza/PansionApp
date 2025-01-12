@@ -47,7 +47,7 @@ fun DatesLine(
         }
         LaunchedEffect(Unit) {
             lazyState.animateScrollToItem(
-                dates.indexOfFirst { it == currentDate }
+                dates.indexOfFirst { it == currentDate }.coerceAtLeast(0)
             )
         }
         Spacer(Modifier.height(5.dp))

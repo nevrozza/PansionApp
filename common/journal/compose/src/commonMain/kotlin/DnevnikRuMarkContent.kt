@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.LocalHazeStyle
@@ -46,8 +47,17 @@ import view.LocalViewManager
 fun DnevnikRuMarkContent(
     component: DnevnikRuMarksComponent
 ) {
+
+    
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+
+
+    LaunchedEffect(Unit) {
+        if(!nModel.isLoading) component.onEvent(DnevnikRuMarkStore.Intent.Init)
+    }
+
+
     val coroutineScope = rememberCoroutineScope()
     val viewManager = LocalViewManager.current
     val hazeState = remember { HazeState() }

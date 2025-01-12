@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -19,10 +20,12 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import dev.chrisbanes.haze.HazeState
 import report.ClientStudentLine
 import resources.RIcons
 import studentLines.StudentLinesComponent
+import studentLines.StudentLinesStore
 import studentReportDialog.StudentReportDialogStore
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -32,8 +35,16 @@ import studentReportDialog.StudentReportDialogStore
 fun StudentLinesContent(
     component: StudentLinesComponent
 ) {
+
+    
+
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+
+
+    LaunchedEffect(Unit) {
+        if (!nModel.isLoading) component.onEvent(StudentLinesStore.Intent.Init)
+    }
 
     val hazeState = remember { HazeState() }
 

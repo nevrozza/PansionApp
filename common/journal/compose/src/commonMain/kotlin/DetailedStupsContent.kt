@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import detailedStups.DetailedStupsComponent
 import detailedStups.DetailedStupsStore
 import dev.chrisbanes.haze.HazeState
@@ -36,8 +37,17 @@ import server.getLocalDate
 fun DetailedStupsContent(
     component: DetailedStupsComponent
 ) {
+
+
+
+
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
+
+
+    LaunchedEffect(Unit) {
+        if(!nModel.isLoading) component.onEvent(DetailedStupsStore.Intent.Init)
+    }
 
     val hazeState = remember { HazeState() }
     //PullToRefresh

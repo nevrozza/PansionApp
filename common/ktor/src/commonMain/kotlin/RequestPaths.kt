@@ -1,9 +1,22 @@
 import server.DeviceTypex
 
 object RequestPaths {
-    val ip = if (isTestMode)
-    { if (deviceType == DeviceTypex.android) "10.0.2.2:8080" else "127.0.0.1:8080" }
-    else { "pansionapp-test-server.ru:${ if (deviceType != DeviceTypex.web) 8080 else 8443}" }
+    val ip = if (isTestMode) {
+        if (deviceType == DeviceTypex.android) "192.168.43.55:8080" else "127.0.0.1:8080"
+    } else {
+        "pansionapp-test-server.ru:${if (deviceType != DeviceTypex.web) 8080 else 8443}"
+    }
+    // android emulator 10.0.2.2:8080
+    // macos ifconfig
+    // 1. Откройте Системные настройки на вашем Mac.
+//    2. Перейдите в раздел Сеть.
+//    3. Выберите активное соединение (обычно это будет Wi-Fi).
+//    4. Нажмите кнопку Дополнительно....
+//    5. Перейдите на вкладку TCP/IP. Там вы увидите ваш IP-адрес, назначенный вашим устройством Android.
+
+    // macos ifconfig en0
+    // macos   networksetup -getinfo Wi-Fi
+
     //"109.172.88.2:8443"//""//"192.168.0.107:8081"
 //    val ip = "127.0.0.1:8080"
 //    val ip =
@@ -24,7 +37,8 @@ object RequestPaths {
     object Registration {
         const val OpenQR = "server/registration/open"
         const val CloseQR = "server/registration/close"
-//        const val FetchRequests = "server/registration/requests"
+
+        //        const val FetchRequests = "server/registration/requests"
         const val SolveRequest = "server/registration/solve"
 //        const val Poll = "server/registration/poll"
 
