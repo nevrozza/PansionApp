@@ -60,6 +60,13 @@ import view.*
 import dev.chrisbanes.haze.HazeInputScale
 import kotlinx.coroutines.*
 
+
+
+enum class HomeRoutings {
+    Tasks, Dnevnik, Other
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @ExperimentalLayoutApi
 @Composable
@@ -67,7 +74,8 @@ fun HomeContent(
     component: HomeComponent,
     pickedLogin: String = "",
     sharedTransitionScope: SharedTransitionScope,
-    isSharedVisible: Boolean
+    isSharedVisible: Boolean,
+    currentRouting: HomeRoutings = HomeRoutings.Other
 ) {
     val model by component.model.subscribeAsState()
     val hazeState = remember { HazeState() }
@@ -79,14 +87,16 @@ fun HomeContent(
                 sharedTransitionScope = sharedTransitionScope,
                 isSharedVisible = isSharedVisible,
                 hazeState = hazeState,
-                coroutineScope = coroutineScope
+                coroutineScope = coroutineScope,
+                currentRouting = currentRouting
             )
         }
 
         Roles.teacher -> {
             TeacherHomeContent(
                 component, pickedLogin, hazeState,
-                coroutineScope = coroutineScope
+                coroutineScope = coroutineScope,
+                currentRouting = currentRouting
             )
         }
 
@@ -94,7 +104,8 @@ fun HomeContent(
             OtherHomeContent(
                 component = component,
                 pickedLogin = pickedLogin,
-                hazeState = hazeState
+                hazeState = hazeState,
+                currentRouting = currentRouting
             )
         }
     }
@@ -140,7 +151,8 @@ fun HomeContent(
 fun OtherHomeContent(
     component: HomeComponent,
     pickedLogin: String,
-    hazeState: HazeState
+    hazeState: HazeState,
+    currentRouting: HomeRoutings
 ) {
     val viewManager = LocalViewManager.current
     val model by component.model.subscribeAsState()
@@ -239,7 +251,8 @@ fun TeacherHomeContent(
     component: HomeComponent,
     pickedLogin: String,
     hazeState: HazeState,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    currentRouting: HomeRoutings
 ) {
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
@@ -630,9 +643,14 @@ fun StudentHomeContent(
     sharedTransitionScope: SharedTransitionScope,
     isSharedVisible: Boolean,
     hazeState: HazeState,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    currentRouting: HomeRoutings
 ) {
     val model by component.model.subscribeAsState()
+
+    val schoolModel = component.schoolComponent.model.subscribeAsState()
+    val kids = schoolModel.value.dutyKids.filterIndexed { index, dutyKid -> index + 1 <= schoolModel.value.dutyPeopleCount }
+
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nScheduleModel by component.scheduleNInterface.networkModel.subscribeAsState()
@@ -642,7 +660,10 @@ fun StudentHomeContent(
     val lazyListState = rememberLazyListState()
 
 
-    val isMainView = lazyListState.firstVisibleItemIndex in (0..model.notifications.size + 1)
+    val isMainView = lazyListState.firstVisibleItemIndex in (0..model.notifications.size
+                                                                + 1 //studentBar
+                                                                + 1 //NotificationAboutDuty
+            )
 
     val refreshing =
         (
@@ -760,6 +781,9 @@ fun StudentHomeContent(
             }
         }
     ) { padding ->
+
+
+
         Box(
             Modifier.fillMaxSize()
                 .pullRefresh(refreshState)
@@ -781,12 +805,14 @@ fun StudentHomeContent(
                     coroutineScope = coroutineScope,
                     sharedTransitionScope = sharedTransitionScope,
                     isSharedVisible = isSharedVisible,
-                    nTeacherModel = nTeacherModel
+                    nTeacherModel = nTeacherModel,
+                    currentRouting = currentRouting
                 )
                 this.homeStudentNotifications(
                     model = model,
                     component = component,
-                    viewManager = viewManager
+                    viewManager = viewManager,
+                    kids = kids
                 )
                 items(2) { num ->
                     if (num == 0) {

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -42,6 +43,8 @@ fun GetAsyncIcon(
 ) {
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
             .data(Res.getUri("drawable/icons/${path}"))
             .crossfade(true)
             .build(),
@@ -69,6 +72,9 @@ fun GetAsyncImage(
 ) {
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
+
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
             .data(Res.getUri("drawable/${path}"))
             .crossfade(true)
             .build(),
@@ -123,6 +129,8 @@ fun GetAsyncAvatar(
         } else {
             AsyncImage(
                 ImageRequest.Builder(LocalPlatformContext.current)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .networkCachePolicy(CachePolicy.ENABLED)
                     .data(Res.getUri("drawable/avatars/${path}.webp"))
                     .crossfade(300)
                     .build(),

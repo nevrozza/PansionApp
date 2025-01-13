@@ -869,6 +869,7 @@ data object Images {
         val emoji5 = "${pathEmoji}emoji5.webp"
         val emoji6 = "${pathEmoji}emoji6.webp"
         val emoji7 = "${pathEmoji}emoji7.webp"
+        val emojiCook = "${pathEmoji}emoji_cook.webp"
     }
 }
 

@@ -17,6 +17,7 @@ import di.Inject
 import journal.JournalComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
+import school.SchoolComponent
 import studentReportDialog.StudentReportComponent
 
 
@@ -24,6 +25,7 @@ class HomeComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     val journalComponent: JournalComponent? = null,
+    val schoolComponent: SchoolComponent,
     private val avatarId: Int,
     private val login: String,
     private val name: String,

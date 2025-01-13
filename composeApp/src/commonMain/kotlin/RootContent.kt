@@ -96,24 +96,13 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
     DeepLinkErrorCatcher(
         component, model
     )
+    val isExpanded =
+        viewManager.orientation.value == WindowScreen.Expanded
+    val isVertical = viewManager.orientation.value == WindowScreen.Vertical
 
 
+    Box {
 
-    BoxWithConstraints {
-        val isExpanded =
-            WindowCalculator.calculateScreen(
-                size = DpSize(
-                    this.maxWidth,
-                    this.maxHeight
-                )
-            ) == WindowScreen.Expanded
-        val isVertical =
-            WindowCalculator.calculateScreen(
-                size = DpSize(
-                    this.maxWidth,
-                    this.maxHeight
-                )
-            ) == WindowScreen.Vertical
 
         val items = getNavItems(
             isExpanded,
@@ -345,7 +334,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     HomeContent(
                                         child.homeComponent,
                                         sharedTransitionScope = this@SharedTransitionLayout,
-                                        isSharedVisible = stack.active.instance is Child.MainHome
+                                        isSharedVisible = stack.active.instance is Child.MainHome,
+                                        currentRouting = HomeRoutings.Dnevnik
                                     )
                                 },
                                 secondScreen = {
@@ -605,7 +595,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 HomeContent(
                                     child.homeComponent,
                                     sharedTransitionScope = this@SharedTransitionLayout,
-                                    isSharedVisible = stack.active.instance is Child.MainHome
+                                    isSharedVisible = stack.active.instance is Child.MainHome,
+                                    currentRouting = HomeRoutings.Tasks
                                 )
                             },
                             secondScreen = {

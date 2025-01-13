@@ -353,6 +353,9 @@ class RootComponentImpl(
                 journalComponent = getMainJournalComponent(
                     componentContext,
                 ),
+                schoolComponent = getMainSchoolComponent(
+                    componentContext,
+                ),
                 output = ::onHomeOutput,
                 avatarId = secondAvatarId ?: authRepository.fetchAvatarId(),
                 login = secondLogin ?: authRepository.fetchLogin(),
@@ -690,7 +693,7 @@ class RootComponentImpl(
             Config.MainSchool -> {
                 Child.MainSchool(
                     schoolComponent = getMainSchoolComponent(
-                        childContext, false
+                        childContext, true
                     ),
                     ratingComponent = getMainRatingComponent(childContext, getOld = true)
                 )

@@ -2,6 +2,7 @@ package homeComponents
 
 import DotsFlashing
 import FIO
+import HomeRoutings
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -51,6 +52,7 @@ fun LazyListScope.homeStudentBar(
     coroutineScope: CoroutineScope,
     sharedTransitionScope: SharedTransitionScope,
     isSharedVisible: Boolean,
+    currentRouting: HomeRoutings
 //    isExpanded: Boolean
 ) {
     item {
@@ -200,7 +202,7 @@ fun LazyListScope.homeStudentBar(
             FeatureButton(
                 text = "Оценки",
                 decoration = RIcons.PlaylistAddCheckCircle,
-                isActive = false
+                isActive = currentRouting == HomeRoutings.Dnevnik
             ) {
                 component.onOutput(
                     HomeComponent.Output.NavigateToDnevnikRuMarks(
@@ -252,7 +254,7 @@ fun LazyListScope.homeStudentBar(
                     }
 
                 },
-                isActive = false
+                isActive = currentRouting == HomeRoutings.Tasks
             ) {
                 component.onOutput(
                     HomeComponent.Output.NavigateToTasks(
