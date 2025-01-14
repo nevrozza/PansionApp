@@ -5,6 +5,9 @@ import kotlinx.datetime.*
 
 
 
+val String.st: String
+    get() = this.subSequence(0, 3).toString()
+
 fun <K, V> MutableMap<K, List<V>>.updateSafe(key: K?, value: V) {
     if (key != null) {
         if (this.containsKey(key)) {

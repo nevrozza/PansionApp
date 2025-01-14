@@ -29,8 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CustomTextButton
-import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogComponent
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.draw.clip
@@ -38,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.DialogProperties
-import components.hazeHeader
+import components.*
 import components.networkInterface.NetworkState
 import view.GlobalHazeState
 import view.LocalViewManager
@@ -158,11 +156,10 @@ fun CAlertDialogContent(
                                         .padding(vertical = 6.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text(nModel.error)
-                                    Spacer(Modifier.height(7.dp))
-                                    CustomTextButton("Попробовать ещё раз") {
-                                        nModel.onFixErrorClick()
-                                    }
+                                    DefaultErrorView(
+                                        model = nModel,
+                                        pos = DefaultErrorViewPos.Centered
+                                    )
                                 }
                             }
                         }

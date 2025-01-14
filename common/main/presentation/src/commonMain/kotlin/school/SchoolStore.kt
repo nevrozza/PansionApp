@@ -41,6 +41,7 @@ interface SchoolStore : Store<Intent, State, Label> {
         data class ChangeDate(val date: Pair<Int, String>) : Intent
         data class OpenMinistryOverview(val ministryOverviewId: String) : Intent
         data object Init: Intent
+        data object RefreshOnlyDuty: Intent
         data class OpenMinistrySettings(val reason: MinistrySettingsReason): Intent
         data class SetMinistryStudent(val ministryId: String, val login: String?, val fio: String): Intent
 

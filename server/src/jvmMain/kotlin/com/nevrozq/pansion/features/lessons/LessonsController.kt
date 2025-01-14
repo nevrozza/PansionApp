@@ -47,6 +47,7 @@ import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.calendar.CalendarDTO
 import com.nevrozq.pansion.database.checkedNotifications.CheckedNotifications
 import com.nevrozq.pansion.database.checkedNotifications.CheckedNotificationsDTO
+import com.nevrozq.pansion.database.duty.Duty
 import com.nevrozq.pansion.database.formGroups.FormGroupDTO
 import com.nevrozq.pansion.database.formGroups.FormGroups
 import com.nevrozq.pansion.database.formGroups.mapToFormGroup
@@ -96,8 +97,10 @@ import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import rating.*
 import rating.RatingItem
 import report.RMarkLessonReceive
@@ -933,8 +936,21 @@ class LessonsController() {
         val perm = call.isModer
         call.dRes(perm, "Can't edit form") {
             val r = this.receive<REditFormReceive>()
+            val oldForm = Forms.fetchById(r.id)
 
             Forms.update(r)
+
+            if (oldForm.mentorLogin != r.form.mentorLogin) {
+                val students = StudentsInForm.fetchStudentsLoginsByFormId(oldForm.formId)
+                transaction {
+                    Duty.update({
+                        (Duty.mentorLogin eq oldForm.mentorLogin) and
+                                (Duty.studentLogin.inList(students))
+                    }) {
+                        it[mentorLogin] = r.form.mentorLogin
+                    }
+                }
+            }
 
             this.respond(HttpStatusCode.OK).done
         }

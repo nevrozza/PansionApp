@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun <T: Any> DragDropList(
-    items: List<T>,
+    items: List<Pair<String, T>>,
     onMove: (Int, Int) -> Unit,
     onDragFinished: () -> Unit,
     modifier: Modifier = Modifier,
@@ -65,7 +65,7 @@ fun <T: Any> DragDropList(
             },
         state = dragDropListState.lazyListState
     ) {
-        itemsIndexed(items) { index, item ->
+        itemsIndexed(items, key = { index, item -> item.first }) { index, item ->
             val currentIndex = rememberUpdatedState(index)
 
             // Calculate the rotation angle based on the dragged distance
@@ -77,23 +77,29 @@ fun <T: Any> DragDropList(
 
             Column(
                 modifier = Modifier
+                    .animateItem()
                     .composed {
-                        val offsetOrNull =
-                            dragDropListState.elementDisplacement.takeIf {
-                                index == dragDropListState.currentIndexOfDraggedItem
+                        val offsetOrNull by
+                            derivedStateOf {
+                                dragDropListState.elementDisplacement.takeIf {
+                                    index == dragDropListState.currentIndexOfDraggedItem
+                                }
                             }
+
                         val translationYaxis by animateFloatAsState(targetValue = offsetOrNull ?: 0f)
                         Modifier
+
                             .graphicsLayer {
+//                                this.translationY = offsetOrNull ?: 0f// translationY
                                 translationY = translationYaxis
                                 rotationZ = rotationAngle
                             }
                     }
-//                    .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(4.dp))
+//                    .background(MaterialTheme.colorScheme.bacsmkground, shape = RoundedCornerShape(4.dp))
                     .fillMaxWidth()
                     .zIndex(if (currentIndex.value == dragDropListState.currentIndexOfDraggedItem) 1f else 0f)
             ) {
-                itemComposable(index, item, currentIndex.value == dragDropListState.currentIndexOfDraggedItem)
+                itemComposable(index, item.second, currentIndex.value == dragDropListState.currentIndexOfDraggedItem)
             }
         }
     }

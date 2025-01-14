@@ -59,7 +59,7 @@ import server.*
 import view.*
 import dev.chrisbanes.haze.HazeInputScale
 import kotlinx.coroutines.*
-
+import school.SchoolStore
 
 
 enum class HomeRoutings {
@@ -676,7 +676,9 @@ fun StudentHomeContent(
 
     val refreshState = rememberPullRefreshState(
         refreshing,
-        { component.onEvent(HomeStore.Intent.Init) }
+        {
+            component.onRefreshClick()
+        }
     )
 
     Scaffold(
@@ -750,10 +752,11 @@ fun StudentHomeContent(
                         ) {
                             CalendarButton(component)
                         }
-                        RefreshButton(
-                            refreshState, viewManager
-                        )
                         if (viewManager.orientation.value != WindowScreen.Expanded) {
+
+                            RefreshButton(
+                                refreshState, viewManager
+                            )
                             IconButton(
                                 onClick = {
                                     component.onOutput(HomeComponent.Output.NavigateToSettings)

@@ -18,6 +18,7 @@ import journal.JournalComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import school.SchoolComponent
+import school.SchoolStore
 import studentReportDialog.StudentReportComponent
 
 
@@ -111,6 +112,11 @@ class HomeComponent(
 
     fun onEvent(event: HomeStore.Intent) {
         homeStore.accept(event)
+    }
+
+    fun onRefreshClick() {
+        onEvent(HomeStore.Intent.Init)
+        schoolComponent.onEvent(SchoolStore.Intent.RefreshOnlyDuty)
     }
 
     init {

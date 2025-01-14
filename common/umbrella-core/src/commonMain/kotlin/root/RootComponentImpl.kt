@@ -1201,6 +1201,7 @@ class RootComponentImpl(
 
         getMainJournalComponent(componentContext, false)
         getMainMentoringComponent(componentContext, false)
+        getMainSchoolComponent(componentContext, false)
         getMainRatingComponent(componentContext, false)
         getMainHomeComponent(componentContext, false)
         getMainAdminComponent(componentContext, false)

@@ -50,10 +50,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CustomTextButton
-import components.DefaultModalBottomSheet
-import components.LoadingAnimation
-import components.hazeHeader
+import components.*
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
@@ -240,11 +237,10 @@ fun BottomSheetVariant(
 
                         else -> {
 
-                            Text(nModel.error)
-                            Spacer(Modifier.height(7.dp))
-                            CustomTextButton("Попробовать ещё раз") {
-                                nModel.onFixErrorClick()
-                            }
+                           DefaultErrorView(
+                               model = nModel,
+                               pos = DefaultErrorViewPos.CenteredNotFull
+                           )
                         }
                     }
 

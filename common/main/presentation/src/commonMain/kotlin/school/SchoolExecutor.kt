@@ -34,6 +34,13 @@ class SchoolExecutor(
                     fetchDuty()
                 }
             }
+
+            Intent.RefreshOnlyDuty -> {
+                if (state().moderation in listOf(Moderation.both, Moderation.mentor) || state().role == Roles.student) {
+                    fetchDuty()
+                }
+            }
+
             is Intent.OpenMinistrySettings -> openMinistrySettings(intent.reason)
             is Intent.SetMinistryStudent -> setMinistryStudent(ministryId = intent.ministryId, fio = intent.fio, login = intent.login)
             is Intent.StartNewDayDuty -> startNewDayDuty(intent.newDutyPeopleCount)

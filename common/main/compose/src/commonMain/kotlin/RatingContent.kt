@@ -44,7 +44,8 @@ import view.*
 @Composable
 fun SharedTransitionScope.RatingContent(
     component: RatingComponent,
-    isSharedVisible: Boolean
+    isSharedVisible: Boolean,
+    onExtraRefreshClick : () -> Unit
 ) {
 
     val model by component.model.subscribeAsState()
@@ -63,7 +64,10 @@ fun SharedTransitionScope.RatingContent(
 
     val refreshState = rememberPullRefreshState(
         refreshing,
-        { component.onEvent(RatingStore.Intent.Init) })
+        {
+            component.onEvent(RatingStore.Intent.Init)
+            onExtraRefreshClick()
+        })
 
     LaunchedEffect(Unit) {
         refreshState.onRefreshState.value()

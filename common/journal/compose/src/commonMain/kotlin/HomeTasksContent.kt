@@ -205,16 +205,11 @@ private fun DateTasksItem(
                                 CircularProgressIndicator(Modifier.size(20.dp))
                             }
                         } else if (nModel.state is NetworkState.Error) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(nModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Попробовать ещё раз") {
-                                    nModel.onFixErrorClick()
-                                }
-                            }
+                            DefaultErrorView(
+                                model = nModel,
+                                pos = DefaultErrorViewPos.Centered,
+                                modifier = Modifier.padding(vertical = 5.dp)
+                            )
                         }
                     }
                 }

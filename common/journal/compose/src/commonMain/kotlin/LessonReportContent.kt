@@ -1525,6 +1525,9 @@ fun LessonTable(
                                     }
                                 )
 
+                        val isPersonWasOnLesson = student.attended?.attendedType in listOf("0", null)
+
+                        
                         Column {
                             Row(
                                 modifier = Modifier
@@ -1636,6 +1639,7 @@ fun LessonTable(
                                                                         getSixTime().toMinutes()
                                                                     if ((model.date == getDate() && lessonMinutes <= currentMinutes && currentMinutes - lessonMinutes <= 40) && model.isEditable) {
                                                                         FilledTonalButton(
+                                                                            enabled =  isPersonWasOnLesson,
                                                                             contentPadding = PaddingValues(
                                                                                 horizontal = 5.dp
                                                                             ), onClick = {
@@ -1652,16 +1656,10 @@ fun LessonTable(
                                                                     if (component.model.value.isEditable) {
                                                                         Box() {
                                                                             IconButton(
+                                                                                enabled =  isPersonWasOnLesson,
                                                                                 modifier = Modifier.width(
                                                                                     30.dp
                                                                                 )
-                                                                                //                                                                            .onGloballyPositioned {
-                                                                                //                                                                            x =
-                                                                                //                                                                                it.positionInRoot().x - 110f - (viewManager.size!!.maxWidth - currentParentWidth).value// it.positionInParent().x
-                                                                                //                                                                            y =
-                                                                                //                                                                                it.positionInRoot().y - 50f
-                                                                                //
-                                                                                //                                                                        }
                                                                                 , onClick = {
                                                                                     component.onEvent(
                                                                                         LessonReportStore.Intent.OpenSetLateTimeMenu(

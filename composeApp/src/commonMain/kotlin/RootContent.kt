@@ -77,6 +77,7 @@ import server.cut
 import server.getDate
 import view.*
 import dev.chrisbanes.haze.HazeInputScale
+import school.SchoolStore
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -101,7 +102,21 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
     val isVertical = viewManager.orientation.value == WindowScreen.Vertical
 
 
-    Box {
+    BoxWithConstraints {
+        val isExpanded =
+            if (component.secondLogin == null) viewManager.orientation.value == WindowScreen.Expanded else WindowCalculator.calculateScreen(
+                size = DpSize(
+                    this.maxWidth,
+                    this.maxHeight
+                )
+            ) == WindowScreen.Expanded
+        val isVertical =
+            if (component.secondLogin == null) viewManager.orientation.value == WindowScreen.Vertical else WindowCalculator.calculateScreen(
+                size = DpSize(
+                    this.maxWidth,
+                    this.maxHeight
+                )
+            ) == WindowScreen.Vertical
 
 
         val items = getNavItems(
@@ -136,8 +151,10 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
         ) { padding ->
 
             val aniPadding by animateDpAsState(
-                if ((!isVertical) && childStack.active.configuration !is Config.AuthLogin && childStack.active.configuration !is Config.AuthActivation
-                ) 80.dp else 0.dp
+                if (component.secondLogin == null) {
+                    if ((!isVertical) && childStack.active.configuration !is Config.AuthLogin && childStack.active.configuration !is Config.AuthActivation
+                        ) 80.dp else 0.dp
+                } else { 0.dp }
             )
             SharedTransitionLayout(
                 modifier = Modifier.fillMaxSize().then(
@@ -199,7 +216,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                         )
                             ) {
 
-                                materialPredictiveBackAnimatable(initialBackEvent = initialBackEvent,
+                                materialPredictiveBackAnimatable(
+                                    initialBackEvent = initialBackEvent,
                                     shape = { progress, edge ->
                                         shape
                                     })
@@ -207,15 +225,17 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             } else {
                                 predictiveBackAnimatable(
                                     initialBackEvent = initialBackEvent,
-                                    exitModifier = { progress, _ -> Modifier
+                                    exitModifier = { progress, _ ->
+                                        Modifier
 
-                                        .slideExitModifier(progress = progress) },
+                                            .slideExitModifier(progress = progress)
+                                    },
                                     enterModifier = { progress, _ ->
                                         Modifier
 
                                             .slideEnterModifier(
-                                            progress = progress
-                                        )
+                                                progress = progress
+                                            )
                                     },
                                 )
                             }
@@ -270,16 +290,17 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                         role = model.role,
                                         moderation = model.moderation,
                                         onRefresh = {
-                                            child.journalComponent.onEvent(JournalStore.Intent.Refresh); child.homeComponent.onEvent(
-                                            HomeStore.Intent.Init
-                                        )
+                                            child.journalComponent.onEvent(JournalStore.Intent.Refresh);
+                                            child.homeComponent.onRefreshClick()
                                         }
                                     )
                                 } else {
                                     RatingContent(
                                         child.ratingComponent,
                                         isSharedVisible = stack.active.instance is Child.MainRating
-                                    )
+                                    ) {
+                                        child.homeComponent.onRefreshClick()
+                                    }
                                 }
                             }
                         )
@@ -577,7 +598,11 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     RatingContent(
                                         child.ratingComponent,
                                         isSharedVisible = stack.active.instance is Child.MainRating
-                                    )
+                                    ) {
+                                        if (isExpanded) {
+                                            child.schoolComponent.onEvent(SchoolStore.Intent.Init)
+                                        }
+                                    }
                                 }
                             )
 
@@ -738,7 +763,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 RatingContent(
                                     child.ratingComponent,
                                     isSharedVisible = stack.active.instance is Child.MainRating
-                                )
+                                ) {
+                                    child.schoolComponent.onEvent(SchoolStore.Intent.Init)
+                                }
                             }
                         )
 
@@ -821,7 +848,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             modifier = Modifier.padding(bottom = if (isBirthday) 120.dp else 0.dp)
                         )
                         Text(
-                            text = if(viewManager.hardwareStatus.value.isBlank()) applicationVersionString else viewManager.hardwareStatus.value,
+                            text = if (viewManager.hardwareStatus.value.isBlank()) applicationVersionString else viewManager.hardwareStatus.value,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.Black,

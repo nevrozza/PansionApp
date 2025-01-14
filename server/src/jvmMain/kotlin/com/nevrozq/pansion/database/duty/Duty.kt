@@ -9,8 +9,8 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Duty : Table() {
-    private val mentorLogin = this.varchar("mentorLogin", 30)
-    private val studentLogin = this.varchar("studentLogin", 30)
+    val mentorLogin = this.varchar("mentorLogin", 30)
+    val studentLogin = this.varchar("studentLogin", 30)
 
     fun insert(dto: DutyDTO) {
         transaction {

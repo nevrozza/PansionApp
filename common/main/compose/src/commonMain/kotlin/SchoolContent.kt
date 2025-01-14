@@ -5,9 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +20,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -110,7 +109,9 @@ fun SchoolContent(
                     RefreshWithoutPullCircle(refreshing, refreshState.position)
                 },
                 actionRow = {
-                    RefreshButton(refreshState, viewManager)
+                    if (viewManager.orientation.value != WindowScreen.Expanded) {
+                        RefreshButton(refreshState, viewManager)
+                    }
                 },
                 hazeState = hazeState
             )
@@ -235,8 +236,8 @@ fun SchoolContent(
                 ) {
                     item {
                         Spacer(Modifier.height(15.dp))
-                        val isFullDutyView = remember { mutableStateOf(false) }
                         val isEditDutyView = remember { mutableStateOf(false) }
+                        val isFullDutyView = remember { mutableStateOf(false) }
                         ElevatedCard(
                             modifier = Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
                                 .clickable(
@@ -422,9 +423,18 @@ fun SchoolContent(
                                                                 countOfDuties = it
                                                             }
                                                         }
+
+                                                        Spacer(Modifier.height(6.dp))
+                                                        Text(
+                                                            text = "Зажмите и перетягивайте, чтобы измените очередь",
+                                                            modifier = Modifier.fillMaxWidth().alpha(.5f),
+                                                            textAlign = TextAlign.Center,
+                                                            fontSize = 10.esp,
+                                                            lineHeight = 10.esp
+                                                        )
                                                         Box(Modifier.height(model.dutyKids.size * itemHeight)) {
                                                             DragDropList(
-                                                                items = items,
+                                                                items = items.map { it.login to it },
                                                                 onMove = { from, to ->
                                                                     val fromItem = items[from]
                                                                     val toItem = items[to]
@@ -449,7 +459,7 @@ fun SchoolContent(
                                                                     isEditMode = true,
                                                                     modifier = Modifier.background(
                                                                         color
-                                                                    ).height(itemHeight).animateItem()
+                                                                    ).height(itemHeight)//.animateItem()
                                                                         .padding(horizontal = 15.dp),
                                                                     myLogin = model.login
                                                                 )

@@ -18,10 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CustomTextButton
-import components.DefaultErrorView
-import components.DefaultModalBottomSheet
-import components.LoadingAnimation
+import components.*
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
@@ -115,11 +112,10 @@ fun CBottomSheetContent(
                             }
 
                             else -> {
-                                Text(nModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Попробовать ещё раз") {
-                                    nModel.onFixErrorClick()
-                                }
+                                DefaultErrorView(
+                                    model = nModel,
+                                    pos = DefaultErrorViewPos.CenteredNotFull
+                                )
                             }
                         }
                     }

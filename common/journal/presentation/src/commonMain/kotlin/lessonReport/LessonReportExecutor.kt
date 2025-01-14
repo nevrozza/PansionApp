@@ -18,11 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lessonReport.LessonReportStore.Intent
 import report.*
-import server.getDate
-import server.getLocalDate
-import server.getSixTime
-import server.toMinutes
-import server.toSixTime
+import server.*
 
 class LessonReportExecutor(
     private val setMarkMenuComponent: ListComponent,
@@ -243,69 +239,48 @@ class LessonReportExecutor(
                 )
             }
 
+
             is Intent.ChangeAttendance -> {
+
                 val newStudentList = state().students.toMutableList()
                 val student = state().students.first { it.login == intent.studentLogin }
+
+                val previousAttendance = student.attended?.attendedType
+                val previousLateTime = student.lateTime
                 newStudentList.remove(student)
                 newStudentList.add(
                     student.copy(
                         attended = if (student.attended != null) student.attended.copy(
                             attendedType = intent.attendedType
                         ) else Attended(attendedType = intent.attendedType, null),
+                        lateTime = "0",
                         stupsOfCurrentLesson = student.stupsOfCurrentLesson.map {
-                            if (it.reason.subSequence(0, 3) in "!ds") {
-                                when (intent.attendedType) {
-                                    "2" -> {
-                                        val value = when (it.reason.last().toString().toInt()) {
-                                            1 -> 0
-                                            2 -> 0
-                                            else -> 0
-                                        }
-                                        Stup(
-                                            value = value,
-                                            reason = it.reason,
-                                            id = it.id,
-                                            deployTime = it.deployTime,
-                                            deployDate = it.deployDate,
-                                            deployLogin = it.deployLogin,
-                                            custom = it.custom
-                                        )
-                                    }
 
-                                    "1" -> {
-                                        val value = when (it.reason.last().toString().toInt()) {
-                                            1 -> 0
-                                            2 -> 0
-                                            else -> -10
-                                        }
-                                        Stup(
-                                            value = value,
-                                            reason = it.reason,
-                                            id = it.id,
-                                            deployTime = it.deployTime,
-                                            deployDate = it.deployDate,
-                                            deployLogin = it.deployLogin,
-                                            custom = it.custom
-                                        )
-                                    }
+                            if (it.reason.st == "!ds") {
+                                val toAdd = (fetchStupsForAttendance(
+                                    reason = it.reason,
+                                    attendedType = intent.attendedType
+                                ) ?: 0) + (fetchStupsForLateTime(
+                                    reason = it.reason,
+                                    lateTime = "0"
+                                ))
+                                val toMinus = (fetchStupsForAttendance(
+                                    reason = it.reason,
+                                    attendedType = previousAttendance
+                                ) ?: 0) + (fetchStupsForLateTime(
+                                    reason = it.reason,
+                                    lateTime = previousLateTime
+                                ))
+                                Stup(
+                                    value = it.value + toAdd - toMinus,
+                                    reason = it.reason,
+                                    id = it.id,
+                                    deployTime = it.deployTime,
+                                    deployDate = it.deployDate,
+                                    deployLogin = it.deployLogin,
+                                    custom = it.custom
+                                )
 
-                                    else -> {
-                                        val value = when (it.reason.last().toString().toInt()) {
-                                            1 -> 1
-                                            2 -> 1
-                                            else -> 0
-                                        }
-                                        Stup(
-                                            value = value,
-                                            reason = it.reason,
-                                            id = it.id,
-                                            deployTime = it.deployTime,
-                                            deployDate = it.deployDate,
-                                            deployLogin = it.deployLogin,
-                                            custom = it.custom
-                                        )
-                                    }
-                                }
                             } else {
                                 it
                             }
@@ -334,8 +309,40 @@ class LessonReportExecutor(
                 val newStudentList = state().students.toMutableList()
 
                 val student = state().students.first { it.login == intent.studentLogin }
+
+
+                val previousLateTime = student.lateTime
+
                 newStudentList.remove(student)
-                newStudentList.add(student.copy(lateTime = "$result${if (intent.chosenTime != "0") " мин" else ""}"))
+                newStudentList.add(student.copy(
+                    lateTime = "$result${if (intent.chosenTime != "0") " мин" else ""}",
+                    stupsOfCurrentLesson = student.stupsOfCurrentLesson.map {
+                            if (it.reason == "!ds3") {
+                                val toAdd = (fetchStupsForLateTime(
+                                    reason = it.reason,
+                                    lateTime = result
+                                ))
+                                val toMinus = (fetchStupsForLateTime(
+                                    reason = it.reason,
+                                    lateTime = previousLateTime
+                                ))
+
+                                println("DS3LATE: ${previousLateTime} ${toMinus}")
+                                Stup(
+                                    value = it.value + toAdd - toMinus,
+                                    reason = it.reason,
+                                    id = it.id,
+                                    deployTime = it.deployTime,
+                                    deployDate = it.deployDate,
+                                    deployLogin = it.deployLogin,
+                                    custom = it.custom
+                                )
+
+                            } else {
+                                it
+                            }
+                        }
+                ))
 
                 dispatch(LessonReportStore.Message.StudentsUpdated(newStudentList))
             }
@@ -515,6 +522,55 @@ class LessonReportExecutor(
         }
     }
 
+    private fun fetchStupsForAttendance(
+        reason: String,
+        attendedType: String?
+    ): Int? {
+        return if (reason.st == "!ds") {
+            val reasonNum = reason.last().toString().toInt()
+            when (attendedType) {
+                "2" -> {
+                    when (reasonNum) {
+                        1 -> 0
+                        2 -> 0
+                        else -> 0
+                    }
+                }
+
+                "1" -> {
+                    when (reasonNum) {
+                        1 -> 0
+                        2 -> 0
+                        else -> -10
+                    }
+                }
+
+                else -> {
+                    when (reasonNum) {
+                        1 -> 1
+                        2 -> 1
+                        else -> 0
+                    }
+                }
+            }
+        } else null
+    }
+
+    private fun fetchStupsForLateTime(
+        reason: String,
+        lateTime: String
+    ): Int {
+        return if (reason == "!ds3") {
+            val late = (lateTime.replace("мин", "").replace(">", "").trim()).toIntOrNull() ?: 0
+            when {
+                late >= 10 -> -10
+                late >= 5 -> -5
+                late >= 1 -> -1
+                else -> 0
+            }
+        } else 0
+    }
+
     private fun updateTasksToEditIds(id: Int, isNew: Boolean) {
         if (!isNew) {
             val ids = state().homeTasksToEditIds
@@ -622,7 +678,8 @@ class LessonReportExecutor(
                                         deployLogin = it.deployLogin
                                     )
                                 }.sortedWith(
-                                    compareBy({ getLocalDate(it.deployDate).toEpochDays() },
+                                    compareBy(
+                                        { getLocalDate(it.deployDate).toEpochDays() },
                                         { it.deployTime.toMinutes() })
                                 ),
                             stupsOfCurrentLesson = getInitedStups(
@@ -685,62 +742,28 @@ class LessonReportExecutor(
                 )
             }
         val toAdd = mutableListOf<Stup>()
-        if (init.none { it.reason == "!ds1" }) {
-            val value = when (student.serverStudentLine.attended?.attendedType) {
-                "2" -> 0
-                "1" -> 0
-                else -> 1
-            }
-            toAdd.add(
-                Stup(
-                    value = value,
-                    reason = "!ds1",
-                    id = state().ids,
-                    deployTime = getSixTime(),
-                    deployLogin = authRepository.fetchLogin(),
-                    deployDate = getDate(),
-                    custom = null
+        listOf("!ds3", "!ds2", "!ds1").forEach { reason ->
+            if (init.none { it.reason == reason }) {
+                val value = (fetchStupsForAttendance(
+                    reason = reason,
+                    attendedType = student.serverStudentLine.attended?.attendedType
+                ) ?: 0) + fetchStupsForLateTime(
+                    reason = reason,
+                    lateTime = student.serverStudentLine.lateTime
                 )
-            )
-            dispatch(LessonReportStore.Message.InvisibleStupAdd)
-        }
-        if (init.none { it.reason == "!ds2" }) {
-            val value = when (student.serverStudentLine.attended?.attendedType) {
-                "2" -> 0
-                "1" -> 0
-                else -> 1
-            }
-            toAdd.add(
-                Stup(
-                    value = value,
-                    reason = "!ds2",
-                    id = state().ids,
-                    deployTime = getSixTime(),
-                    deployLogin = authRepository.fetchLogin(),
-                    deployDate = getDate(),
-                    custom = null
+                toAdd.add(
+                    Stup(
+                        value = value,
+                        reason = reason,
+                        id = state().ids,
+                        deployTime = getSixTime(),
+                        deployLogin = authRepository.fetchLogin(),
+                        deployDate = getDate(),
+                        custom = null
+                    )
                 )
-            )
-            dispatch(LessonReportStore.Message.InvisibleStupAdd)
-        }
-        if (init.none { it.reason == "!ds3" }) {
-            val value = when (student.serverStudentLine.attended?.attendedType) {
-                "2" -> 0
-                "1" -> -10
-                else -> 0
+                dispatch(LessonReportStore.Message.InvisibleStupAdd)
             }
-            toAdd.add(
-                Stup(
-                    value = value,
-                    reason = "!ds3",
-                    id = state().ids,
-                    deployTime = getSixTime(),
-                    deployLogin = authRepository.fetchLogin(),
-                    deployDate = getDate(),
-                    custom = null
-                )
-            )
-            dispatch(LessonReportStore.Message.InvisibleStupAdd)
         }
 
         return (init + toAdd)

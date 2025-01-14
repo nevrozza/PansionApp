@@ -59,8 +59,7 @@ private fun getAvgSafely(sum: Int, count: Int): String {
     return if (count > 0) ((sum / 1f) / count).roundTo(2) else "0.0"
 }
 
-private val String.st: String
-    get() = this.subSequence(0, 3).toString()
+
 
 private fun initItems(login: String, studentSubjects: List<Int>): List<RatingItem> {
     val output = mutableListOf<RatingItem>()

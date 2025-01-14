@@ -46,10 +46,10 @@ object Forms : Table() {
         }
     }
 
-    fun fetchMentorForms(mentorLogin: String) : List<MentorForms> {
+    fun fetchMentorForms(mentorLogin: String): List<MentorForms> {
         return transaction {
             Forms.select { Forms.mentorLogin eq mentorLogin }.mapNotNull {
-                if(it[isActive]) MentorForms(
+                if (it[isActive]) MentorForms(
                     id = it[Forms.id],
                     num = it[Forms.classNum],
                     title = it[Forms.title],
@@ -89,6 +89,7 @@ object Forms : Table() {
 
         }
     }
+
     fun fetchByIds(formIds: List<Int>): List<FormDTO> {
         return transaction {
             Forms.select { Forms.id inList formIds }.map {

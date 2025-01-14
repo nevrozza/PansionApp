@@ -13,9 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CustomTextButton
-import components.GetAsyncIcon
-import components.LoadingAnimation
+import components.*
 import components.mpChose.MpChoseComponent
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
@@ -113,11 +111,10 @@ fun DropdownVariant(
                             }
 
                             else -> {
-                                Text(nModel.error)
-                                Spacer(Modifier.height(7.dp))
-                                CustomTextButton("Попробовать ещё раз") {
-                                    nModel.onFixErrorClick()
-                                }
+                                DefaultErrorView(
+                                    model = nModel,
+                                    pos = DefaultErrorViewPos.CenteredNotFull
+                                )
                             }
                         }
                     }
