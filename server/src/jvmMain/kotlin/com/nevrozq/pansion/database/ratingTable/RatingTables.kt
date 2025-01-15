@@ -2,9 +2,11 @@ package com.nevrozq.pansion.database.ratingTable
 
 import ForAvg
 import achievements.AchievementsDTO
+import admin.groups.Group
 import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.forms.Forms
+import com.nevrozq.pansion.database.groups.GroupDTO
 import com.nevrozq.pansion.database.groups.Groups
 import com.nevrozq.pansion.database.holidays.Holidays
 import com.nevrozq.pansion.database.ratingEntities.Marks
@@ -51,17 +53,23 @@ data class RatingItem(
     val subjectId: Int,
     val avg: String,
     val stups: Int,
-    val period: PansionPeriod
+    val period: PansionPeriod,
+
+    val avgAlg: Float,
+    val stupsAlg: Float,
+    val difficulty: Int
 )
 
-private fun getAvgSafely(sum: Int, count: Int): String {
-//    ((yearMarks.sumOf { it.content.toIntOrNull() ?: 0 } / 1f) / yearMarks.size).roundTo(2)
-    return if (count > 0) ((sum / 1f) / count).roundTo(2) else "0.0"
+private fun getAvgSafelyPlusAlg(list: List<RatingEntityDTO>, period: PansionPeriod, difficulty: Int?): Pair<String, Float> {
+    val count = list.size
+    val sum = list.sumOf { it.content.toInt() }
+    val medium = (sum / 1f) / count.coerceAtLeast(1)
+    val rate = ((medium) + count * 0.1f) + (difficulty ?: 0)
+    return if (count > 0) medium.roundTo(2) to (if (list.any { it.content.toInt() <= 2 } && period is PansionPeriod.Week) -rate else rate) else "0.0" to 0f
 }
 
-
-
-private fun initItems(login: String, studentSubjects: List<Int>): List<RatingItem> {
+//    Subject Group
+private fun initItems(login: String, studentSubjects: Map<Int, Int>, groups: List<GroupDTO>): List<RatingItem> {
     val output = mutableListOf<RatingItem>()
 
 
@@ -125,36 +133,45 @@ private fun initItems(login: String, studentSubjects: List<Int>): List<RatingIte
     }
 
     // YEAR COMMON ExtraSubjectsId.common
-    val yearCommonAvg = getAvgSafely(yearMarks.sumOf { it.content.toInt() }, yearMarks.size)
-    output.add(
-        RatingItem(
-            subjectId = ExtraSubjectsId.common,
-            avg = yearCommonAvg,
-            stups =
-                yearAchievements.filter {
-                    it.subjectId !in listOf(
-                        ExtraSubjectsId.creative,
-                        ExtraSubjectsId.mvd,
-                        ExtraSubjectsId.social
-                    )
-                }.sumOf { it.stups }
-                        + yearStups.filter { it.reason.st == "!st" }.sumOf { it.content.toInt() },
-            period = PansionPeriod.Year
+    val yearCommonAvg = getAvgSafelyPlusAlg(yearMarks, PansionPeriod.Year, 0)
+    run {
+        val thisStups = yearAchievements.filter {
+            it.subjectId !in listOf(
+                ExtraSubjectsId.creative,
+                ExtraSubjectsId.mvd,
+                ExtraSubjectsId.social
+            )
+        }.sumOf { it.stups } + yearStups.filter { it.reason.st == "!st" }.sumOf { it.content.toInt() }
+        output.add(
+            RatingItem(
+                subjectId = ExtraSubjectsId.common,
+                avg = yearCommonAvg.first,
+                stups = thisStups,
+                period = PansionPeriod.Year,
+                avgAlg = yearCommonAvg.second,
+                stupsAlg = thisStups / 1f,
+                difficulty = 0
+            )
         )
-    )
+    }
 
     // Year Subjects
-    studentSubjects.forEach { subjectId ->
+    studentSubjects.forEach { (subjectId, groupId) ->
+        val group = groups.firstOrNull { it.id == groupId }
+        val difficulty = group?.difficult?.toIntOrNull() ?: 0
         val achievements = yearAchievements.filter { it.subjectId == subjectId }.sumOf { it.stups }
         val stups = yearStups.filter { it.reason.st == "!st" && it.subjectId == subjectId }.sumOf { it.content.toInt() }
         val marks = yearMarks.filter { it.subjectId == subjectId }
-        val avg = getAvgSafely(sum = marks.sumOf { it.content.toInt() }, count = marks.size)
+        val avg = getAvgSafelyPlusAlg(marks, PansionPeriod.Year, difficulty = difficulty)
         output.add(
             RatingItem(
                 subjectId = subjectId,
-                avg = avg,
+                avg = avg.first,
                 stups = stups + achievements,
-                period = PansionPeriod.Year
+                period = PansionPeriod.Year,
+                avgAlg = avg.second,
+                stupsAlg = (stups + achievements) * "1.${difficulty}".toFloat(),
+                difficulty = difficulty
             )
         )
     }
@@ -194,31 +211,39 @@ private fun initItems(login: String, studentSubjects: List<Int>): List<RatingIte
                 val stups = l_ed_stups
                     .sumOf { it.content.toInt() }
                 val marks = l_marks
-                val avg = getAvgSafely(sum = marks.sumOf { it.content.toInt() }, count = marks.size)
+                val avg = getAvgSafelyPlusAlg(marks, period, 0)
 
                 output.add(
                     RatingItem(
                         subjectId = ExtraSubjectsId.common,
-                        avg = avg,
+                        avg = avg.first,
                         stups = achievements + stups,
-                        period = period
+                        period = period,
+                        avgAlg = avg.second,
+                        stupsAlg = (achievements + stups).toFloat(),
+                        difficulty = 0
                     )
                 )
             }
 
 
             // Subjects
-            studentSubjects.forEach { subjectId ->
+            studentSubjects.forEach { (subjectId, groupId) ->
+                val group = groups.firstOrNull { it.id == groupId }
+                val difficulty = group?.difficult?.toIntOrNull() ?: 0
                 val achievements = l_achievements.filter { it.subjectId == subjectId }.sumOf { it.stups }
                 val stups = l_ed_stups.filter { it.subjectId == subjectId }.sumOf { it.content.toInt() }
                 val marks = l_marks.filter { it.subjectId == subjectId }
-                val avg = getAvgSafely(sum = marks.sumOf { it.content.toInt() }, count = marks.size)
+                val avg = getAvgSafelyPlusAlg(marks, period, difficulty)
                 output.add(
                     RatingItem(
                         subjectId = subjectId,
-                        avg = avg,
+                        avg = avg.first,
                         stups = stups + achievements,
-                        period = period
+                        period = period,
+                        avgAlg = avg.second,
+                        stupsAlg = (stups + achievements) * "1.${difficulty}".toFloat(),
+                        difficulty = difficulty
                     )
                 )
             }
@@ -230,6 +255,12 @@ private fun initItems(login: String, studentSubjects: List<Int>): List<RatingIte
 
     return output
 }
+
+private data class typesIDKHOWTONAMEIT(
+    val value: Float,
+    val subjectId: Int,
+    val period: PansionPeriod
+)
 
 fun updateRatings(edYear: Int) {
     println("wazap-start")
@@ -261,7 +292,8 @@ fun updateRatings(edYear: Int) {
         val studentGroups = studentsInGroup.filter { it.studentLogin == s.login }
         val items = initItems(
             login = s.login,
-            studentSubjects = studentGroups.map { it.subjectId }
+            studentSubjects = studentGroups.associate { it.subjectId to it.groupId },
+            groups = groups
         )
 
         listOf(commonRating, secondTable).forEach { table ->
@@ -284,31 +316,56 @@ fun updateRatings(edYear: Int) {
                         formShortTitle = form.shortTitle,
                         subjectId = item.subjectId,
                         period = item.period,
-                        edYear = edYear
+                        edYear = edYear,
+
+                        avgAlg = item.avgAlg,
+                        stupsAlg = item.stupsAlg,
+                        topAvg = 0,
+                        topStups = 0,
+                        difficulty = item.difficulty
                     )
                 }
             )
         }
     }
-    println("wazap-count ${commonRating.size}")
     listOf(
         RatingCommonSchoolTable to commonRating,
         RatingHighSchoolTable to highRating,
         RatingLowSchoolTable to lowRating
     ).forEach { (table, dto) ->
+        val avgAlgTypes =
+            dto.map { typesIDKHOWTONAMEIT(value = it.avgAlg, subjectId = it.subjectId, period = it.period) }
+                .sortedByDescending { it.value }.toSet()
+        val stupsAlgTypes =
+            dto.map { typesIDKHOWTONAMEIT(value = it.stupsAlg, subjectId = it.subjectId, period = it.period) }
+                .sortedByDescending { it.value }.toSet()
+
+        val newDto = dto.map { x ->
+            x.copy(
+                topAvg = avgAlgTypes.filter { it.subjectId == x.subjectId && it.period == x.period }
+                    .indexOfFirst { it.value == x.avgAlg }+1,
+                topStups = stupsAlgTypes.filter { it.subjectId == x.subjectId && it.period == x.period }
+                    .indexOfFirst { it.value == x.stupsAlg }+1,
+            )
+        }
+
+
+
         var top = 0
         var previousSubjectId = -111
         var previousPeriod = ""
         var previousEdYear = -111
-        var previousStups = -111
-        var previousAvg = ""
-        val items = dto.sortedWith( // .filter { it.stups > 0 && it.avg.toFloat() >= 4 }
+        var previousStups = -111.0f
+        var previousAvg = -10.0f
+        val items = newDto.sortedWith( // .filter { it.stups > 0 && it.avg.toFloat() >= 4 }
             compareBy(
                 { it.edYear },
                 { it.period.toStr() },
                 { it.subjectId },
-                { it.stups },
-                { it.avg.toFloat() }
+                { it.avgAlg >= 0 },
+                { -(it.topAvg + it.topStups) },
+                { it.stupsAlg },
+                { it.avgAlg.toFloat() },
             )
         ).reversed().map { x ->
             if (
@@ -319,13 +376,13 @@ fun updateRatings(edYear: Int) {
                 previousSubjectId = x.subjectId
                 previousPeriod = x.period.toStr()
                 previousEdYear = x.edYear
-                previousAvg = ""
-                previousStups = -1
+                previousAvg = -10.0f
+                previousStups = -111.0f
                 top = 0
             }
-            if (previousAvg != x.avg || previousStups != x.stups) top++
-            previousAvg = x.avg
-            previousStups = x.stups
+            if (previousAvg != x.avgAlg || previousStups != x.stupsAlg) top++
+            previousAvg = x.avgAlg
+            previousStups = x.stupsAlg
             x.copy(top = top)
         }
         transaction {

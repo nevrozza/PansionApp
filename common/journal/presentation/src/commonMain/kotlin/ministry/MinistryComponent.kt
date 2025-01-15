@@ -35,15 +35,21 @@ class MinistryComponent(
     )
 
     private fun onDs3SaveClick() {
-        onEvent(
-            MinistryStore.Intent.UploadStup(
-                reason = "!ds3",
-                login = model.value.mvdLogin,
-                content = model.value.mvdStups.toString(),
-                reportId = model.value.mvdReportId,
-                custom = model.value.mvdCustom.ifBlank { null }
+
+        val kid = model.value.ministryList.flatMap { it.kids.flatMap { it.value } }
+            .firstOrNull { it.login == model.value.mvdLogin }
+        if (kid != null) {
+            onEvent(
+                MinistryStore.Intent.UploadStup(
+                    reason = "!ds3",
+                    login = model.value.mvdLogin,
+                    content = model.value.mvdStups.toString(),
+                    reportId = model.value.mvdReportId,
+                    custom = model.value.mvdCustom.ifBlank { null },
+                    formId = kid.formId
+                )
             )
-        )
+        }
     }
 
     val ds1ListComponent = ListComponent(
@@ -65,15 +71,23 @@ class MinistryComponent(
     )
 
     private fun onDsClick(reason: String, id: String) {
-        onEvent(MinistryStore.Intent.UploadStup(
-            reason = reason,
-            login = model.value.mvdLogin,
-            content = id,
-            reportId = model.value.mvdReportId,
-            custom = null
-        ))
-        ds1ListComponent.onEvent(ListDialogStore.Intent.HideDialog)
-        ds2ListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+        val kid = model.value.ministryList.flatMap { it.kids.flatMap { it.value } }
+            .firstOrNull { it.login == model.value.mvdLogin }
+        if (kid != null) {
+            onEvent(
+                MinistryStore.Intent.UploadStup(
+                    reason = reason,
+                    login = model.value.mvdLogin,
+                    content = id,
+                    reportId = model.value.mvdReportId,
+                    custom = null,
+                    formId = kid.formId
+                )
+            )
+            ds1ListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+            ds2ListComponent.onEvent(ListDialogStore.Intent.HideDialog)
+
+        }
     }
 
 
@@ -123,47 +137,47 @@ class MinistryComponent(
 
         ministriesListComponent.onEvent(
             ListDialogStore.Intent.InitList(
-            listOf(
-                Ministries.MVD to "МВД",
-                Ministries.DressCode to "Здравоохранение",
-            )
-                .map {
-                    ListItem(
-                        id = it.first,
-                        text = it.second
-                    )
-                }
-        ))
+                listOf(
+                    Ministries.MVD to "МВД",
+                    Ministries.DressCode to "Здравоохранение",
+                )
+                    .map {
+                        ListItem(
+                            id = it.first,
+                            text = it.second
+                        )
+                    }
+            ))
         ds1ListComponent.onEvent(
             ListDialogStore.Intent.InitList(
-            listOf(
-                "+1" to "+1",
-                "0" to "±0",
-                "-1" to "-1"
-            )
-                .map {
-                    ListItem(
-                        id = it.first,
-                        text = it.second
-                    )
-                }
-        ))
+                listOf(
+                    "+1" to "+1",
+                    "0" to "±0",
+                    "-1" to "-1"
+                )
+                    .map {
+                        ListItem(
+                            id = it.first,
+                            text = it.second
+                        )
+                    }
+            ))
         ds2ListComponent.onEvent(
             ListDialogStore.Intent.InitList(
-            listOf(
-                "+1" to "+1",
-                "0" to "±0",
-                "-1" to "-1",
-                "-2" to "-2",
-                "-3" to "-3",
-            )
-                .map {
-                    ListItem(
-                        id = it.first,
-                        text = it.second
-                    )
-                }
-        ))
+                listOf(
+                    "+1" to "+1",
+                    "0" to "±0",
+                    "-1" to "-1",
+                    "-2" to "-2",
+                    "-3" to "-3",
+                )
+                    .map {
+                        ListItem(
+                            id = it.first,
+                            text = it.second
+                        )
+                    }
+            ))
 
     }
 

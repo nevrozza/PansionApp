@@ -12,6 +12,10 @@ fun Application.configureActivationRouting() {
             authController.fetchUserData(call)
         }
 
+        post(RequestPaths.Auth.ChangeStatsSettings) {
+            authController.changeStatsSettincs(call)
+        }
+
         post(RequestPaths.Auth.ChangeLogin) {
             authController.changeSecondLogin(call)
         }

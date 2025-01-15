@@ -138,6 +138,9 @@ object RequestPaths {
     }
 
     object Auth {
+
+        const val ChangeStatsSettings = "server/profile/setStatsIsOpened"
+
         const val ActivateProfile = "server/auth/activate"
         const val FetchQRToken = "server/auth/fetchQRToken"
         const val PollQRToken = "server/auth/pollQRToken"

@@ -17,6 +17,6 @@ data class RFetchSubjectRatingReceive(
 @Serializable
 data class RFetchSubjectRatingResponse(
     val hash: Map<String, Map<Int, List<RatingItem>>>,
-    val me: Map<String, Map<Int, Pair<Int, Int>?>>,
+    val me: Map<String, Map<Int, RatingItem?>>,
     val lastTimeEdit: String
 )

@@ -162,7 +162,7 @@ fun SharedTransitionScope.ProfileContent(
                                 path = RIcons.ChevronLeft
                             )
                         }
-                                    },
+                    },
                     title = {
                         Box(modifier = Modifier.fillMaxWidth().padding(end = 10.dp)) {
                             AnimatedContent(
@@ -220,13 +220,13 @@ fun SharedTransitionScope.ProfileContent(
                             }
 
                         }
-                            },
+                    },
                     actionRow = {
                         AnimatedVisibility(
                             visible = model.tabIndex !in listOf(0, 1),
                             enter = fadeIn() + scaleIn(),
                             exit = fadeOut() + scaleOut(),
-                            ) {
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 GetAsyncIcon(
                                     RIcons.Coins
@@ -235,7 +235,7 @@ fun SharedTransitionScope.ProfileContent(
                                 Text("${model.pansCoins.toString()}", fontSize = 17.esp, fontWeight = FontWeight.Bold)
                             }
                         }
-                                },
+                    },
                     hazeState = null,
                     isTransparentHaze = true
                 )
@@ -243,7 +243,7 @@ fun SharedTransitionScope.ProfileContent(
                     isFullHeader,
                     enter = fadeIn() + expandVertically(clip = false) + scaleIn(),
                     exit = fadeOut() + shrinkVertically(clip = false) + scaleOut(),
-                    ) {
+                ) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -319,7 +319,7 @@ fun SharedTransitionScope.ProfileContent(
                                         else -> {
                                             RIcons.QuestionCircle
                                         }
-                                                                   },
+                                    },
                                     size = 50.dp,
                                     tint = MaterialTheme.colorScheme.inversePrimary.hv()
                                 )
@@ -345,8 +345,9 @@ fun SharedTransitionScope.ProfileContent(
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                                 if (it) {
 
-                                    val price = if (model.avatars?.contains(model.newAvatarId) == true) 0 else (avatarsList.flatMap { it.second }
-                                        .firstOrNull { it.first == model.newAvatarId }?.second?.price?.toString()
+                                    val price =
+                                        if (model.avatars?.contains(model.newAvatarId) == true) 0 else (avatarsList.flatMap { it.second }
+                                            .firstOrNull { it.first == model.newAvatarId }?.second?.price?.toString()
                                             ?: "???").toIntOrNull()
 
                                     Crossfade(nAvatarModel.state) {
@@ -641,13 +642,58 @@ fun SharedTransitionScope.ProfileContent(
                 }
                 //was statistika
                 1 -> {
+
                     item {
-                        Text(
-                            "В разработке",
-                            modifier = Modifier.fillMaxWidth().padding(top = 50.dp),
-                            textAlign = TextAlign.Center
-                        )
+
+                        Box(Modifier.fillMaxWidth().height(((viewManager.size?.maxHeight ?: 0.dp) - padding.calculateTopPadding()).coerceAtLeast(0.dp)), contentAlignment = Alignment.Center) {
+                            if (model.isStatsOpened != null) {
+
+                                val isOpened = model.isStatsOpened ?: false
+                                if (model.isOwner) {
+                                    TextButton(
+                                        onClick = {
+                                            component.onEvent(ProfileStore.Intent.ChangeStatsSettings)
+                                        },
+                                        colors = ButtonDefaults.textButtonColors(
+                                            containerColor = Color.Transparent,
+                                            contentColor = MaterialTheme.colorScheme.onBackground//colorRed
+                                        ),
+                                        contentPadding = PaddingValues(horizontal = 15.dp)
+                                    ) {
+                                        AnimatedContent(isOpened) { opened ->
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                                                Text(
+                                                    if (opened) "Ваша статистику могут смотреть другие" else "Вашу статистику видите только* Вы",
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontSize = 15.esp
+                                                )
+
+                                                Spacer(Modifier.width(5.dp))
+                                                GetAsyncIcon(
+                                                    path = if (opened) RIcons.Visibility else RIcons.VisibilityOff,
+                                                    size = 25.dp
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                } else if (!model.isOwner) {
+                                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                                        GetAsyncIcon(
+                                            path = RIcons.VisibilityOff,
+                                            size = 50.dp
+                                        )
+                                        Spacer(Modifier.height(10.dp))
+                                        Text("Пользователь скрыл свою статистику", modifier = Modifier.alpha(.5f), textAlign = TextAlign.Center)
+                                    }
+                                }
+                            } else {
+                                Text("Подождите немного. Данные загружаются", modifier = Modifier.alpha(.5f), textAlign = TextAlign.Center)
+                            }
+                        }
                     }
+
                 }
 
                 else -> {
@@ -740,7 +786,7 @@ private fun AvatarsBlock(
                     i = a.first,
                     path = a.second.path,
                     name = model.fio.name,
-                    price = if(model.avatars?.contains(a.first) == true) 0 else a.second.price
+                    price = if (model.avatars?.contains(a.first) == true) 0 else a.second.price
                 ) {
                     component.onEvent(ProfileStore.Intent.SetNewAvatarId(a.first))
                 }

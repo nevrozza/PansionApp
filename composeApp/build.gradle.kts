@@ -223,7 +223,7 @@ android {
 //    compileSdk = 34
     defaultConfig {
         applicationId = "com.nevrozq.pansion.android"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 5
         versionName = version.toString()

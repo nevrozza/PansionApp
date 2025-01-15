@@ -21,10 +21,12 @@ object ProfileReducer : Reducer<State, Message> {
                 ministryId = msg.ministryId,
                 ministryLvl = msg.ministryLvl,
                 pansCoins = msg.pansCoins,
-                avatars = msg.avatars
+                avatars = msg.avatars,
+                isStatsOpened = msg.isStatsOpened
             )
 
             is Message.GIASubjectsUpdated -> copy(giaSubjects = msg.giaSubjects)
+            is Message.StatsSettingsChanged -> copy(isStatsOpened = msg.isOpened)
         }
     }
 }

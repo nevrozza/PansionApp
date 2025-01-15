@@ -18,10 +18,7 @@ import rating.PansionPeriod
 data class FormRatingPage(
     val period: PansionPeriod,
     val formId: Int,
-    val students: List<FormRatingStudent>,
-    val topEd: Map<Int, List<String>>,
-    val topMarks: Map<Int, List<String>>,
-    val topStups: Map<Int, List<String>>
+    val students: List<FormRatingStudent>
 )
 
 interface FormRatingStore : Store<Intent, State, Label> {
@@ -36,7 +33,9 @@ interface FormRatingStore : Store<Intent, State, Label> {
         val formRatingPages: List<FormRatingPage> = emptyList(),
 
         val stupsLogin: String = "",
-        val subjects: Map<Int, String> = emptyMap()
+        val subjects: Map<Int, String> = emptyMap(),
+
+        val isDetailed: Boolean = false
     )
 
     sealed interface Intent {
@@ -52,9 +51,13 @@ interface FormRatingStore : Store<Intent, State, Label> {
         data class SelectStupsLogin(
             val login: String
         ) : Intent
+
+        data object ChangeIsDetailed: Intent
     }
 
     sealed interface Message {
+
+        data object IsDetailedChanged: Message
         data class AvailableFormsUpdated(val availableForms: List<CutedForm>) : Message
         data class FormChanged(val formId: Int, val formNum: Int, val formName: String) : Message
         data class PeriodChanged(val period: PansionPeriod) : Message

@@ -5,6 +5,7 @@ import webload.RFetchUserDataResponse
 
 interface AuthRepository {
 
+    suspend fun changeStatsSettings(r: RChangeStatsSettingsReceive)
 
     suspend fun fetchUserData(r: RFetchUserDataReceive) : RFetchUserDataResponse
     suspend fun fetchGroupData(r: RFetchGroupDataReceive) : RFetchGroupDataResponse

@@ -9,9 +9,10 @@ object RatingReducer : Reducer<State, Message> {
         return when (msg) {
             is Message.OnSubjectClicked -> copy(currentSubject = msg.subjectId)
             is Message.RatingUpdated -> copy(me = msg.me, items = msg.items, lastEditTime = msg.lastEditTime)
-            is Message.SubjectsUpdated -> copy(subjects = msg.subjects, period = msg.currentPeriod)
+            is Message.SubjectsUpdated -> copy(subjects = msg.subjects, period = period ?: msg.currentPeriod)
             is Message.OnFormClicked -> copy(forms = msg.formNum)
             is Message.OnPeriodClicked -> copy(period = msg.period)
+            is Message.IsDetailedChanged -> copy(isDetailed = !isDetailed)
         }
     }
 }

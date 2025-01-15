@@ -12,6 +12,7 @@ object ExtraSubjectsId {
     const val mvd = -2
     const val social = -3
     const val creative = -4
+    const val zdraoovhranenie = -5
 }
 
 object ScheduleIds {

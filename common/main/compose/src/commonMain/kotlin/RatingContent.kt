@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.refresh.RefreshButton
@@ -35,6 +36,7 @@ import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import rating.*
 import resources.RIcons
+import server.roundTo
 import view.*
 
 @OptIn(
@@ -45,7 +47,7 @@ import view.*
 fun SharedTransitionScope.RatingContent(
     component: RatingComponent,
     isSharedVisible: Boolean,
-    onExtraRefreshClick : () -> Unit
+    onExtraRefreshClick: () -> Unit
 ) {
 
     val model by component.model.subscribeAsState()
@@ -57,7 +59,6 @@ fun SharedTransitionScope.RatingContent(
     val lazyListState = rememberLazyListState()
 
     val hazeState = remember { HazeState() }
-
 
 
     val refreshing = nModel.isLoading
@@ -143,22 +144,12 @@ fun SharedTransitionScope.RatingContent(
                 )
             }
             AnimatedVisibility(
-                me != null && me.first > 10,
+                me != null && me.top > 10,
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
                 exit = slideOutVertically(targetOffsetY = { it * 2 }),
             ) {
                 if (me != null) {
-                    previousItem.value = RatingItem(
-                        login = model.login,
-                        fio = model.fio,
-                        avatarId = model.avatarId,
-                        stups = me.second,
-                        top = me.first,
-                        groupName = "",
-                        formNum = 0,
-                        formShortTitle = "",
-                        avg = ""
-                    )
+                    previousItem.value = me
                 }
                 if (previousItem.value != null) {
                     Column(
@@ -170,7 +161,8 @@ fun SharedTransitionScope.RatingContent(
                             meLogin = model.login,
                             isMe = true,
                             component = component,
-                            isSharedVisible = isSharedVisible
+                            isSharedVisible = isSharedVisible,
+                            isDetailed = model.isDetailed
                         )
 
                         Spacer(Modifier.height(if (viewManager.orientation.value != WindowScreen.Vertical) 15.dp else 80.dp))
@@ -194,23 +186,26 @@ fun SharedTransitionScope.RatingContent(
                     refreshState = refreshState
                 ) {
                     item {
-                        Row(Modifier.offset(y = -6.dp).horizontalScroll(rememberScrollState())) {
+                        Row(
+                            Modifier.offset(y = -6.dp).horizontalScroll(rememberScrollState()),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Box() {
                                 ElevatedAssistChip(
                                     onClick = {
                                         component.subjectsListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
-                                              },
+                                    },
                                     label = {
                                         AnimatedContent(
                                             model.subjects.firstOrNull() { it.id == model.currentSubject }?.name
-                                                    ?: "Загрузка.."
+                                                ?: "Загрузка.."
                                         ) {
                                             Text(
                                                 it, maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
                                             )
                                         }
-                                            },
+                                    },
                                     colors = AssistChipDefaults.assistChipColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         labelColor = MaterialTheme.colorScheme.onPrimary
@@ -227,14 +222,14 @@ fun SharedTransitionScope.RatingContent(
                                     label = {
                                         AnimatedContent(
                                             component.formsListComponent.state.value.list.firstOrNull { it.id.toInt() == model.forms }?.text
-                                                    ?: "Загрузка.."
+                                                ?: "Загрузка.."
                                         ) {
                                             Text(
                                                 it, maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
                                             )
                                         }
-                                            },
+                                    },
                                     modifier = Modifier.animateContentSize()
                                 )
                                 ListDialogDesktopContent(component.formsListComponent)
@@ -261,6 +256,17 @@ fun SharedTransitionScope.RatingContent(
                                 component = component.periodListComponent
                             )
 
+                            Spacer(Modifier.width(10.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.cClickable {
+                                    component.onEvent(RatingStore.Intent.ChangeIsDetailed)
+                                }) {
+                                CustomCheckbox(
+                                    checked = model.isDetailed
+                                )
+                                Text("Отображать детально")
+                            }
                             Spacer(Modifier.width(15.dp))
                         }
                     }
@@ -272,7 +278,8 @@ fun SharedTransitionScope.RatingContent(
                                 i,
                                 meLogin = model.login,
                                 component = component,
-                                isSharedVisible = isSharedVisible
+                                isSharedVisible = isSharedVisible,
+                                isDetailed = model.isDetailed
                             )
                         }
                     } else {
@@ -290,7 +297,20 @@ fun SharedTransitionScope.RatingContent(
                                 }
                                 if (nModel.state != NetworkState.Loading) {
                                     Text(
-                                        text = if (nModel.state == NetworkState.None) "Здесь пусто 0_0\nТребования для участия в таблице рейтинга:\nСтупени >= 1 & Ср. Балл >=4" else "",
+                                        "В этом рейтинге пока никто не участвует!", modifier = Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        "Общие требования для участия в таблице рейтинга:\nСтупени ≥ 1 и Ср. Балл ≥ 4",
+                                        modifier = Modifier.fillMaxWidth().alpha(.5f),
+                                        textAlign = TextAlign.Center,
+                                        fontSize = 12.esp,
+                                        lineHeight = 14.esp
+                                    )
+                                    Text(
+                                        text = if (nModel.state == NetworkState.None) "\n" else "",
                                         textAlign = TextAlign.Center
                                     )
                                 } else {
@@ -316,6 +336,7 @@ fun SharedTransitionScope.RatingContent(
 @Composable
 private fun SharedTransitionScope.RatingCard(
     item: RatingItem, meLogin: String, isMe: Boolean = false, component: RatingComponent,
+    isDetailed: Boolean,
     isSharedVisible: Boolean
 ) {
     Surface(
@@ -384,59 +405,87 @@ private fun SharedTransitionScope.RatingCard(
             )
 
             Spacer(modifier = Modifier.width(16.dp))
-            if (!isMe) {
-                Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Spacer(Modifier.height(1.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${item.fio.surname} ${item.fio.name}",
+                        text = if (!isMe) "${item.fio.surname} ${item.fio.name}" else "Вы",
                         fontSize = 18.esp, // Adjust font size for heading
                         lineHeight = 19.esp,
                         fontWeight = FontWeight.Bold // Make text bold for emphasis
                     )
-                    Spacer(Modifier.height(1.dp))
-                    Text(
-                        text = "${item.formNum}${if (item.formShortTitle.length < 2) "-" else " "}${item.formShortTitle}: ${
-                            item.groupName.split(
-                                "кл "
-                            ).getOrNull(1) ?: item.groupName
-                        }",
-                        fontSize = MaterialTheme.typography.titleSmall.fontSize, // Adjust font size for body text
-//                        lineHeight = 15.sp,
-                        color = Color.Gray
-                    )
+                    if (item.difficulty > 0 && isMe) {
+                        Spacer(Modifier.width(10.dp))
+                        GetAsyncIcon(
+                            path = RIcons.Fire,
+                            size = 18.dp
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            item.difficulty.toString(),
+                            fontSize = 18.esp, // Adjust font size for heading
+                            lineHeight = 19.esp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = item.avg,
-                        fontSize = 18.esp,
-                        lineHeight = 19.esp
-                    )
-                    Spacer(Modifier.height(1.dp))
-                    Text(
-                        text = "+${item.stups}",
-                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
-//                        lineHeight = 15.sp,
-                        color = MaterialTheme.colorScheme.primary,//Color.Green,
-                        fontWeight = FontWeight.Bold
-                    )
+//                    Spacer(Modifier.height(1.dp))
+                if (!isMe) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${item.formNum}${if (item.formShortTitle.length < 2) "-" else " "}${item.formShortTitle}${
+                                if (item.groupName != "?") {
+                                    ": " + (
+                                            item.groupName.split(
+                                                "кл "
+                                            ).getOrNull(1) ?: item.groupName)
+                                } else {
+                                    ""
+                                }
+                            }",
+                            fontSize = 14.esp,
+                            lineHeight = 15.esp,// Adjust font size for body text
+                            //                        lineHeight = 15.sp,
+                            color = Color.Gray,
+
+                            )
+                        if (item.difficulty > 0) {
+                            Spacer(Modifier.width(5.dp))
+                            GetAsyncIcon(
+                                path = RIcons.Fire,
+                                size = 12.dp,
+                                tint = Color.Gray
+                            )
+                            Spacer(Modifier.width(2.dp))
+                            Text(
+                                item.difficulty.toString(),
+                                fontSize = 14.esp, // Adjust font size for heading
+                                lineHeight = 15.esp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                        }
+                    }
                 }
-            } else {
+
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Вы",
-                    fontSize = 26.esp, // Adjust font size for heading
-                    fontWeight = FontWeight.Bold, // Make text bold for emphasis,
-                    modifier = Modifier.offset(y = (-2.5).dp)
+                    text = if (!isDetailed) item.avg else "${item.avgAlg.roundTo(2)} (${item.topAvg})",
+                    fontSize = 18.esp,
+                    lineHeight = 19.esp
                 )
-
-                Spacer(modifier = Modifier.width(13.dp))
-
+                Spacer(Modifier.height(1.dp))
                 Text(
-                    text = "${if (item.stups > 0) "+" else "-"}${item.stups}",
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    text = if (!isDetailed) "+${item.stups}" else "+${item.stupsAlg.roundTo(2)} (${item.topStups})",
+                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
+//                        lineHeight = 15.sp,
+                    color = MaterialTheme.colorScheme.primary,//Color.Green,
+                    fontWeight = FontWeight.Bold
                 )
             }
+
         }
     }
 }

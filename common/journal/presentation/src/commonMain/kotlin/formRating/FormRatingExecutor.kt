@@ -33,6 +33,7 @@ class FormRatingExecutor(
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {
+            Intent.ChangeIsDetailed -> dispatch(Message.IsDetailedChanged)
             Intent.Init -> {
                 init(
                     formId = state().formId,
@@ -93,27 +94,39 @@ class FormRatingExecutor(
                     val topMarks: MutableMap<Int, List<String>> = mutableMapOf()
                     val topStups: MutableMap<Int, List<String>> = mutableMapOf()
 
-                    val students = r.students.filter { it.avg.count >= 4 && it.edStups.isNotEmpty() }
+//                    val students = r.students
 
+                    val avgAlgTypes =
+                        r.students.map { it.avgAlg }
+                            .sortedByDescending { it }.toSet()
+                    val stupsAlgTypes =
+                        r.students.map { it.stupsAlg }
+                            .sortedByDescending { it }.toSet()
 
-                    val stups = students.map { it.edStups.sumOf { it.content.toIntOrNull() ?: 0 } }.toSet()
-                    val marks = students.map { (it.avg.sum / it.avg.count.toFloat()) }.toSet()
-
-
-                    stups.sortedBy { it }.reversed().forEachIndexed { i, stp ->
-                        topStups[i] = students.filter { it.edStups.sumOf { it.content.toIntOrNull() ?: 0 } == stp }
-                            .map { it.login }
+                    val newDto = r.students.map { x ->
+                        x.copy(
+                            topAvg = avgAlgTypes
+                                .indexOfFirst { it == x.avgAlg }+1,
+                            topStups = stupsAlgTypes
+                                .indexOfFirst { it == x.stupsAlg }+1,
+                        )
                     }
-                    marks.sortedBy { it }.reversed().forEachIndexed { i, mrk ->
-                        topMarks[i] = students.filter { (it.avg.sum / it.avg.count.toFloat()) == mrk }.map { it.login }
-                    }
-                    val eds = students.map { s ->
-                        ((topMarks.filterValues { s.login in it }.keys.first()) + topStups.filterValues { s.login in it }.keys.first()) / 2.0f
-                    }.toSet()
-                    eds.sortedBy { it }.forEachIndexed { i, d ->
-                        topEd[i] =
-                            students.filter { s -> d == (((topMarks.filterValues { s.login in it }.keys.first()) + topStups.filterValues { s.login in it }.keys.first()) / 2.0f) }
-                                .map { it.login }
+
+                    var top = 0
+                    var previousStups = -111.0f
+                    var previousAvg = -10.0f
+                    val items = newDto.sortedWith( // .filter { it.stups > 0 && it.avg.toFloat() >= 4 }
+                        compareBy(
+                            { it.avgAlg >= 0 },
+                            { -(it.topAvg + it.topStups) },
+                            { it.stupsAlg },
+                            { it.avgAlg.toFloat() },
+                        )
+                    ).reversed().map { x ->
+                        if (previousAvg != x.avgAlg || previousStups != x.stupsAlg) top++
+                        previousAvg = x.avgAlg
+                        previousStups = x.stupsAlg
+                        x.copy(top = top)
                     }
 
 
@@ -121,10 +134,7 @@ class FormRatingExecutor(
                         FormRatingPage(
                             period = period ?: PansionPeriod.Week(r.currentWeek),
                             formId = formId,
-                            students = r.students,
-                            topEd = topEd,
-                            topMarks = topMarks,
-                            topStups = topStups
+                            students = items
                         )
                     )
                     scope.launch {

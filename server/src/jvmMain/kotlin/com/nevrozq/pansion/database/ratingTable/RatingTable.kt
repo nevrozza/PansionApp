@@ -44,6 +44,14 @@ open class RatingTable : Table() {
     val edYear = integer("edYear")
     private val period = this.varchar("period", 5)
 
+    // new
+    val avgAlg = float("avgAlg")
+    val stupsAlg = float("stupsAlg")
+    val topAvg = integer("topAvg")
+    val topStups = integer("topStups")
+
+    val difficulty = integer("difficulty")
+
     fun insert(i: RatingTableDTO) {
         this@RatingTable.insert {
             it[login] = i.login
@@ -60,6 +68,11 @@ open class RatingTable : Table() {
             it[subjectId] = i.subjectId
             it[period] = i.period.toStr()
             it[edYear] = i.edYear
+            it[avgAlg] = i.avgAlg
+            it[stupsAlg] = i.stupsAlg
+            it[topAvg] = i.topAvg
+            it[topStups] = i.topStups
+            it[difficulty] = i.difficulty
         }
 
     }
@@ -89,7 +102,12 @@ open class RatingTable : Table() {
                     avg = it[avg],
                     subjectId = it[this@RatingTable.subjectId],
                     edYear = it[this@RatingTable.edYear],
-                    period = it[this@RatingTable.period].toPeriod()
+                    period = it[this@RatingTable.period].toPeriod(),
+                    avgAlg = it[avgAlg],
+                    stupsAlg = it[stupsAlg],
+                    topAvg = it[topAvg],
+                    topStups = it[topStups],
+                    difficulty = it[difficulty]
                 )
             }
         }
@@ -122,7 +140,12 @@ open class RatingTable : Table() {
                     avg = it[avg],
                     subjectId = it[this@RatingTable.subjectId],
                     edYear = it[this@RatingTable.edYear],
-                    period = it[this@RatingTable.period].toPeriod()
+                    period = it[this@RatingTable.period].toPeriod(),
+                    avgAlg = it[avgAlg],
+                    stupsAlg = it[stupsAlg],
+                    topAvg = it[topAvg],
+                    topStups = it[topStups],
+                    difficulty = it[difficulty]
                 )
             }.firstOrNull()
         }
@@ -146,6 +169,12 @@ open class RatingTable : Table() {
                     it[subjectId] = i.subjectId
                     it[period] = i.period.toStr()
                     it[edYear] = i.edYear
+
+                    it[avgAlg] = i.avgAlg
+                    it[stupsAlg] = i.stupsAlg
+                    it[topAvg] = i.topAvg
+                    it[topStups] = i.topStups
+                    it[difficulty] = i.difficulty
                 }
             }
         }

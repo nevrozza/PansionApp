@@ -7,30 +7,15 @@ import admin.groups.GroupInit
 import admin.groups.Subject
 import admin.users.UserInit
 import applicationVersion
-import auth.ActivationReceive
-import auth.ActivationResponse
-import auth.CheckActivationReceive
-import auth.CheckActivationResponse
-import auth.Device
-import auth.LoginReceive
-import auth.LoginResponse
-import auth.RActivateQrTokenResponse
-import auth.RChangeAvatarIdReceive
-import auth.RChangeLogin
-import auth.RCheckConnectionResponse
-import auth.RCheckGIASubjectReceive
-import auth.RFetchAboutMeReceive
-import auth.RFetchAboutMeResponse
-import auth.RFetchAllDevicesResponse
-import auth.RFetchQrTokenReceive
-import auth.RFetchQrTokenResponse
-import auth.RTerminateDeviceReceive
+import auth.*
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.forms.mapToForm
 import com.nevrozq.pansion.database.pansCoins.PansCoins
+import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.pickedGIA.PickedGIA
 import com.nevrozq.pansion.database.pickedGIA.PickedGIADTO
 import com.nevrozq.pansion.database.secondLogins.SecondLogins
+import com.nevrozq.pansion.database.statsSettings.StatsSettings
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
@@ -73,6 +58,17 @@ data class QRDevice(
 )
 
 class AuthController {
+
+    suspend fun changeStatsSettincs(call: ApplicationCall) {
+
+        val r = call.receive<RChangeStatsSettingsReceive>()
+        val perm = call.login == r.dto.login
+        call.dRes(perm, "Can't change statsSettings") {
+
+            StatsSettings.insert(r.dto)
+            this.respond(HttpStatusCode.OK).done
+        }
+    }
 
     suspend fun fetchUserData(call: ApplicationCall) {
         val perm = call.isMember
@@ -154,7 +150,8 @@ class AuthController {
                     ministryId = ministry.ministry,
                     ministryLevel = ministry.lvl,
                     pansCoins = if (r.studentLogin == call.login) PansCoins.fetchCount(r.studentLogin) else 0,
-                    avatars = if (r.studentLogin == call.login) AvatarsShop.fetchAvatars(r.studentLogin) else listOf()
+                    avatars = if (r.studentLogin == call.login) AvatarsShop.fetchAvatars(r.studentLogin) else listOf(),
+                    isStatsOpened = StatsSettings.fetch(r.studentLogin) || call.isMentor || (call.isParent && r.studentLogin in Parents.fetchChildren(call.login).map { it.login })
                 )).done
         }
     }

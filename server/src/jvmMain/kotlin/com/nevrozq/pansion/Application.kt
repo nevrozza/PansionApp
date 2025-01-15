@@ -26,6 +26,7 @@ import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.scheduleConflicts.ScheduleConflicts
 import com.nevrozq.pansion.database.secondLogins.SecondLogins
+import com.nevrozq.pansion.database.statsSettings.StatsSettings
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
@@ -115,7 +116,8 @@ fun main() {
             ScheduleConflicts,
             PansCoins,
             AvatarsShop,
-            Holidays
+            Holidays,
+            StatsSettings
         )
 
     }

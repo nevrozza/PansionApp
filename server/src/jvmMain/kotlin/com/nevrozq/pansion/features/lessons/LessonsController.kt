@@ -388,26 +388,12 @@ class LessonsController() {
                         mapOf(
                             period.toStr() to mapOf(
                                 r.subjectId to items.map {
-                                    RatingItem(
-                                        login = it.login,
-                                        fio = FIO(
-                                            name = it.name,
-                                            surname = it.surname,
-                                            praname = it.praname
-                                        ),
-                                        avatarId = it.avatarId,
-                                        stups = it.stups,
-                                        top = it.top,
-                                        groupName = it.groupName,
-                                        formNum = it.formNum,
-                                        formShortTitle = it.formShortTitle,
-                                        avg = it.avg
-                                    )
+                                    it.toRatingItem()
                                 }
                             )),
                         me = mapOf(
                             period.toStr() to mapOf(
-                                r.subjectId to if (me != null) Pair(me.top, me.stups) else null
+                                r.subjectId to me?.toRatingItem()
                             )
                         ),
                         lastTimeEdit = lastTimeRatingUpdate

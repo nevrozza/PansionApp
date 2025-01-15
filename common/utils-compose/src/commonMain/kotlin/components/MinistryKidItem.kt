@@ -50,7 +50,7 @@ fun MinistryKidItem(
 ) {
     val isCanBeEdited = ds1ListComponent != null
     val isFullOpened = remember { mutableStateOf(!isCanBeEdited) }
-    val prev = item.dayStups.firstOrNull { it.reportId == null && (it.content.toIntOrNull() ?: 0) != 0 }
+    val dayAlert = if (pickedMinistry == Ministries.MVD) item.dayStups.firstOrNull { it.reportId == null && (it.content.toIntOrNull() ?: 0) != 0 } else null
     Surface(
         Modifier.fillMaxWidth(),
         tonalElevation = 2.dp,
@@ -142,7 +142,7 @@ fun MinistryKidItem(
                         }
                         if (pickedMinistry == Ministries.MVD) {
 
-                            if (prev == null) {
+                            if (dayAlert == null) {
                                 IconButton(
                                     onClick = {
                                         openMVDEvent(
@@ -163,10 +163,10 @@ fun MinistryKidItem(
                                     onClick = {
                                         openMVDEvent(
                                             item.login,
-                                            prev.reason,
-                                            prev.reportId,
-                                            prev.custom ?: "",
-                                            prev.content.toIntOrNull() ?: 0
+                                            dayAlert.reason,
+                                            dayAlert.reportId,
+                                            dayAlert.custom ?: "",
+                                            dayAlert.content.toIntOrNull() ?: 0
                                         )
                                     }
                                 ) {
@@ -353,10 +353,10 @@ fun MinistryKidItem(
                 }
             }
 
-            AnimatedVisibility(prev != null) {
+            AnimatedVisibility(dayAlert != null) {
 
                 Text(
-                    "${prev?.content} ${prev?.custom}",
+                    "${dayAlert?.content} ${dayAlert?.custom}",
                     color = MaterialTheme.colorScheme.error,
 //                    modifier = Modifier.padding(start = 20.dp),
                     fontWeight = FontWeight.SemiBold

@@ -14,7 +14,13 @@ data class RatingItem(
     val groupName: String,
     val formNum: Int,
     val formShortTitle: String,
-    val avg: String
+    val avg: String,
+    val avgAlg: Float,
+    val stupsAlg: Float,
+    val topAvg: Int,
+    val topStups: Int,
+
+    val difficulty: Int,
 )
 
 

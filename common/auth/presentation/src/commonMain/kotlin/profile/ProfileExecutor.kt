@@ -2,8 +2,10 @@ package profile
 
 import AuthRepository
 import CDispatcher
+import auth.RChangeStatsSettingsReceive
 import auth.RCheckGIASubjectReceive
 import auth.RFetchAboutMeReceive
+import auth.StatsSettingsDTO
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import kotlinx.coroutines.launch
@@ -25,6 +27,27 @@ class ProfileExecutor(
             is Intent.SaveAvatarId -> saveAvatarId(intent.avatarId, price = intent.price)
             Intent.Init -> init()
             is Intent.ClickOnGIASubject -> clickOnGia(subjectId = intent.subjectId, isChecked = intent.isChecked)
+            is Intent.ChangeStatsSettings -> changeStatsSettings()
+        }
+    }
+
+    private fun changeStatsSettings() {
+        val newStatsOpened = !(state().isStatsOpened ?: false)
+        scope.launch(CDispatcher) {
+            try {
+                nAboutMeInterface.nStartLoading()
+                authRepository.changeStatsSettings(RChangeStatsSettingsReceive(
+                    dto = StatsSettingsDTO(
+                        login = state().studentLogin,
+                        isOpened = newStatsOpened
+                    )
+                ))
+                scope.launch {
+                    dispatch(Message.StatsSettingsChanged(newStatsOpened))
+                }
+            } catch (_: Throwable) {
+
+            }
         }
     }
 
@@ -69,7 +92,8 @@ class ProfileExecutor(
                         ministryId = aboutMe.ministryId,
                         ministryLvl = aboutMe.ministryLevel,
                         pansCoins = aboutMe.pansCoins,
-                        avatars = aboutMe.avatars
+                        avatars = aboutMe.avatars,
+                        isStatsOpened = aboutMe.isStatsOpened
                     ))
                     nAboutMeInterface.nSuccess()
                 }

@@ -28,6 +28,7 @@ interface ProfileStore : Store<Intent, State, Label> {
         val giaSubjects: List<Int> = emptyList(),
         val ministryId: String = "0",
         val ministryLvl: String = "0",
+        val isStatsOpened: Boolean? = null,
 
         val edYear: Int = getCurrentEdYear(),
 
@@ -43,9 +44,13 @@ interface ProfileStore : Store<Intent, State, Label> {
         data class ClickOnGIASubject(val subjectId: Int, val isChecked: Boolean) : Intent
 
         data object Init : Intent
+        data object ChangeStatsSettings : Intent
     }
 
     sealed interface Message {
+
+        data class StatsSettingsChanged(val isOpened: Boolean) : Message
+
         data class TabChanged(val index: Int) : Message
         data class NewAvatarIdChanged(val avatarId: Int) : Message
 
@@ -66,7 +71,8 @@ interface ProfileStore : Store<Intent, State, Label> {
             val ministryLvl: String,
 
             val pansCoins: Int,
-            val avatars: List<Int>
+            val avatars: List<Int>,
+            val isStatsOpened: Boolean
         ) : Message
     }
 

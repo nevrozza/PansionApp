@@ -14,6 +14,9 @@ class AuthRepositoryImpl(
     private val cacheDataSource: SettingsAuthDataSource
 ) : AuthRepository {
     private val cPlatformConfiguration: CommonPlatformConfiguration = Inject.instance()
+    override suspend fun changeStatsSettings(r: RChangeStatsSettingsReceive) {
+        remoteDataSource.changeStatsSettings(r)
+    }
 
 
     override suspend fun fetchUserData(r: RFetchUserDataReceive): RFetchUserDataResponse {

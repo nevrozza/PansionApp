@@ -45,6 +45,7 @@ interface MinistryStore : Store<Intent, State, Label> {
 
         data class UploadStup(
             val reason: String,
+            val formId: Int,
             val login: String,
             val content: String,
             val reportId: Int?,

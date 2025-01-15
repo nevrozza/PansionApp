@@ -2,6 +2,7 @@ package ministry
 
 import CDispatcher
 import JournalRepository
+import admin.groups.forms.formSort
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
@@ -77,8 +78,10 @@ class MinistryExecutor(
                 login = intent.login,
                 content = intent.content,
                 reportId = intent.reportId,
-                custom = intent.custom
+                custom = intent.custom,
+                formId = intent.formId
             )
+
             is Intent.PickFormId -> {
                 dispatch(Message.FormIdPicked(intent.formId))
                 updateList(ministryId = state().pickedMinistry, date = state().currentDate.second)
@@ -87,6 +90,7 @@ class MinistryExecutor(
     }
 
     private fun uploadStup(
+        formId: Int,
         reason: String,
         login: String,
         content: String,
@@ -105,7 +109,7 @@ class MinistryExecutor(
                 val newList = state().ministryList.toMutableList()
                 val oldItem =
                     newList.first { it.date == state().currentDate.second && it.ministryId == state().pickedMinistry }
-                val oldStup = oldItem.kids.first { it.login == login }
+                val oldStup = oldItem.kids[formId]!!.first { it.login == login }
                     .dayStups.firstOrNull { s -> s.reportId == reportId && s.reason == reason }
                 if (oldStup != newStup) {
                     val date = state().currentDate.second
@@ -119,29 +123,34 @@ class MinistryExecutor(
                     )
 
                     val newItem = oldItem.copy(
-                        kids = oldItem.kids.map {
-                            if (it.login == login) {
-                                val oldDayStupContent =
-                                    oldStup?.content?.toIntOrNull()
+                        kids = oldItem.kids.map { (fId, kids) ->
+                            fId to kids.map {
+                                if (it.login == login) {
+                                    val oldDayStupContent =
+                                        oldStup?.content?.toIntOrNull()
                                             ?: 0
-                                val dif = -oldDayStupContent + (newStup.content.toIntOrNull() ?: 0)
-                                var newKid = it.copy(
-                                    dayStups = it.dayStups.map { s ->
-                                        if (s.reportId == reportId && s.reason == reason) {
-                                            newStup
-                                        } else s
-                                                               },
-                                    moduleStupsCount = it.moduleStupsCount + dif,
-                                    yearStupsCount = it.yearStupsCount + dif,
-                                    weekStupsCount = it.weekStupsCount + dif
-                                )
-                                if (!newKid.dayStups.contains(newStup)) {
-                                    val newDayStups = newKid.dayStups + newStup
-                                    newKid = newKid.copy(dayStups = newDayStups)
-                                }
-                                newKid
-                            } else it
-                        }
+                                    val dif = -oldDayStupContent + (newStup.content.toIntOrNull() ?: 0)
+                                    var newKid = it.copy(
+                                        dayStups = it.dayStups.map { s ->
+                                            if (s.reportId == reportId && s.reason == reason) {
+                                                newStup
+                                            } else s
+                                        },
+                                        moduleStupsCount = it.moduleStupsCount + dif,
+                                        yearStupsCount = it.yearStupsCount + dif,
+                                        weekStupsCount = it.weekStupsCount + dif
+                                    )
+                                    if (!newKid.dayStups.contains(newStup)) {
+                                        val newDayStups = newKid.dayStups + newStup
+                                        newKid = newKid.copy(dayStups = newDayStups)
+                                    }
+                                    newKid
+                                } else it
+                            }.sortedWith(
+                                compareBy(
+                                    { it.fio.surname })
+                            )
+                        }.associate { it.first to it.second }
                     )
                     newList.remove(oldItem)
                     newList.add(
@@ -160,7 +169,8 @@ class MinistryExecutor(
                         login = login,
                         content = login,
                         reportId = reportId,
-                        custom = custom
+                        custom = custom,
+                        formId = formId
                     )
                 }
             }
@@ -181,18 +191,34 @@ class MinistryExecutor(
                             formId = state().pickedFormId
                         )
                     )
-                    val newList = if (state().ministryList.firstOrNull { it.date == date && it.ministryId == ministryId } != null) state().ministryList.map { x -> //.toMutableList()
-                        if (x.date == date && x.ministryId == ministryId) {
-                            x.copy(
-                                kids = x.kids.mapNotNull {
-                                    if(it.formId == r.kids.firstOrNull()?.formId) null
-                                    else it
-                                } + r.kids
-                            )
-                        } else x
-                    } else {
-                        state().ministryList + MinistryListItem(date = date, ministryId = ministryId, kids = r.kids)
+                    val newKids = r.kids.map { it.formId }.associateWith { p ->
+                        r.kids.filter { true }.sortedWith(
+                            compareBy(
+                                { it.fio.surname })
+                        )
                     }
+
+                    val newList =
+                        if (state().ministryList.firstOrNull { it.date == date && it.ministryId == ministryId } != null) state().ministryList.map { x -> //.toMutableList()
+                            if (x.date == date && x.ministryId == ministryId) {
+
+                                x.copy(
+                                    kids = (
+                                            x.kids.mapNotNull { (fId, kids) ->
+                                                fId to kids.mapNotNull {
+                                                    if (it.formId == r.kids.firstOrNull()?.formId) null
+                                                    else it
+                                                }.sortedWith(
+                                                    compareBy(
+                                                        { it.fio.surname })
+                                                )
+                                            }.associate { it.first to it.second } + newKids
+                                            )
+                                )
+                            } else x
+                        } else {
+                            state().ministryList + MinistryListItem(date = date, ministryId = ministryId, kids = newKids)
+                        }
 //                    val oldItem = newList.firstOrNull { it.date == date && it.ministryId == ministryId }
 //                    newList.remove(oldItem)
 //                    newList.add(
@@ -203,12 +229,13 @@ class MinistryExecutor(
 //                        )
 //                    )
                     scope.launch {
-                        dispatch(Message.ListUpdated( newList))
+                        dispatch(Message.ListUpdated(newList))
                         if (r.forms != null) {
-                            dispatch(Message.FormFetched(r.forms!!))
+                            dispatch(Message.FormFetched(r.forms!!.formSort()))
                         }
+
+                        nInterface.nSuccess()
                     }
-                    nInterface.nSuccess()
                 } catch (e: Throwable) {
                     nInterface.nError("Не удалось загрузить list", e) {
                         updateList(ministryId, date)
@@ -230,8 +257,9 @@ class MinistryExecutor(
                             pickedMinistry = r.pickedMinistry
                         )
                     )
+
+                    nInterface.nSuccess()
                 }
-                nInterface.nSuccess()
                 updateList(ministryId = r.pickedMinistry, date = state().currentDate.second)
             } catch (e: Throwable) {
                 nInterface.nError("Не удалось загрузить header", e) {

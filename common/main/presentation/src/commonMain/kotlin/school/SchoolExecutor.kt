@@ -74,7 +74,7 @@ class SchoolExecutor(
                     MinistryListItem(
                         date = date,
                         ministryId = ministryOverviewId,
-                        kids = r.kids
+                        kids = mapOf(0 to r.kids)
                     )
                 )
                 scope.launch {

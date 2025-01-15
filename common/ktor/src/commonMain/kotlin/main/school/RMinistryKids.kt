@@ -68,5 +68,5 @@ data class RMinistryListReceive(
 data class MinistryListItem(
     val date: String,
     val ministryId: String,
-    val kids: List<MinistryKid>
+    val kids: Map<Int, List<MinistryKid>>
 )

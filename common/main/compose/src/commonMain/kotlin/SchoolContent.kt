@@ -666,7 +666,7 @@ fun SchoolContent(
             Ministries.DressCode to "Здравоохранение",
             Ministries.Education to "Образование",
             Ministries.Culture to "Культура",
-            Ministries.Social to "Соц опросы",
+            Ministries.Social to "Соц вопросы",
             Ministries.Print to "Печать",
             Ministries.Sport to "Спорт"
         )
@@ -816,7 +816,7 @@ fun SchoolContent(
                     Text("meow")
 
                 } else {
-                    ministryList.kids.forEachIndexed { i, item ->
+                    (ministryList.kids[0] ?: listOf()).forEachIndexed { i, item ->
                         MinistryKidItem(
                             item = item,
                             pickedMinistry = model.ministryOverviewId,

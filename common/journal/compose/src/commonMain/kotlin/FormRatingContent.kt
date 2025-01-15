@@ -191,7 +191,8 @@ fun SharedTransitionScope.FormRatingContent(
                                     Row(
                                         modifier = Modifier.horizontalScroll(
                                             rememberScrollState()
-                                        )
+                                        ),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Spacer(Modifier.width(5.dp))
                                         PeriodButton(
@@ -214,6 +215,18 @@ fun SharedTransitionScope.FormRatingContent(
                                             isActive = model.period is PansionPeriod.Year || model.period is PansionPeriod.Half,
                                             component = component.periodListComponent
                                         )
+                                        Spacer(Modifier.width(10.dp))
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.cClickable {
+                                                component.onEvent(FormRatingStore.Intent.ChangeIsDetailed)
+                                            }) {
+                                            CustomCheckbox(
+                                                checked = model.isDetailed
+                                            )
+                                            Text("Отображать детально")
+                                        }
+                                        Spacer(Modifier.width(15.dp))
                                     }
                                     //                                listOf(
                                     //                                    Pair(0, "За неделю"),
@@ -238,33 +251,30 @@ fun SharedTransitionScope.FormRatingContent(
                                     //                            }
                                 }
                                 if (page != null) {
-                                    items(page.topEd.toList(), key = { it }) { (top, students) ->
-                                        students.forEach { student ->
-                                            FormRatingCard(
-                                                item = page.students.first { it.login == student },
-                                                topEd = top + 1,
-                                                meLogin = model.login,
-                                                topMark = page.topMarks.filterValues { student in it }.keys.first() + 1,
-                                                topStup = page.topStups.filterValues { student in it }.keys.first() + 1,
-                                                component = component,
-                                                isVisible = isVisible
-                                            )
-                                        }
+                                    val inRating = page.students.filter { it.avg.toFloat() >= 4 && it.edStups.isNotEmpty() && it.avgAlg > 0 }
+                                    items(inRating, key = { it.login }) { s ->
+                                        FormRatingCard(
+                                            item = s,
+                                            meLogin = model.login,
+                                            component = component,
+                                            isVisible = isVisible,
+                                            isDetailed = model.isDetailed,
+                                            isInRanked = true
+                                        )
                                     }
                                     itemsIndexed(
-                                        items = page.students.filter { it.login !in page.topEd.values.flatten() },
+                                        items = page.students.filter { it !in inRating },
                                         key = { _, item -> item.login }) { index, item ->
                                         if (index == 0) {
                                             Text("Не участвуют в рейтинге: ")
                                         }
                                         FormRatingCard(
                                             item = item,
-                                            topEd = 0,
                                             meLogin = model.login,
-                                            topMark = 0,
-                                            topStup = 0,
                                             component = component,
-                                            isVisible = isVisible
+                                            isVisible = isVisible,
+                                            isDetailed = model.isDetailed,
+                                            isInRanked = false
                                         )
                                     }
 
@@ -332,11 +342,10 @@ fun SharedTransitionScope.FormRatingContent(
 @Composable
 private fun SharedTransitionScope.FormRatingCard(
     item: FormRatingStudent,
-    topEd: Int,
-    topMark: Int,
-    topStup: Int,
     meLogin: String,
     isVisible: Boolean,
+    isDetailed: Boolean,
+    isInRanked: Boolean,
     component: FormRatingComponent
 ) {
     Surface(
@@ -362,12 +371,12 @@ private fun SharedTransitionScope.FormRatingCard(
             modifier = Modifier.padding(end = 16.dp, start = 8.dp).padding(vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (topEd != 0) {
+            if (item.top != 0 && isInRanked) {
                 Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                    if (topEd <= 3) {
+                    if (item.top <= 3) {
                         GetAsyncIcon(
                             path = RIcons.Trophy,
-                            tint = when (topEd) {
+                            tint = when (item.top) {
                                 1 -> "#ffd700".toColor()
                                 2 -> "#c0c0c0".toColor()
                                 else -> "#cd7f32".toColor()
@@ -377,7 +386,7 @@ private fun SharedTransitionScope.FormRatingCard(
                     } else {
                         // Show position number for other positions
                         Text(
-                            text = topEd.toString(),
+                            text = item.top.toString(),
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                             fontWeight = FontWeight.Black,
                             fontStyle = FontStyle.Italic
@@ -423,10 +432,9 @@ private fun SharedTransitionScope.FormRatingCard(
             }
             Spacer(modifier = Modifier.width(8.dp))
 
-            val avg = with(item.avg) {
-                (sum / count.toFloat())
-            }.roundTo(2)
-            val stups = item.edStups.sumOf { it.content.toIntOrNull() ?: 0 }
+
+            val stups = if (isDetailed) item.stupsAlg else item.edStups.sumOf { it.content.toIntOrNull() ?: 0 }
+            val avg = if (isDetailed) item.avgAlg.roundTo(2) else item.avg
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clip(
@@ -435,17 +443,17 @@ private fun SharedTransitionScope.FormRatingCard(
                     component.onEvent(FormRatingStore.Intent.SelectStupsLogin(item.login))
                 }) {
                 Text(
-                    text = if (topMark != 0) {
-                        avg.toString() + " (${topMark})"
-                    } else if (item.avg.count > 0) avg.toString()
+                    text = if (item.top != 0 && isInRanked) {
+                         avg + " (${item.topAvg})"
+                    } else if ((avg.toFloatOrNull() ?: 0f) > 0f) avg
                     else "",
                     fontSize = 18.esp,
                     lineHeight = 19.esp
                 )
                 Spacer(Modifier.height(1.dp))
                 Text(
-                    text = if (topStup != 0) {
-                        "+${stups} (${topStup})"
+                    text = if (item.top != 0 && isInRanked) {
+                        "+${stups} (${item.topStups})"
                     } else if (item.edStups.isNotEmpty()) (if (stups.toString()
                             .first() != '-'
                     ) "+" else "") + stups.toString()

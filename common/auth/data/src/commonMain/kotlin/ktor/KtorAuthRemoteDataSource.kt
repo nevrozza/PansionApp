@@ -26,6 +26,8 @@ import webload.RFetchUserDataResponse
 class KtorAuthRemoteDataSource(
     private val hc: HttpClient
 ) {
+    suspend fun changeStatsSettings(r: RChangeStatsSettingsReceive) =
+        hc.dPost(RequestPaths.Auth.ChangeStatsSettings, r).check()
 
     suspend fun fetchGroupData(r: RFetchGroupDataReceive): RFetchGroupDataResponse =
         hc.dPost(RequestPaths.WebLoad.FetchGroupData, r).dBody()

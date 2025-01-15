@@ -458,29 +458,7 @@ class SchoolController {
                         //List<FormRatingStup>
                         //likes dislikes
 
-                        val avg = when (r.period) {
-                            is PansionPeriod.Week -> {
-                                val marks = Marks.fetchForPeriod(
-                                    login = login,
-                                    period = weeks.first { x -> x.num == (r.period as PansionPeriod.Week).num }.dates
-                                )
-                                ForAvg(count = marks.size, sum = marks.sumOf { it.content.toInt() })
-                            }
 
-                            is PansionPeriod.Module -> {
-                                Marks.fetchModuleAVG(
-                                    login,
-                                    module = (r.period as PansionPeriod.Module).num.toString(),
-                                    edYear = edYear
-                                )
-                            }
-
-                            is PansionPeriod.Half -> {
-                                Marks.fetchHalfYearAVG(login, (r.period as PansionPeriod.Half).num, edYear)
-                            }
-
-                            else -> Marks.fetchYearAVG(login, edYear)
-                        }
 
                         val stups = when (r.period) {
                             is PansionPeriod.Week -> {
@@ -505,8 +483,11 @@ class SchoolController {
                                     isQuarters = false, edYear
                                 )
                             }
-
-                            else -> Stups.fetchForUser(login, edYear)
+                            is PansionPeriod.Year -> Stups.fetchForUser(login, edYear)
+                            else -> Stups.fetchForPeriod(
+                                login = login,
+                                period = weeks.last().dates
+                            )
                         }.map {
                             FormRatingStup(
                                 subjectId = it.subjectId,
@@ -527,7 +508,12 @@ class SchoolController {
                         }.sumOf { it.content.toIntOrNull() ?: 0 }
                         //                            val studentLines = StudentLines.
                         //                            val achievements = Achievements.fetchAllByLogin()
-
+                        val rating = RatingCommonSchoolTable.fetchRatingOf(
+                            login = login,
+                            subjectId = ExtraSubjectsId.common,
+                            edYear = edYear,
+                            period = r.period ?: PansionPeriod.Week(weeks.last().num)
+                        )
                         studentsForRating.add(
                             FormRatingStudent(
                                 login = login,
@@ -538,10 +524,12 @@ class SchoolController {
                                 ),
                                 avatarId = user.avatarId,
                                 formTitle = if (r.formNum > 9) forms.first { it.formId == formId }.shortTitle else null,
-                                avg = avg,
+                                avg = rating?.avg ?: "0.0",
                                 edStups = edStups,
                                 mvdStupsCount = dsStupsCount,
-                                zdStupsCount = zdStupsCount
+                                zdStupsCount = zdStupsCount,
+                                avgAlg = rating?.avgAlg ?: 0f,
+                                stupsAlg = rating?.stupsAlg ?: 0f
                             )
                         )
                     }

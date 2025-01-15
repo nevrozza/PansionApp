@@ -39,6 +39,7 @@ class RatingExecutor(
                 dispatch(Message.OnPeriodClicked(intent.period.toPeriod()))
                 fetchRating(state().currentSubject, intent.period.toPeriod(), forms = state().forms)
             }
+            is Intent.ChangeIsDetailed -> dispatch(Message.IsDetailedChanged)
         }
     }
 
@@ -95,8 +96,9 @@ class RatingExecutor(
 
                 subjects.add(0, startSubject)
                 subjects.add(1, mvdSubject)
-                subjects.add(2, socialWorkSubject)
-                subjects.add(3, creativeSubject)
+                subjects.add(2, zdravoohrSubject)
+                subjects.add(3, socialWorkSubject)
+                subjects.add(4, creativeSubject)
                 scope.launch {
                     dispatch(Message.SubjectsUpdated(subjects, rating.PansionPeriod.Week(weeks.last().num)))
                     subjectsListComponent.onEvent(

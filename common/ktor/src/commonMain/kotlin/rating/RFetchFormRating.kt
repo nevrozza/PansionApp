@@ -29,7 +29,16 @@ data class FormRatingStudent(
     val fio: FIO,
     val avatarId: Int,
     val formTitle: String?,
-    val avg: ForAvg,
+    val avg: String,
+    val avgAlg: Float,
+    val stupsAlg: Float,
+
+    val topAvg: Int = 0,
+    val topStups: Int = 0,
+    val top: Int = 0,
+
+
+
     val edStups: List<FormRatingStup>,
     val mvdStupsCount: Int,
     val zdStupsCount: Int,

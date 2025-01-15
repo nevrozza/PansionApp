@@ -26,6 +26,8 @@ object FormRatingReducer : Reducer<State, Message> {
             is Message.StupsLoginSelected -> copy(
                 stupsLogin = msg.login
             )
+
+            is Message.IsDetailedChanged -> copy(isDetailed = !isDetailed)
         }
     }
 }

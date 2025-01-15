@@ -43,6 +43,9 @@ class ProfileComponent(
         name = "giaCBottomSheetComponent"
     )
 
+    
+
+
     private val profileStore =
         instanceKeeper.getStore {
             ProfileStoreFactory(

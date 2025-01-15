@@ -23,5 +23,6 @@ data class RFetchAboutMeResponse(
     val ministryId: String,
     val ministryLevel: String,
     val pansCoins: Int,
-    val avatars: List<Int>
+    val avatars: List<Int>,
+    val isStatsOpened: Boolean
 )
