@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -18,7 +17,6 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AppBar
 import components.CLazyColumn
 import components.GetAsyncIcon
-import dev.chrisbanes.haze.HazeState
 import resources.RIcons
 import view.LocalViewManager
 import view.rememberImeState
@@ -36,7 +34,6 @@ fun AdminContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
-    val hazeState = remember { HazeState() }
 
     Scaffold(
         Modifier.fillMaxSize(),
@@ -50,8 +47,7 @@ fun AdminContent(
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -59,8 +55,7 @@ fun AdminContent(
             if (model.items != null) {
                 CLazyColumn(
                     padding = padding,
-                    isBottomPaddingNeeded = true,
-                    hazeState = hazeState
+                    isBottomPaddingNeeded = true
                 ) {
                     items(model.items!!) { item ->
                         AdminItemCompose(item.title, currentRouting == item.routing, isActive) {

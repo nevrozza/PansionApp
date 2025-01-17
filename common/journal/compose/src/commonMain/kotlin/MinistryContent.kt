@@ -1,4 +1,3 @@
-import admin.groups.forms.formSort
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -39,6 +38,7 @@ import view.esp
 import dev.chrisbanes.haze.HazeInputScale
 import pullRefresh.rememberPullRefreshState
 import server.Ministries
+import view.GlobalHazeState
 
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -54,7 +54,6 @@ fun SharedTransitionScope.MinistryContent(
     val viewManager = LocalViewManager.current
 
     val lazyListState = rememberLazyListState()
-    val hazeState = remember { HazeState() }
 
     val refreshing = nModel.isLoading || nUploadModel.isLoading
     val refreshState = rememberPullRefreshState(
@@ -79,7 +78,7 @@ fun SharedTransitionScope.MinistryContent(
             Column(
                 Modifier.then(
                     if (isHaze) Modifier.hazeChild(
-                        state = hazeState,
+                        state = GlobalHazeState.current,
                         style = LocalHazeStyle.current
                     ) {
                         inputScale = HazeInputScale.Fixed(0.7f)
@@ -90,16 +89,6 @@ fun SharedTransitionScope.MinistryContent(
                 )
             ) {
                 AppBar(
-                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
-                    navigationRow = {
-                        IconButton(
-                            onClick = { component.onOutput(MinistryComponent.Output.Back) }
-                        ) {
-                            GetAsyncIcon(
-                                path = RIcons.ChevronLeft
-                            )
-                        }
-                    },
                     title = {
                         AnimatedContent(
                             if (model.isMultiMinistry == true && model.pickedMinistry == "0") "Выберите"
@@ -136,6 +125,15 @@ fun SharedTransitionScope.MinistryContent(
 
                         RefreshWithoutPullCircle(refreshing, refreshState.position, !isFormsEmpty)
                     },
+                    navigationRow = {
+                        IconButton(
+                            onClick = { component.onOutput(MinistryComponent.Output.Back) }
+                        ) {
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft
+                            )
+                        }
+                    },
                     actionRow = {
                         AnimatedVisibility(
                             nUploadModel.state != NetworkState.None,
@@ -167,8 +165,8 @@ fun SharedTransitionScope.MinistryContent(
 
 
                     },
-                    isTransparentHaze = isHaze,
-                    hazeState = null
+                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    isTransparentHaze = isHaze
                 )
                 DatesLine(
                     dates = model.dates.reversed(),
@@ -216,8 +214,7 @@ fun SharedTransitionScope.MinistryContent(
             CLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 padding = padding,
-                state = lazyListState,
-                hazeState = hazeState
+                state = lazyListState
             ) {
                 items(model.forms, key = { it.id }) { form ->
                     val isOpened = remember(form.id) { mutableStateOf(true) }

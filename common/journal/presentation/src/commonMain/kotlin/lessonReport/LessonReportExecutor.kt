@@ -22,6 +22,7 @@ import server.*
 
 class LessonReportExecutor(
     private val setMarkMenuComponent: ListComponent,
+    private val setDzMarkMenuComponent: ListComponent,
     private val deleteMarkMenuComponent: ListComponent,
     private val setLateTimeMenuComponent: ListComponent,
     private val nInterface: NetworkInterface,
@@ -87,9 +88,16 @@ class LessonReportExecutor(
                         selectedDeploy = ""
                     )
                 )
-                setMarkMenuComponent.onEvent(
-                    ListDialogStore.Intent.ShowDialog
-                )
+
+                if (intent.reasonId.st == "!dz") {
+                    setDzMarkMenuComponent.onEvent(
+                        ListDialogStore.Intent.ShowDialog
+                    )
+                } else {
+                    setMarkMenuComponent.onEvent(
+                        ListDialogStore.Intent.ShowDialog
+                    )
+                }
             }
 
             is Intent.OpenDeleteMarkMenu -> {
@@ -113,7 +121,7 @@ class LessonReportExecutor(
                 val newMarksList = line.marksOfCurrentLesson.toMutableList()
                 newMarksList.add(
                     Mark(
-                        intent.mark.toInt(),
+                        intent.mark,
                         state().selectedMarkReason,
                         true,
                         id = state().ids + 1,
@@ -123,7 +131,6 @@ class LessonReportExecutor(
                         deployDate = getDate()
                     )
                 )
-
                 newList.add(
                     line.copy(
                         marksOfCurrentLesson = newMarksList
@@ -668,7 +675,7 @@ class LessonReportExecutor(
                             marksOfCurrentLesson = studentsData.marks.filter { it.login == student.serverStudentLine.login }
                                 .map {
                                     Mark(
-                                        value = it.content.toInt(),
+                                        value = it.content,
                                         reason = it.reason,
                                         isGoToAvg = it.isGoToAvg,
                                         id = it.id,

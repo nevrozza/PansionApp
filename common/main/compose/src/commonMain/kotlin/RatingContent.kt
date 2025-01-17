@@ -18,19 +18,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.refresh.RefreshButton
 import components.refresh.RefreshWithoutPullCircle
 import components.refresh.keyRefresh
-import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import dev.chrisbanes.haze.HazeState
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
@@ -58,7 +55,6 @@ fun SharedTransitionScope.RatingContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
 
-    val hazeState = remember { HazeState() }
 
 
     val refreshing = nModel.isLoading
@@ -131,8 +127,7 @@ fun SharedTransitionScope.RatingContent(
                             )
                         }
                     }
-                },
-                hazeState = hazeState
+                }
             )
 
         },
@@ -182,7 +177,6 @@ fun SharedTransitionScope.RatingContent(
                     padding = padding,
                     isBottomPaddingNeeded = true,
                     modifier = Modifier,
-                    hazeState = hazeState,
                     refreshState = refreshState
                 ) {
                     item {

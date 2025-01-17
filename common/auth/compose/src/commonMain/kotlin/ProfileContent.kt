@@ -36,7 +36,6 @@ import components.*
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
-import dev.chrisbanes.haze.HazeState
 import profile.ProfileComponent
 import profile.ProfileStore
 import resources.Images
@@ -62,21 +61,12 @@ fun SharedTransitionScope.ProfileContent(
     val lazyListState = rememberLazyListState()
     var isFullHeader by remember { mutableStateOf(true) } //!lazyListState.canScrollBackward || model.tabIndex == 2
 
-    val hazeState = remember { HazeState() }
 
     LaunchedEffect(lazyListState.firstVisibleItemScrollOffset) {
         isFullHeader =
             (!lazyListState.lastScrolledForward) && lazyListState.firstVisibleItemScrollOffset == 0 || model.tabIndex == 2
     }
 
-//    val globalHazeState = GlobalHazeState.current
-//    DisposableEffect(model.tabIndex == 2) {
-//        onDispose {
-//            println(globalHazeState.value)
-//            globalHazeState.value = HazeState()
-//            println(globalHazeState.value)
-//        }
-//    }
 
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
     val avatarsList: List<Pair<String, List<Pair<Int, PricedAvatar>>>> = if (model.avatars != null) remember {
@@ -143,7 +133,6 @@ fun SharedTransitionScope.ProfileContent(
                 Modifier
                     .hazeHeader(
                         viewManager,
-                        hazeState = hazeState,
                         isMasked = false
                     ) //, isActivated = isSharedVisible
                     .clickable(
@@ -154,15 +143,6 @@ fun SharedTransitionScope.ProfileContent(
                     }
             ) {
                 AppBar(
-                    navigationRow = {
-                        IconButton(
-                            onClick = { component.onOutput(ProfileComponent.Output.Back) }
-                        ) {
-                            GetAsyncIcon(
-                                path = RIcons.ChevronLeft
-                            )
-                        }
-                    },
                     title = {
                         Box(modifier = Modifier.fillMaxWidth().padding(end = 10.dp)) {
                             AnimatedContent(
@@ -221,6 +201,15 @@ fun SharedTransitionScope.ProfileContent(
 
                         }
                     },
+                    navigationRow = {
+                        IconButton(
+                            onClick = { component.onOutput(ProfileComponent.Output.Back) }
+                        ) {
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft
+                            )
+                        }
+                    },
                     actionRow = {
                         AnimatedVisibility(
                             visible = model.tabIndex !in listOf(0, 1),
@@ -236,7 +225,6 @@ fun SharedTransitionScope.ProfileContent(
                             }
                         }
                     },
-                    hazeState = null,
                     isTransparentHaze = true
                 )
                 AnimatedVisibility(
@@ -471,8 +459,7 @@ fun SharedTransitionScope.ProfileContent(
                 top = animateDpAsState(padding.calculateTopPadding()).value,
                 bottom = padding.calculateBottomPadding()
             ),
-            state = lazyListState,
-            hazeState = hazeState
+            state = lazyListState
         ) {
             when (model.tabIndex) {
                 0 -> {

@@ -363,6 +363,7 @@ fun updateRatings(edYear: Int) {
                 { it.period.toStr() },
                 { it.subjectId },
                 { it.avgAlg >= 0 },
+//                { it.avgAlg > 0 },
                 { -(it.topAvg + it.topStups) },
                 { it.stupsAlg },
                 { it.avgAlg.toFloat() },

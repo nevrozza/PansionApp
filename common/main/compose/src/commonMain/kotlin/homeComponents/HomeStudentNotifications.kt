@@ -5,15 +5,19 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -23,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.GetAsyncImage
 import components.NotificationItem
+import components.dashedBorder
 import home.HomeComponent
 import home.HomeStore
 import main.school.DutyKid
@@ -34,6 +39,7 @@ import studentReportDialog.StudentReportDialogStore
 import view.ViewManager
 import view.blend
 import view.easedGradient
+import view.esp
 
 
 // macsmillian page 28-29
@@ -68,7 +74,8 @@ fun LazyListScope.homeStudentNotifications(
                 } дежури${if (filteredKids.isEmpty()) "шь" else "те"} сегодня!"
 
                 OutlinedCard(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp).padding(bottom = 3.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp).padding(bottom = 3.dp).clip(
+                        RoundedCornerShape(15.dp)).clickable {  },
                     shape = RoundedCornerShape(15.dp),
                     border = CardDefaults.outlinedCardBorder().copy(
                         brush = Brush.linearGradient(
@@ -91,9 +98,12 @@ fun LazyListScope.homeStudentNotifications(
                     Row(
                         Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(horizontal = 18.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+//                        horizontalArrangement = Arrangement.Center
                     ) {
-                        GetAsyncImage(Images.Emoji.emojiCook, modifier = Modifier.padding(vertical = (2.5f).dp).size(35.dp))
+                        GetAsyncImage(
+                            Images.Emoji.emojiCook,
+                            modifier = Modifier.padding(vertical = (2.5f).dp).size(35.dp)
+                        )
                         Text(text, modifier = Modifier.padding(start = 20.dp))
 
                     }
@@ -101,6 +111,39 @@ fun LazyListScope.homeStudentNotifications(
             }
         }
     }
+
+    item {
+        AnimatedVisibility(model.isAnyDepts) {
+            Column {
+                Spacer(Modifier.height(5.dp))
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp).padding(bottom = 3.dp).dashedBorder((1.5f).dp, color = Color.Gray, 15.dp).clip(RoundedCornerShape(15.dp)).clickable {  },
+                    //            shape = RoundedCornerShape(15.dp)
+                    ) {
+                    Row(
+                        Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(horizontal = 18.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+
+                        GetAsyncImage(Images.Emoji.emojiWoah, modifier = Modifier.padding(vertical = (2.5f).dp).size(35.dp))
+                        Text("У тебя есть долги...\nНе забудь исправить их!", modifier = Modifier.padding(start = 20.dp))
+
+                    }
+                }
+                Text(
+                    text = "Долги влияют на текущую статистику\nЭто уведомление исчезнет в конце следующей недели",
+                    modifier = Modifier.fillMaxWidth().alpha(.5f),
+                    textAlign = TextAlign.Center,
+                    fontSize = 10.esp,
+                    lineHeight = 10.esp
+                )
+
+                Spacer(Modifier.height(5.dp))
+            }
+        }
+    }
+
     items(model.notifications, key = { it.key }) { not ->
         val notificationState = remember {
             MutableTransitionState(false).apply {

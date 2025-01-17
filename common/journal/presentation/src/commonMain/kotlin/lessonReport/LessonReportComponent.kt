@@ -34,7 +34,7 @@ class LessonReportComponent(
 
     private val homeTaskDialogContentName = "homeTaskDialogContentName"
     val homeTasksDialogComponent = HomeTasksDialogComponent(
-        componentContext = childContext(homeTaskDialogContentName+"CONTEXT"),
+        componentContext = childContext(homeTaskDialogContentName + "CONTEXT"),
         storeFactory = storeFactory,
         groupId = reportData.header.groupId
     )
@@ -73,6 +73,7 @@ class LessonReportComponent(
         onEvent(LessonReportStore.Intent.OnTasksTabAcceptClick)
         homeTasksTabDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
     }
+
     private fun onSaveQuitAcceptClick() {
         if (state.value.isUpdateNeeded) {
             onEvent(LessonReportStore.Intent.UpdateWholeReport)
@@ -84,6 +85,7 @@ class LessonReportComponent(
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
         onOutput(Output.BackAtAll)
     }
+
     private fun onSaveQuitDeclineClick() {
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
         onOutput(Output.BackAtAll)
@@ -104,9 +106,19 @@ class LessonReportComponent(
             try {
                 onSetMarkMenuItemClick(it.text, it.id)
             } catch (_: Throwable) {
-
             }
-
+        },
+        customOnDismiss = { onEvent(LessonReportStore.Intent.ClearSelection) }
+    )
+    val setDzMarkMenuComponent = ListComponent(
+        componentContext,
+        storeFactory,
+        name = "SetDzMarkMenuInReport",
+        onItemClick = {
+            try {
+                onSetMarkMenuItemClick(it.text, it.id)
+            } catch (_: Throwable) {
+            }
         },
         customOnDismiss = { onEvent(LessonReportStore.Intent.ClearSelection) }
     )
@@ -147,12 +159,13 @@ class LessonReportComponent(
     )
 
     private fun onSetMarkMenuItemClick(mark: String, id: String) {
-        onEvent(LessonReportStore.Intent.SetMark(mark))
-        if (id != "no"
+        onEvent(LessonReportStore.Intent.SetMark(id))
+        if (mark != "no"
             || state.value.students.first { state.value.selectedLogin == it.login }
                 .marksOfCurrentLesson.count { it.reason == state.value.selectedMarkReason } == 4
         ) {
             setMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
+            setDzMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
         }
     }
 
@@ -181,7 +194,8 @@ class LessonReportComponent(
                 data = reportData,
                 marksDialogComponent = marksDialogComponent,
                 authRepository = authRepository,
-                nHomeTasksInterface = nHomeTasksInterface
+                nHomeTasksInterface = nHomeTasksInterface,
+                setDzMarkMenuComponent = setDzMarkMenuComponent
             ).create()
         }
 
@@ -221,28 +235,42 @@ class LessonReportComponent(
 
     init {
         onEvent(LessonReportStore.Intent.Init)
-        setMarkMenuComponent.onEvent(
+
+
+        val marks = listOf(
+            ListItem(
+                id = "5",
+                text = "5"
+            ),
+            ListItem(
+                id = "4",
+                text = "4"
+            ),
+            ListItem(
+                id = "3",
+                text = "3"
+            ),
+            ListItem(
+                id = "2",
+                text = "2"
+            ),
+
+        )
+
+        setDzMarkMenuComponent.onEvent(
             ListDialogStore.Intent.InitList(
-                listOf(
-                    ListItem(
-                        id = "5",
-                        text = "5"
-                    ),
-                    ListItem(
-                        id = "4",
-                        text = "4"
-                    ),
-                    ListItem(
-                        id = "3",
-                        text = "3"
-                    ),
-                    ListItem(
-                        id = "2",
-                        text = "2"
-                    ),
+                marks +ListItem(
+                    id = "+2",
+                    text = "Д"
                 )
             )
         )
+        setMarkMenuComponent.onEvent(
+            ListDialogStore.Intent.InitList(
+                marks
+            )
+        )
+
         deleteMarkMenuComponent.onEvent(
             ListDialogStore.Intent.InitList(
                 listOf(

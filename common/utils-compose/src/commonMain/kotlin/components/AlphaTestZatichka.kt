@@ -37,8 +37,7 @@ fun AlphaTestZatichka(
                                 RIcons.Settings
                             )
                         }
-                    },
-                    hazeState = null
+                    }
                 )
             }
         }

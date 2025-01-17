@@ -71,15 +71,19 @@ fun CAlertDialogContent(
         ) {
             Surface(
                 modifier = Modifier
+
                     .wrapContentWidth()
                     .wrapContentHeight()
                     .animateContentSize()
                     .clip(MaterialTheme.shapes.large)
-                        .hazeHeader(
-                                                      viewManager = viewManager,
-                                                      hazeState = GlobalHazeState.current,
-                                                      isMasked = false
-                                                  ),
+                    .hazeHeader(
+                        viewManager = viewManager,
+                        isMasked = false
+                    ).hazeUnder(
+                        viewManager,
+                        zIndex = 4f
+                    )
+                        ,
                 color = if(viewManager.hazeHardware.value) Color.Transparent else MaterialTheme.colorScheme.surface,
                 shape = MaterialTheme.shapes.large
             ) {

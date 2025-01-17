@@ -30,7 +30,6 @@ import components.refresh.RefreshWithoutPullCircle
 import components.refresh.keyRefresh
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
-import dev.chrisbanes.haze.HazeState
 import di.Inject
 import io.github.alexzhirkevich.qrose.options.*
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
@@ -54,12 +53,8 @@ fun MentoringContent(
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
-    val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
 //    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
-    val hazeState = remember { HazeState() }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -118,8 +113,7 @@ fun MentoringContent(
                         viewManager
                     )
 
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -225,7 +219,7 @@ fun MentoringContent(
                                     }
                                 }
                             } else {
-                                CLazyColumn(padding = padding, isBottomPaddingNeeded = true, hazeState = hazeState, refreshState = refreshState) {
+                                CLazyColumn(padding = padding, isBottomPaddingNeeded = true, refreshState = refreshState) {
                                     items(model.forms) { f ->
                                         val students = model.students.filter { it.formId == f.id }
                                         val requests = model.requests.filter { it.formId == f.id }

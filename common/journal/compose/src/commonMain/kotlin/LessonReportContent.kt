@@ -41,7 +41,6 @@ import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import dev.chrisbanes.haze.HazeState
 import homeTasksDialog.HomeTasksDialogStore
 import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.delay
@@ -68,7 +67,6 @@ fun LessonReportContent(
 
     val nHomeTasksModel by component.nHomeTasksInterface.networkModel.subscribeAsState()
     val viewManager = LocalViewManager.current
-    val hazeState = remember { HazeState() }
     //PullToRefresh
 //    val refreshScope = rememberCoroutineScope()
 //    var refreshing by remember { mutableStateOf(false) }
@@ -148,7 +146,7 @@ fun LessonReportContent(
             }
 
         ) { padding ->
-            Column(Modifier.fillMaxSize().hazeUnder(viewManager, hazeState = hazeState).padding(padding)) {
+            Column(Modifier.fillMaxSize().hazeUnder(viewManager).padding(padding)) {
                 Crossfade(nModel.state) {
                     when {
                         model.students.isNotEmpty() -> {
@@ -227,6 +225,12 @@ fun LessonReportContent(
                 //Set Mark
                 ListDialogMobileContent(
                     component = component.setMarkMenuComponent,
+                    title =
+                        markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName,
+                    modifier = Modifier.setMarksBind(component)
+                )
+                ListDialogMobileContent(
+                    component = component.setDzMarkMenuComponent,
                     title =
                         markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName,
                     modifier = Modifier.setMarksBind(component)
@@ -1723,7 +1727,7 @@ fun LessonTable(
                                                         val marks =
                                                             student.marksOfCurrentLesson.filter { it.isGoToAvg }
                                                         val value =
-                                                            (student.avgMark.previousSum + marks.sumOf { it.value }) / (student.avgMark.countOfMarks + marks.size).toFloat()
+                                                            (student.avgMark.previousSum + marks.sumOf { it.value.toInt() }) / (student.avgMark.countOfMarks + marks.size).toFloat()
 
                                                         if (value.isNaN()) {
                                                             Text(
@@ -1766,7 +1770,7 @@ fun LessonTable(
 //                                                        var y by remember { mutableStateOf(0.0f) }
                                                         Box() {
                                                             MarkContent(
-                                                                mark = mark.value.toString(),
+                                                                mark = if (mark.value == "+2") "Д" else mark.value,
                                                                 offset = DpOffset(0.dp, -2.dp),
                                                                 background = if (student.login == model.selectedLogin && column.type == model.selectedMarkReason && index.toString() == model.selectedMarkValue) {
                                                                     MaterialTheme.colorScheme.primary.copy(
@@ -1845,7 +1849,7 @@ fun LessonTable(
                                                             }
                                                             if (model.selectedMarkReason == column.type && model.selectedLogin == student.login) {
                                                                 ListDialogDesktopContent(
-                                                                    component.setMarkMenuComponent,
+                                                                    if (column.type.st == "!dz") component.setDzMarkMenuComponent else component.setMarkMenuComponent,
                                                                     offset = DpOffset(
                                                                         x = 27.dp,
                                                                         y = -18.dp
@@ -2071,9 +2075,6 @@ fun LessonReportTopBar(
 ) {
     val model by component.model.subscribeAsState()
     AppBar(
-        navigationRow = {
-            backAB(component)
-        },
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ReportTitle(
@@ -2101,11 +2102,13 @@ fun LessonReportTopBar(
                 }
             }
         },
+        navigationRow = {
+            backAB(component)
+        },
         actionRow = {
             settingsAB(component)
 //            refreshAB(component)
-        },
-        hazeState = null
+        }
     )
 
 }
@@ -2156,11 +2159,12 @@ fun Modifier.setMarksBind(
             }
             component.setMarkMenuComponent.onClick(
                 ListItem(
-                    id = "no",
-                    text = mark
+                    id = mark,
+                    text = "no"
                 )
             )
             component.setMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
+            component.setDzMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
         }
         false
     }

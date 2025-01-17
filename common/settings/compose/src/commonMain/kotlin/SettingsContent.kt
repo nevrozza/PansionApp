@@ -1,9 +1,7 @@
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -12,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -30,14 +27,12 @@ import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import dev.chrisbanes.haze.HazeState
 import forks.colorPicker.toHex
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
 import resources.RIcons
 import view.*
-import kotlin.time.Duration.Companion.seconds
 
 
 @ExperimentalSplitPaneApi
@@ -92,7 +87,6 @@ fun SettingsView(
 
     val focusManager = LocalFocusManager.current
 
-    val hazeState = remember { HazeState() }
     if (isHazeNeedToUpdate.value) {
         changeOnHaze(viewManager = viewManager)
         isHazeNeedToUpdate.value = false
@@ -113,15 +107,6 @@ fun SettingsView(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(SettingsComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     Text(
                         "Настройки",
@@ -132,6 +117,15 @@ fun SettingsView(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(SettingsComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
+                },
                 actionRow = {
                     Text(
                         text = applicationVersionString,
@@ -140,15 +134,13 @@ fun SettingsView(
                         fontWeight = FontWeight.Black,
                         fontSize = 10.esp
                     )
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
         Box(Modifier) { //.hazeUnder(viewManager, hazeState).padding(horizontal = 15.dp)
             CLazyColumn(
-                padding = padding,
-                hazeState = hazeState
+                padding = padding
             ) {
                 item {
                     Column(

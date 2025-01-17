@@ -53,7 +53,6 @@ fun AllGroupMarksContent(
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val nOpenReportModel by component.nOpenReportInterface.networkModel.subscribeAsState()
     val coroutineScope = rememberCoroutineScope()
-    val hazeState = remember { HazeState() }
 
     if (model.reportData != null) {
         val reportData = model.reportData
@@ -141,7 +140,7 @@ fun AllGroupMarksContent(
 
                         }
                     },
-                    hazeState = hazeState,
+
                     actionRow = {
 
                         IconButton(
@@ -287,8 +286,8 @@ fun AllGroupMarksContent(
                                         }
                                     }
                                 } else {
-                                    CLazyColumn(padding = padding, hazeState = hazeState) {
-                                        if (model.students.isNotEmpty()) {
+                                    CLazyColumn(padding = padding) {
+                                                               if (model.students.isNotEmpty()) {
                                             items(model.students) { s ->
 
                                                 AllGroupMarksStudentItem(

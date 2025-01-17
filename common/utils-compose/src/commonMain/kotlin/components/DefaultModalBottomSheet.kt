@@ -30,7 +30,6 @@ fun DefaultModalBottomSheet(
     onDismissRequest: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val hazeState = GlobalHazeState.current
     val viewManager = LocalViewManager.current
     ModalBottomSheet(
         onDismissRequest = {
@@ -45,8 +44,10 @@ fun DefaultModalBottomSheet(
         Column(
             Modifier.hazeHeader(
                 viewManager = viewManager,
-                hazeState = hazeState,
                 isMasked = false
+            ).hazeUnder(
+                viewManager,
+                zIndex = 2f
             ), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             BottomSheetDefaults.DragHandle()

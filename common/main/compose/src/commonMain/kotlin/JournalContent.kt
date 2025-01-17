@@ -15,12 +15,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -42,7 +40,6 @@ import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import journal.JournalComponent
 import journal.JournalStore
@@ -52,10 +49,7 @@ import pullRefresh.rememberPullRefreshState
 import resources.RIcons
 import server.Moderation
 import server.Roles
-import view.LocalViewManager
-import view.WindowScreen
-import view.handy
-import view.rememberImeState
+import view.*
 
 @ExperimentalMaterial3Api
 @ExperimentalLayoutApi
@@ -94,7 +88,6 @@ private fun TrueJournalContent(
 //    val scrollState = rememberScrollState()
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
-    val hazeState = remember { HazeState() }
 
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded && isNotMinimized
 
@@ -158,8 +151,7 @@ private fun TrueJournalContent(
                         }
                     }
 
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -179,7 +171,6 @@ private fun TrueJournalContent(
                                 padding = padding,
                                 modifier = Modifier,
                                 isBottomPaddingNeeded = true,
-                                hazeState = hazeState,
                                 refreshState = refreshState
                             ) {
                                 item {

@@ -148,17 +148,19 @@ object StudentGroups : Table() {
     fun fetchStudentsOfGroup(groupId: Int): List<Person> {
         return transaction {
 
-            StudentGroups.select { StudentGroups.groupId eq groupId }.map { group ->
+            StudentGroups.select { StudentGroups.groupId eq groupId }.mapNotNull { group ->
                 val user = Users.fetchUser(group[studentLogin])
-                Person(
-                    login = user!!.login,
-                    fio = FIO(
-                        name = user.name,
-                        surname = user.surname,
-                        praname = user.praname
-                    ),
-                    isActive = user.isActive
-                )
+                if (user != null) {
+                    Person(
+                        login = user.login,
+                        fio = FIO(
+                            name = user.name,
+                            surname = user.surname,
+                            praname = user.praname
+                        ),
+                        isActive = user.isActive
+                    )
+                } else null
             }
         }
     }

@@ -9,7 +9,8 @@ data class RFetchRecentGradesReceive(
 
 @Serializable
 data class RFetchRecentGradesResponse(
-    val grades: List<Grade>
+    val grades: List<Grade>,
+    val isAnyDepts: Boolean
 )
 
 @Serializable

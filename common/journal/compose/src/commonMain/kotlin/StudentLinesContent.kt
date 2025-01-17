@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -21,7 +20,6 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
-import dev.chrisbanes.haze.HazeState
 import report.ClientStudentLine
 import resources.RIcons
 import studentLines.StudentLinesComponent
@@ -46,21 +44,11 @@ fun StudentLinesContent(
         if (!nModel.isLoading) component.onEvent(StudentLinesStore.Intent.Init)
     }
 
-    val hazeState = remember { HazeState() }
 
     Scaffold(
         Modifier.fillMaxSize(),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(StudentLinesComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     Text(
                         "Прошедшие занятия",
@@ -71,14 +59,22 @@ fun StudentLinesContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                hazeState = hazeState
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(StudentLinesComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
+                }
             )
         }
     ) { padding ->
         Column(Modifier.fillMaxSize()) {
             Crossfade(nModel.state) { state ->
                 when (state) {
-                    NetworkState.None -> CLazyColumn(padding, hazeState = hazeState) {
+                    NetworkState.None -> CLazyColumn(padding) {
                         itemsIndexed(items = model.studentLines, key = { i, sl -> i }) { i, sl ->
 
                             if (i == model.studentLines.indexOfFirst { it.date == sl.date }) {
@@ -118,8 +114,7 @@ fun StudentLinesContent(
     }
 
     StudentReportDialogContent(
-        component = component.studentReportDialog,
-        hazeState = hazeState
+        component = component.studentReportDialog
     )
 }
 

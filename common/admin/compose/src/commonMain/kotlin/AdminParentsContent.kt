@@ -1,5 +1,4 @@
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
@@ -10,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -28,7 +26,6 @@ import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import dev.chrisbanes.haze.HazeState
 import parents.AdminParentsComponent
 import parents.AdminParentsStore
 import pullRefresh.PullRefreshIndicator
@@ -51,7 +48,6 @@ fun AdminParentsContent(
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
 
-    val hazeState = remember { HazeState() }
     val viewManager = LocalViewManager.current
 
     val clipboardManager = LocalClipboardManager.current
@@ -71,15 +67,6 @@ fun AdminParentsContent(
         modifier = Modifier.fillMaxSize().keyRefresh(refreshState),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(AdminParentsComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     Text(
                         "Родители",
@@ -89,6 +76,15 @@ fun AdminParentsContent(
                         overflow = TextOverflow.Ellipsis
                     )
                     RefreshWithoutPullCircle(refreshing, refreshState.position, model.kids.isNotEmpty())
+                },
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(AdminParentsComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
                 },
                 actionRow = {
 
@@ -107,8 +103,7 @@ fun AdminParentsContent(
                             component = component.childCreatePicker
                         )
                     }
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -118,7 +113,7 @@ fun AdminParentsContent(
                     state is NetworkState.None || model.kids.isNotEmpty() -> CLazyColumn(
                         padding = padding, modifier = Modifier.horizontalScroll(
                             rememberScrollState()
-                        ), hazeState = hazeState,
+                        ),
                         refreshState = refreshState
                     ) {
                         items(model.forms, key = { it.id }) { form ->

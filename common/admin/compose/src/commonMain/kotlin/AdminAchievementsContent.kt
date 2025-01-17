@@ -1,6 +1,5 @@
 import achievements.AdminAchievementsComponent
 import achievements.AdminAchievementsStore
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
@@ -30,7 +29,6 @@ import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CBottomSheetContent
-import dev.chrisbanes.haze.HazeState
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
@@ -50,7 +48,6 @@ fun AdminAchievementsContent(
 
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
-    val hazeState = remember { HazeState() }
     val viewManager = LocalViewManager.current
 
 
@@ -79,15 +76,6 @@ fun AdminAchievementsContent(
         modifier = Modifier.fillMaxSize().keyRefresh(refreshState),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(AdminAchievementsComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     Text(
                         "События",
@@ -99,6 +87,15 @@ fun AdminAchievementsContent(
                     RefreshWithoutPullCircle(refreshing, refreshState.position, headers.isNotEmpty())
 
                 },
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(AdminAchievementsComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
+                },
                 actionRow = {
 
                     RefreshButton(refreshState, viewManager = viewManager)
@@ -109,8 +106,7 @@ fun AdminAchievementsContent(
                             path = RIcons.Add
                         )
                     }
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -119,7 +115,6 @@ fun AdminAchievementsContent(
                 when {
                     state is NetworkState.None || headers.isNotEmpty() -> CLazyColumn(
                         padding = padding,
-                        hazeState = hazeState,
                         refreshState = refreshState
                     ) {
                         items(items = headers) { h ->

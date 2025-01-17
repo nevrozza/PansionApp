@@ -342,9 +342,10 @@ class HomeExecutor(
         scope.launch(CDispatcher) {
             try {
                 gradesNInterface.nStartLoading()
-                val grades = mainRepository.fetchRecentGrades(state().login).grades
+                val r = mainRepository.fetchRecentGrades(state().login)
+                val grades = r.grades
                 scope.launch {
-                    dispatch(Message.GradesUpdated(grades))
+                    dispatch(Message.GradesUpdated(grades, r.isAnyDepts))
                     gradesNInterface.nSuccess()
                 }
             } catch (e: Throwable) {

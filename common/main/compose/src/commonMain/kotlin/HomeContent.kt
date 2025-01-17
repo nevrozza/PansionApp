@@ -41,7 +41,6 @@ import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeChild
 import home.HomeComponent
@@ -78,7 +77,6 @@ fun HomeContent(
     currentRouting: HomeRoutings = HomeRoutings.Other
 ) {
     val model by component.model.subscribeAsState()
-    val hazeState = remember { HazeState() }
     val coroutineScope = rememberCoroutineScope()
     when (model.role) {
         Roles.student -> {
@@ -86,7 +84,6 @@ fun HomeContent(
                 component = component,
                 sharedTransitionScope = sharedTransitionScope,
                 isSharedVisible = isSharedVisible,
-                hazeState = hazeState,
                 coroutineScope = coroutineScope,
                 currentRouting = currentRouting
             )
@@ -94,7 +91,7 @@ fun HomeContent(
 
         Roles.teacher -> {
             TeacherHomeContent(
-                component, pickedLogin, hazeState,
+                component, pickedLogin,
                 coroutineScope = coroutineScope,
                 currentRouting = currentRouting
             )
@@ -104,7 +101,6 @@ fun HomeContent(
             OtherHomeContent(
                 component = component,
                 pickedLogin = pickedLogin,
-                hazeState = hazeState,
                 currentRouting = currentRouting
             )
         }
@@ -141,8 +137,7 @@ fun HomeContent(
                     isDeep = true
                 )
             )
-        } else null,
-        hazeState = hazeState
+        } else null
     )
 }
 
@@ -151,7 +146,6 @@ fun HomeContent(
 fun OtherHomeContent(
     component: HomeComponent,
     pickedLogin: String,
-    hazeState: HazeState,
     currentRouting: HomeRoutings
 ) {
     val viewManager = LocalViewManager.current
@@ -204,8 +198,7 @@ fun OtherHomeContent(
                         }
                     }
 
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -216,7 +209,6 @@ fun OtherHomeContent(
             CLazyColumn(
                 padding,
                 isBottomPaddingNeeded = true,
-                hazeState = hazeState,
                 refreshState = refreshState
             ) {
                 this.homeKidsContent(
@@ -250,7 +242,6 @@ fun OtherHomeContent(
 fun TeacherHomeContent(
     component: HomeComponent,
     pickedLogin: String,
-    hazeState: HazeState,
     coroutineScope: CoroutineScope,
     currentRouting: HomeRoutings
 ) {
@@ -310,7 +301,7 @@ fun TeacherHomeContent(
                 Column(
                     Modifier.then(
                         if (isHaze) Modifier.hazeChild(
-                            state = hazeState,
+                            state = GlobalHazeState.current,
                             style = LocalHazeStyle.current
                         ) {
                             mask =
@@ -368,8 +359,7 @@ fun TeacherHomeContent(
                             }
 
                         },
-                        isTransparentHaze = isHaze,
-                        hazeState = hazeState
+                        isTransparentHaze = isHaze
                     )
                     AnimatedVisibility(model.isDatesShown && !isMainView) {
                         DatesLine(
@@ -392,7 +382,6 @@ fun TeacherHomeContent(
                     state = lazyListState,
                     padding = padding,
                     isBottomPaddingNeeded = true,
-                    hazeState = hazeState,
                     refreshState = refreshState
                 ) {
                     this.homeTeacherGroupsContent(
@@ -642,7 +631,6 @@ fun StudentHomeContent(
     component: HomeComponent,
     sharedTransitionScope: SharedTransitionScope,
     isSharedVisible: Boolean,
-    hazeState: HazeState,
     coroutineScope: CoroutineScope,
     currentRouting: HomeRoutings
 ) {
@@ -663,6 +651,7 @@ fun StudentHomeContent(
     val isMainView = lazyListState.firstVisibleItemIndex in (0..model.notifications.size
                                                                 + 1 //studentBar
                                                                 + 1 //NotificationAboutDuty
+                                                                + 1 //NotificationAboutDolg
             )
 
     val refreshing =
@@ -688,7 +677,7 @@ fun StudentHomeContent(
             Column(
                 Modifier.then(
                     if (isHaze) Modifier.hazeChild(
-                        hazeState
+                        GlobalHazeState.current
                     ) {
                         inputScale = HazeInputScale.Fixed(0.7f)
                         mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
@@ -769,8 +758,7 @@ fun StudentHomeContent(
                         }
 
                     },
-                    isTransparentHaze = isHaze,
-                    hazeState = hazeState
+                    isTransparentHaze = isHaze
                 )
                 AnimatedVisibility(model.isDatesShown && !isMainView) {
                     DatesLine(
@@ -797,7 +785,6 @@ fun StudentHomeContent(
                 state = lazyListState,
                 padding = padding,
                 isBottomPaddingNeeded = true,
-                hazeState = hazeState,
                 refreshState = refreshState
             ) {
                 this.homeStudentBar(

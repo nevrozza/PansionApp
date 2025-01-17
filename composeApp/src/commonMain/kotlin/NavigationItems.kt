@@ -17,10 +17,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.router.stack.ChildStack
 import components.GetAsyncIcon
-import dev.chrisbanes.haze.ExperimentalHazeApi
-import dev.chrisbanes.haze.HazeInputScale
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeChild
 import resources.RIcons
 import root.RootComponent
 import root.RootComponent.Child
@@ -35,6 +31,9 @@ import view.ViewManager
 import view.easedVerticalGradient
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
+import components.hazeHeader
+import components.hazeUnder
+import dev.chrisbanes.haze.*
 
 
 data class NavigationItem(
@@ -52,18 +51,18 @@ fun getNavItems(
     childStack: ChildStack<*, Child>
 ): List<NavigationItem?> {
     val items = listOf<NavigationItem?>(
-    NavigationItem(
-        iconPath = RIcons.Home,
-        label = "Главная",
-        category = if (isExpanded && getCategory(childStack.active.configuration as RootComponent.Config) == Journal) Journal
-        else Home,
-        onClickOutput = RootComponent.Output.NavigateToHome
-    ),
-    if (!isExpanded && (model.role == Roles.teacher || model.moderation in listOf(
-        Moderation.moderator,
-        Moderation.mentor,
-        Moderation.both
-    )) && component.isMentoring == null
+        NavigationItem(
+            iconPath = RIcons.Home,
+            label = "Главная",
+            category = if (isExpanded && getCategory(childStack.active.configuration as RootComponent.Config) == Journal) Journal
+            else Home,
+            onClickOutput = RootComponent.Output.NavigateToHome
+        ),
+        if (!isExpanded && (model.role == Roles.teacher || model.moderation in listOf(
+                Moderation.moderator,
+                Moderation.mentor,
+                Moderation.both
+            )) && component.isMentoring == null
         ) NavigationItem(
             iconPath = RIcons.Book,//Icons.AutoMirrored.Rounded.LibraryBooks,
             label = "Журнал",
@@ -71,15 +70,15 @@ fun getNavItems(
             category = Journal,
             onClickOutput = RootComponent.Output.NavigateToJournal
         ) else null,
-    NavigationItem(
-        iconPath = RIcons.School,//Icons.Rounded.Token,
-        size = 24.dp,
-        label = "Пансион",
-        category = School,
-        onClickOutput = RootComponent.Output.NavigateToSchool
-    ),
-    if (model.moderation != Moderation.nothing
-        && component.isMentoring == null
+        NavigationItem(
+            iconPath = RIcons.School,//Icons.Rounded.Token,
+            size = 24.dp,
+            label = "Пансион",
+            category = School,
+            onClickOutput = RootComponent.Output.NavigateToSchool
+        ),
+        if (model.moderation != Moderation.nothing
+            && component.isMentoring == null
         ) NavigationItem(
             iconPath = RIcons.Group,//Icons.Rounded.Diversity1,
             label = "Ученики",
@@ -87,10 +86,10 @@ fun getNavItems(
             category = Mentoring,
             onClickOutput = RootComponent.Output.NavigateToMentoring
         ) else null,
-    if (model.moderation in listOf(
-        Moderation.moderator,
-        Moderation.both
-    ) && component.isMentoring == null
+        if (model.moderation in listOf(
+                Moderation.moderator,
+                Moderation.both
+            ) && component.isMentoring == null
         ) NavigationItem(
             iconPath = RIcons.SovietSettings, //Icons.Rounded.GridView,
             label = "Админ",
@@ -98,9 +97,10 @@ fun getNavItems(
             size = 20.dp,
             onClickOutput = RootComponent.Output.NavigateToAdmin
         ) else null,
-        )
+    )
     return items
 }
+
 fun isBottomBarShowing(config: Config): Boolean {
     return config in listOf(
         Config.MainHome,
@@ -162,7 +162,7 @@ fun CustomNavigationBar(
 
     NavigationBar(
         modifier = Modifier.then(
-            if (viewManager.hazeHardware.value) Modifier.hazeChild(
+            if (viewManager.hazeHardware.value) Modifier.hazeEffect(
                 GlobalHazeState.current,
                 style = LocalHazeStyle.current
             ) {
@@ -172,7 +172,10 @@ fun CustomNavigationBar(
 //                    Color.Transparent, Color.Transparent,
 //                    Color.Magenta, Color.Magenta, Color.Magenta))
 //                progressive = view.hazeProgressive.copy(endIntensity = 1f, startIntensity = 0f)
-            }
+            }.hazeUnder(
+                viewManager,
+                zIndex = 1f
+            )
             else Modifier
         ).fillMaxWidth(),
         containerColor = if (viewManager.hazeHardware.value) Color.Transparent else MaterialTheme.colorScheme.background,
@@ -229,7 +232,7 @@ fun CustomNavigationRail(
                                     size = item.size
                                 )
                             }
-                               },
+                        },
                         label = { Text(item.label) }
                     )
                 }

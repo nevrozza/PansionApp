@@ -79,6 +79,11 @@ import view.*
 import dev.chrisbanes.haze.HazeInputScale
 import school.SchoolStore
 
+import io.github.alexzhirkevich.compottie.*
+import resources.Images
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
+
 @ExperimentalAnimationApi
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalDecomposeApi::class,
@@ -97,9 +102,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
     DeepLinkErrorCatcher(
         component, model
     )
-    val isExpanded =
-        viewManager.orientation.value == WindowScreen.Expanded
-    val isVertical = viewManager.orientation.value == WindowScreen.Vertical
+//    val isExpanded =
+//        viewManager.orientation.value == WindowScreen.Expanded
+//    val isVertical = viewManager.orientation.value == WindowScreen.Vertical
 
 
     BoxWithConstraints {
@@ -153,22 +158,21 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             val aniPadding by animateDpAsState(
                 if (component.secondLogin == null) {
                     if ((!isVertical) && childStack.active.configuration !is Config.AuthLogin && childStack.active.configuration !is Config.AuthActivation
-                        ) 80.dp else 0.dp
-                } else { 0.dp }
+                    ) 80.dp else 0.dp
+                } else {
+                    0.dp
+                }
             )
             SharedTransitionLayout(
-                modifier = Modifier.fillMaxSize().then(
-                    if (component.secondLogin == null) Modifier.hazeUnder(
-                        viewManager,
-                        GlobalHazeState.current
-                    ) else Modifier
-                ).padding(
-                    top = 0.dp,
-                    start = 0.dp,// padding.calculateStartPadding(LocalLayoutDirection.current),
-                    end = 0.dp,//padding.calculateEndPadding(LocalLayoutDirection.current),
-                    bottom = 0.dp// if (model.isBottomBarShowing) padding.calculateBottomPadding() else (padding.calculateBottomPadding() - 80.dp).coerceAtLeast(
-                    //                    0.dp
-                )
+                modifier = Modifier.fillMaxSize()
+
+                    .padding(
+                        top = 0.dp,
+                        start = 0.dp,// padding.calculateStartPadding(LocalLayoutDirection.current),
+                        end = 0.dp,//padding.calculateEndPadding(LocalLayoutDirection.current),
+                        bottom = 0.dp// if (model.isBottomBarShowing) padding.calculateBottomPadding() else (padding.calculateBottomPadding() - 80.dp).coerceAtLeast(
+                        //                    0.dp
+                    )
             )
             {
 
@@ -607,30 +611,80 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
 
 
-                        is Child.HomeTasks -> MultiPaneSplit(
-                            isExpanded = isExpanded,
-                            viewManager = viewManager,
-                            currentScreen = {
-                                HomeTasksContent(
-                                    child.homeTasksComponent,
-                                    isVisible = stack.active.instance is Child.HomeTasks
-                                )
-                            },
-                            firstScreen = {
-                                HomeContent(
-                                    child.homeComponent,
-                                    sharedTransitionScope = this@SharedTransitionLayout,
-                                    isSharedVisible = stack.active.instance is Child.MainHome,
-                                    currentRouting = HomeRoutings.Tasks
-                                )
-                            },
-                            secondScreen = {
-                                HomeTasksContent(
-                                    child.homeTasksComponent,
-                                    isVisible = stack.active.instance is Child.HomeTasks
+                        is Child.HomeTasks -> {
+                            val confettiIsPlaying = remember { mutableStateOf(false) }
+
+                            val confettiComposition = rememberLottieComposition {
+                                LottieCompositionSpec.JsonString(
+                                    Images.Confetti()
                                 )
                             }
-                        )
+
+                            LaunchedEffect(confettiComposition) {
+                                try {
+                                    confettiComposition.await()
+                                } catch (t: CompottieException) {
+                                    t.printStackTrace()
+                                }
+                            }
+                            val confettiProgress by animateLottieCompositionAsState(
+                                confettiComposition.value,
+                                isPlaying = confettiIsPlaying.value,
+                                cancellationBehavior = LottieCancellationBehavior.OnIterationFinish,
+                                iterations = 1
+                            )
+
+                            LaunchedEffect(confettiProgress > 0) {
+                                confettiIsPlaying.value = false
+                            }
+
+                            val confettiPainter = rememberLottiePainter(
+                                composition = confettiComposition.value,
+                                progress = { confettiProgress },
+                            )
+
+
+                            MultiPaneSplit(
+                                isExpanded = isExpanded,
+                                viewManager = viewManager,
+                                currentScreen = {
+                                    HomeTasksContent(
+                                        child.homeTasksComponent,
+                                        isVisible = stack.active.instance is Child.HomeTasks
+                                    ) {
+                                        if (confettiProgress in listOf(0.0f, 1.0f)) {
+                                            confettiIsPlaying.value = true
+                                        }
+
+                                    }
+                                },
+                                firstScreen = {
+                                    HomeContent(
+                                        child.homeComponent,
+                                        sharedTransitionScope = this@SharedTransitionLayout,
+                                        isSharedVisible = stack.active.instance is Child.MainHome,
+                                        currentRouting = HomeRoutings.Tasks
+                                    )
+                                },
+                                secondScreen = {
+                                    HomeTasksContent(
+                                        child.homeTasksComponent,
+                                        isVisible = stack.active.instance is Child.HomeTasks
+                                    ) {
+                                        if (confettiProgress in listOf(0.0f, 1.0f)) {
+                                            confettiIsPlaying.value = true
+                                        }
+
+                                    }
+                                }
+                            )
+                            Image(
+                                painter = confettiPainter,
+                                contentDescription = "Lottie animation",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
 
                         is Child.AdminCalendar -> MultiPaneAdmin(
                             isExpanded,
@@ -927,8 +981,10 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
             },
             modifier = Modifier.clip(MaterialTheme.shapes.large).hazeHeader(
                 viewManager = viewManager,
-                hazeState = GlobalHazeState.current,
                 isMasked = false
+            ).hazeUnder(
+                viewManager,
+                zIndex = 10f
             ),
             containerColor = if (viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor
 

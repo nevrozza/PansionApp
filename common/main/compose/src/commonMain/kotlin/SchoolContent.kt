@@ -20,15 +20,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -39,7 +35,6 @@ import components.refresh.keyRefresh
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CBottomSheetContent
-import dev.chrisbanes.haze.HazeState
 import main.school.DutyKid
 import main.school.MinistrySettingsReason
 import main.school.MinistryStudent
@@ -74,7 +69,7 @@ fun SchoolContent(
     val lazyListState = rememberLazyListState()
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
-    val hazeState = remember { HazeState() }
+
 
 
     val refreshing = (nModel.isLoading || nDutyModel.isLoading)
@@ -112,8 +107,7 @@ fun SchoolContent(
                     if (viewManager.orientation.value != WindowScreen.Expanded) {
                         RefreshButton(refreshState, viewManager)
                     }
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -127,7 +121,6 @@ fun SchoolContent(
                 state = lazyListState,
                 padding = padding,
                 isBottomPaddingNeeded = true,
-                hazeState = hazeState,
                 refreshState = refreshState
             ) {
                 item {

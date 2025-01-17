@@ -24,7 +24,7 @@ moko = "0.24.0-alpha-4"
 mokographics = "0.9.0"
 
 # Compose Libraries
-haze = "1.1.1"
+haze = "1.2.2"
 materialKolor = "2.0.0"
 
 # Android

@@ -38,6 +38,7 @@ import server.fetchReason
 import server.getLocalDate
 import server.roundTo
 import studentReportDialog.StudentReportDialogStore
+import view.GlobalHazeState
 import view.LocalViewManager
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -60,7 +61,6 @@ fun DnevnikRuMarkContent(
 
     val coroutineScope = rememberCoroutineScope()
     val viewManager = LocalViewManager.current
-    val hazeState = remember { HazeState() }
 
     Scaffold(
         Modifier.fillMaxSize(),
@@ -70,7 +70,7 @@ fun DnevnikRuMarkContent(
             Column(
                 Modifier.then(
                     if (isHaze) Modifier.hazeChild(
-                        hazeState,
+                        state = GlobalHazeState.current,
                         style = LocalHazeStyle.current
                     ) {
                         inputScale = HazeInputScale.Fixed(0.7f)
@@ -82,16 +82,6 @@ fun DnevnikRuMarkContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AppBar(
-                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
-                    navigationRow = {
-                        IconButton(
-                            onClick = { component.onOutput(DnevnikRuMarksComponent.Output.Back) }
-                        ) {
-                            GetAsyncIcon(
-                                path = RIcons.ChevronLeft
-                            )
-                        }
-                    },
                     title = {
 
                         Text(
@@ -102,6 +92,15 @@ fun DnevnikRuMarkContent(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                    },
+                    navigationRow = {
+                        IconButton(
+                            onClick = { component.onOutput(DnevnikRuMarksComponent.Output.Back) }
+                        ) {
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft
+                            )
+                        }
                     },
                     actionRow = {
                         IconButton(
@@ -118,8 +117,8 @@ fun DnevnikRuMarkContent(
                             )
                         }
                     },
-                    isTransparentHaze = isHaze,
-                    hazeState = null
+                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    isTransparentHaze = isHaze
                 )
                 AnimatedVisibility(
                     model.isQuarters != null && !model.isTableView,
@@ -240,8 +239,7 @@ fun DnevnikRuMarkContent(
                             padding = PaddingValues(
                                 top = padding.calculateTopPadding(),
                                 bottom = padding.calculateBottomPadding()
-                            ),
-                            hazeState = hazeState
+                            )
                         ) {
                             items(model.subjects[(model.tabIndex ?: 0)] ?: listOf()) {
                                 SubjectMarksItem(
@@ -317,8 +315,7 @@ fun DnevnikRuMarkContent(
     }
 
     StudentReportDialogContent(
-        component = component.studentReportDialog,
-        hazeState = hazeState
+        component = component.studentReportDialog
     )
 
 

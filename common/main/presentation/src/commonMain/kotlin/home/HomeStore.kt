@@ -24,6 +24,7 @@ interface HomeStore : Store<Intent, State, Label> {
         val surname: String,
         val praname: String,
         val grades: List<Grade> = emptyList(),
+        val isAnyDepts: Boolean = false,
         val period: Period = Period.WEEK,
         val teacherGroups: List<TeacherGroup> = emptyList(),
         val averageGradePoint: HashMap<Period, Float?> = hashMapOf(
@@ -107,7 +108,7 @@ interface HomeStore : Store<Intent, State, Label> {
 
         data class UpdateHomeWorkEmoji(val emoji: Int?) : Message
 
-        data class GradesUpdated(val grades: List<Grade>) : Message
+        data class GradesUpdated(val grades: List<Grade>, val isAnyDepts: Boolean) : Message
 
         data class ItemsUpdated(val items: HashMap<String, List<PersonScheduleItemWithNum>>, val lastUpdate: String) : Message
 

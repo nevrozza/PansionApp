@@ -36,7 +36,6 @@ import view.handy
 @Composable
 fun StudentReportDialogContent(
     component: StudentReportComponent,
-    hazeState: HazeState?,
     openReport: ((Int) -> Unit)? = null,
     changeToUV: ((Int, String) -> Unit)? = null,
 ) {
@@ -245,14 +244,7 @@ private fun StupContent(
         Modifier.padding(paddingValues)
             .offset(offset.x, offset.y)
             .size(size)
-            .border(
-                width =  1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(
-                    if (!isDs) 1f else 0f
-                ),
-                shape = RoundedCornerShape(30)
-            )
-            .clip(RoundedCornerShape(percent = 30))
+
 //            .border(
 //                1.5.dp,
 //                shape = RoundedCornerShape(percent = 30),
@@ -260,16 +252,24 @@ private fun StupContent(
 //            )
             .then(
                 if (isDs) Modifier.dashedBorder(
-                    3.dp,
+                    (1.5f).dp,
                     color = MaterialTheme.colorScheme.outline,
-                    cornerRadiusDp = 16.dp
-                ) else Modifier
+                    cornerRadiusDp = (size * 0.3f)
+                ) else Modifier.border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline,//.copy(
+//                        if (!isDs) 1f else 0f
+//                    ),
+                    shape = RoundedCornerShape(30)
+                )
             )
+
+            .clip(RoundedCornerShape(percent = 30))
             .then(addModifier),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            (if (mark.first() !in listOf('-', '+')) "+" else "")+mark,
+            (if (mark.first() !in listOf('-', '+')) "+" else "") + mark,
             fontSize = size.value.esp / 1.6f,
             modifier = Modifier.fillMaxSize().offset(y = textYOffset),
             textAlign = TextAlign.Center,

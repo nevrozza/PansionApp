@@ -105,6 +105,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
+            implementation("io.github.alexzhirkevich:compottie:2.0.0-rc02")
             implementation("io.github.alexzhirkevich:qrose:1.0.1")
 
 

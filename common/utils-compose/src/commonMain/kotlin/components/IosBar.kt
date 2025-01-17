@@ -8,7 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.chrisbanes.haze.HazeState
 import view.LocalViewManager
 
 @Composable
@@ -18,20 +17,17 @@ fun AppBar(
     navigationRow: @Composable () -> Unit = {},
     actionRow: @Composable () -> Unit = {},
     containerColor: Color = MaterialTheme.colorScheme.surface,
-    hazeState: HazeState?,
     isTransparentHaze: Boolean = false,
     isTopPadding: Boolean = true,
 //    isHazeActivated: Boolean
 ) {
     val viewManager = LocalViewManager.current
     Box(
-        Modifier.fillMaxWidth().height(60.dp + if (isTopPadding) viewManager.topPadding else 0.dp)
-            .hazeHeader(
-                viewManager = viewManager,
-                hazeState = hazeState,
-                isTransparentHaze = isTransparentHaze,
+        Modifier.fillMaxWidth().height(60.dp + if (isTopPadding) viewManager.topPadding else 0.dp).hazeHeader(
+            viewManager = viewManager,
+            isTransparentHaze = isTransparentHaze,
 //                isActivated = isHazeActivated
-            ),
+        ),
         contentAlignment = Alignment.BottomCenter
     ) {
         Row(

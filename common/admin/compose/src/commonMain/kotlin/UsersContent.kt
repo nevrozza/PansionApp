@@ -54,7 +54,6 @@ import excel.importStudents
 import kotlinx.datetime.*
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
-import pullRefresh.pullRefreshContentTransform
 import pullRefresh.rememberPullRefreshState
 import resources.RIcons
 import server.Roles
@@ -78,7 +77,6 @@ fun UsersContent(
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
     val viewManager = LocalViewManager.current
-    val hazeState = remember { HazeState() }
     val isTextFieldShown = remember { mutableStateOf(false) }
 
     val refresh = nModel.isLoading
@@ -99,15 +97,6 @@ fun UsersContent(
         modifier = Modifier.fillMaxSize().keyRefresh(refreshState),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(UsersComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     val searchBarFocusRequester = remember { FocusRequester() }
                     Row(
@@ -265,6 +254,15 @@ fun UsersContent(
                         }
                     }
                 },
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(UsersComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
+                },
                 actionRow = {
                     if (model.users != null) {
                         RefreshButton(refreshState, viewManager)
@@ -278,8 +276,7 @@ fun UsersContent(
                             )
                         }
                     }
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -317,7 +314,7 @@ fun UsersContent(
             Modifier
                 .fillMaxSize()
                 .pullRefresh(refreshState)
-                .hazeUnder(viewManager = viewManager, hazeState = hazeState)
+                .hazeUnder(viewManager = viewManager)
 
         ) {
             Crossfade(targetState = nModel) {
@@ -427,13 +424,11 @@ fun UsersContent(
             )
             editUserSheet(
                 component,
-                model,
-                hazeState = hazeState
+                model
             )
             createUserSheet(
                 component,
-                model,
-                hazeState = hazeState
+                model
             )
 
         }
@@ -447,7 +442,6 @@ fun UsersContent(
 private fun editUserSheet(
     component: UsersComponent,
     model: UsersStore.State,
-    hazeState: HazeState
 ) {
 
 
@@ -987,7 +981,6 @@ private fun editUserSheet(
 private fun createUserSheet(
     component: UsersComponent,
     model: UsersStore.State,
-    hazeState: HazeState?
 ) {
     val cNModel = component.cUserBottomSheet.nModel.subscribeAsState()
     val isCreatingInProcess = (cNModel.value.state == NetworkState.Loading)

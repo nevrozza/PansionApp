@@ -37,7 +37,6 @@ fun CLazyColumn(
 //    isCustomExpanded: Boolean? = null,
     isBottomPaddingNeeded: Boolean = false,
     state: LazyListState = rememberLazyListState(),
-    hazeState: HazeState?,
     refreshState: PullRefreshState? = null,
     content: LazyListScope.() -> Unit
 ) {
@@ -50,7 +49,7 @@ fun CLazyColumn(
             .fillMaxSize()
             .consumeWindowInsets(padding)
             .imePadding()
-            .hazeUnder(viewManager, hazeState).then(modifier)
+            .hazeUnder(viewManager).then(modifier)
         ,
         state = state
     ) {

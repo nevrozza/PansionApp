@@ -32,20 +32,20 @@ fun StupsButtons(
     stups: List<Pair<Int, String>>, onMainClick: () -> Unit = {}, onDiciplineClick: () -> Unit = {}
 ) {
     Spacer(Modifier.width(5.dp))
-   StupsButton(
-       stups.filter {
-           it.second.subSequence(
-               0,
-               3
-           ) != "!ds"
-       }.sumOf { it.first }
-   ) {
-       onMainClick()
-   }
+    StupsButton(
+        stups.filter {
+            it.second.subSequence(
+                0,
+                3
+            ) != "!ds"
+        }.sumOf { it.first }
+    ) {
+        onMainClick()
+    }
     Spacer(Modifier.width(5.dp))
     OutlinedButton(
         onClick = {
-                  onDiciplineClick()
+            onDiciplineClick()
         },
         contentPadding = PaddingValues(0.dp),
         modifier = Modifier.height(20.dp).offset(y = 2.dp),
@@ -76,13 +76,27 @@ fun StupsButton(count: Int, onClick: () -> Unit) {
 }
 
 @Composable
-fun BorderStup(string: String, reason: String, addModifier: Modifier = Modifier) {
+fun BorderStup(
+    string: String,
+    reason: String,
+    size: Dp = 25.dp,
+    addModifier: Modifier = Modifier
+) {
     Box(
-        addModifier.then(Modifier.size(25.dp).border(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outline.copy(if(reason.subSequence(0,3) != "!ds") 1f else 0f),
-            shape = RoundedCornerShape(30)
-        ).clip(RoundedCornerShape(30)).then(if(reason.subSequence(0,3) == "!ds") Modifier.dashedBorder(3.dp, color = MaterialTheme.colorScheme.outline, cornerRadiusDp = 8.dp) else Modifier)),
+        addModifier.then(
+            Modifier.size(size).then(
+                if (reason.subSequence(0, 3) == "!ds") Modifier.dashedBorder(
+                    (1.5f).dp,
+                    color = MaterialTheme.colorScheme.outline,
+                    cornerRadiusDp = (size * 0.3f)
+                )
+                else Modifier.border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline,//.copy(if (reason.subSequence(0, 3) != "!ds") 1f else 0f),
+                    shape = RoundedCornerShape(30)
+                )
+            )
+        ).clip(RoundedCornerShape(30)),
         contentAlignment = Alignment.Center
     ) {
         CostilText(string)
@@ -94,17 +108,18 @@ private fun CostilText(string: String) {
 
     Text(
         getStupString(string)//, modifier = Modifier.offset(x = -2.dp)
-        ,maxLines = 1
+        , maxLines = 1
     )
 }
 
 fun getStupString(string: String): String {
-    return "${if(!string.contains("-") && !string.contains("+")) "+" else ""}${string}"
+    return "${if (!string.contains("-") && !string.contains("+")) "+" else ""}${string}"
 }
 
 fun getStupString(int: Int): String {
-    return "${if(!int.toString().contains("-") && !int.toString().contains("+")) "+" else ""}${int.toString()}"
+    return "${if (!int.toString().contains("-") && !int.toString().contains("+")) "+" else ""}${int.toString()}"
 }
+
 
 fun Modifier.dashedBorder(strokeWidth: Dp, color: Color, cornerRadiusDp: Dp) = composed(
     factory = {

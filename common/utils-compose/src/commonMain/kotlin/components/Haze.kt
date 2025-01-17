@@ -11,27 +11,30 @@ import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.*
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import view.GlobalHazeState
 import view.ViewManager
 
 @Composable
 fun Modifier.hazeUnder(
     viewManager: ViewManager,
-    hazeState: HazeState?
+//    hazeState: HazeState? = GlobalHazeState.current,
+    zIndex: Float = 0f
 ) =
-    if (hazeState != null && viewManager.hazeHardware.value) {
+    if (viewManager.hazeHardware.value) {
 
-        this.haze(
-            state = hazeState
+        this.hazeSource(
+            state = GlobalHazeState.current,
+            zIndex = zIndex
             //style = viewManager.hazeStyle!!.value
         )
     } else this
 
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalHazeApi::class)
 @Composable
 fun Modifier.hazeHeader(
     viewManager: ViewManager,
-    hazeState: HazeState?,
+//    hazeState: HazeState? = GlobalHazeState.current,
     isTransparentHaze: Boolean = true,
     isMasked: Boolean = true,
 //    isActivated: Boolean,
@@ -39,11 +42,11 @@ fun Modifier.hazeHeader(
 ) =
     if (
         (isMasked || androidVersion > 30)) {
-        if (hazeState != null && viewManager.hazeHardware.value
+        if (viewManager.hazeHardware.value
             ) {
             //        val alpha = if (isActivated) 1f else 0f
-            this.hazeChild(
-                state = hazeState,
+            this.hazeEffect(
+                state = GlobalHazeState.current,
                 style = if (isMasked) LocalHazeStyle.current else HazeMaterials.ultraThin()
             ) {
                 if (isMasked) {

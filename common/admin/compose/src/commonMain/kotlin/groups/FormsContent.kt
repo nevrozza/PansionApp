@@ -56,7 +56,7 @@ fun FormsContent(
             when {
                 gModel.forms.isNotEmpty() && it != NetworkState.Error -> {
                     Spacer(Modifier.height(7.dp))
-                    CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = null) {
+                    CLazyColumn(padding = PaddingValues(top = topPadding)) {
                         items(gModel.forms) { form ->
                             val mentor =
                                 model.mentors.find { it.login == form.form.mentorLogin }

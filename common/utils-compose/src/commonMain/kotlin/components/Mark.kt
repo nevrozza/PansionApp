@@ -68,11 +68,14 @@ fun MarkContent(
     reason: String? = null
 ) {
     if (reason != null && (reason.subSequence(0, 3) == "!st" || reason.subSequence(0, 3) == "!ds")) {
-        BorderStup(
-            mark,
-            addModifier = addModifier.padding(paddingValues).height(size).widthIn(min = size).clip(RoundedCornerShape(30)),
-            reason = reason
-        )
+        Box() {
+            BorderStup(
+                mark,
+                addModifier = Modifier.padding(paddingValues).clip(RoundedCornerShape(percent = 30)).then(addModifier),
+                size = size,
+                reason = reason
+            )
+        }
     } else {
 
 
@@ -90,7 +93,7 @@ fun MarkContent(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                mark,
+                if (mark == "+2") "Д" else mark,
                 fontSize = size.value.esp / 1.6f,
                 modifier = Modifier.fillMaxWidth().align(Alignment.Center), //.offset(y = textYOffset)
                 textAlign = TextAlign.Center,

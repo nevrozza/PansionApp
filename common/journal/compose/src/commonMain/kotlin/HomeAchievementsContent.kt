@@ -1,6 +1,5 @@
 
 import achievements.HomeAchievementsComponent
-import achievements.HomeAchievementsStore
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -9,9 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -23,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
-import dev.chrisbanes.haze.HazeState
 import resources.RIcons
 import view.esp
 
@@ -39,20 +35,10 @@ fun SharedTransitionScope.HomeAchievementsContent(
 
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
-    val hazeState = remember { HazeState() }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(HomeAchievementsComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     Box(Modifier.sharedElementWithCallerManagedVisibility(
                         sharedContentState = rememberSharedContentState(key = "EventsTitle"),
@@ -67,6 +53,15 @@ fun SharedTransitionScope.HomeAchievementsContent(
                         )
                     }
                 },
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(HomeAchievementsComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
+                },
                 actionRow = {
                     GetAsyncAvatar(
                         avatarId = model.avatarId,
@@ -78,14 +73,13 @@ fun SharedTransitionScope.HomeAchievementsContent(
                             visible = isVisible
                         )
                     )
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
         Crossfade(nModel.state, modifier = Modifier.fillMaxSize()) { state ->
             when (state) {
-                NetworkState.None -> CLazyColumn(padding = padding, hazeState = hazeState) {
+                NetworkState.None -> CLazyColumn(padding = padding) {
                     items(model.achievements.sortedBy { it.id }.reversed()) {
                         Column(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).padding(horizontal = 5.dp)

@@ -269,7 +269,7 @@ data class AvgMark(
 )
 
 data class Mark(
-    val value: Int,
+    val value: String,
     val reason: String,
     val isGoToAvg: Boolean,
     val id: Int,

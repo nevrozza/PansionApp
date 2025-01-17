@@ -272,8 +272,10 @@ fun DropdownVariant(
         modifier = modifier.then(if (!isFullHeight) Modifier.sizeIn(maxHeight = 200.dp) else Modifier)
             .animateContentSize().hazeHeader(
                 viewManager = viewManager,
-                hazeState = GlobalHazeState.current,
                 isMasked = false
+            ).hazeUnder(
+                viewManager,
+                zIndex = 3f
             ),
         containerColor = if (viewManager.hazeHardware.value) Color.Transparent else MenuDefaults.containerColor,
         offset = offset

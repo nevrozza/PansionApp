@@ -58,7 +58,7 @@ fun StudentsContent(
                 NetworkState.None -> {
                     if (model.studentsInForm.isNotEmpty()) {
 
-                        CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = null) { // + 45.dp
+                        CLazyColumn(padding = PaddingValues(top = topPadding)) { // + 45.dp
                             item {
                                 Spacer(Modifier.height(7.dp))
                             }

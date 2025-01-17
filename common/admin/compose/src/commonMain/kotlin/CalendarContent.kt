@@ -1,6 +1,5 @@
 import admin.calendar.Holiday
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,13 +19,11 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
-import dev.chrisbanes.haze.HazeState
 import kotlinx.datetime.*
 import resources.RIcons
 import server.appTimeZone
 import server.getEdYear
 import server.to10
-import server.twoNums
 import view.esp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +41,6 @@ fun CalendarContent(
         if (!nModel.isLoading) component.onEvent(CalendarStore.Intent.Init)
     }
 
-    val hazeState = remember { HazeState() }
     var datePickerState = rememberDatePickerState()
     var dateRangePickerState = rememberDateRangePickerState()
 
@@ -59,15 +55,6 @@ fun CalendarContent(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(CalendarComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     val edYearNum = model.edYear % 100
                     Text(
@@ -83,7 +70,15 @@ fun CalendarContent(
                         fontWeight = FontWeight.Black,
                     ) {}
                 },
-                hazeState = hazeState
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(CalendarComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -132,7 +127,7 @@ fun CalendarContent(
                     }
                 }
 
-                else -> CLazyColumn(padding = padding, hazeState = hazeState) {
+                else -> CLazyColumn(padding = padding) {
                     item {
                         Text(
                             text = "1 полугодие",

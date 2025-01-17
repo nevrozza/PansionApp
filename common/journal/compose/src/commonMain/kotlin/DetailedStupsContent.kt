@@ -24,7 +24,6 @@ import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import detailedStups.DetailedStupsComponent
 import detailedStups.DetailedStupsStore
-import dev.chrisbanes.haze.HazeState
 import report.UserMark
 import resources.RIcons
 import server.fetchReason
@@ -49,7 +48,6 @@ fun DetailedStupsContent(
         if(!nModel.isLoading) component.onEvent(DetailedStupsStore.Intent.Init)
     }
 
-    val hazeState = remember { HazeState() }
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -61,15 +59,6 @@ fun DetailedStupsContent(
 //                .nestedScroll(scrollBehavior.nestedScrollConnection)
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(DetailedStupsComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     Text(
                         "Ступени",
@@ -79,6 +68,15 @@ fun DetailedStupsContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                },
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(DetailedStupsComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
                 },
                 actionRow = {
                     AnimatedContent(
@@ -91,8 +89,7 @@ fun DetailedStupsContent(
                             component.onEvent(DetailedStupsStore.Intent.ChangeReason)
                         }
                     }
-                },
-                hazeState = hazeState
+                }
             )
             //LessonReportTopBar(component, isFullView) //, scrollBehavior
         }
@@ -100,7 +97,7 @@ fun DetailedStupsContent(
         Column(Modifier.fillMaxSize()) {
             Crossfade(nModel.state) { state ->
                 when (state) {
-                    NetworkState.None -> CLazyColumn(padding, hazeState = hazeState) {
+                    NetworkState.None -> CLazyColumn(padding) {
                         item {
                             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                 FilledTonalButton(

@@ -248,7 +248,7 @@ open class RatingEntity : Table() {
     }
 
 
-    fun fetchRecentForUser(login: String, limit: Int, edYear: Int) : List<RatingEntityDTO> {
+    fun fetchRecentForUser(login: String, edYear: Int) : List<RatingEntityDTO> {
         return transaction {
             try {
 
@@ -259,8 +259,8 @@ open class RatingEntity : Table() {
                                 (this@RatingEntity.edYear eq edYear)
                     }.reversed()
 
-                val n = if(limit > ratingEntities.size) ratingEntities.size else limit
-                ratingEntities.slice(0..n-1).map {
+
+                ratingEntities.map {
                     RatingEntityDTO(
                         groupId = it[groupId],
                         reportId = it[this@RatingEntity.reportId],

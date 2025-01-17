@@ -587,13 +587,16 @@ class ReportsController() {
                 (it.reason.subSequence(0, 3) == "!st" ||
                         it.content.toInt() < 0)
             }
-            val n = if (limit > stups.size) stups.size else limit
-            val preGrades = (Marks.fetchRecentForUser(
+            val nStups = if (limit > stups.size) stups.size else limit
+
+            val marks = Marks.fetchRecentForUser(
                 login = r.login,
-                limit = limit,
                 edYear = edYear
-            ) + //Stups.fetchRecentForUser(r.login, 7))
-                    stups.slice(0..n - 1)
+            )
+            val nMarks = if(limit > marks.size) marks.size else limit
+
+            val preGrades = (marks.slice(0..nMarks-1) + //Stups.fetchRecentForUser(r.login, 7))
+                    stups.slice(0..nStups - 1)
                     )
             val grades = preGrades.sortedWith(
                 compareBy(
@@ -609,8 +612,10 @@ class ReportsController() {
                 )
             }
 
+            val dates = getCurrentWeek().dates + getPreviousWeekDays()
+
             this.respond(
-                RFetchRecentGradesResponse(grades)
+                RFetchRecentGradesResponse(grades, marks.any { (it.date in dates || it.deployDate in dates) && it.content == "+2" })
             ).done
         }
     }

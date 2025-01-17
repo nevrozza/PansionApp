@@ -78,7 +78,6 @@ fun ScheduleContent(
 
     val scrollState = rememberScrollState()
     val density = LocalDensity.current
-//    val hazeState = remember { HazeState() }
     val lazyListState = remember { LazyListState() }
     val isStatic = remember { mutableStateOf(false) }
 
@@ -220,8 +219,7 @@ fun ScheduleContent(
                             RIcons.Puzzle
                         )
                     }
-                },
-                hazeState = null//hazeState
+                }
             )
         },
         floatingActionButton = {

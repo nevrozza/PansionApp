@@ -77,7 +77,7 @@ fun SubjectsContent(
                 else -> {
                     if (model.groups.isNotEmpty()) {
                         Spacer(Modifier.height(7.dp))
-                        CLazyColumn(padding = PaddingValues(top = topPadding), hazeState = null) {
+                        CLazyColumn(padding = PaddingValues(top = topPadding)) {
                             items(model.groups.sortedByDescending { it.isActive }) { group ->
                                 if (model.groups.any { !it.isActive }) {
                                     Box(

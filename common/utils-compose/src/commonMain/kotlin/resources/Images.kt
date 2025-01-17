@@ -58,6 +58,8 @@ import pansion.common.utils_compose.generated.resources.Res
 fun imageResource(r: DrawableResource): ImageBitmap = org.jetbrains.compose.resources.imageResource(r)
 
 
+
+
 @Composable
 fun getAvatarPath(avatarId: Int): String? {
     // ok, it works better...
@@ -504,7 +506,8 @@ data class PricedAvatar(
 
 
 data object Images {
-
+    @OptIn(ExperimentalResourceApi::class)
+    suspend fun Confetti() = Res.readBytes("files/confetti.json").decodeToString()
 
 //    val avatarsMap: Map<Int, ImageBitmap>
 //        @Composable get() {
@@ -870,6 +873,7 @@ data object Images {
         val emoji6 = "${pathEmoji}emoji6.webp"
         val emoji7 = "${pathEmoji}emoji7.webp"
         val emojiCook = "${pathEmoji}emoji_cook.webp"
+        val emojiWoah = "${pathEmoji}emoji_woah.webp"
     }
 }
 

@@ -1,5 +1,4 @@
 package groups
-import dev.chrisbanes.haze.HazeInputScale
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -42,14 +41,13 @@ import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogContent
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.*
 import groups.forms.FormsStore
 import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
 import kotlinx.coroutines.launch
 import resources.RIcons
+import view.GlobalHazeState
 import view.LocalViewManager
 import view.WindowScreen
 import view.rememberImeState
@@ -80,7 +78,6 @@ fun GroupsContent(
     val imeState = rememberImeState()
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val hazeState = remember { HazeState() }
 
     val isInited =
         model.forms.isNotEmpty() || model.teachers.isNotEmpty() || model.subjects.isNotEmpty()
@@ -99,8 +96,8 @@ fun GroupsContent(
             val isHaze = viewManager.hazeHardware.value
             Column(
                 Modifier.then(
-                    if (isHaze) Modifier.hazeChild(
-                        state = hazeState,
+                    if (isHaze) Modifier.hazeEffect(
+                        state = GlobalHazeState.current,
                         style = LocalHazeStyle.current
                     ) {
                         inputScale = HazeInputScale.Fixed(0.7f)
@@ -111,16 +108,6 @@ fun GroupsContent(
                 )
             ) {
                 AppBar(
-                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
-                    navigationRow = {
-                        IconButton(
-                            onClick = { component.onOutput(GroupsComponent.Output.Back) }
-                        ) {
-                            GetAsyncIcon(
-                                path = RIcons.ChevronLeft
-                            )
-                        }
-                    },
                     title = {
                         if (isBigView) {
                             Text(
@@ -172,6 +159,15 @@ fun GroupsContent(
                             }
                         }
                     },
+                    navigationRow = {
+                        IconButton(
+                            onClick = { component.onOutput(GroupsComponent.Output.Back) }
+                        ) {
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft
+                            )
+                        }
+                    },
                     actionRow = {
 //                        ) {
 //                            buttonsRow.forEach {
@@ -188,8 +184,8 @@ fun GroupsContent(
 //                        }
 
                     },
-                    isTransparentHaze = isHaze,
-                    hazeState = null
+                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    isTransparentHaze = isHaze
                 )
                 AnimatedVisibility(
                     model.view == GroupsStore.Views.Students
@@ -421,7 +417,7 @@ fun GroupsContent(
         Crossfade(
             targetState = isInited,
             modifier = Modifier.hazeUnder(
-                viewManager = viewManager, hazeState = hazeState
+                viewManager = viewManager
             )
         ) {
             Box(

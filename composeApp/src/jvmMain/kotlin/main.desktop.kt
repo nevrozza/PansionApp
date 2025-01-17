@@ -39,6 +39,7 @@ import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import components.CustomTextButton
 import components.GetAsyncIcon
 import components.hazeHeader
+import components.hazeUnder
 import dev.chrisbanes.haze.HazeState
 import di.Inject
 import forks.splitPane.ExperimentalSplitPaneApi
@@ -243,10 +244,12 @@ fun main() {
                                             }
                                         },
                                         modifier = Modifier.clip(MaterialTheme.shapes.large).hazeHeader(
-                                                   viewManager = viewManager,
-                                                   hazeState = GlobalHazeState.current,
-                                                   isMasked = false
-                                               ),
+                                            viewManager = viewManager,
+                                            isMasked = false
+                                        ).hazeUnder(
+                                            viewManager,
+                                            zIndex = 20f
+                                        ),
                                         containerColor = if(viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor,
 
                                     )

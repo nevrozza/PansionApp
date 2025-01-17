@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -26,7 +25,6 @@ import components.GetAsyncIcon
 import components.hazeUnder
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
-import dev.chrisbanes.haze.HazeState
 import resources.RIcons
 import view.LocalViewManager
 
@@ -47,21 +45,11 @@ fun CabinetsContent(
     }
 
     val viewManager = LocalViewManager.current
-    val hazeState = remember { HazeState() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(CabinetsComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     Text(
                         "Кабинеты",
@@ -71,7 +59,15 @@ fun CabinetsContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                hazeState = hazeState
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(CabinetsComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -109,7 +105,7 @@ fun CabinetsContent(
                 .consumeWindowInsets(padding)
                 .fillMaxSize()
                 .imePadding()
-                .hazeUnder(viewManager, hazeState = hazeState)
+                .hazeUnder(viewManager)
                 .verticalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center
 

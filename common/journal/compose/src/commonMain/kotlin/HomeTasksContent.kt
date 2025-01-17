@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
-import dev.chrisbanes.haze.HazeState
 import homeTasks.HomeTasksComponent
 import homeTasks.HomeTasksStore
 import homework.ClientHomeworkItem
@@ -44,12 +43,20 @@ import view.esp
 @Composable
 fun HomeTasksContent(
     component: HomeTasksComponent,
-    isVisible: Boolean
+    isVisible: Boolean,
+    onWholeDateCompleted: () -> Unit
 ) {
+
+
+
+
+
+
+
+
     val model by component.model.subscribeAsState()
     val nInitModel by component.nInitInterface.networkModel.subscribeAsState()
     val lazyListState = rememberLazyListState()
-    val hazeState = remember { HazeState() }
 
     LaunchedEffect(model.dates.size >= 1) {
         if (model.dates.size >= 1) {
@@ -61,15 +68,6 @@ fun HomeTasksContent(
         Modifier.fillMaxSize(),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(HomeTasksComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
                     Text(
                         "Задания",
@@ -79,6 +77,15 @@ fun HomeTasksContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(HomeTasksComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.ChevronLeft
+                        )
+                    }
+                },
                 actionRow = {
                     GetAsyncAvatar(
                         avatarId = model.avatarId,
@@ -87,15 +94,14 @@ fun HomeTasksContent(
                         textSize = MaterialTheme.typography.titleSmall.fontSize,
                         modifier = Modifier.padding(end = 10.dp)
                     )
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
         Column(Modifier.fillMaxSize()) {
             Crossfade(nInitModel.state) { state ->
                 when (state) {
-                    NetworkState.None -> CLazyColumn(padding = padding, state = lazyListState, hazeState = hazeState) {
+                    NetworkState.None -> CLazyColumn(padding = padding, state = lazyListState) {
                         itemsIndexed(items = model.dates) { i, date ->
                             DateTasksItem(
                                 date = date,
@@ -104,7 +110,9 @@ fun HomeTasksContent(
                                 subjects = model.subjects,
                                 component = component,
                                 model = model
-                            )
+                            ) {
+                                onWholeDateCompleted()
+                            }
                             if (i == model.dates.size - 1) {
                                 Spacer(Modifier.height(100.dp))
                             }
@@ -125,6 +133,9 @@ fun HomeTasksContent(
             }
         }
     }
+
+
+
 }
 
 @Composable
@@ -134,12 +145,15 @@ private fun DateTasksItem(
     groups: List<CutedDateTimeGroup>,
     subjects: Map<Int, String>,
     model: HomeTasksStore.State,
-    component: HomeTasksComponent
+    component: HomeTasksComponent,
+    onWholeDateCompleted: () -> Unit
 ) {
 
     val nModel by component.nInterface.networkModel.subscribeAsState()
 
     val isCompleted = tasks.count { it.done } == tasks.size
+
+
     val isOpened = remember { mutableStateOf(!isCompleted) }
     ElevatedCard(
         Modifier.fillMaxWidth().padding(horizontal = 5.dp).padding(top = 2.dp, bottom = 5.dp)
@@ -163,7 +177,7 @@ private fun DateTasksItem(
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 6.dp)
                     )
-                    AnimatedVisibility (isCompleted) {
+                    AnimatedVisibility(isCompleted) {
                         GetAsyncIcon(
                             path = RIcons.Check,
                             tint = MaterialTheme.colorScheme.primary
@@ -191,7 +205,12 @@ private fun DateTasksItem(
                                         subjectName = s.value,
                                         subjectGroups = subjectGroups,
                                         subjectTasks = subjectTasks,
-                                        component = component
+                                        component = component,
+                                        onCompleteClicked = {
+                                            if (tasks.count { it.done } == tasks.size-1) {
+                                                onWholeDateCompleted()
+                                            }
+                                        }
                                     )
                                 }
                             }
@@ -225,7 +244,8 @@ private fun SubjectTaskItem(
     subjectName: String,
     subjectGroups: List<CutedDateTimeGroup>,
     subjectTasks: List<ClientHomeworkItem>,
-    component: HomeTasksComponent
+    component: HomeTasksComponent,
+    onCompleteClicked: () -> Unit
 ) {
     val isDone = false !in subjectTasks.map { it.done }
     val stupsCount = subjectTasks.sumOf { it.stups }
@@ -261,7 +281,8 @@ private fun SubjectTaskItem(
                 groupName = g.name,
                 groupTasks = groupTasks,
                 groupTime = g.localDateTime?.toInstant(TimeZone.of("UTC+3"))?.toEpochMilliseconds(),
-                component = component
+                component = component,
+                onCompleteClicked = onCompleteClicked
             )
         }
     }
@@ -272,7 +293,8 @@ private fun GroupTaskItems(
     groupName: String,
     groupTime: Long?,
     groupTasks: List<ClientHomeworkItem>,
-    component: HomeTasksComponent
+    component: HomeTasksComponent,
+    onCompleteClicked: () -> Unit
 ) {
     val isDone = false !in groupTasks.map { it.done }
     val currentTime = remember { Clock.System.now().toEpochMilliseconds() }
@@ -302,7 +324,7 @@ private fun GroupTaskItems(
         )
         Spacer(Modifier.height(5.dp))
         groupTasks.sortedBy { it.id }.forEachIndexed { i, t ->
-            TaskItem(task = t, component = component)
+            TaskItem(task = t, component = component, onCompleteClicked = onCompleteClicked)
             Spacer(Modifier.height(5.dp))
             if (i != groupTasks.size - 1) {
                 Spacer(Modifier.height(10.dp))
@@ -314,7 +336,8 @@ private fun GroupTaskItems(
 @Composable
 private fun TaskItem(
     task: ClientHomeworkItem,
-    component: HomeTasksComponent
+    component: HomeTasksComponent,
+    onCompleteClicked: () -> Unit
 ) {
     Row(Modifier.cClickable {
         component.onEvent(
@@ -324,6 +347,9 @@ private fun TaskItem(
                 doneId = task.doneId
             )
         )
+        if (!task.done) {
+            onCompleteClicked()
+        }
     }) {
         CustomCheckBox(
             checked = task.done,
@@ -361,19 +387,17 @@ private fun CustomCheckBox(
 
     Box(
         modifier
-            .alpha(if (checked) 1f else .5f).then(
-                Modifier.size(25.dp).border(
+            .alpha(if (checked) 1f else .5f).size(30.dp).then(
+                if (isDashedBorder) Modifier.dashedBorder(
+                    (1.5f).dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cornerRadiusDp = (30.dp * 0.35f)
+                ) else Modifier.border(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(if (!isDashedBorder) 1f else 0f),
-                    shape = RoundedCornerShape(40)
-                ).clip(RoundedCornerShape(40)).then(
-                    if (isDashedBorder) Modifier.dashedBorder(
-                        3.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        cornerRadiusDp = 16.dp
-                    ) else Modifier
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,//.copy(if (!isDashedBorder) 1f else 0f),
+                    shape = RoundedCornerShape(35)
                 )
-            ),
+            ).clip(RoundedCornerShape(35)),
         contentAlignment = Alignment.Center
     ) {
         AnimatedVisibility(

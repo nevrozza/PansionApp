@@ -75,6 +75,23 @@ object Forms : Table() {
         }
     }
 
+    fun fetchByIdNullable(formId: Int): FormDTO? {
+        return transaction {
+            val it = Forms.select { Forms.id eq formId }.firstOrNull()
+            if (it != null) {
+                FormDTO(
+                    formId = it[Forms.id],
+                    classNum = it[classNum],
+                    title = it[title],
+                    shortTitle = it[shortTitle],
+                    mentorLogin = it[mentorLogin],
+                    isActive = it[isActive]
+                )
+            } else null
+
+        }
+    }
+
     fun fetchById(formId: Int): FormDTO {
         return transaction {
             val it = Forms.select { Forms.id eq formId }.first()

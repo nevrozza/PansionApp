@@ -10,7 +10,7 @@ object HomeReducer : Reducer<State, Message> {
             is Message.QuickTabUpdated -> copy(averageGradePoint = msg.avg, ladderOfSuccess = msg.stups, achievements = msg.achievements
                 ?: achievements)
             is Message.TeacherGroupUpdated -> copy(teacherGroups = msg.teacherGroups)
-            is Message.GradesUpdated -> copy(grades = msg.grades)
+            is Message.GradesUpdated -> copy(grades = msg.grades, isAnyDepts = msg.isAnyDepts)
             is Message.ItemsUpdated -> copy(items = msg.items, lastUpdate = msg.lastUpdate)
             Message.IsDatesShownChanged -> copy(isDatesShown = !isDatesShown)
             is Message.DateChanged -> copy(currentDate = msg.date)

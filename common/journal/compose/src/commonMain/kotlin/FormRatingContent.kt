@@ -22,7 +22,6 @@ import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import dev.chrisbanes.haze.HazeState
 import formRating.FormRatingComponent
 import formRating.FormRatingStore
 import rating.FormRatingStudent
@@ -65,7 +64,6 @@ fun SharedTransitionScope.FormRatingContent(
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
     val coroutineScope = rememberCoroutineScope()
-    val hazeState = remember { HazeState() }
 
     val rawPage =
         model.formRatingPages.firstOrNull { it.formId == model.formId && it.period == model.period }
@@ -166,8 +164,7 @@ fun SharedTransitionScope.FormRatingContent(
                         }
                         RefreshButton(refreshState, viewManager)
                     }
-                },
-                hazeState = hazeState
+                }
             )
         }
     ) { padding ->
@@ -183,7 +180,6 @@ fun SharedTransitionScope.FormRatingContent(
 
                             CLazyColumn(
                                 padding = padding,
-                                hazeState = hazeState,
                                 refreshState = refreshState
                             ) {
                                 item {

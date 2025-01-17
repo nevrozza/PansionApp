@@ -16,6 +16,7 @@ import server.getLocalDate
 class LessonReportStoreFactory(
     private val storeFactory: StoreFactory,
     private val setMarkMenuComponent: ListComponent,
+    private val setDzMarkMenuComponent: ListComponent,
     private val deleteMarkMenuComponent: ListComponent,
     private val setLateTimeMenuComponent: ListComponent,
     private val nInterface: NetworkInterface,
@@ -68,7 +69,8 @@ class LessonReportStoreFactory(
                     marksDialogComponent = marksDialogComponent,
                     authRepository = authRepository,
                     header = data.header,
-                    nHomeTasksInterface = nHomeTasksInterface
+                    nHomeTasksInterface = nHomeTasksInterface,
+                    setDzMarkMenuComponent = setDzMarkMenuComponent
                 )
             },
             reducer = LessonReportReducer

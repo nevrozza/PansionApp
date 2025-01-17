@@ -7,7 +7,6 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-
                 api(project(":common:journal:presentation"))
                 ////implementation(":common:settings:presentation")
                 implementation(project(":common:core"))
