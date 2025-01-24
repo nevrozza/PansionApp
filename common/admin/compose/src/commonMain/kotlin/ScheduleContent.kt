@@ -51,6 +51,7 @@ import schedule.ScheduleStore.EditState
 import server.isTimeFormat
 import server.toMinutes
 import server.weekPairs
+import view.LocalViewManager
 import view.LockScreenOrientation
 import view.blend
 import view.esp
@@ -64,7 +65,7 @@ fun ScheduleContent(
     LockScreenOrientation(-1)
 
     
-
+    val viewManager = LocalViewManager.current
 
 
     val model by component.model.subscribeAsState()
@@ -87,7 +88,9 @@ fun ScheduleContent(
     val key = if (model.isDefault) model.defaultDate.toString() else model.currentDate.second
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().hazeUnder(
+            viewManager
+        ),
         topBar = {
             AppBar(
                 navigationRow = {
@@ -461,6 +464,7 @@ fun ScheduleContent(
                 )
             }
         }
+
     }
     ListDialogMobileContent(
         component = component.listCreateTeacher,

@@ -72,7 +72,13 @@ fun DropdownVariant(
             onDismissRequest = {
                 component.onEvent(MpChoseStore.Intent.HideDialog)
             },
-            modifier = Modifier.sizeIn(maxWidth = viewManager.size!!.maxWidth - 50.dp, maxHeight = viewManager.size!!.maxHeight - 100.dp).animateContentSize(), //.sizeIn(maxHeight = 200.dp)
+            modifier = Modifier.sizeIn(maxWidth = viewManager.size!!.maxWidth - 50.dp, maxHeight = viewManager.size!!.maxHeight - 100.dp).animateContentSize().hazeHeader(
+                viewManager = viewManager,
+                isMasked = false
+            ).hazeUnder(
+                viewManager,
+                zIndex = 3f
+            ), //.sizeIn(maxHeight = 200.dp)
             offset = offset
         ) {
             Row {
