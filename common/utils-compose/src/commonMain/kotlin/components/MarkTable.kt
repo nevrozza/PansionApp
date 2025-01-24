@@ -55,7 +55,7 @@ fun MarkTableUnit(m: MarkTableItem, markSize: Dp) {
                 )
             }
         },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
         enableUserInput = true
     ) {
 

@@ -219,7 +219,7 @@ android {
     }
 
     namespace = "com.nevrozq.pansion.android"
-    compileSdk = 34
+    compileSdk = 35
 //    namespace = "com.nevrozq.pansion.android"
 //    compileSdk = 34
     defaultConfig {

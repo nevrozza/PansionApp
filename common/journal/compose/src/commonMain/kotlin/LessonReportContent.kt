@@ -598,7 +598,7 @@ private fun HomeWorkTabContent(
                                     }
                                 }
                             },
-                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+                            positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
                         ) {
                             Tab(
                                 selected = selectedTabIndex.value == i,
@@ -2003,7 +2003,7 @@ fun PrisutCheckBox(
                 }
             }
         },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
         enableUserInput = true
     ) {
 

@@ -220,7 +220,7 @@ fun ActivationContent(
                                                             }
                                                         }
                                                     },
-                                                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
                                                     enableUserInput = false,
                                                     focusable = false
                                                 ) {

@@ -1,12 +1,13 @@
 [versions]
 # Plugins
+coil = "3.1.0-SNAPSHOT"
 excelkt = "1.0.2"
 mpfilepicker = "3.1.0"
 plugin-android = "8.3.0"
-plugin-compose = "1.7.1"#"1.7.0-rc01"
+plugin-compose = "1.8.0-alpha02"#"1.7.0-rc01"
 
 # Multiplatform
-kotlin = "2.1.0"
+kotlin = "2.1.10-RC2"
 coroutines = "1.10.1"
 serialization = "1.7.3"
 datetime = "0.6.1"
@@ -36,6 +37,9 @@ androidx-appCompat = "1.7.0"
 coreI18n = "1.0.0-alpha01"
 
 [libraries]
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
 excelkt = { module = "io.github.evanrupert:excelkt", version.ref = "excelkt" }
 mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "mpfilepicker" }
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

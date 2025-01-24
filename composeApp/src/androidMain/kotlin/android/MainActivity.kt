@@ -6,21 +6,27 @@ import PlatformSDK
 import Root
 import SettingsRepository
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.graphics.Color.TRANSPARENT
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -72,11 +78,16 @@ class MainActivity : AppCompatActivity() {
 
         val windowInsetsController =
             WindowCompat.getInsetsController(window, window.decorView)
+
+        window.navigationBarColor = Color.Transparent.toArgb()
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.light(TRANSPARENT,TRANSPARENT )
+        )
         // Configure the behavior of the hidden system bars.
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
-        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
+//        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
 
         val root = RootComponentImpl(

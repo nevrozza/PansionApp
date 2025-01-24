@@ -113,7 +113,7 @@ fun StudentReportDialogContent(
                                                     )
                                                 }
                                             },
-                                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+                                            positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
                                         ) {
 
                                             if (m.reason.subSequence(0, 3) != "!st" &&

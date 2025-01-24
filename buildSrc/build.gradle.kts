@@ -11,6 +11,7 @@ repositories {
     gradlePluginPortal()
     maven("https://packages.jetbrains.team/maven/p/kpm/public/")
     maven("https://jitpack.io")
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
 dependencies {
     implementation(libs.plugin.android)

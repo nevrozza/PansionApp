@@ -3,6 +3,8 @@ plugins {
     id("compose-setup")
 }
 
+
+
 kotlin {
     sourceSets {
         androidMain {
@@ -25,9 +27,9 @@ kotlin {
                 implementation(libs.decompose.core)
                 implementation(libs.decompose.compose)
 
-                implementation("io.coil-kt.coil3:coil-compose:3.0.4")
-                implementation("io.coil-kt.coil3:coil-svg:3.0.4")
-                implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.4")
+                implementation(libs.coil.compose)
+                implementation(libs.coil.svg)
+                implementation(libs.coil.network.ktor3)
             }
         }
     }

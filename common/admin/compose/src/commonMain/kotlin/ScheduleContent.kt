@@ -2260,7 +2260,7 @@ fun ErrorsTooltip(
                 )
             }
         },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
     ) {
         IconButton(
             {

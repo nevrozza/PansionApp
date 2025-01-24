@@ -107,7 +107,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 //    val isVertical = viewManager.orientation.value == WindowScreen.Vertical
 
 
-    BoxWithConstraints {
+    BoxWithConstraints(
+    ) {
         val isExpanded =
             if (component.secondLogin == null) viewManager.orientation.value == WindowScreen.Expanded else WindowCalculator.calculateScreen(
                 size = DpSize(

@@ -1228,7 +1228,7 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope, onClick: () -> Unit) {
                     )
                 }
             },
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
         ) {
             RecentMarkContent(
                 mark.content,

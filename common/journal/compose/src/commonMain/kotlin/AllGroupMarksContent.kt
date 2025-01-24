@@ -637,7 +637,7 @@ fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent, isModer: Bo
                 )
             }
         },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
         enableUserInput = true
     ) {
         MarkContent(

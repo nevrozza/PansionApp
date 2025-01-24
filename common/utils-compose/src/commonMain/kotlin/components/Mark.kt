@@ -135,7 +135,7 @@ fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = tr
                 )
             }
         },
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
     ) {
         MarkContent(
             mark.content,
