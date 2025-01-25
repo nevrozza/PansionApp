@@ -1018,7 +1018,7 @@ fun Lesson(
                                 withStyle(
                                     SpanStyle(
                                         fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                                     )
                                 ) {
@@ -1039,7 +1039,7 @@ fun Lesson(
                                 if (groupId !in listOf(0, -11)) {
                                     withStyle(
                                         SpanStyle(
-                                            fontWeight = FontWeight.SemiBold,
+                                            fontWeight = FontWeight.Light,
                                             fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                                         )

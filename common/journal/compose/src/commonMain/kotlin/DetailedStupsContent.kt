@@ -177,7 +177,7 @@ private fun DetailedStupsSubjectItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(title, fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineSmall.fontSize)
+                    Text(title, fontWeight = FontWeight.Medium, fontSize = MaterialTheme.typography.headlineSmall.fontSize)
                     StupsButtons(
                         stups = stups.map {
                             Pair(it.content.toInt(), it.reason)

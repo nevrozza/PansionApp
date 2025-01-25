@@ -193,7 +193,7 @@ fun SettingsView(
                             Text(
                                 text = "Цветовой режим",
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.Normal
                             )
                             Box() {
                                 CustomTextButton(
@@ -435,7 +435,7 @@ fun SettingsView(
                                             Column() {
                                                 Text(
                                                     device.deviceName ?: "Неизвестное устройство",
-                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontWeight = FontWeight.Medium,
                                                     fontSize = 16.esp,
                                                     lineHeight = 16.esp
                                                 )
@@ -642,7 +642,7 @@ private fun SettingsRow(
         Text(
             text,
             fontSize = if (isHeader) 23.esp else MaterialTheme.typography.titleMedium.fontSize,
-            fontWeight = if (isHeader) FontWeight.Black else FontWeight.SemiBold,
+            fontWeight = if (isHeader) FontWeight.SemiBold else FontWeight.Normal,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(.9f, false)

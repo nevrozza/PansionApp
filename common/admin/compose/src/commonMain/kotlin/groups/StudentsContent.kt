@@ -98,7 +98,7 @@ fun StudentsContent(
                                             Text(
                                                 "${student.fio.surname} ${student.fio.name} ${student.fio.praname ?: ""}",
                                                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                                fontWeight = FontWeight.SemiBold,
+                                                fontWeight = FontWeight.Normal,
                                                 modifier = Modifier.weight(1f, false)
                                             )
                                             Box(Modifier.weight(0.1f,false)) {

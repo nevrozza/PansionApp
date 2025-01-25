@@ -363,7 +363,7 @@ private fun SubjectMarksItem(
                 ) {
                     Text(
                         text = title,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -485,7 +485,7 @@ private fun ModuleRow(
         ) {
             Text(
                 "$num модуль",
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Normal,
                 fontSize = MaterialTheme.typography.titleLarge.fontSize
             ) //is Quarters None ${if(isQuarters) "модуль" else "полугодие"} TODO
             Text(

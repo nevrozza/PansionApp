@@ -120,11 +120,11 @@ fun AdminParentsContent(
                             val kids = model.kids[form.id]
                             val title = "${form.classNum} ${form.title}"
                             if (!kids.isNullOrEmpty()) {
-                                Spacer(Modifier.height(10.dp))
+                                Spacer(Modifier.height(15.dp))
                                 Text(
                                     title,
                                     fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                                    fontWeight = FontWeight.Black,
+                                    fontWeight = FontWeight.SemiBold,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.cClickable {
@@ -190,14 +190,14 @@ fun AdminParentsContent(
                                                 }
                                             }
                                         )
-                                    }) {
+                                    }.padding(bottom = 10.dp)) {
                                         if (p != null) {
 
                                             val parents = model.lines.filter { it.studentLogin == s }
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Text(
                                                     "${p.fio.surname} ${p.fio.name} ${p.fio.praname} ($s)",
-                                                    fontWeight = FontWeight.Bold,
+                                                    fontWeight = FontWeight(460),
                                                     fontSize = 18.esp
                                                 )
                                                 Spacer(Modifier.width(5.dp))

@@ -493,7 +493,7 @@ fun SchoolContent(
                             Text(
                                 "Расписание БЕТА",
                                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 color = MaterialTheme.colorScheme.primary
@@ -516,7 +516,7 @@ fun SchoolContent(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 "Министерства",
-                                fontSize = 19.esp,
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                                 fontWeight = FontWeight.Black,
                                 modifier = Modifier.padding(start = 10.dp)
                             )
@@ -597,7 +597,7 @@ fun SchoolContent(
                                 Text(
                                     "Редактировать",
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.SemiBold,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     color = MaterialTheme.colorScheme.primary

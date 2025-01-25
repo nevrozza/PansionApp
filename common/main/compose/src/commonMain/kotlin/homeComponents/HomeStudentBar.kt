@@ -112,7 +112,7 @@ fun LazyListScope.homeStudentBar(
                             Text(
                                 model.name,
                                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                             )
                             AnimatedContent(
                                 when (model.period) {
@@ -127,7 +127,7 @@ fun LazyListScope.homeStudentBar(
                             ) {
                                 CustomTextButton(
                                     text = it,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.SemiBold,
                                     //color = MaterialTheme.colorScheme.primary//secondary
                                 ) {
                                     component.onEvent(HomeStore.Intent.ChangePeriod)
@@ -357,7 +357,7 @@ private fun QuickTabNotNull(
 ) {
     CustomTextButton(
         text = buildAnnotatedString {
-            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+            withStyle(SpanStyle(fontWeight = FontWeight.Normal)) {
                 append("$title: ")
             }
             append(value)

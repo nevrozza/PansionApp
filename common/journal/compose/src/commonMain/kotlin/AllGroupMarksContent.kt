@@ -94,7 +94,7 @@ fun AllGroupMarksContent(
                                     text = buildAnnotatedString {
                                         withStyle(
                                             SpanStyle(
-                                                fontWeight = FontWeight.Bold
+                                                fontWeight = FontWeight.SemiBold
                                             )
                                         ) {
                                             append(model.subjectName)
@@ -118,7 +118,7 @@ fun AllGroupMarksContent(
                                 text = buildAnnotatedString {
                                     withStyle(
                                         SpanStyle(
-                                            fontWeight = FontWeight.Bold
+                                            fontWeight = FontWeight.Normal
                                         )
                                     ) {
                                         append(model.groupName)
@@ -454,7 +454,7 @@ private fun AllGroupMarksStudentItem(
 
                     Text(
                         title,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         modifier = Modifier.weight(2f, false),
                         maxLines = 1,
@@ -559,7 +559,7 @@ private fun HalfYearRow(
         ) {
             Text(
                 "$num полугодие",
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Normal,
                 fontSize = 21.esp
             ) //is Quarters None ${if(isQuarters) "модуль" else "полугодие"} TODO
             Text(
@@ -596,7 +596,7 @@ private fun ModuleView(
         ) {
             Text(
                 "$moduleNum модуль",
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Normal,
                 fontSize = MaterialTheme.typography.titleLarge.fontSize
             ) //is Quarters None ${if(isQuarters) "модуль" else "полугодие"} TODO
             Text(

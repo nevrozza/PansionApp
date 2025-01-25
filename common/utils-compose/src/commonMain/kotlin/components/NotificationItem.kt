@@ -105,7 +105,7 @@ fun NotificationItem(
                                     append(" ${not.date}")
                                 }
                                                  },
-                            fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.titleLarge.fontSize, color = textColor
+                            fontWeight = FontWeight.Medium, fontSize = MaterialTheme.typography.titleLarge.fontSize, color = textColor
                         )
                         if (type != "A") { //groupName + time
                             Text(
@@ -116,7 +116,7 @@ fun NotificationItem(
                                     }
 
                                                      },
-                                fontWeight = FontWeight.Bold, fontSize = 18.esp, color = textColor
+                                fontWeight = FontWeight.Normal, fontSize = 18.esp, color = textColor
                             )
                         }
                         if (type == "A") {
@@ -131,14 +131,15 @@ fun NotificationItem(
                                         }
                                     }
                                                      },
-                                fontWeight = FontWeight.SemiBold, fontSize = 18.esp, color = textColor
+                                fontWeight = FontWeight.Normal, fontSize = 18.esp, color = textColor
                             )
                         }
                         else if (type == "N") {
                             val isGood = data[1] == "2"
                             Text(
                                 "Отсутствие по ${if (isGood) "уважительной" else "н-ой"} причине",
-                                fontWeight = FontWeight.SemiBold, fontSize = 18.esp, color = textColor
+                                fontWeight = FontWeight.Normal, fontSize = 18.esp, color = textColor
+
                             )
                         }
                         else if (type == "Op") {
@@ -150,13 +151,13 @@ fun NotificationItem(
                                         append("$lateTime мин.")
                                     }
                                                      },
-                                fontWeight = FontWeight.SemiBold, fontSize = (16.5f).esp, color = textColor
+                                fontWeight = FontWeight.Normal, fontSize = (16.5f).esp, color = textColor
                             )
                         }
                         else if (type == "L") {
                             Text(
                                 "Отмечено ${if(data[1] == "T") "хорошее" else "плохое"} поведение",
-                                fontWeight = FontWeight.SemiBold, fontSize = 18.esp, color = textColor
+                                fontWeight = FontWeight.Normal, fontSize = 18.esp, color = textColor
                             )
                         }
                         if (isChangeToUvButton) {

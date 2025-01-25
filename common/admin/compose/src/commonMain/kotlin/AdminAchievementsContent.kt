@@ -126,7 +126,7 @@ fun AdminAchievementsContent(
                                         withStyle(
                                             SpanStyle(
                                                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                                fontWeight = FontWeight.Black
+                                                fontWeight = FontWeight.SemiBold
                                             )
                                         ) {
                                             append(h.text + " ")
@@ -185,7 +185,7 @@ fun AdminAchievementsContent(
                                             Spacer(Modifier.width(5.dp))
                                             Text(
                                                 "${fio?.surname} ${fio?.name} ${fio?.praname?.get(0)}.",
-                                                fontWeight = FontWeight.Bold
+                                                fontWeight = FontWeight.Normal
                                             )
                                             Spacer(Modifier.width(5.dp))
                                             Box(

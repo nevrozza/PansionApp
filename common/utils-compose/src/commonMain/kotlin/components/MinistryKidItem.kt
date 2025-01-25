@@ -91,7 +91,7 @@ fun MinistryKidItem(
                         ) {
                             withStyle(
                                 SpanStyle(
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Normal
                                 )
                             ) {
                                 append("День: ")
@@ -100,7 +100,7 @@ fun MinistryKidItem(
                         }
 
                         withStyle(SpanStyle(color = colorWeek)) {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Normal)) {
                                 append("Неделя: ")
                             }
                             append(textikWeek)
@@ -110,14 +110,14 @@ fun MinistryKidItem(
                         append("\n")
 
                         withStyle(SpanStyle(color = colorModule)) {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Normal)) {
                                 append("Модуль: ")
                             }
                             append(textikModule)
                         }
 
                         withStyle(SpanStyle(color = colorYear)) {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Normal)) {
                                 append("Год: ")
                             }
                             append(textikYear)
@@ -415,7 +415,7 @@ private fun DressCodeRow(
     ) {
         Text(
             text,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Normal,
             modifier = Modifier.padding(bottom = 4.dp)
         )
         Stepper(

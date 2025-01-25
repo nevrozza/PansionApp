@@ -527,14 +527,14 @@ fun JournalItemCompose(
                                     text = buildAnnotatedString {
                                         withStyle(
                                             SpanStyle(
-                                                fontWeight = FontWeight.Bold
+                                                fontWeight = FontWeight.SemiBold
                                             )
                                         ) {
                                             append(subjectName)
                                         }
                                         withStyle(
                                             SpanStyle(
-                                                fontWeight = FontWeight.Black,
+                                                fontWeight = FontWeight.SemiBold,
                                                 fontSize = smallTextSize,
                                                 color = MaterialTheme.colorScheme.onSurface.copy(
                                                     alpha = .5f

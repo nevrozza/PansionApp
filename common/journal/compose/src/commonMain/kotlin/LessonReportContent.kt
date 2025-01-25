@@ -1542,7 +1542,7 @@ fun LessonTable(
                                 Text(
                                     text = student.shortFio,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Normal,
                                     color = fioColor,
                                     modifier = Modifier
                                 )

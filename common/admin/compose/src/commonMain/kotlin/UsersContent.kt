@@ -816,7 +816,7 @@ private fun editUserSheet(
                     ) {
                         Text(
                             "Модератор",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Medium,
                             fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
@@ -841,7 +841,7 @@ private fun editUserSheet(
                     ) {
                         Text(
                             "Наставник",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Medium,
                             fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
@@ -866,7 +866,7 @@ private fun editUserSheet(
                     ) {
                         Text(
                             "Родитель",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Medium,
                             fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
@@ -1337,7 +1337,7 @@ private fun createUserSheet(
                             ) {
                                 Text(
                                     "Модератор",
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Medium,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     modifier = Modifier.padding(bottom = 4.dp)
                                 )
@@ -1362,7 +1362,7 @@ private fun createUserSheet(
                             ) {
                                 Text(
                                     "Наставник",
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Medium,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     modifier = Modifier.padding(bottom = 4.dp)
                                 )
@@ -1387,7 +1387,7 @@ private fun createUserSheet(
                             ) {
                                 Text(
                                     "Родитель",
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Medium,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     modifier = Modifier.padding(bottom = 4.dp)
                                 )
@@ -1533,7 +1533,7 @@ private fun createUserSheet(
 //                        } else {
                 Text(
                     "${model.cSurname} ${model.cName} ${model.cPraname}",
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     textAlign = TextAlign.Center
                 )
@@ -1554,7 +1554,7 @@ private fun createUserSheet(
                             if (s.isNotEmpty()) {
                                 Text(
                                     s,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Medium,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                     textAlign = TextAlign.Center
                                 )
@@ -1695,7 +1695,7 @@ fun TableScreen(
                             Text(
                                 text = row.first,
                                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight(550),
                                 modifier = Modifier
                                     .padding(start = 10.dp)
                                     .offset(with(density) { hScrollState.value.toDp() })

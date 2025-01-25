@@ -83,7 +83,7 @@ fun AdminItemCompose(title: String, isEnabled: Boolean, isActive: Boolean, onCli
         colors = ButtonDefaults.filledTonalButtonColors(containerColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp), contentColor = if (isEnabled && !isActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface)
     ) {
         Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(title, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             GetAsyncIcon(
                 path = RIcons.ChevronLeft,
                 modifier = Modifier.rotate(180f)

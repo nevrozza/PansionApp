@@ -68,14 +68,14 @@ fun ReportTitle(
                         text = buildAnnotatedString {
                             withStyle(
                                 SpanStyle(
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             ) {
                                 append(subjectName)
                             }
                             withStyle(
                                 SpanStyle(
-                                    fontWeight = FontWeight.Black,
+                                    fontWeight = FontWeight.SemiBold,
                                     fontSize = smallTextSize,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
                                 )
@@ -87,7 +87,7 @@ fun ReportTitle(
 
                                 withStyle(
                                     SpanStyle(
-                                        fontWeight = FontWeight.Black,
+                                        fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface.copy(
                                             alpha = .2f
                                         )
@@ -116,14 +116,14 @@ fun ReportTitle(
                         text = buildAnnotatedString {
                             withStyle(
                                 SpanStyle(
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             ) {
                                 append(groupName)
                             }
                             withStyle(
                                 SpanStyle(
-                                    fontWeight = FontWeight.Black,
+                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = .2f)
                                 )
                             ) {
@@ -172,7 +172,7 @@ fun TeacherTime(teacherName: String, time: String, withTime: Boolean = true, sep
             buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Normal
                     )
                 ) {
                     append(teacherName)

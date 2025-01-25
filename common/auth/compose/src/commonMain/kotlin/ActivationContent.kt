@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onPlaced
@@ -33,7 +34,8 @@ import view.esp
 import view.rememberImeState
 
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
+@OptIn(
+    ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class
 )
 @Composable
@@ -53,7 +55,7 @@ fun ActivationContent(
     val focusRequester1 = remember { FocusRequester() }
     val focusRequester2 = remember { FocusRequester() }
 
-    LaunchedEffect (model.activated) {
+    LaunchedEffect(model.activated) {
         if (model.activated) {
             component.navigateToMain()
         }
@@ -77,7 +79,7 @@ fun ActivationContent(
                 onDispose {
                     if (model.isErrorShown) {
                         coroutineScope.launch {
-                            if(model.error == "Данный аккаунт уже активирован") {
+                            if (model.error == "Данный аккаунт уже активирован") {
                                 component.onOutput(ActivationComponent.Output.NavigateToLogin(login = model.login))
                             }
                             hostState.value.showSnackbar(message = model.error)
@@ -102,8 +104,10 @@ fun ActivationContent(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Spacer(Modifier)
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
-                    .animateContentSize()) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+                        .animateContentSize()
+                ) {
                     GetAsyncIcon(
                         path = RIcons.MGU,
                         size = 200.dp
@@ -121,7 +125,7 @@ fun ActivationContent(
                                     Text(
                                         "Активируйте свой аккаунт",
                                         textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.SemiBold,
+                                        fontWeight = FontWeight.Normal,
                                         fontSize = (26.5f).esp,
                                         lineHeight = 28.esp
                                     )
@@ -130,7 +134,7 @@ fun ActivationContent(
                                 else -> Text(
                                     "Здравствуйте\n$name!",
                                     lineHeight = 28.esp,
-                                    fontWeight = FontWeight.SemiBold,
+                                    fontWeight = FontWeight.Normal,
                                     textAlign = TextAlign.Center,
                                     fontSize = (26.5f).esp
                                 )
@@ -159,8 +163,12 @@ fun ActivationContent(
                                 }
 
                                 ActivationStore.Step.Login -> {
-//                            Spacer(Modifier.height(5.dp))
-                                    Text("Введите логин с карточки", fontSize = MaterialTheme.typography.titleLarge.fontSize)
+                                    Spacer(Modifier.height(5.dp))
+                                    Text(
+                                        "Введите логин",
+                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                        modifier = Modifier.alpha(.5f)
+                                    )
                                     Spacer(Modifier.height(10.dp))
                                     CustomTextField(
                                         modifier = Modifier,
@@ -195,7 +203,11 @@ fun ActivationContent(
                                         modifier = Modifier.padding(start = 35.dp)
                                     ) {
                                         CustomTextButton("Уже активирован") {
-                                            component.onOutput(ActivationComponent.Output.NavigateToLogin(""))
+                                            component.onOutput(
+                                                ActivationComponent.Output.NavigateToLogin(
+                                                    ""
+                                                )
+                                            )
                                         }
                                         Spacer(Modifier.width(5.dp))
 
@@ -256,9 +268,9 @@ fun ActivationContent(
                                 }
 
                                 ActivationStore.Step.Activation -> {
-//                            Spacer(Modifier.height(5.dp))
+                            Spacer(Modifier.height(5.dp))
                                     AnimatedContent(
-                                        if(model.isVerifyingPassword) "Подтвердите пароль" else "Придумайте пароль"
+                                        if (model.isVerifyingPassword) "Подтвердите пароль" else "Придумайте пароль"
                                     ) { text ->
                                         Text(
                                             text,
@@ -274,7 +286,7 @@ fun ActivationContent(
                                                     focusRequester2.requestFocus()
                                                 }
                                             },
-                                        value = if(model.isVerifyingPassword) model.verifyPassword else model.password,
+                                        value = if (model.isVerifyingPassword) model.verifyPassword else model.password,
                                         onValueChange = {
                                             if (model.isVerifyingPassword) {
                                                 component.onEvent(
@@ -342,7 +354,11 @@ fun ActivationContent(
                                     OutlinedButton(
                                         contentPadding = PaddingValues(horizontal = 15.dp),
                                         onClick = {
-                                            component.onOutput(ActivationComponent.Output.NavigateToLogin(""))
+                                            component.onOutput(
+                                                ActivationComponent.Output.NavigateToLogin(
+                                                    ""
+                                                )
+                                            )
                                         }) {
                                         Text("Уже активирован")
                                     }
@@ -388,7 +404,7 @@ fun ActivationContent(
                                     AnimatedContent(
                                         if (model.isVerifyingPassword && model.password == model.verifyPassword) "Подтвердить"
                                         else if (model.isVerifyingPassword && model.password != model.verifyPassword) "Пароли не совпадают"
-                                            else "Активировать"
+                                        else "Активировать"
                                     ) { text ->
                                         AnimatedCommonButton(
                                             text = text,

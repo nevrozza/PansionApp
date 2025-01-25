@@ -225,7 +225,7 @@ fun MarkTable(
                                 Text(
                                     text = f.second,
                                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Medium,
                                     color = fioColor,
                                     modifier = Modifier
                                         .padding(start = 10.dp)
