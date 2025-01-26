@@ -6,13 +6,53 @@
 import allGroupMarks.AllGroupMarksComponent
 import allGroupMarks.AllGroupMarksStore
 import allGroupMarks.DatesFilter
-import androidx.compose.animation.*
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -26,14 +66,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.AppBar
+import components.BorderStup
+import components.CFilterChip
+import components.CLazyColumn
+import components.CustomTextButton
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncIcon
+import components.MarkContent
+import components.MarkTable
+import components.MarkTableItem
+import components.StupsButtons
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
-import dev.chrisbanes.haze.HazeState
 import homeTasksDialog.HomeTasksDialogStore
-import kotlinx.coroutines.CoroutineScope
 import report.UserMarkPlus
 import resources.RIcons
 import server.fetchReason
@@ -67,7 +116,7 @@ fun AllGroupMarksContent(
     //PullToRefresh
 //    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     BoxWithConstraints {
-        val isFullView by mutableStateOf(this.maxWidth > 600.dp)
+//        val isFullView by mutableStateOf(this.maxWidth > 600.dp)
         Scaffold(
             Modifier.fillMaxSize(),
 //                .nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -245,8 +294,7 @@ fun AllGroupMarksContent(
                                             MarkTable(
                                                 fields = students.associate { it.login to it.shortFIO },
                                                 dms = filteredDates.associate { y ->
-                                                    y.date
-                                                        .toString() to (students.flatMap { x ->
+                                                    y.date to (students.flatMap { x ->
                                                         (x.marks + x.stups).filter { it.mark.date == y.date }
                                                             .map {
                                                                 MarkTableItem(
@@ -292,15 +340,12 @@ fun AllGroupMarksContent(
 
                                                 AllGroupMarksStudentItem(
                                                     title = s.shortFIO,
-                                                    groupId = model.groupId,
                                                     marks = s.marks.sortedBy { getLocalDate(it.mark.date).toEpochDays() }
                                                         .reversed(),
                                                     stups = s.stups,
-                                                    isQuarters = s.isQuarters,
-                                                    modifier = Modifier.padding(top = if (model.students.first() == s) 0.dp else 10.dp),
-                                                    coroutineScope = coroutineScope,
-                                                    component = component,
                                                     firstHalfNums = model.firstHalfNums,
+                                                    modifier = Modifier.padding(top = if (model.students.first() == s) 0.dp else 10.dp),
+                                                    component = component,
                                                     login = model.login,
                                                     isModer = model.isModer
                                                 ) {
@@ -411,13 +456,13 @@ fun AllGroupMarksContent(
 @Composable
 private fun AllGroupMarksStudentItem(
     title: String,
-    groupId: Int,
+//    groupId: Int,
+//    isQuarters: Boolean,
+//    coroutineScope: CoroutineScope,
     marks: List<UserMarkPlus>,
     stups: List<UserMarkPlus>,
-    isQuarters: Boolean,
     firstHalfNums: List<Int>,
 //    stupsCount: Int,
-    coroutineScope: CoroutineScope,
     modifier: Modifier = Modifier,
     component: AllGroupMarksComponent,
     login: String,
@@ -481,10 +526,7 @@ private fun AllGroupMarksStudentItem(
 
                 ModuleView(
                     moduleNum = modules.first().toInt(),
-                    isQuarters = isQuarters,
                     marks.filter { it.mark.module == modules.first() },
-                    groupId = groupId,
-                    coroutineScope = coroutineScope,
                     component = component,
                     login = login,
                     isModer = isModer
@@ -515,10 +557,7 @@ private fun AllGroupMarksStudentItem(
                             }
                             ModuleView(
                                 moduleNum = x.toInt(),
-                                isQuarters = isQuarters,
                                 marks = marks.filter { it.mark.module == x },
-                                groupId = groupId,
-                                coroutineScope = coroutineScope,
                                 component = component,
                                 login = login,
                                 isModer = isModer
@@ -566,20 +605,20 @@ private fun HalfYearRow(
                 text = if (value.isNaN()) {
                     "NaN"
                 } else {
-                    value.roundTo(2).toString()
+                    value.roundTo(2)
                 }, fontWeight = FontWeight.SemiBold, fontSize = MaterialTheme.typography.titleLarge.fontSize
             )
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ModuleView(
     moduleNum: Int,
-    isQuarters: Boolean,
+
+//    isQuarters: Boolean,
     marks: List<UserMarkPlus>,
-    groupId: Int,
-    coroutineScope: CoroutineScope,
     component: AllGroupMarksComponent,
     login: String,
     isModer: Boolean
@@ -603,7 +642,7 @@ private fun ModuleView(
                 text = if (value.isNaN()) {
                     "NaN"
                 } else {
-                    value.roundTo(2).toString()
+                    value.roundTo(2)
                 }, fontWeight = FontWeight.SemiBold, fontSize = MaterialTheme.typography.titleLarge.fontSize
             )
         }
@@ -622,7 +661,6 @@ private fun ModuleView(
 @Composable
 fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent, isModer: Boolean) {
     val markSize = 30.dp
-    val yOffset = 2.dp
     val tState = rememberTooltipState(isPersistent = true)
     TooltipBox(
         state = tState,

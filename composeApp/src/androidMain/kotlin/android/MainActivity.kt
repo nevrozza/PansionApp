@@ -6,7 +6,6 @@ import PlatformSDK
 import Root
 import SettingsRepository
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.graphics.Color.TRANSPARENT
 import android.os.Build
@@ -19,16 +18,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.defaultComponentContext
@@ -65,7 +61,7 @@ class MainActivity : AppCompatActivity() {
 
         this.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         @SuppressLint("HardwareIds")
-        val uuid = UUID.nameUUIDFromBytes(Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID).decodeBase64Bytes());
+        val uuid = UUID.nameUUIDFromBytes(Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID).decodeBase64Bytes())
         PlatformSDK.init(
             configuration = PlatformConfiguration(applicationContext),
             cConfiguration = CommonPlatformConfiguration(
@@ -79,7 +75,7 @@ class MainActivity : AppCompatActivity() {
         val windowInsetsController =
             WindowCompat.getInsetsController(window, window.decorView)
 
-        window.navigationBarColor = Color.Transparent.toArgb()
+//        window.navigationBarColor = Color.Transparent.toArgb()
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(TRANSPARENT,TRANSPARENT )
         )

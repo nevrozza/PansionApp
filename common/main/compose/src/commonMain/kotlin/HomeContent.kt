@@ -1,64 +1,140 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.key.*
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.AppBar
+import components.BorderStup
+import components.CLazyColumn
+import components.DatesLine
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncIcon
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
-import components.refresh.RefreshButton
-import components.refresh.keyRefresh
+import components.cMark
+import components.dashedBorder
+import components.getMarkColor
+import components.markColorsColored
+import components.markColorsMono
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
+import components.refresh.RefreshButton
+import components.refresh.keyRefresh
 import decomposeComponents.CAlertDialogContent
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 import home.HomeComponent
 import home.HomeStore
-import homeComponents.*
+import homeComponents.homeChildrenNotificationsContent
+import homeComponents.homeKidsContent
+import homeComponents.homeStudentBar
+import homeComponents.homeStudentNotifications
+import homeComponents.homeTeacherGroupsContent
 import journal.JournalStore
 import journal.init.TeacherGroup
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import report.Grade
 import report.UserMark
 import resources.RIcons
-import server.*
-import view.*
-import dev.chrisbanes.haze.HazeInputScale
-import kotlinx.coroutines.*
-import school.SchoolStore
+import server.Roles
+import server.fetchReason
+import server.getCurrentDayTime
+import server.toMinutes
+import server.weekPairs
+import view.GlobalHazeState
+import view.LocalViewManager
+import view.WindowScreen
+import view.blend
+import view.esp
+import view.handy
+import view.hazeMask
 
 
 enum class HomeRoutings {
@@ -91,17 +167,14 @@ fun HomeContent(
 
         Roles.teacher -> {
             TeacherHomeContent(
-                component, pickedLogin,
-                coroutineScope = coroutineScope,
-                currentRouting = currentRouting
+                component, pickedLogin
             )
         }
 
         else -> {
             OtherHomeContent(
                 component = component,
-                pickedLogin = pickedLogin,
-                currentRouting = currentRouting
+                pickedLogin = pickedLogin
             )
         }
     }
@@ -145,8 +218,7 @@ fun HomeContent(
 @Composable
 fun OtherHomeContent(
     component: HomeComponent,
-    pickedLogin: String,
-    currentRouting: HomeRoutings
+    pickedLogin: String
 ) {
     val viewManager = LocalViewManager.current
     val model by component.model.subscribeAsState()
@@ -241,9 +313,7 @@ fun OtherHomeContent(
 @Composable
 fun TeacherHomeContent(
     component: HomeComponent,
-    pickedLogin: String,
-    coroutineScope: CoroutineScope,
-    currentRouting: HomeRoutings
+    pickedLogin: String
 ) {
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
@@ -300,14 +370,14 @@ fun TeacherHomeContent(
                 val isHaze = viewManager.hazeHardware.value
                 Column(
                     Modifier.then(
-                        if (isHaze) Modifier.hazeChild(
-                            state = GlobalHazeState.current,
-                            style = LocalHazeStyle.current
-                        ) {
-                            mask =
-                                view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
-//                            progressive = hazeProgressive
-                        }
+                        if (isHaze)
+                            Modifier.hazeEffect(
+                                state = GlobalHazeState.current,
+                                style = LocalHazeStyle.current
+                            ) {
+                                mask =
+                                    hazeMask
+                            }
                         else Modifier
                     )
                 ) {
@@ -473,8 +543,8 @@ fun TeacherHomeContent(
                                     JournalItemCompose(
                                         subjectName = item.subjectName,
                                         groupName = item.groupName,
-                                        lessonReportId = item.reportId,
-                                        date = item.date,
+//                                        lessonReportId = item.reportId,
+//                                        date = item.date,
                                         teacher = item.teacherName,
                                         time = item.time,
                                         isEnabled = true,
@@ -593,7 +663,7 @@ private fun RaspisanieTable(
                             }
 
                         ) { text ->
-                            Text("$text")
+                            Text(text)
                         }
                     }
                 }
@@ -625,7 +695,11 @@ val numToMonth = mapOf<Int, String>(
     12 to "Декабря",
 )
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(
+    ExperimentalSharedTransitionApi::class,
+    ExperimentalHazeApi::class,
+    DelicateCoroutinesApi::class
+)
 @Composable
 fun StudentHomeContent(
     component: HomeComponent,
@@ -637,7 +711,8 @@ fun StudentHomeContent(
     val model by component.model.subscribeAsState()
 
     val schoolModel = component.schoolComponent.model.subscribeAsState()
-    val kids = schoolModel.value.dutyKids.filterIndexed { index, dutyKid -> index + 1 <= schoolModel.value.dutyPeopleCount }
+    val kids =
+        schoolModel.value.dutyKids.filterIndexed { index, dutyKid -> index + 1 <= schoolModel.value.dutyPeopleCount }
 
     val nQuickTabModel by component.quickTabNInterface.networkModel.subscribeAsState()
     val nGradesModel by component.gradesNInterface.networkModel.subscribeAsState()
@@ -649,9 +724,9 @@ fun StudentHomeContent(
 
 
     val isMainView = lazyListState.firstVisibleItemIndex in (0..model.notifications.size
-                                                                + 1 //studentBar
-                                                                + 1 //NotificationAboutDuty
-                                                                + 1 //NotificationAboutDolg
+            + 1 //studentBar
+            + 1 //NotificationAboutDuty
+            + 1 //NotificationAboutDolg
             )
 
     val refreshing =
@@ -676,13 +751,17 @@ fun StudentHomeContent(
             val isHaze = viewManager.hazeHardware.value
             Column(
                 Modifier.then(
-                    if (isHaze) Modifier.hazeChild(
-                        GlobalHazeState.current
-                    ) {
-                        inputScale = HazeInputScale.Fixed(0.7f)
-                        mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                    if (isHaze) //Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = hazeProgressive
-                    }
+                        Modifier.hazeEffect(
+                            GlobalHazeState.current,
+                            LocalHazeStyle.current
+                        ) {
+                            inputScale = HazeInputScale.Fixed(0.7f)
+                            mask =
+                                hazeMask
+
+                        }
                     else Modifier
                 )
             ) {
@@ -692,6 +771,7 @@ fun StudentHomeContent(
                         if (component.onBackButtonPress != null) {
                             IconButton(
                                 onClick = {
+
                                     GlobalScope.launch(Dispatchers.Main) {
                                         component.onBackButtonPress?.invoke()
                                     }
@@ -772,7 +852,6 @@ fun StudentHomeContent(
             }
         }
     ) { padding ->
-
 
 
         Box(
@@ -944,7 +1023,6 @@ fun Lesson(
 ) {
 
     val isSurnameShown = remember { mutableStateOf(groupId == -6) }
-    val viewManager = LocalViewManager.current
     val firstElement =
         model.items[date]?.sortedBy { it.start.toMinutes() }?.first { it.groupId == groupId }
     val isFirst = firstElement?.start == start
@@ -1223,7 +1301,7 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope, onClick: () -> Unit) {
             tooltip = {
                 PlainTooltip(modifier = Modifier.clickable {}) {
                     Text(
-                        "${fetchReason(mark.reason)}",
+                        fetchReason(mark.reason),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -1234,7 +1312,7 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope, onClick: () -> Unit) {
                 mark.content,
                 cutedReason = mark.reason.subSequence(0, 3).toString(),
                 subjectName = mark.subjectName,
-                date = mark.date,
+//                date = mark.date,
 //            size = markSize,
 //            textYOffset = yOffset,
                 addModifier = Modifier.clickable {
@@ -1320,7 +1398,7 @@ fun RecentMarkContent(
     cutedReason: String,
     subjectName: String,
     addModifier: Modifier = Modifier,
-    date: String
+//    date: String
 //    offset: DpOffset = DpOffset(0.dp, 0.dp),
 //    paddingValues: PaddingValues = ,
 ////    size: Dp = 25.dp,
@@ -1406,151 +1484,9 @@ fun RecentMarkContent(
     }
 }
 
-@Composable
-fun LoadingCircleAnimation(
-    size: Dp = 32.dp,
-    sweepAngle: Float = 90f,
-    color: Color = MaterialTheme.colorScheme.primary,
-    strokeWidth: Dp = ProgressIndicatorDefaults.CircularStrokeWidth
-) {
-    val transition = rememberInfiniteTransition()
-    val currentArcStartAngle by transition.animateValue(
-        0,
-        360,
-        Int.VectorConverter,
-        infiniteRepeatable(
-            animation = tween(
-                durationMillis = 1100,
-                easing = LinearEasing
-            )
-        )
-    )
 
-    val stroke = with(LocalDensity.current) {
-        Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Square)
-    }
-
-    Canvas(
-        Modifier
-            .progressSemantics()
-            .size(size)
-            .padding(strokeWidth / 2)
-    ) {
-        drawCircle(Color.LightGray, style = stroke)
-        drawArc(
-            color,
-            startAngle = currentArcStartAngle.toFloat() - 90,
-            sweepAngle = sweepAngle,
-            useCenter = false,
-            style = stroke
-        )
-    }
-}
-
-
-val dotSize = 24.dp // made it bigger for demo
+//val dotSize = 24.dp // made it bigger for demo
 val delayUnit = 300 // you can change delay to change animation speed
-
-@Composable
-fun DotsPulsing() {
-
-    @Composable
-    fun Dot(
-        scale: Float
-    ) = Spacer(
-        Modifier
-            .size(dotSize)
-            .scale(scale)
-            .background(
-                color = MaterialTheme.colorScheme.primary,
-                shape = CircleShape
-            )
-    )
-
-    val infiniteTransition = rememberInfiniteTransition()
-
-    @Composable
-    fun animateScaleWithDelay(delay: Int) = infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = delayUnit * 4
-                0f at delay using LinearEasing
-                1f at delay + delayUnit using LinearEasing
-                0f at delay + delayUnit * 2
-            }
-        )
-    )
-
-    val scale1 by animateScaleWithDelay(0)
-    val scale2 by animateScaleWithDelay(delayUnit)
-    val scale3 by animateScaleWithDelay(delayUnit * 2)
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        val spaceSize = 2.dp
-
-        Dot(scale1)
-        Spacer(Modifier.width(spaceSize))
-        Dot(scale2)
-        Spacer(Modifier.width(spaceSize))
-        Dot(scale3)
-    }
-}
-
-@Composable
-fun DotsElastic() {
-    val minScale = 0.6f
-
-    @Composable
-    fun Dot(
-        scale: Float
-    ) = Spacer(
-        Modifier
-            .size(dotSize)
-            .scale(scaleX = minScale, scaleY = scale)
-            .background(
-                color = MaterialTheme.colorScheme.primary,
-                shape = CircleShape
-            )
-    )
-
-    val infiniteTransition = rememberInfiniteTransition()
-
-    @Composable
-    fun animateScaleWithDelay(delay: Int) = infiniteTransition.animateFloat(
-        initialValue = minScale,
-        targetValue = minScale,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = delayUnit * 4
-                minScale at delay using LinearEasing
-                1f at delay + delayUnit using LinearEasing
-                minScale at delay + delayUnit * 2
-            }
-        )
-    )
-
-    val scale1 by animateScaleWithDelay(0)
-    val scale2 by animateScaleWithDelay(delayUnit)
-    val scale3 by animateScaleWithDelay(delayUnit * 2)
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        val spaceSize = 2.dp
-
-        Dot(scale1)
-        Spacer(Modifier.width(spaceSize))
-        Dot(scale2)
-        Spacer(Modifier.width(spaceSize))
-        Dot(scale3)
-    }
-}
 
 @Composable
 fun DotsFlashing(modifier: Modifier = Modifier) {
@@ -1604,114 +1540,3 @@ fun DotsFlashing(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-fun DotsTyping() {
-    val maxOffset = 10f
-
-    @Composable
-    fun Dot(
-        offset: Float
-    ) = Spacer(
-        Modifier
-            .size(dotSize)
-            .offset(y = -offset.dp)
-            .background(
-                color = MaterialTheme.colorScheme.primary,
-                shape = CircleShape
-            )
-    )
-
-    val infiniteTransition = rememberInfiniteTransition()
-
-    @Composable
-    fun animateOffsetWithDelay(delay: Int) = infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = delayUnit * 4
-                0f at delay using LinearEasing
-                maxOffset at delay + delayUnit using LinearEasing
-                0f at delay + delayUnit * 2
-            }
-        )
-    )
-
-    val offset1 by animateOffsetWithDelay(0)
-    val offset2 by animateOffsetWithDelay(delayUnit)
-    val offset3 by animateOffsetWithDelay(delayUnit * 2)
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(top = maxOffset.dp)
-    ) {
-        val spaceSize = 2.dp
-
-        Dot(offset1)
-        Spacer(Modifier.width(spaceSize))
-        Dot(offset2)
-        Spacer(Modifier.width(spaceSize))
-        Dot(offset3)
-    }
-}
-
-@Composable
-fun DotsCollision() {
-    val maxOffset = 30f
-    val delayUnit = 500 // it's better to use longer delay for this animation
-
-    @Composable
-    fun Dot(
-        offset: Float
-    ) = Spacer(
-        Modifier
-            .size(dotSize)
-            .offset(x = offset.dp)
-            .background(
-                color = MaterialTheme.colorScheme.primary,
-                shape = CircleShape
-            )
-    )
-
-    val infiniteTransition = rememberInfiniteTransition()
-
-    val offsetLeft by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = delayUnit * 3
-                0f at 0 using LinearEasing
-                -maxOffset at delayUnit / 2 using LinearEasing
-                0f at delayUnit
-            }
-        )
-    )
-    val offsetRight by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = delayUnit * 3
-                0f at delayUnit using LinearEasing
-                maxOffset at delayUnit + delayUnit / 2 using LinearEasing
-                0f at delayUnit * 2
-            }
-        )
-    )
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(horizontal = maxOffset.dp)
-    ) {
-        val spaceSize = 2.dp
-
-        Dot(offsetLeft)
-        Spacer(Modifier.width(spaceSize))
-        Dot(0f)
-        Spacer(Modifier.width(spaceSize))
-        Dot(offsetRight)
-    }
-}

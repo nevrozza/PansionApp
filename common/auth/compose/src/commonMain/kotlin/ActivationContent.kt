@@ -52,7 +52,7 @@ fun ActivationContent(
         !model.isInProcess && model.login.isNotBlank()
     val isActivationButtonEnabled =
         (!model.isInProcess && model.password.isNotBlank() && !model.isVerifyingPassword) || (!model.isInProcess && model.verifyPassword == model.password && model.isVerifyingPassword)
-    val focusRequester1 = remember { FocusRequester() }
+    remember { FocusRequester() }
     val focusRequester2 = remember { FocusRequester() }
 
     LaunchedEffect(model.activated) {

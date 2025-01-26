@@ -3,32 +3,23 @@
 //import root.RootComponent.Child.AdminMentors
 import admin.AdminComponent
 import androidx.compose.animation.*
-import androidx.compose.animation.core.EaseInQuart
-import androidx.compose.animation.core.EaseInQuint
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import animations.iosSlide
@@ -43,13 +34,9 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.essenty.backhandler.BackEvent
 import components.*
 import components.networkInterface.NetworkState
-import dev.chrisbanes.haze.ExperimentalHazeApi
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeChild
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
@@ -64,11 +51,8 @@ import mentoring.MentoringComponent
 import mentoring.MentoringContent
 import resources.RIcons
 import root.RootComponent
-import root.RootComponent.Child
 import root.RootComponent.Child.*
 import root.RootComponent.Config
-import root.RootComponent.RootCategories.*
-import root.store.QuickRoutings
 import root.store.RootStore
 import school.SchoolComponent
 import server.Moderation
@@ -76,22 +60,26 @@ import server.Roles
 import server.cut
 import server.getDate
 import view.*
-import dev.chrisbanes.haze.HazeInputScale
 import school.SchoolStore
 
 import io.github.alexzhirkevich.compottie.*
 import resources.Images
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.Image
+import dev.chrisbanes.haze.ExperimentalHazeApi
 
 @ExperimentalAnimationApi
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalDecomposeApi::class,
-    ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class
+    ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
+    ExperimentalHazeApi::class
 )
 @ExperimentalFoundationApi
 @Composable
-fun RootContent(component: RootComponent, isJs: Boolean = false) {
+fun RootContent(
+    component: RootComponent,
+//    isJs: Boolean = false
+) {
     val viewManager = LocalViewManager.current
     val childStack by component.childStack.subscribeAsState()
     val stack by component.childStack.subscribeAsState()
@@ -107,8 +95,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 //    val isVertical = viewManager.orientation.value == WindowScreen.Vertical
 
 
-    BoxWithConstraints(
-    ) {
+    BoxWithConstraints {
         val isExpanded =
             if (component.secondLogin == null) viewManager.orientation.value == WindowScreen.Expanded else WindowCalculator.calculateScreen(
                 size = DpSize(
@@ -189,17 +176,17 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         fallbackAnimation = stackAnimation { child ->
                             if (viewManager.isTransitionsEnabled.value) {
                                 when (child.instance) {
-                                    is RootComponent.Child.MainJournal -> fade()
-                                    is RootComponent.Child.MainSchool -> fade()
-                                    is RootComponent.Child.MainHome -> fade()
-                                    is RootComponent.Child.MainAdmin -> fade()
-                                    is RootComponent.Child.MainMentoring -> fade()
-                                    is RootComponent.Child.LessonReport -> iosSlide() + fade()
-                                    is RootComponent.Child.HomeSettings -> iosSlide() + fade()
-                                    is RootComponent.Child.AdminSchedule -> iosSlide() + fade()
-                                    is RootComponent.Child.QRScanner -> iosSlide() + fade()
-                                    is RootComponent.Child.HomeProfile -> fade()
-                                    is RootComponent.Child.HomeAchievements -> fade()
+                                    is MainJournal -> fade()
+                                    is MainSchool -> fade()
+                                    is MainHome -> fade()
+                                    is MainAdmin -> fade()
+                                    is MainMentoring -> fade()
+                                    is LessonReport -> iosSlide() + fade()
+                                    is HomeSettings -> iosSlide() + fade()
+                                    is AdminSchedule -> iosSlide() + fade()
+                                    is QRScanner -> iosSlide() + fade()
+                                    is HomeProfile -> fade()
+                                    is HomeAchievements -> fade()
                                     else -> if (isExpanded) fade() else iosSlide() + fade()
                                 }
                             } else {
@@ -213,8 +200,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             if (
                                 initialBackEvent.swipeEdge == BackEvent.SwipeEdge.RIGHT ||
                                 (
-                                        exit.instance is Child.MainAdmin ||
-                                                exit.instance is Child.MainHome ||
+                                        exit.instance is MainAdmin ||
+                                                exit.instance is MainHome ||
                                                 exit.instance is MainJournal ||
                                                 exit.instance is MainMentoring ||
                                                 exit.instance is MainSchool
@@ -251,7 +238,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                 ) {
                     when (val child = it.instance) {
 
-                        is Child.ErrorLoad -> {
+                        is ErrorLoad -> {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(child.reason, textAlign = TextAlign.Center)
@@ -265,8 +252,8 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             }
                         }
 
-                        is Child.AuthLogin -> LoginContent(child.component)
-                        is Child.AuthActivation -> ActivationContent(child.component)
+                        is AuthLogin -> LoginContent(child.component)
+                        is AuthActivation -> ActivationContent(child.component)
 
 
                         is MainHome -> MultiPaneSplit(
@@ -276,14 +263,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 HomeContent(
                                     child.homeComponent,
                                     sharedTransitionScope = this@SharedTransitionLayout,
-                                    isSharedVisible = stack.active.instance is Child.MainHome
+                                    isSharedVisible = stack.active.instance is MainHome
                                 )
                             },
                             firstScreen = {
                                 HomeContent(
                                     child.homeComponent,
                                     sharedTransitionScope = this@SharedTransitionLayout,
-                                    isSharedVisible = stack.active.instance is Child.MainHome
+                                    isSharedVisible = stack.active.instance is MainHome
                                 )
                             },
                             secondScreen = {
@@ -295,14 +282,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                         role = model.role,
                                         moderation = model.moderation,
                                         onRefresh = {
-                                            child.journalComponent.onEvent(JournalStore.Intent.Refresh);
+                                            child.journalComponent.onEvent(JournalStore.Intent.Refresh)
                                             child.homeComponent.onRefreshClick()
                                         }
                                     )
                                 } else {
                                     RatingContent(
                                         child.ratingComponent,
-                                        isSharedVisible = stack.active.instance is Child.MainRating
+                                        isSharedVisible = stack.active.instance is MainRating
                                     ) {
                                         child.homeComponent.onRefreshClick()
                                     }
@@ -329,7 +316,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 HomeContent(
                                     child.homeComponent,
                                     sharedTransitionScope = this@SharedTransitionLayout,
-                                    isSharedVisible = stack.active.instance is Child.MainHome
+                                    isSharedVisible = stack.active.instance is MainHome
                                 )
                             },
                             secondScreen = {
@@ -346,7 +333,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             }
                         )
 
-                        is Child.HomeDnevnikRuMarks -> {
+                        is HomeDnevnikRuMarks -> {
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
                                 viewManager = viewManager,
@@ -360,7 +347,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     HomeContent(
                                         child.homeComponent,
                                         sharedTransitionScope = this@SharedTransitionLayout,
-                                        isSharedVisible = stack.active.instance is Child.MainHome,
+                                        isSharedVisible = stack.active.instance is MainHome,
                                         currentRouting = HomeRoutings.Dnevnik
                                     )
                                 },
@@ -373,7 +360,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
                         }
 
-                        is Child.HomeStudentLines -> {
+                        is HomeStudentLines -> {
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
                                 viewManager = viewManager,
@@ -387,7 +374,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     HomeContent(
                                         child.homeComponent,
                                         sharedTransitionScope = this@SharedTransitionLayout,
-                                        isSharedVisible = stack.active.instance is Child.MainHome
+                                        isSharedVisible = stack.active.instance is MainHome
                                     )
                                 },
                                 secondScreen = {
@@ -399,7 +386,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
                         }
 
-                        is Child.HomeDetailedStups -> {
+                        is HomeDetailedStups -> {
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
                                 viewManager = viewManager,
@@ -413,7 +400,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     HomeContent(
                                         child.homeComponent,
                                         sharedTransitionScope = this@SharedTransitionLayout,
-                                        isSharedVisible = stack.active.instance is Child.MainHome
+                                        isSharedVisible = stack.active.instance is MainHome
                                     )
                                 },
                                 secondScreen = {
@@ -425,7 +412,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
                         }
 
-                        is Child.QRScanner -> {
+                        is QRScanner -> {
                             QRContentActual(
                                 component = child.qrComponent
                             )
@@ -514,22 +501,20 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                         is LessonReport ->
                             MultiPaneJournal(
                                 isExpanded,
-                                viewManager = viewManager,
                                 journalComponent = child.journalComponent,
-                                currentReportId = 0,
                                 role = model.role,
                                 moderation = model.moderation,
+                                viewManager = viewManager,
                                 secondScreen = { LessonReportContent(child.lessonReport) }
                             )
 
                         is HomeSettings ->
                             SettingsContent(
                                 isExpanded,
-                                child.settingsComponent,
-                                isVisible = stack.active.instance is Child.HomeSettings
+                                child.settingsComponent
                             )
 
-                        is Child.HomeAllGroupMarks ->
+                        is HomeAllGroupMarks ->
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
                                 viewManager = viewManager,
@@ -555,32 +540,32 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 }
                             )
 
-                        is Child.AdminSchedule -> ScheduleContent(child.scheduleComponent)
-                        is Child.HomeProfile -> MultiPaneSplit(
+                        is AdminSchedule -> ScheduleContent(child.scheduleComponent)
+                        is HomeProfile -> MultiPaneSplit(
                             isExpanded = isExpanded,
                             viewManager = viewManager,
                             currentScreen = {
                                 ProfileContent(
                                     child.profileComponent,
-                                    isSharedVisible = stack.active.instance is Child.HomeProfile
+                                    isSharedVisible = stack.active.instance is HomeProfile
                                 )
                             },
                             firstScreen = {
                                 HomeContent(
                                     child.homeComponent,
                                     sharedTransitionScope = this@SharedTransitionLayout,
-                                    isSharedVisible = stack.active.instance is Child.MainHome
+                                    isSharedVisible = stack.active.instance is MainHome
                                 )
                             },
                             secondScreen = {
                                 ProfileContent(
                                     child.profileComponent,
-                                    isSharedVisible = stack.active.instance is Child.HomeProfile
+                                    isSharedVisible = stack.active.instance is HomeProfile
                                 )
                             }
                         )
 
-                        is Child.AdminCabinets -> MultiPaneAdmin(
+                        is AdminCabinets -> MultiPaneAdmin(
                             isExpanded,
                             viewManager = viewManager,
                             adminComponent = child.adminComponent,
@@ -602,7 +587,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 secondScreen = {
                                     RatingContent(
                                         child.ratingComponent,
-                                        isSharedVisible = stack.active.instance is Child.MainRating
+                                        isSharedVisible = stack.active.instance is MainRating
                                     ) {
                                         if (isExpanded) {
                                             child.schoolComponent.onEvent(SchoolStore.Intent.Init)
@@ -612,7 +597,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
 
 
-                        is Child.HomeTasks -> {
+                        is HomeTasks -> {
                             val confettiIsPlaying = remember { mutableStateOf(false) }
 
                             val confettiComposition = rememberLottieComposition {
@@ -651,7 +636,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                 currentScreen = {
                                     HomeTasksContent(
                                         child.homeTasksComponent,
-                                        isVisible = stack.active.instance is Child.HomeTasks
+                                        isVisible = stack.active.instance is HomeTasks
                                     ) {
                                         if (confettiProgress in listOf(0.0f, 1.0f)) {
                                             confettiIsPlaying.value = true
@@ -663,14 +648,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                     HomeContent(
                                         child.homeComponent,
                                         sharedTransitionScope = this@SharedTransitionLayout,
-                                        isSharedVisible = stack.active.instance is Child.MainHome,
+                                        isSharedVisible = stack.active.instance is MainHome,
                                         currentRouting = HomeRoutings.Tasks
                                     )
                                 },
                                 secondScreen = {
                                     HomeTasksContent(
                                         child.homeTasksComponent,
-                                        isVisible = stack.active.instance is Child.HomeTasks
+                                        isVisible = stack.active.instance is HomeTasks
                                     ) {
                                         if (confettiProgress in listOf(0.0f, 1.0f)) {
                                             confettiIsPlaying.value = true
@@ -687,7 +672,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             )
                         }
 
-                        is Child.AdminCalendar -> MultiPaneAdmin(
+                        is AdminCalendar -> MultiPaneAdmin(
                             isExpanded,
                             viewManager = viewManager,
                             adminComponent = child.adminComponent,
@@ -702,20 +687,18 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
 
                         is MainMentoring -> MultiPaneMentoring(
                             isExpanded,
-                            mentoringComponent = child.mentoringComponent,
-                            rootComponent = null,
                             viewManager = viewManager,
-                            isVisible = childStack.active.instance is Child.MainMentoring
+                            mentoringComponent = child.mentoringComponent,
+                            rootComponent = null
                         )
 
-                        is Child.SecondView ->
+                        is SecondView ->
                             if (child.isMentoring) {
                                 MultiPaneMentoring(
                                     isExpanded,
-                                    mentoringComponent = child.mentoringComponent,
-                                    rootComponent = child.rootComponent,
                                     viewManager = viewManager,
-                                    isVisible = childStack.active.instance is Child.SecondView
+                                    mentoringComponent = child.mentoringComponent,
+                                    rootComponent = child.rootComponent
                                 )
                             } else {
                                 MultiPaneSplit(
@@ -727,7 +710,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                                             child.homeComponent!!,
                                             pickedLogin = child.rootComponent.secondLogin ?: "",
                                             sharedTransitionScope = this@SharedTransitionLayout,
-                                            isSharedVisible = stack.active.instance is Child.MainHome
+                                            isSharedVisible = stack.active.instance is MainHome
                                         )
                                     },
                                     secondScreen = {
@@ -737,9 +720,9 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             }
 
 
-                        is Child.AdminAchievements -> {
+                        is AdminAchievements -> {
                             val previousScreen = stack.items.getOrNull(stack.items.size - 2)?.instance
-                            if (previousScreen is Child.MainMentoring || stack.active.instance is Child.MainMentoring) {
+                            if (previousScreen is MainMentoring || stack.active.instance is MainMentoring) {
                                 AdminAchievementsContent(
                                     child.adminAchievementsComponent,
                                     //                                    isVisible = stack.active.instance is Child.AdminAchievements
@@ -760,32 +743,32 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             }
                         }
 
-                        is Child.HomeAchievements ->
+                        is HomeAchievements ->
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
                                 viewManager = viewManager,
                                 currentScreen = {
                                     HomeAchievementsContent(
                                         child.achievementsComponent,
-                                        isVisible = stack.active.instance is Child.HomeAchievements
+                                        isVisible = stack.active.instance is HomeAchievements
                                     )
                                 },
                                 firstScreen = {
                                     HomeContent(
                                         child.homeComponent,
                                         sharedTransitionScope = this@SharedTransitionLayout,
-                                        isSharedVisible = stack.active.instance is Child.MainHome
+                                        isSharedVisible = stack.active.instance is MainHome
                                     )
                                 },
                                 secondScreen = {
                                     HomeAchievementsContent(
                                         child.achievementsComponent,
-                                        isVisible = stack.active.instance is Child.HomeAchievements
+                                        isVisible = stack.active.instance is HomeAchievements
                                     )
                                 }
                             )
 
-                        is Child.AdminParents ->
+                        is AdminParents ->
                             MultiPaneAdmin(
                                 isExpanded,
                                 viewManager = viewManager,
@@ -817,14 +800,14 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = {
                                 RatingContent(
                                     child.ratingComponent,
-                                    isSharedVisible = stack.active.instance is Child.MainRating
+                                    isSharedVisible = stack.active.instance is MainRating
                                 ) {
                                     child.schoolComponent.onEvent(SchoolStore.Intent.Init)
                                 }
                             }
                         )
 
-                        is Child.SchoolFormRating -> MultiPaneSchool(
+                        is SchoolFormRating -> MultiPaneSchool(
                             isExpanded = isExpanded,
                             schoolComponent = child.schoolComponent,
                             currentRouting = SchoolRoutings.FormRating,
@@ -832,12 +815,12 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = {
                                 FormRatingContent(
                                     child.formRatingComponent,
-                                    isVisible = stack.active.instance is Child.SchoolFormRating
+                                    isVisible = stack.active.instance is SchoolFormRating
                                 )
                             }
                         )
 
-                        is Child.SchoolMinistry -> MultiPaneSchool(
+                        is SchoolMinistry -> MultiPaneSchool(
                             isExpanded = isExpanded,
                             schoolComponent = child.schoolComponent,
                             currentRouting = SchoolRoutings.Ministry,
@@ -845,7 +828,7 @@ fun RootContent(component: RootComponent, isJs: Boolean = false) {
                             secondScreen = {
                                 MinistryContent(
                                     child.ministryComponent,
-                                    isVisible = stack.active.instance is Child.SchoolMinistry
+                                    isVisible = stack.active.instance is SchoolMinistry
                                 )
                             }
                         )
@@ -1004,7 +987,7 @@ fun MultiPaneMentoring(
     viewManager: ViewManager,
     mentoringComponent: MentoringComponent?,
     rootComponent: RootComponent?,
-    isVisible: Boolean
+//    isVisible: Boolean
 ) {
     val model = mentoringComponent?.model?.subscribeAsState()
     Crossfade(model?.value?.isTableView ?: false) { cfState ->
@@ -1023,8 +1006,8 @@ fun MultiPaneMentoring(
 //                        isVisible = isVisible
                     )
                     else if (rootComponent != null) Box {
-                        val model by mentoringComponent!!.model.subscribeAsState()
-                        val fio = model.students.firstOrNull { it.login == model.chosenLogin }?.fio
+                        val modelNotNull by mentoringComponent!!.model.subscribeAsState()
+                        val fio = modelNotNull.students.firstOrNull { it.login == modelNotNull.chosenLogin }?.fio
                         Column {
                             Spacer(Modifier.height(10.dp))
                             RootContent(rootComponent)
@@ -1065,7 +1048,7 @@ fun MultiPaneMentoring(
 fun MultiPaneJournal(
     isExpanded: Boolean,
     journalComponent: JournalComponent,
-    currentReportId: Int,
+//    currentReportId: Int,
     role: String,
     moderation: String,
     viewManager: ViewManager,

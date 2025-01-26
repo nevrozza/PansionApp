@@ -41,9 +41,7 @@ import view.*
 @Composable
 fun SettingsContent(
     isExpanded: Boolean,
-    settingsComponent: SettingsComponent,
-    isVisible: Boolean
-//    secondScreen: @Composable () -> Unit
+    settingsComponent: SettingsComponent
 ) {
     val viewManager = LocalViewManager.current
     if (isExpanded) {

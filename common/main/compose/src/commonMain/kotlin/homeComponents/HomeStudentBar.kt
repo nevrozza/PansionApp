@@ -3,29 +3,52 @@ package homeComponents
 import DotsFlashing
 import FIO
 import HomeRoutings
-import androidx.compose.animation.*
-import androidx.compose.foundation.Image
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import cGrade
-import components.*
+import components.CustomTextButton
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.FeatureButton
+import components.GetAsyncAvatar
+import components.GetAsyncIcon
+import components.GetAsyncImage
+import components.LoadingAnimation
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import home.HomeComponent
@@ -39,7 +62,6 @@ import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
 import view.WindowScreen
 import view.esp
-import view.handy
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -327,10 +349,10 @@ private fun QuickTabItem(
             if (value.isNaN()) {
                 "NaN"
             } else {
-                if (value == value?.toInt()?.toFloat()) {
+                if (value == value.toInt().toFloat()) {
                     value.toInt().toString()
                 } else {
-                    value.roundTo(2).toString()
+                    value.roundTo(2)
                 }
             }
             //, fontWeight = FontWeight.Bold, fontSize = 25.sp

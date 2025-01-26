@@ -4,22 +4,46 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedAssistChip
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -30,13 +54,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
-import components.refresh.RefreshButton
-import components.refresh.RefreshWithoutPullCircle
-import components.refresh.keyRefresh
+import components.AlphaTestZatichka
+import components.AppBar
+import components.CLazyColumn
+import components.CustomCheckbox
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncIcon
+import components.TeacherTime
+import components.cClickable
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
+import components.refresh.RefreshButton
+import components.refresh.RefreshWithoutPullCircle
+import components.refresh.keyRefresh
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
@@ -49,7 +81,9 @@ import pullRefresh.rememberPullRefreshState
 import resources.RIcons
 import server.Moderation
 import server.Roles
-import view.*
+import view.LocalViewManager
+import view.WindowScreen
+import view.handy
 
 @ExperimentalMaterial3Api
 @ExperimentalLayoutApi
@@ -83,11 +117,11 @@ private fun TrueJournalContent(
     val nModel by component.nInterface.networkModel.subscribeAsState()
     val nORModel by component.nOpenReportInterface.networkModel.subscribeAsState()
 
-    val focusManager = LocalFocusManager.current
+//    val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
 //    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
+//    val imeState = rememberImeState()
+//    val lazyListState = rememberLazyListState()
 
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded && isNotMinimized
 
@@ -337,8 +371,8 @@ private fun TrueJournalContent(
                                     JournalItemCompose(
                                         subjectName = item.subjectName,
                                         groupName = item.groupName,
-                                        lessonReportId = item.reportId,
-                                        date = item.date,
+//                                        lessonReportId = item.reportId,
+//                                        date = item.date,
                                         teacher = item.teacherName,
                                         time = item.time,
                                         isEnabled = true,
@@ -454,8 +488,8 @@ private fun CloseButton(isShown: Boolean, onClick: () -> Unit) {
 fun JournalItemCompose(
     subjectName: String,
     groupName: String,
-    lessonReportId: Int,
-    date: String,
+//    lessonReportId: Int,
+//    date: String,
     teacher: String,
     time: String,
     isEnabled: Boolean,
@@ -502,7 +536,7 @@ fun JournalItemCompose(
                 val bigTextSize = MaterialTheme.typography.titleLarge.fontSize// if (!isLarge) else 40.sp
                 val smallTextSize = MaterialTheme.typography.titleSmall.fontSize//if (!isLarge)  else 28.sp
                 val startPadding = 0.dp//if (!isLarge)  else 5.dp
-                val isFullView = true
+//                val isFullView = true
                 Box() {
                     if (isEnded) {
                         Box(
@@ -513,7 +547,7 @@ fun JournalItemCompose(
                         )
                     }
                     Text(
-                        text = module.toString(),
+                        text = module,
                         modifier = Modifier.offset(x = (-8).dp).align(Alignment.CenterStart)
                     )
                     Box(
@@ -547,7 +581,7 @@ fun JournalItemCompose(
                                     overflow = TextOverflow.Ellipsis,
                                     fontSize = bigTextSize,
                                     maxLines = 1,
-                                    style = androidx.compose.material3.LocalTextStyle.current.copy(
+                                    style = LocalTextStyle.current.copy(
                                         lineHeightStyle = LineHeightStyle(
                                             alignment = LineHeightStyle.Alignment.Bottom,
                                             trim = LineHeightStyle.Trim.LastLineBottom

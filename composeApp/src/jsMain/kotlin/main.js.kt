@@ -1,9 +1,6 @@
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -13,10 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import androidx.compose.ui.window.CanvasBasedWindow
@@ -27,11 +21,11 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
-import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
 import dev.chrisbanes.haze.HazeState
 import di.Inject
 import forks.colorPicker.toHex
+import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 import js.core.asList
 import org.jetbrains.skiko.wasm.onWasmReady
@@ -43,9 +37,6 @@ import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import org.jetbrains.compose.resources.configureWebResources
-import org.jetbrains.skiko.wasm.onWasmReady
-import org.w3c.dom.CanvasRenderingContext2D
-import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLMetaElement
 import server.cut
 import view.*
@@ -55,7 +46,10 @@ import web.events.EventType
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class)
+@ExperimentalComposeUiApi
+@ExperimentalDecomposeApi
+@ExperimentalSplitPaneApi
+@JsName("jsMain")
 fun main() {
     configureWebResources {
         resourcePathMapping { path ->
@@ -136,8 +130,7 @@ fun main() {
                     ) {
                         Root(
                             root = root,
-                            device = WindowType.PC,
-                            isJs = true
+                            device = WindowType.PC
                         )
                     }
                     val hex = MaterialTheme.colorScheme.background.toHex()
@@ -162,7 +155,7 @@ fun parseUrlArgs() : Map<String, String> {
 
 fun changeThemeColor(newColor: String) {
     val metaTags = document.head.querySelectorAll("meta[name=theme-color]").asList()
-    val themeColorMetaTag = metaTags.get(0) as HTMLMetaElement?
+    @Suppress("CAST_NEVER_SUCCEEDS") val themeColorMetaTag = metaTags[0] as HTMLMetaElement?
 
     if (themeColorMetaTag != null) {
         themeColorMetaTag.content = newColor

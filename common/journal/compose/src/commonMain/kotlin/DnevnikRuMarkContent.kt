@@ -1,9 +1,14 @@
 @file:OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
-    ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class, ExperimentalHazeApi::class
 )
-import dev.chrisbanes.haze.HazeInputScale
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -11,8 +16,23 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,13 +42,24 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.AppBar
+import components.BorderStup
+import components.CFilterChip
+import components.CLazyColumn
+import components.CustomTextButton
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncIcon
+import components.MarkTable
+import components.StupsButton
+import components.cMark
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
-import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 import dnevnikRuMarks.DnevnikRuMarkStore
 import dnevnikRuMarks.DnevnikRuMarksComponent
 import kotlinx.coroutines.CoroutineScope
@@ -41,9 +72,10 @@ import studentReportDialog.StudentReportDialogStore
 import view.GlobalHazeState
 import view.LocalViewManager
 
-@OptIn(ExperimentalFoundationApi::class)
+
 @ExperimentalMaterial3Api
 @ExperimentalLayoutApi
+@ExperimentalHazeApi
 @Composable
 fun DnevnikRuMarkContent(
     component: DnevnikRuMarksComponent
@@ -69,7 +101,7 @@ fun DnevnikRuMarkContent(
             val isHaze = viewManager.hazeHardware.value
             Column(
                 Modifier.then(
-                    if (isHaze) Modifier.hazeChild(
+                    if (isHaze) Modifier.hazeEffect(
                         state = GlobalHazeState.current,
                         style = LocalHazeStyle.current
                     ) {
@@ -321,12 +353,6 @@ fun DnevnikRuMarkContent(
 
 }
 
-private data class TabData(
-    val index: Int,
-    val text: String,
-    val onClick: () -> Unit
-)
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SubjectMarksItem(
@@ -388,7 +414,7 @@ private fun SubjectMarksItem(
                     text = if (value.isNaN()) {
                         "NaN"
                     } else {
-                        value.roundTo(2).toString()
+                        value.roundTo(2)
                     }, fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -492,7 +518,7 @@ private fun ModuleRow(
                 text = if (value.isNaN()) {
                     "NaN"
                 } else {
-                    value.roundTo(2).toString()
+                    value.roundTo(2)
                 }, fontWeight = FontWeight.SemiBold, fontSize = MaterialTheme.typography.titleLarge.fontSize
             )
         }

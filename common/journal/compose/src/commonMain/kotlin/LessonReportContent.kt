@@ -176,8 +176,7 @@ fun LessonReportContent(
                                 }
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     LessonTable(
-                                        component,
-                                        currentParentWidth = (this@BoxWithConstraints).maxWidth
+                                        component
                                     )
 
                                 }
@@ -890,7 +889,7 @@ private fun ReportHomeTaskItem(
                         withStyle(SpanStyle(fontSize = 18.esp, fontWeight = FontWeight.Bold)) {
                             append("Тип: ")
                         }
-                        append("${typesList[task.type] ?: "Не выбрано"}")
+                        append(typesList[task.type] ?: "Не выбрано")
                         if (task.stups > 0) {
                             append(" (+${task.stups})")
                         }
@@ -1298,7 +1297,7 @@ private fun ColumnsSettingsItem(
             bringIntoRequest()
         }) {
             Text(
-                "$title",
+                title,
                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)
@@ -1379,11 +1378,11 @@ private fun ColumnsSettingsItem(
 @Composable
 fun LessonTable(
     component: LessonReportComponent,
-    currentParentWidth: Dp
+//    currentParentWidth: Dp
 ) {
     val model by component.model.subscribeAsState()
 
-    val viewManager = LocalViewManager.current
+//    val viewManager = LocalViewManager.current
 
     val density = LocalDensity.current
     val vScrollState = rememberLazyListState()
@@ -1736,7 +1735,7 @@ fun LessonTable(
                                                             )
                                                         } else {
                                                             CustomTextButton(
-                                                                text = value.roundTo(2).toString(),
+                                                                text = value.roundTo(2),
                                                                 fontWeight = FontWeight.Black,
                                                                 color = MaterialTheme.colorScheme.onSurface
                                                             ) {
@@ -1928,7 +1927,7 @@ fun LessonTable(
     val avg = (model.detailedMarks.sumOf { it.content.toInt() } / max(
         model.detailedMarks.size,
         1
-    ).toFloat()).roundTo(2).toString()
+    ).toFloat()).roundTo(2)
 
     CAlertDialogContent(
         component = component.marksDialogComponent,

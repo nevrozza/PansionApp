@@ -184,7 +184,7 @@ fun AdminAchievementsContent(
                                             )
                                             Spacer(Modifier.width(5.dp))
                                             Text(
-                                                "${fio?.surname} ${fio?.name} ${fio?.praname?.get(0)}.",
+                                                "${fio.surname} ${fio.name} ${fio.praname?.get(0)}.",
                                                 fontWeight = FontWeight.Normal
                                             )
                                             Spacer(Modifier.width(5.dp))

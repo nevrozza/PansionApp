@@ -1,13 +1,8 @@
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.window.CanvasBasedWindow
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -23,12 +18,12 @@ import com.arkivanov.decompose.router.stack.webhistory.DefaultWebHistoryControll
 import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
-import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.benasher44.uuid.uuid4
 import dev.chrisbanes.haze.HazeState
 import di.Inject
 import forks.colorPicker.toHex
+import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -39,13 +34,14 @@ import root.RootComponentImpl
 import server.DeviceTypex
 import server.cut
 import view.*
-import kotlin.random.Random
+
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
-@OptIn(
-    ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class
-)
+@ExperimentalComposeUiApi
+@ExperimentalDecomposeApi
+@ExperimentalSplitPaneApi
+@JsName("wasmMain")
 fun main() {
     configureWebResources {
         resourcePathMapping { path ->
@@ -117,8 +113,7 @@ fun main() {
                 ) {
                     Root(
                         root = root,
-                        device = WindowType.PC,
-                        isJs = true
+                        device = WindowType.PC
                     )
                 }
                 val hex = MaterialTheme.colorScheme.background.toHex()
