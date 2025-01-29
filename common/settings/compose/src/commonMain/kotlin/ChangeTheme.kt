@@ -32,6 +32,13 @@ fun changeIsRefreshButtons(viewManager: ViewManager, isRefreshButtons: Boolean) 
     repository.saveIsRefreshButtons(isRefreshButtons)
 }
 
+fun changeIsLockedVerticalView(viewManager: ViewManager, isLocked: Boolean) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.isLockedVerticalView.value = isLocked
+    repository.saveIsLockedVerticalView(isLocked)
+
+}
+
 fun changeColorSeed(viewManager: ViewManager, colorSeed: String) {
     val repository: SettingsRepository = Inject.instance()
     val color = colorSeed.toRGB()
@@ -86,6 +93,8 @@ fun setViewManager(viewManager: ViewManager) {
     viewManager.isRefreshButtons.value = repository.fetchIsRefreshButtons()
     viewManager.showAvatars.value = repository.fetchIsAvatars()
     viewManager.hardwareStatus.value = repository.fetchHardwareStatus()
+    viewManager.isLockedVerticalView.value = repository.fetchIsLockedVerticalView()
+    println("S: ${repository.fetchIsLockedVerticalView()}")
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)

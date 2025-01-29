@@ -32,6 +32,7 @@ import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
 import resources.RIcons
+import server.DeviceTypex
 import view.*
 
 
@@ -262,11 +263,28 @@ fun SettingsView(
                             fontSize = 10.esp,
                             lineHeight = 10.esp
                         )
+                        if(deviceType == DeviceTypex.web ) {
+                            Spacer(Modifier.height(8.dp))
+                            SettingsSwitchRow(
+                                text = "Мобильный вид (всегда)",
+                                checked = viewManager.isLockedVerticalView.value ?: false
+                            ) {
+                                changeIsLockedVerticalView(viewManager, it)
+                            }
+                            Spacer(Modifier.height(5.dp))
+                            Text(
+                                text = "Убирает провисания из-за появления клавиатуры",
+                                modifier = Modifier.fillMaxWidth().alpha(.5f),
+                                textAlign = TextAlign.Center,
+                                fontSize = 10.esp,
+                                lineHeight = 10.esp
+                            )
+                        }
                     }
                 }
 
                 item {
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(20.dp))
                 }
 
                 item {

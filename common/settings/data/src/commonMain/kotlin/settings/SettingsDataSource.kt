@@ -108,6 +108,12 @@ class SettingsDataSource(
     }
     fun fetchHardwareStatus() = settings[hardwareStatusKey, ""]
 
+    fun saveIsLockedVerticalView(isLocked: Boolean) {
+        println("SAVED!: !")
+        settings[isLockedVerticalViewKey] = isLocked
+    }
+    fun fetchIsLockedVerticalView() : Boolean? = settings.getBooleanOrNull(isLockedVerticalViewKey)
+
     companion object {
         const val languageKey = "languageKey"
         const val tintKey = "tintKey"
@@ -125,6 +131,7 @@ class SettingsDataSource(
         const val isRefreshButtonsEnabledKey = "isRefreshButtonsEnabledKey"
         const val isAvatarsEnabledKey = "isAvatarsEnabledKey"
         const val hardwareStatusKey = "hardwareStatusKey"
+        const val isLockedVerticalViewKey = "isLockedVerticalViewKey"
     }
 
 }

@@ -17,11 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.chrisbanes.haze.HazeState
-import view.GlobalHazeState
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import view.LocalViewManager
-import view.ViewManager
 
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun DefaultModalBottomSheet(
@@ -46,7 +46,8 @@ fun DefaultModalBottomSheet(
         Column(
             Modifier.hazeHeader(
                 viewManager = viewManager,
-                isMasked = false
+                isMasked = false,
+                customStyle = HazeMaterials.regular()
             ).hazeUnder(
                 viewManager,
                 zIndex = 2f

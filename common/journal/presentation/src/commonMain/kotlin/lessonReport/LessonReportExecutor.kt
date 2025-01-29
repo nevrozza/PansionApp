@@ -17,8 +17,21 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lessonReport.LessonReportStore.Intent
-import report.*
-import server.*
+import report.AddStudentLine
+import report.Attended
+import report.RFetchReportStudentsReceive
+import report.RFetchReportStudentsResponse
+import report.RFetchSubjectQuarterMarksReceive
+import report.RUpdateReportReceive
+import report.ReportHeader
+import report.ServerRatingUnit
+import report.ServerStudentLine
+import server.getDate
+import server.getLocalDate
+import server.getSixTime
+import server.st
+import server.toMinutes
+import server.toSixTime
 
 class LessonReportExecutor(
     private val setMarkMenuComponent: ListComponent,
@@ -324,31 +337,31 @@ class LessonReportExecutor(
                 newStudentList.add(student.copy(
                     lateTime = "$result${if (intent.chosenTime != "0") " мин" else ""}",
                     stupsOfCurrentLesson = student.stupsOfCurrentLesson.map {
-                            if (it.reason == "!ds3") {
-                                val toAdd = (fetchStupsForLateTime(
-                                    reason = it.reason,
-                                    lateTime = result
-                                ))
-                                val toMinus = (fetchStupsForLateTime(
-                                    reason = it.reason,
-                                    lateTime = previousLateTime
-                                ))
+                        if (it.reason == "!ds3") {
+                            val toAdd = (fetchStupsForLateTime(
+                                reason = it.reason,
+                                lateTime = result
+                            ))
+                            val toMinus = (fetchStupsForLateTime(
+                                reason = it.reason,
+                                lateTime = previousLateTime
+                            ))
 
-                                println("DS3LATE: ${previousLateTime} ${toMinus}")
-                                Stup(
-                                    value = it.value + toAdd - toMinus,
-                                    reason = it.reason,
-                                    id = it.id,
-                                    deployTime = it.deployTime,
-                                    deployDate = it.deployDate,
-                                    deployLogin = it.deployLogin,
-                                    custom = it.custom
-                                )
+                            println("DS3LATE: ${previousLateTime} ${toMinus}")
+                            Stup(
+                                value = it.value + toAdd - toMinus,
+                                reason = it.reason,
+                                id = it.id,
+                                deployTime = it.deployTime,
+                                deployDate = it.deployDate,
+                                deployLogin = it.deployLogin,
+                                custom = it.custom
+                            )
 
-                            } else {
-                                it
-                            }
+                        } else {
+                            it
                         }
+                    }
                 ))
 
                 dispatch(LessonReportStore.Message.StudentsUpdated(newStudentList))
@@ -777,7 +790,7 @@ class LessonReportExecutor(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun updateWholeReport() {
+    private fun updateWholeReport() { //isReportsListShowing: Boolean
         GlobalScope.launch(CDispatcher) {
             nInterface.nStartLoading()
             try {
@@ -790,7 +803,7 @@ class LessonReportExecutor(
                             ServerRatingUnit(
                                 login = s.login,
                                 id = m.id,
-                                content = m.value.toString(),
+                                content = m.value,
                                 reason = m.reason,
                                 isGoToAvg = m.isGoToAvg,
                                 deployTime = m.deployTime,
@@ -847,9 +860,13 @@ class LessonReportExecutor(
 
                 journalRepository.updateWholeReport(r)
                 scope.launch {
-                    dispatch(LessonReportStore.Message.EditTimeChanged(editTime))
                     dispatch(LessonReportStore.Message.IsSavedAnimation(true))
                     nInterface.nSuccess()
+                }.invokeOnCompletion {
+                    if (state().isListUpdateNeeded) {
+                        state().updateListScreen()
+                    }
+                    dispatch(LessonReportStore.Message.EditTimeChanged(editTime))
                 }
             } catch (e: Throwable) {
                 scope.launch {

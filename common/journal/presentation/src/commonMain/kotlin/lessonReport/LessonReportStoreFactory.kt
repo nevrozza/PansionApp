@@ -24,7 +24,8 @@ class LessonReportStoreFactory(
     private val journalRepository: JournalRepository,
     private val authRepository: AuthRepository,
     private val data: ReportData,
-    private val marksDialogComponent: CAlertDialogComponent
+    private val marksDialogComponent: CAlertDialogComponent,
+    private val updateListScreen: () -> Unit
 ) {
 
 
@@ -57,7 +58,8 @@ class LessonReportStoreFactory(
                 columnNames = getColumns(((data.customColumns) - "")),
                 subjectId = data.header.subjectId,
                 module = data.header.module.toIntOrNull() ?: 1,
-                isModer = authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator)
+                isModer = authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator),
+                updateListScreen = updateListScreen
             ),
             executorFactory = {
                 LessonReportExecutor(

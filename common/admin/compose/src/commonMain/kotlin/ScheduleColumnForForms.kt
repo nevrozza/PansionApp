@@ -1,3 +1,4 @@
+
 import admin.schedule.ScheduleFormValue
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -9,11 +10,36 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -37,7 +63,12 @@ import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.mpChoseComponent.mpChoseDesktopContent
 import resources.RIcons
-import schedule.*
+import schedule.ScheduleComponent
+import schedule.ScheduleItem
+import schedule.ScheduleStore
+import schedule.ScheduleTiming
+import schedule.fetchLoginsOfLesson
+import server.ScheduleIds
 import server.cut
 import server.isTimeFormat
 import server.toMinutes
@@ -66,7 +97,7 @@ fun LazyItemScope.ScheduleColumnForForms(
     density: Density
 ) {
     val groups = model.groups.filter {
-        it.id in model.students.filter { s -> s.login in form.logins }.flatMap { s -> s.groups.map { it.first } }
+        it.id in model.students.filter { s -> s.login in form.logins }.flatMap { s -> s.groups.map { x -> x.first } }
     }
 
 
@@ -81,8 +112,8 @@ fun LazyItemScope.ScheduleColumnForForms(
         }
 
         val trueItems =
-            model.items[key]?.filter { it.groupId in groups.map { it.id } + (-11) + (0) + (-6) }
-                ?.filter { (it.formId == null || it.formId == formId) && (it.groupId != -6 || form.logins.filter { x -> it.custom.contains(x)  }.isNotEmpty()) }
+            model.items[key]?.filter { it.groupId in groups.map { x -> x.id } + (ScheduleIds.food) + (0) + (ScheduleIds.extra) }
+                ?.filter { (it.formId == null || it.formId == formId) && (it.groupId != -6 || form.logins.any { x -> it.custom.contains(x)  }) }
         AnimatedVisibility(
             visibleState = headerState,
             enter = fadeIn() + scaleIn(),
@@ -141,8 +172,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                         {
                                             component.onEvent(ScheduleStore.Intent.ciNullGroupId)
                                         }
-                                           },
-                                    isCanBeOpened = component.isCanBeEdited
+                                           }
                                 ) {
                                     when {
                                         model.ciId == null -> {
@@ -314,31 +344,16 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                         if (model.ciTiming!!.studentErrors.isEmpty() && model.ciTiming!!.cabinetErrorGroupId == 0) {
                                                                             IconButton(
                                                                                 onClick = {
-                                                                                    val parts =
+                                                                                    val partsOnClick =
                                                                                         customTime.split(
                                                                                             "-"
                                                                                         )
-                                                                                    with(
-                                                                                        component
-                                                                                    ) {
-//                                                                                        onEvent(
-//                                                                                            ScheduleStore.Intent.ciChooseTime(
-//                                                                                                ScheduleTiming(
-//                                                                                                    start = parts[0],
-//                                                                                                    end = parts[1]
-//                                                                                                )
-//                                                                                            )
-//                                                                                        )
-//                                                                                        onEvent(
-//                                                                                            ScheduleStore.Intent.ciPreview
-//                                                                                        )
-                                                                                        component.onEvent(
-                                                                                            ScheduleStore.Intent.ciCreate(ScheduleTiming(
-                                                                                                start = parts[0],
-                                                                                                end = parts[1]
-                                                                                            ))
-                                                                                        )
-                                                                                    }
+                                                                                    component.onEvent(
+                                                                                        ScheduleStore.Intent.ciCreate(ScheduleTiming(
+                                                                                            start = partsOnClick[0],
+                                                                                            end = partsOnClick[1]
+                                                                                        ))
+                                                                                    )
                                                                                 }
                                                                             ) {
                                                                                 GetAsyncIcon(
@@ -375,7 +390,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                                         ))
                                                                                     )
                                                                                 },
-                                                                                niIndex = (model.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1
+                                                                                niIndex = (model.items.flatMap { it.value.map { x -> x.index } }.maxByOrNull { it } ?: 1) + 1
                                                                             )
                                                                         }
                                                                     } else {
@@ -467,7 +482,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                                 )
                                                                             }
                                                                     },
-                                                                    niIndex = (model.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1
+                                                                    niIndex = (model.items.flatMap { it.value.map { x -> x.index } }.maxByOrNull { it } ?: 1) + 1
                                                                 )
                                                             }
                                                                        },
@@ -558,12 +573,10 @@ fun LazyItemScope.ScheduleColumnForForms(
                                 ScheduleForFormsContent(
                                     e = e,
                                     model = model,
-                                    component = component,
-                                    trueItems = trueItems,
-                                    nModel = nModel,
                                     isInPopup = false,
-                                    form = form,
-                                    coItemsCount = coItems.size,
+                                    component = component,
+                                    nModel = nModel,
+                                    trueItems = trueItems,
                                     key = key
                                 ) {
                                     component.onEvent(ScheduleStore.Intent.eiDelete(e.index))
@@ -593,7 +606,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                     text = coItems.map { item ->
                                         (model.subjects.firstOrNull {
                                             it.id == model.groups
-                                                .firstOrNull { it.id == item.groupId }?.subjectId
+                                                .firstOrNull { x -> x.id == item.groupId }?.subjectId
                                         }?.name
                                                 ?: (if (item.groupId == -6) "Доп" else if (item.groupId == -11) "Еда" else if (item.groupId == 0) "Соб" else "null")).cut(3)
                                     }
@@ -632,8 +645,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                         offset = DpOffset(
                                             x = 130.dp,
                                             y = (-35).dp
-                                        ),
-                                        isCanBeOpened = true
+                                        )
                                     ) {
                                         Row(Modifier.horizontalScroll(rememberScrollState())) {
                                             coItems.toSet().forEach { item ->
@@ -644,10 +656,8 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                             model = model,
                                                             isInPopup = true,
                                                             component = component,
-                                                            trueItems = trueItems,
                                                             nModel = nModel,
-                                                            coItemsCount = coItems.size,
-                                                            form = form,
+                                                            trueItems = trueItems,
                                                             key = key
                                                         ) {
                                                             component.onEvent(ScheduleStore.Intent.eiDelete(item.index))
@@ -749,200 +759,203 @@ private fun BoxScope.ScheduleForFormsContent(
     component: ScheduleComponent,
     nModel: NetworkInterface.NetworkModel,
     trueItems: List<ScheduleItem>,
-    coItemsCount: Int,
-    form: ScheduleFormValue,
     key: String,
     onDeleteClick: () -> Unit
 ) {
-    if (e.groupId == -11) {
-        Text(
-            modifier = Modifier.align(Alignment.Center),
-            textAlign = TextAlign.Center,
-            text = "Приём пищи",
-            lineHeight = MaterialTheme.typography.titleSmall.fontSize,
-            fontSize = MaterialTheme.typography.titleSmall.fontSize,
-        )
+    when (e.groupId) {
+        ScheduleIds.food -> {
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                textAlign = TextAlign.Center,
+                text = "Приём пищи",
+                lineHeight = MaterialTheme.typography.titleSmall.fontSize,
+                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+            )
 
-        Text(
-            e.t.start,
-            modifier = Modifier.align(
-                Alignment.BottomStart
+            Text(
+                e.t.start,
+                modifier = Modifier.align(
+                    Alignment.BottomStart
+                )
+                    .padding(start = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
             )
-                .padding(start = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            e.t.end,
-            modifier = Modifier.align(
-                Alignment.BottomEnd
+            Text(
+                e.t.end,
+                modifier = Modifier.align(
+                    Alignment.BottomEnd
+                )
+                    .padding(end = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
             )
-                .padding(end = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
 
-    } else if (e.groupId == -6) {
-        val studentFio = model.students.filter { e.custom.contains(it.login) }
-        Text(
-            modifier = Modifier.align(Alignment.Center),
-            textAlign = TextAlign.Center,
-            text = "Доп с\n${studentFio.map { "${it.fio.surname} ${it.fio.name[0]}" }}",
-            lineHeight = MaterialTheme.typography.titleSmall.fontSize,
-            fontSize = MaterialTheme.typography.titleSmall.fontSize,
-        )
-        Text(
-            model.subjects.firstOrNull { it.id == e.subjectId }?.name.toString(),
-            modifier = Modifier.align(
-                Alignment.TopCenter
-            ),
-            lineHeight = MaterialTheme.typography.bodySmall.fontSize,
-            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-            textAlign = TextAlign.Center
-        )
+        }
+        ScheduleIds.extra -> {
+            val studentFio = model.students.filter { e.custom.contains(it.login) }
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                textAlign = TextAlign.Center,
+                text = "Доп с\n${studentFio.map { "${it.fio.surname} ${it.fio.name[0]}" }}",
+                lineHeight = MaterialTheme.typography.titleSmall.fontSize,
+                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+            )
+            Text(
+                model.subjects.firstOrNull { it.id == e.subjectId }?.name.toString(),
+                modifier = Modifier.align(
+                    Alignment.TopCenter
+                ),
+                lineHeight = MaterialTheme.typography.bodySmall.fontSize,
+                fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                textAlign = TextAlign.Center
+            )
 
-        Text(
-            e.t.start,
-            modifier = Modifier.align(
-                Alignment.BottomStart
+            Text(
+                e.t.start,
+                modifier = Modifier.align(
+                    Alignment.BottomStart
+                )
+                    .padding(start = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
             )
-                .padding(start = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            e.t.end,
-            modifier = Modifier.align(
-                Alignment.BottomEnd
+            Text(
+                e.t.end,
+                modifier = Modifier.align(
+                    Alignment.BottomEnd
+                )
+                    .padding(end = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
             )
-                .padding(end = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
 
-        Text(
-            e.cabinet.toString(),
-            modifier = Modifier.align(
-                Alignment.TopStart
-            ).padding(start = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            model.teachers.first { it.login == e.teacherLogin }.fio.surname,
-            modifier = Modifier.align(
-                Alignment.TopEnd
-            ).padding(start = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
+            Text(
+                e.cabinet.toString(),
+                modifier = Modifier.align(
+                    Alignment.TopStart
+                ).padding(start = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                model.teachers.first { it.login == e.teacherLogin }.fio.surname,
+                modifier = Modifier.align(
+                    Alignment.TopEnd
+                ).padding(start = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
+            )
 
 
-    } else if (e.groupId == 0) {
-        Text(
-            modifier = Modifier.align(Alignment.Center),
-            textAlign = TextAlign.Center,
-            text = e.custom.firstOrNull() ?: "",
-            lineHeight = 14.esp,
-            fontSize = 14.esp,
-        )
+        }
+        0 -> {
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                textAlign = TextAlign.Center,
+                text = e.custom.firstOrNull() ?: "",
+                lineHeight = 14.esp,
+                fontSize = 14.esp,
+            )
 
-        Text(
-            e.t.start,
-            modifier = Modifier.align(
-                Alignment.BottomStart
+            Text(
+                e.t.start,
+                modifier = Modifier.align(
+                    Alignment.BottomStart
+                )
+                    .padding(start = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
             )
-                .padding(start = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            e.t.end,
-            modifier = Modifier.align(
-                Alignment.BottomEnd
+            Text(
+                e.t.end,
+                modifier = Modifier.align(
+                    Alignment.BottomEnd
+                )
+                    .padding(end = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
             )
-                .padding(end = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
 
-        Text(
-            e.cabinet.toString(),
-            modifier = Modifier.align(
-                Alignment.TopStart
-            ).padding(start = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
-    } else {
-        val group =
-            model.groups.first { it.id == e.groupId }
-        Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append(model.subjects.first { it.id == group.subjectId }.name)
-                }
-                append("\n" + group.name)
-            },
-            lineHeight = 14.esp,
-            fontSize = 14.esp,
-            modifier = Modifier.align(
-                Alignment.Center
-            ),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            e.t.start.toString(),
-            modifier = Modifier.align(
-                Alignment.BottomStart
+            Text(
+                e.cabinet.toString(),
+                modifier = Modifier.align(
+                    Alignment.TopStart
+                ).padding(start = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
             )
-                .padding(start = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            e.t.end,
-            modifier = Modifier.align(
-                Alignment.BottomEnd
+        }
+        else -> {
+            val group =
+                model.groups.first { it.id == e.groupId }
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append(model.subjects.first { it.id == group.subjectId }.name)
+                    }
+                    append("\n" + group.name)
+                },
+                lineHeight = 14.esp,
+                fontSize = 14.esp,
+                modifier = Modifier.align(
+                    Alignment.Center
+                ),
+                textAlign = TextAlign.Center
             )
-                .padding(end = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            e.cabinet.toString(),
-            modifier = Modifier.align(
-                Alignment.TopEnd
+            Text(
+                e.t.start,
+                modifier = Modifier.align(
+                    Alignment.BottomStart
+                )
+                    .padding(start = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
             )
-                .padding(end = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = model.teachers.first { it.login == e.teacherLogin }.fio.surname,
-            modifier = Modifier.align(
-                Alignment.TopStart
-            ).padding(start = 5.dp),
-            lineHeight = 13.esp,
-            fontSize = 13.esp,
-            textAlign = TextAlign.Center
-        )
+            Text(
+                e.t.end,
+                modifier = Modifier.align(
+                    Alignment.BottomEnd
+                )
+                    .padding(end = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                e.cabinet.toString(),
+                modifier = Modifier.align(
+                    Alignment.TopEnd
+                )
+                    .padding(end = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = model.teachers.first { it.login == e.teacherLogin }.fio.surname,
+                modifier = Modifier.align(
+                    Alignment.TopStart
+                ).padding(start = 5.dp),
+                lineHeight = 13.esp,
+                fontSize = 13.esp,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 
     if (isInPopup) {
@@ -974,9 +987,9 @@ private fun BoxScope.ScheduleForFormsContent(
         } ?: listOf()
         EditPopup(
             model = model,
+            nModel = nModel,
             e = e,
             component = component,
-            nModel = nModel,
             trueItems = trueItems,
             tLogin = null,
             okKids = okKids,

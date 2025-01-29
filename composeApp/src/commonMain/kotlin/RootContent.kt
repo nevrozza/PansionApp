@@ -1,20 +1,55 @@
 @file:OptIn(ExperimentalSplitPaneApi::class)
 
 //import root.RootComponent.Child.AdminMentors
+
 import admin.AdminComponent
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -25,54 +60,91 @@ import androidx.compose.ui.unit.dp
 import animations.iosSlide
 import animations.slideEnterModifier
 import animations.slideExitModifier
+import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.stack.animation.plus
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.materialPredictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.essenty.backhandler.BackEvent
-import components.*
+import components.CustomTextButton
+import components.DefaultErrorView
+import components.GetAsyncIcon
+import components.hazeHeader
+import components.hazeUnder
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.ExperimentalHazeApi
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
-import groups.GroupsContent
+import groups.GroupsScreen
 import home.HomeStore
-import journal.JournalComponent
+import io.github.alexzhirkevich.compottie.CompottieException
+import io.github.alexzhirkevich.compottie.LottieCancellationBehavior
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.animateLottieCompositionAsState
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import journal.JournalStore
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mentoring.MentoringComponent
 import mentoring.MentoringContent
+import resources.Images
 import resources.RIcons
 import root.RootComponent
-import root.RootComponent.Child.*
+import root.RootComponent.Child.AdminAchievements
+import root.RootComponent.Child.AdminCabinets
+import root.RootComponent.Child.AdminCalendar
+import root.RootComponent.Child.AdminGroups
+import root.RootComponent.Child.AdminParents
+import root.RootComponent.Child.AdminSchedule
+import root.RootComponent.Child.AdminUsers
+import root.RootComponent.Child.AuthActivation
+import root.RootComponent.Child.AuthLogin
+import root.RootComponent.Child.ErrorLoad
+import root.RootComponent.Child.HomeAchievements
+import root.RootComponent.Child.HomeAllGroupMarks
+import root.RootComponent.Child.HomeDetailedStups
+import root.RootComponent.Child.HomeDnevnikRuMarks
+import root.RootComponent.Child.HomeProfile
+import root.RootComponent.Child.HomeSettings
+import root.RootComponent.Child.HomeStudentLines
+import root.RootComponent.Child.HomeTasks
+import root.RootComponent.Child.LessonReport
+import root.RootComponent.Child.MainAdmin
+import root.RootComponent.Child.MainHome
+import root.RootComponent.Child.MainJournal
+import root.RootComponent.Child.MainMentoring
+import root.RootComponent.Child.MainRating
+import root.RootComponent.Child.MainSchool
+import root.RootComponent.Child.QRScanner
+import root.RootComponent.Child.SchoolFormRating
+import root.RootComponent.Child.SchoolMinistry
+import root.RootComponent.Child.SecondView
 import root.RootComponent.Config
 import root.store.RootStore
 import school.SchoolComponent
+import school.SchoolStore
 import server.Moderation
 import server.Roles
 import server.cut
 import server.getDate
-import view.*
-import school.SchoolStore
-
-import io.github.alexzhirkevich.compottie.*
-import resources.Images
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.foundation.Image
-import dev.chrisbanes.haze.ExperimentalHazeApi
+import view.LocalViewManager
+import view.ViewManager
+import view.WindowCalculator
+import view.WindowScreen
+import view.esp
 
 @ExperimentalAnimationApi
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalDecomposeApi::class,
     ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
-    ExperimentalHazeApi::class
+    ExperimentalHazeApi::class, ExperimentalSplitPaneApi::class
 )
 @ExperimentalFoundationApi
 @Composable
@@ -96,20 +168,21 @@ fun RootContent(
 
 
     BoxWithConstraints {
+        val calculatedScreen = WindowCalculator.calculateScreen(
+            size = DpSize(
+                this.maxWidth,
+                this.maxHeight
+            )
+        )
         val isExpanded =
-            if (component.secondLogin == null) viewManager.orientation.value == WindowScreen.Expanded else WindowCalculator.calculateScreen(
-                size = DpSize(
-                    this.maxWidth,
-                    this.maxHeight
-                )
-            ) == WindowScreen.Expanded
+            (viewManager.isLockedVerticalView.value != true) &&
+                    if (component.secondLogin == null) viewManager.orientation.value == WindowScreen.Expanded
+                    else calculatedScreen == WindowScreen.Expanded
         val isVertical =
-            if (component.secondLogin == null) viewManager.orientation.value == WindowScreen.Vertical else WindowCalculator.calculateScreen(
-                size = DpSize(
-                    this.maxWidth,
-                    this.maxHeight
-                )
-            ) == WindowScreen.Vertical
+            (viewManager.isLockedVerticalView.value == true) ||
+                    if (component.secondLogin == null) viewManager.orientation.value == WindowScreen.Vertical
+                    else calculatedScreen == WindowScreen.Vertical
+
 
 
         val items = getNavItems(
@@ -163,8 +236,7 @@ fun RootContent(
                     )
             )
             {
-
-
+                val currentChild = mutableStateOf<Child<Any, RootComponent.Child>?>(null)
                 Children(
                     modifier = Modifier.fillMaxSize()
                         .background(MaterialTheme.colorScheme.background)
@@ -181,13 +253,18 @@ fun RootContent(
                                     is MainHome -> fade()
                                     is MainAdmin -> fade()
                                     is MainMentoring -> fade()
-                                    is LessonReport -> iosSlide() + fade()
-                                    is HomeSettings -> iosSlide() + fade()
-                                    is AdminSchedule -> iosSlide() + fade()
-                                    is QRScanner -> iosSlide() + fade()
+
+                                    is LessonReport -> if (currentChild.value?.instance is LessonReport) fade(
+                                        tween(700)
+                                    ) else iosSlide()
+
+                                    is HomeSettings -> iosSlide()
+                                    is AdminSchedule -> iosSlide()
+                                    is QRScanner -> iosSlide()
+
                                     is HomeProfile -> fade()
                                     is HomeAchievements -> fade()
-                                    else -> if (isExpanded) fade() else iosSlide() + fade()
+                                    else -> if (isExpanded) fade() else iosSlide()// + fade()
                                 }
                             } else {
                                 null
@@ -236,6 +313,7 @@ fun RootContent(
 
                         )//backAnimation(component)
                 ) {
+
                     when (val child = it.instance) {
 
                         is ErrorLoad -> {
@@ -256,46 +334,48 @@ fun RootContent(
                         is AuthActivation -> ActivationContent(child.component)
 
 
-                        is MainHome -> MultiPaneSplit(
-                            isExpanded = isExpanded,
-                            viewManager = viewManager,
-                            currentScreen = {
-                                HomeContent(
-                                    child.homeComponent,
-                                    sharedTransitionScope = this@SharedTransitionLayout,
-                                    isSharedVisible = stack.active.instance is MainHome
-                                )
-                            },
-                            firstScreen = {
-                                HomeContent(
-                                    child.homeComponent,
-                                    sharedTransitionScope = this@SharedTransitionLayout,
-                                    isSharedVisible = stack.active.instance is MainHome
-                                )
-                            },
-                            secondScreen = {
-                                if ((model.moderation != Moderation.nothing || model.role == Roles.teacher && component.isMentoring == null
-                                            ) && component.secondLogin == null
-                                ) {
-                                    JournalContent(
-                                        child.journalComponent,
-                                        role = model.role,
-                                        moderation = model.moderation,
-                                        onRefresh = {
-                                            child.journalComponent.onEvent(JournalStore.Intent.Refresh)
+                        is MainHome -> {
+                            MultiPaneSplit(
+                                isExpanded = isExpanded,
+                                viewManager = viewManager,
+                                currentScreen = {
+                                    HomeContent(
+                                        child.homeComponent,
+                                        sharedTransitionScope = this@SharedTransitionLayout,
+                                        isSharedVisible = stack.active.instance is MainHome
+                                    )
+                                },
+                                firstScreen = {
+                                    HomeContent(
+                                        child.homeComponent,
+                                        sharedTransitionScope = this@SharedTransitionLayout,
+                                        isSharedVisible = stack.active.instance is MainHome
+                                    )
+                                },
+                                secondScreen = {
+                                    if ((model.moderation != Moderation.nothing || model.role == Roles.teacher && component.isMentoring == null
+                                                ) && component.secondLogin == null
+                                    ) {
+                                        JournalContent(
+                                            child.journalComponent,
+                                            role = model.role,
+                                            moderation = model.moderation,
+                                            onRefresh = {
+                                                child.journalComponent.onEvent(JournalStore.Intent.Refresh)
+                                                child.homeComponent.onRefreshClick()
+                                            }
+                                        )
+                                    } else {
+                                        RatingContent(
+                                            child.ratingComponent,
+                                            isSharedVisible = stack.active.instance is MainRating
+                                        ) {
                                             child.homeComponent.onRefreshClick()
                                         }
-                                    )
-                                } else {
-                                    RatingContent(
-                                        child.ratingComponent,
-                                        isSharedVisible = stack.active.instance is MainRating
-                                    ) {
-                                        child.homeComponent.onRefreshClick()
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
 
                         is MainJournal -> MultiPaneSplit(
                             isExpanded = isExpanded,
@@ -476,37 +556,42 @@ fun RootContent(
 
 
                         is AdminUsers ->
-                            MultiPaneAdmin(
-                                isExpanded,
-                                viewManager = viewManager,
-                                adminComponent = child.adminComponent,
-                                currentRouting = AdminComponent.Output.NavigateToUsers,
-                                secondScreen = { UsersContent(child.usersComponent) }
-                            )
+                            UsersScreen(
+                                component = child.usersComponent,
+                                isExpanded = isExpanded
+                            ) {
+                                AdminContent(
+                                    component = child.adminComponent,
+                                    isActive = false,
+                                    currentRouting = AdminComponent.Output.NavigateToUsers
+                                )
+                            }
 
                         is AdminGroups ->
-                            MultiPaneAdmin(
-                                isExpanded,
-                                viewManager = viewManager,
-                                adminComponent = child.adminComponent,
-                                currentRouting = AdminComponent.Output.NavigateToGroups,
-                                secondScreen = {
-                                    GroupsContent(
-                                        child.groupsComponent,
-                                        //                                        isVisible = stack.active.instance is Child.AdminGroups
-                                    )
-                                }
-                            )
+                            GroupsScreen(
+                                component = child.groupsComponent,
+                                isExpanded = isExpanded
+                            ) {
+                                AdminContent(
+                                    component = child.adminComponent,
+                                    isActive = false,
+                                    currentRouting = AdminComponent.Output.NavigateToGroups
+                                )
+                            }
 
                         is LessonReport ->
-                            MultiPaneJournal(
-                                isExpanded,
-                                journalComponent = child.journalComponent,
-                                role = model.role,
-                                moderation = model.moderation,
-                                viewManager = viewManager,
-                                secondScreen = { LessonReportContent(child.lessonReport) }
-                            )
+                            LessonReportScreen(
+                                child.lessonReport,
+                                isExpanded = isExpanded
+                            ) {
+                                JournalContent(
+                                    component = child.journalComponent,
+                                    role = model.role,
+                                    moderation = model.moderation,
+                                    isNotMinimized = false,
+                                    onRefresh = {}
+                                )
+                            }
 
                         is HomeSettings ->
                             SettingsContent(
@@ -514,7 +599,16 @@ fun RootContent(
                                 child.settingsComponent
                             )
 
-                        is HomeAllGroupMarks ->
+                        is HomeAllGroupMarks -> {
+                            DisposableEffect(Unit) {
+
+                                viewManager.splitPaneState.dispatchRawMovement(30000f)
+                                onDispose {
+                                    viewManager.splitPaneState.dispatchRawMovement((0.5f - viewManager.splitPaneState.positionPercentage) * 1500)
+
+                                }
+                            }
+
                             MultiPaneSplit(
                                 isExpanded = isExpanded,
                                 viewManager = viewManager,
@@ -539,6 +633,7 @@ fun RootContent(
                                     )
                                 }
                             )
+                        }
 
                         is AdminSchedule -> ScheduleContent(child.scheduleComponent)
                         is HomeProfile -> MultiPaneSplit(
@@ -721,25 +816,24 @@ fun RootContent(
 
 
                         is AdminAchievements -> {
-                            val previousScreen = stack.items.getOrNull(stack.items.size - 2)?.instance
+                            val previousScreen =
+                                stack.items.getOrNull(stack.items.size - 2)?.instance
                             if (previousScreen is MainMentoring || stack.active.instance is MainMentoring) {
-                                AdminAchievementsContent(
-                                    child.adminAchievementsComponent,
-                                    //                                    isVisible = stack.active.instance is Child.AdminAchievements
-                                )
+                                AdminAchievementsScreen(
+                                    component = child.adminAchievementsComponent,
+                                    isExpanded = false
+                                ) {}
                             } else {
-                                MultiPaneAdmin(
-                                    isExpanded,
-                                    viewManager = viewManager,
-                                    adminComponent = child.adminComponent,
-                                    currentRouting = AdminComponent.Output.NavigateToAchievements,
-                                    secondScreen = {
-                                        AdminAchievementsContent(
-                                            child.adminAchievementsComponent,
-                                            //                                            isVisible = stack.active.instance is Child.AdminAchievements
-                                        )
-                                    }
-                                )
+                                AdminAchievementsScreen(
+                                    component = child.adminAchievementsComponent,
+                                    isExpanded = isExpanded
+                                ) {
+                                    AdminContent(
+                                        component = child.adminComponent,
+                                        isActive = false,
+                                        currentRouting = AdminComponent.Output.NavigateToAchievements
+                                    )
+                                }
                             }
                         }
 
@@ -833,6 +927,8 @@ fun RootContent(
                             }
                         )
                     }
+
+                    currentChild.value = it
                 }
                 if (component.secondLogin == null) {
                     CustomNavigationRail(isVertical, component, model, childStack, items)
@@ -1007,7 +1103,8 @@ fun MultiPaneMentoring(
                     )
                     else if (rootComponent != null) Box {
                         val modelNotNull by mentoringComponent!!.model.subscribeAsState()
-                        val fio = modelNotNull.students.firstOrNull { it.login == modelNotNull.chosenLogin }?.fio
+                        val fio =
+                            modelNotNull.students.firstOrNull { it.login == modelNotNull.chosenLogin }?.fio
                         Column {
                             Spacer(Modifier.height(10.dp))
                             RootContent(rootComponent)
@@ -1041,50 +1138,6 @@ fun MultiPaneMentoring(
 
 }
 
-
-@ExperimentalMaterial3Api
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun MultiPaneJournal(
-    isExpanded: Boolean,
-    journalComponent: JournalComponent,
-//    currentReportId: Int,
-    role: String,
-    moderation: String,
-    viewManager: ViewManager,
-    secondScreen: @Composable () -> Unit
-) {
-    if (isExpanded) {
-        LaunchedEffect(viewManager.isFullScreen.value) {
-            if (viewManager.isFullScreen.value) {
-                viewManager.splitPaneState.dispatchRawMovement(-30000f)
-            }
-        }
-        val x = animateDpAsState(if (viewManager.isFullScreen.value) 0.dp else 400.dp)
-        HorizontalSplitPane(
-            splitPaneState = viewManager.splitPaneState
-        ) {
-            first(minSize = x.value) {
-                JournalContent(
-                    journalComponent,
-                    isNotMinimized = false,
-                    role = role,
-                    moderation = moderation,
-                    onRefresh = { }
-                )
-            }
-
-            dSplitter(viewManager.isFullScreen)
-
-
-            second(minSize = 500.dp) {
-                secondScreen()
-            }
-        }
-    } else {
-        secondScreen()
-    }
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

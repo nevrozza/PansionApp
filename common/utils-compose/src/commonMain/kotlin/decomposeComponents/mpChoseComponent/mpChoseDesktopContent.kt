@@ -2,9 +2,18 @@ package decomposeComponents.mpChoseComponent
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -13,11 +22,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncIcon
+import components.LoadingAnimation
+import components.hazeHeader
+import components.hazeUnder
 import components.mpChose.MpChoseComponent
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import resources.RIcons
 import view.LocalViewManager
 import view.ViewManager
@@ -28,12 +44,11 @@ fun mpChoseDesktopContent(
     component: MpChoseComponent,
     offset: DpOffset = DpOffset(x = 40.dp, y = -25.dp),
     backButton: (() -> Unit)? = null,
-    isCanBeOpened: Boolean,
     content: @Composable () -> Unit
 ) {
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
-    val coroutineScope = rememberCoroutineScope()
+    rememberCoroutineScope()
     val viewManager = LocalViewManager.current
     val isTooltip = true// viewManager.orientation.value != WindowScreen.Vertical
 
@@ -52,7 +67,7 @@ fun mpChoseDesktopContent(
 //    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun DropdownVariant(
     component: MpChoseComponent,
@@ -74,7 +89,8 @@ fun DropdownVariant(
             },
             modifier = Modifier.sizeIn(maxWidth = viewManager.size!!.maxWidth - 50.dp, maxHeight = viewManager.size!!.maxHeight - 100.dp).animateContentSize().hazeHeader(
                 viewManager = viewManager,
-                isMasked = false
+                isMasked = false,
+                customStyle = HazeMaterials.regular()
             ).hazeUnder(
                 viewManager,
                 zIndex = 3f

@@ -4,7 +4,7 @@ coil = "3.1.0-SNAPSHOT"
 excelkt = "1.0.2"
 mpfilepicker = "3.1.0"
 plugin-android = "8.3.0"
-plugin-compose = "1.8.0-alpha02"#"1.7.0-rc01"
+plugin-compose = "1.7.3"#1.8.0-alpha02
 
 # Multiplatform
 kotlin = "2.1.10-RC2"

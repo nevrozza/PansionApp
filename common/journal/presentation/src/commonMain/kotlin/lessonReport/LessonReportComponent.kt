@@ -20,14 +20,14 @@ import di.Inject
 import homeTasksDialog.HomeTasksDialogComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
-import server.getSixTime
 
 
 class LessonReportComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit,
-    private val reportData: ReportData
+    private val reportData: ReportData,
+    private val updateListScreen: () -> Unit,
 ) : ComponentContext by componentContext {
     //    private val settingsRepository: SettingsRepository = Inject.instance()
 //    private val authRepository: AuthRepository = Inject.instance()
@@ -74,6 +74,9 @@ class LessonReportComponent(
         homeTasksTabDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
     }
 
+
+    var invokeAfterQuitClick = { onOutput(Output.BackAtAll) }
+
     private fun onSaveQuitAcceptClick() {
         if (state.value.isUpdateNeeded) {
             onEvent(LessonReportStore.Intent.UpdateWholeReport)
@@ -83,12 +86,14 @@ class LessonReportComponent(
             onEvent(LessonReportStore.Intent.SaveHomeTasks)
         }
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
-        onOutput(Output.BackAtAll)
+        invokeAfterQuitClick()
+        invokeAfterQuitClick = { onOutput(Output.BackAtAll) }
     }
 
     private fun onSaveQuitDeclineClick() {
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
-        onOutput(Output.BackAtAll)
+        invokeAfterQuitClick()
+        invokeAfterQuitClick = { onOutput(Output.BackAtAll) }
     }
 
     val marksDialogComponent = CAlertDialogComponent(
@@ -195,7 +200,8 @@ class LessonReportComponent(
                 marksDialogComponent = marksDialogComponent,
                 authRepository = authRepository,
                 nHomeTasksInterface = nHomeTasksInterface,
-                setDzMarkMenuComponent = setDzMarkMenuComponent
+                setDzMarkMenuComponent = setDzMarkMenuComponent,
+                updateListScreen = updateListScreen
             ).create()
         }
 
@@ -231,8 +237,12 @@ class LessonReportComponent(
 //        }
         output(output)
     }
-
-
+    fun outerIsNeedToSave() : Boolean {
+        return (state.value.isUpdateNeeded || state.value.homeTasksToEditIds.isNotEmpty() || true in state.value.hometasks.map { it.isNew }) && model.value.isEditable
+    }
+    fun outerDialogForSaving() {
+        saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+    }
     init {
         onEvent(LessonReportStore.Intent.Init)
 

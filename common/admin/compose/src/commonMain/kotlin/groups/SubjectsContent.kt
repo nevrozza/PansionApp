@@ -5,13 +5,42 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -25,9 +54,17 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.AnimatedCommonButton
+import components.CLazyColumn
+import components.CustomTextButton
+import components.CustomTextField
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncIcon
+import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
+import components.cClickable
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -36,9 +73,7 @@ import groups.students.StudentsComponent
 import groups.students.StudentsStore
 import groups.subjects.SubjectsComponent
 import groups.subjects.SubjectsStore
-import kotlinx.coroutines.CoroutineScope
 import resources.RIcons
-import view.LocalViewManager
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
@@ -46,14 +81,12 @@ import view.LocalViewManager
 fun SubjectsContent(
     component: SubjectsComponent,
     sComponent: StudentsComponent,
-    coroutineScope: CoroutineScope,
     topPadding: Dp,
 //    hazeState: HazeState
 ) {
     val gModel by component.groupModel.subscribeAsState()
     val model by component.model.subscribeAsState()
     val nSModel by component.nSubjectsInterface.networkModel.subscribeAsState()
-    val viewManager = LocalViewManager.current
 
     Box() {
 //    Spacer(Modifier.height(10.dp))
@@ -309,13 +342,23 @@ fun SubjectsContent(
 
 
 
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun EditGroupBottomSheet(
+    component: SubjectsComponent
+) {
+    val model by component.model.subscribeAsState()
+    val gModel by component.groupModel.subscribeAsState()
     CBottomSheetContent(
         component = component.eGroupBottomSheet
     ) {
         var deleteGroup by remember { mutableStateOf(false) }
         val isActive = model.groups.firstOrNull { it.id == model.eGroupId }?.isActive == true
         val focusManager = LocalFocusManager.current
-        var num = 0
+        var num: Int
         Column(
             Modifier.padding(top = 5.dp, bottom = 10.dp)
                 .padding(horizontal = 10.dp)

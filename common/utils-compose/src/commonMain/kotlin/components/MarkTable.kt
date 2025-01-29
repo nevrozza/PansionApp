@@ -28,7 +28,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -55,6 +54,7 @@ import server.fetchReason
 import server.getLocalDate
 import server.roundTo
 import view.handy
+import view.popupPositionProvider
 import kotlin.math.max
 
 
@@ -77,7 +77,7 @@ fun MarkTableUnit(m: MarkTableItem, markSize: Dp) {
                 )
             }
         },
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
+        positionProvider = popupPositionProvider,
         enableUserInput = true
     ) {
 

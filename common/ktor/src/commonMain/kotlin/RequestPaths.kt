@@ -1,6 +1,7 @@
 import server.DeviceTypex
 
 object RequestPaths {
+//    val ip = "192.168.56.94:8080"
     val ip = if (isTestMode) {
         if (deviceType == DeviceTypex.android) "192.168.43.55:8080" else "127.0.0.1:8080"
     } else {

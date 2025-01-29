@@ -2,9 +2,30 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -19,10 +40,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.CustomTextButton
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncIcon
+import components.MarkContent
+import components.dashedBorder
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
-import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.launch
 import resources.RIcons
 import server.fetchReason
@@ -31,6 +56,7 @@ import server.toMinutes
 import studentReportDialog.StudentReportComponent
 import view.esp
 import view.handy
+import view.popupPositionProvider
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -108,12 +134,12 @@ fun StudentReportDialogContent(
                                             tooltip = {
                                                 PlainTooltip(modifier = Modifier.clickable {}) {
                                                     Text(
-                                                        "${fetchReason(m.reason)}",
+                                                        fetchReason(m.reason),
                                                         textAlign = TextAlign.Center
                                                     )
                                                 }
                                             },
-                                            positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
+                                            positionProvider = popupPositionProvider
                                         ) {
 
                                             if (m.reason.subSequence(0, 3) != "!st" &&

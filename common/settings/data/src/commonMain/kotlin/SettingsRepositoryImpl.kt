@@ -115,6 +115,11 @@ class SettingsRepositoryImpl(
     override fun saveIsRefreshButtons(isRefreshButtons: Boolean) = cacheDataSource.saveIsRefreshButtonsEnabled(isRefreshButtons)
 
     override fun fetchIsRefreshButtons(): Boolean = cacheDataSource.fetchIsRefreshButtonsEnabled()
+    override fun saveIsLockedVerticalView(isLocked: Boolean) {
+        cacheDataSource.saveIsLockedVerticalView(isLocked)
+    }
+    override fun fetchIsLockedVerticalView(): Boolean? = cacheDataSource.fetchIsLockedVerticalView()
+
     override fun saveIsAvatars(isAvatars: Boolean) = cacheDataSource.saveIsAvatarsEnabled(isAvatars)
 
     override fun fetchIsAvatars(): Boolean = cacheDataSource.fetchIsAvatarsEnabled()

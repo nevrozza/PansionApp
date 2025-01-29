@@ -31,6 +31,7 @@ import resources.RIcons
 import view.LocalViewManager
 import view.bringIntoView
 import view.esp
+import view.popupPositionProvider
 import view.rememberImeState
 
 
@@ -232,7 +233,7 @@ fun ActivationContent(
                                                             }
                                                         }
                                                     },
-                                                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
+                                                    positionProvider = popupPositionProvider,
                                                     enableUserInput = false,
                                                     focusable = false
                                                 ) {

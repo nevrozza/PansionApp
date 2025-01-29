@@ -38,12 +38,14 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
             is LessonReportStore.Message.SettingsTabChanged -> copy(settingsTab = msg.settingsTab)
             is LessonReportStore.Message.TopicChanged -> copy(
                 topic = msg.topic,
-                isUpdateNeeded = true
+                isUpdateNeeded = true,
+                isListUpdateNeeded = true
             )
 
             is LessonReportStore.Message.DescriptionChanged -> copy(
                 description = msg.description,
-                isUpdateNeeded = true
+                isUpdateNeeded = true,
+                isListUpdateNeeded = true
             )
 
             is LessonReportStore.Message.RepUpdated -> copy(
@@ -59,7 +61,8 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
             LessonReportStore.Message.InfoShowingChanged -> copy(isInfoShowing = !isInfoShowing)
             is LessonReportStore.Message.StatusChanged -> copy(
                 status = msg.status,
-                isUpdateNeeded = true
+                isUpdateNeeded = true,
+                isListUpdateNeeded = true
             )
 
             LessonReportStore.Message.IsMentorWasChanged -> copy(
@@ -69,7 +72,8 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
 
             is LessonReportStore.Message.EditTimeChanged -> copy(
                 editTime = msg.editTime,
-                isUpdateNeeded = false
+                isUpdateNeeded = false,
+                isListUpdateNeeded = false
             )
 
             is LessonReportStore.Message.Inited -> copy(
@@ -77,6 +81,7 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
                 likedList = msg.likedList,
                 dislikedList = msg.dislikedList,
                 isUpdateNeeded = false,
+                isListUpdateNeeded = false,
                 columnNames = getColumns(columnNames),
                 topic = msg.newTopic,
                 status = msg.newStatus

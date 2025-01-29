@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -16,8 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,22 +24,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.cAlertDialog.CAlertDialogComponent
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import components.*
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.CustomTextButton
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.LoadingAnimation
+import components.cAlertDialog.CAlertDialogComponent
+import components.cAlertDialog.CAlertDialogStore
+import components.hazeHeader
+import components.hazeUnder
 import components.networkInterface.NetworkState
-import view.GlobalHazeState
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import view.LocalViewManager
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun CAlertDialogContent(
     component: CAlertDialogComponent,
@@ -55,6 +59,7 @@ fun CAlertDialogContent(
     acceptText: String = "Ок",
     declineText: String = "Отмена",
     dialogProperties: DialogProperties = DialogProperties(),
+    isClickOutsideEqualsDecline: Boolean = true,
     content: @Composable (() -> Unit)
 ) {
     val model by component.model.subscribeAsState()
@@ -65,7 +70,8 @@ fun CAlertDialogContent(
     if (isShowing) {
         BasicAlertDialog(
             onDismissRequest = {
-                model.onDeclineClick.invoke()
+                if (isClickOutsideEqualsDecline) model.onDeclineClick.invoke()
+                else component.onEvent(CAlertDialogStore.Intent.HideDialog)
             },
             properties = dialogProperties
         ) {
@@ -78,7 +84,8 @@ fun CAlertDialogContent(
                     .clip(MaterialTheme.shapes.large)
                     .hazeHeader(
                         viewManager = viewManager,
-                        isMasked = false
+                        isMasked = false,
+                        customStyle = HazeMaterials.regular()
                     ).hazeUnder(
                         viewManager,
                         zIndex = 4f

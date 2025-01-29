@@ -116,6 +116,49 @@ import view.LocalViewManager
 import view.LockScreenOrientation
 import view.esp
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun UsersScreen(
+    component: UsersComponent,
+    isExpanded: Boolean,
+    listScreen: @Composable () -> Unit
+) {
+    val viewManager = LocalViewManager.current
+
+
+    LockScreenOrientation(-1)
+
+    DefaultMultiPane(
+        isExpanded = isExpanded,
+        leftScreen = listScreen,
+        viewManager = viewManager
+    ) {
+        UsersContent(component)
+    }
+
+
+    UsersOverlay(
+        component
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UsersOverlay(
+    component: UsersComponent
+) {
+    val model by component.model.subscribeAsState()
+    editUserSheet(
+        component,
+        model
+    )
+    createUserSheet(
+        component,
+        model
+    )
+}
+
+
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
     ExperimentalFoundationApi::class,
@@ -125,7 +168,6 @@ import view.esp
 fun UsersContent(
     component: UsersComponent
 ) {
-    LockScreenOrientation(-1)
     val model by component.model.subscribeAsState()
     val nModel by component.nModel.subscribeAsState()
     val viewManager = LocalViewManager.current
@@ -473,15 +515,6 @@ fun UsersContent(
                 state = refreshState,
                 topPadding = padding.calculateTopPadding()
             )
-            editUserSheet(
-                component,
-                model
-            )
-            createUserSheet(
-                component,
-                model
-            )
-
         }
 
     }

@@ -1,20 +1,66 @@
 package groups
-import androidx.compose.animation.*
+import DefaultMultiPane
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.ScrollableDefaults
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -22,7 +68,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
@@ -33,15 +78,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.AnimatedCommonButton
+import components.AppBar
+import components.CustomTextField
+import components.GetAsyncIcon
+import components.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
+import components.hazeUnder
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
-import decomposeComponents.listDialogComponent.ListDialogContent
-import dev.chrisbanes.haze.*
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeInputScale
+import dev.chrisbanes.haze.LocalHazeStyle
+import dev.chrisbanes.haze.hazeEffect
 import groups.forms.FormsStore
 import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
@@ -50,11 +102,10 @@ import resources.RIcons
 import view.GlobalHazeState
 import view.LocalViewManager
 import view.WindowScreen
-import view.rememberImeState
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
-    ExperimentalFoundationApi::class,
+    ExperimentalFoundationApi::class, ExperimentalHazeApi::class,
 )
 @ExperimentalLayoutApi
 @Composable
@@ -70,13 +121,8 @@ fun GroupsContent(
     }
 
     val subjectsModel by component.subjectsComponent.model.subscribeAsState()
-    val formsModel by component.formsComponent.model.subscribeAsState()
     val studentsModel by component.studentsComponent.model.subscribeAsState()
-    val overscrollEffect = ScrollableDefaults.overscrollEffect()
     val viewManager = LocalViewManager.current
-//    val scrollState = rememberScrollState()
-    val imeState = rememberImeState()
-    val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
     val isInited =
@@ -449,7 +495,6 @@ fun GroupsContent(
                                     SubjectsContent(
                                         component = component.subjectsComponent,
                                         sComponent = component.studentsComponent,
-                                        coroutineScope = coroutineScope,
                                         topPadding = padding.calculateTopPadding(),
 //                                        hazeState = hazeState
                                     )
@@ -592,183 +637,223 @@ fun GroupsContent(
         }
 
 
-        CBottomSheetContent(
-            component = component.formsComponent.creatingFormBottomSheet,
-            customMaxHeight = 0.dp
-        ) {
-//            println(formsModel)
-            val focusManager = LocalFocusManager.current
 
-            var num = 0
+
+
+    }
+
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun GroupsScreen(
+    component: GroupsComponent,
+    isExpanded: Boolean,
+    listScreen: @Composable () -> Unit
+) {
+    val viewManager = LocalViewManager.current
+
+
+    DefaultMultiPane(
+        isExpanded = isExpanded,
+        leftScreen = listScreen,
+        viewManager = viewManager
+    ) {
+        GroupsContent(component)
+    }
+
+
+    GroupsOverlay(
+        component
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun GroupsOverlay(
+    component: GroupsComponent
+) {
+    val formsModel by component.formsComponent.model.subscribeAsState()
+    val subjectsModel by component.subjectsComponent.model.subscribeAsState()
+    val model by component.model.subscribeAsState()
+    CBottomSheetContent(
+        component = component.formsComponent.creatingFormBottomSheet,
+        customMaxHeight = 0.dp
+    ) {
+//            println(formsModel)
+        val focusManager = LocalFocusManager.current
+
+        var num: Int
+        Column(
+            Modifier//.padding(top = 5.dp, bottom = 10.dp).padding(horizontal = 10.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            var expandedMentors by remember { mutableStateOf(false) }
+            val properties = listOf(
+                formsModel.cFormTitle,
+                formsModel.cFormMentorLogin,
+                formsModel.cFormClassNum
+            )
+            num = properties.count { (it).isNotBlank() }
+            Text(
+                buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize
+                        )
+                    ) {
+                        append("Создать новый класс ")
+                    }
+                    withStyle(
+                        SpanStyle(
+                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    ) {
+                        append("$num/${properties.size}")
+                    }
+                }
+            )
             Column(
-                Modifier//.padding(top = 5.dp, bottom = 10.dp).padding(horizontal = 10.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                Modifier.imePadding()
+                    .verticalScroll(rememberScrollState())
             ) {
-                var expandedMentors by remember { mutableStateOf(false) }
-                val properties = listOf(
-                    formsModel.cFormTitle,
-                    formsModel.cFormMentorLogin,
-                    formsModel.cFormClassNum
-                )
-                num = properties.count { (it).isNotBlank() }
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = MaterialTheme.typography.titleLarge.fontSize
+                Spacer(Modifier.height(5.dp))
+                CustomTextField(
+                    value = formsModel.cFormClassNum,
+                    onValueChange = {
+                        if (it.length < 3) {
+//                                component.onEvent(GroupsStore.Intent.ChangeCFormNum(it))
+                            component.formsComponent.onEvent(
+                                FormsStore.Intent.ChangeCFormClassNum(
+                                    it
+                                )
                             )
-                        ) {
-                            append("Создать новый класс ")
                         }
-                        withStyle(
-                            SpanStyle(
-                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
+                    },
+                    onEnterClicked = {
+                        focusManager.moveFocus(FocusDirection.Next)
+                    },
+                    text = "Номер класса",
+                    isEnabled = !(component.nFormsInterface.networkModel.value.state == NetworkState.Loading),
+                    focusManager = focusManager,
+                    isMoveUpLocked = false,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Number,
+                    supText = "Число [1-11]"
+                )
+                Spacer(Modifier.height(7.dp))
+                CustomTextField(
+                    value = formsModel.cFormTitle,
+                    onValueChange = {
+                        component.formsComponent.onEvent(
+                            FormsStore.Intent.ChangeCFormTitle(
+                                it
                             )
-                        ) {
-                            append("$num/${properties.size}")
+                        )
+                    },
+                    text = "Название направления",
+                    isEnabled = !(component.nFormsInterface.networkModel.value.state == NetworkState.Loading),
+                    onEnterClicked = {
+                        focusManager.moveFocus(FocusDirection.Next)
+                    },
+                    supText = "Инженерный/А",
+                    focusManager = focusManager,
+                    isMoveUpLocked = true,
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text
+                )
+                Spacer(Modifier.height(7.dp))
+
+
+                CustomTextField(
+                    value = formsModel.cFormShortTitle,
+                    onValueChange = {
+                        component.formsComponent.onEvent(
+                            FormsStore.Intent.ChangeCFormShortTitle(
+                                it
+                            )
+                        )
+                    },
+                    text = "Сокращение",
+                    isEnabled = !(component.nFormsInterface.networkModel.value.state == NetworkState.Loading),
+                    onEnterClicked = {
+                        focusManager.moveFocus(FocusDirection.Next)
+                        expandedMentors = true
+                    },
+                    supText = "инж/А",
+                    focusManager = focusManager,
+                    isMoveUpLocked = true,
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text
+                )
+                Spacer(Modifier.height(7.dp))
+
+                val mentorsMap =
+                    formsModel.mentors.associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: "").first()}." }
+
+                ExposedDropdownMenuBox(
+                    expanded = expandedMentors,
+                    onExpandedChange = {
+                        expandedMentors = !expandedMentors
+                    }
+                ) {
+                    // textfield
+                    val mentor =
+                        formsModel.mentors.find { it.login == formsModel.cFormMentorLogin }
+                    val mentorName =
+                        try {
+                            "${mentor!!.fio.surname} ${mentor.fio.name.first()}. ${(mentor.fio.praname ?: " ").first()}."
+                        } catch (_: Throwable) {
+                            ""
+                        }
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
+                        readOnly = true,
+                        value = mentorName,
+                        placeholder = { Text("Выберите") },
+                        onValueChange = {},
+                        label = { Text("Наставник") },
+                        trailingIcon = {
+                            val chevronRotation = animateFloatAsState(if (expandedMentors) 90f else -90f)
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft,
+                                modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                size = 15.dp
+                            )
+                        },
+                        shape = RoundedCornerShape(15.dp),
+                        enabled = !(component.nFormsInterface.networkModel.value.state == NetworkState.Loading)
+                    )
+                    // menu
+
+                    ExposedDropdownMenu(
+                        expanded = expandedMentors,
+                        onDismissRequest = {
+                            expandedMentors = false
+                        },
+                    ) {
+                        // menu items
+                        mentorsMap.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption.value) },
+                                onClick = {
+                                    component.formsComponent.onEvent(
+                                        FormsStore.Intent.ChangeCFormMentorLogin(
+                                            selectionOption.key
+                                        )
+                                    )
+                                    expandedMentors = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                            )
                         }
                     }
-                )
-                Column(
-                    Modifier.imePadding()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Spacer(Modifier.height(5.dp))
-                    CustomTextField(
-                        value = formsModel.cFormClassNum,
-                        onValueChange = {
-                            if (it.length < 3) {
-//                                component.onEvent(GroupsStore.Intent.ChangeCFormNum(it))
-                                component.formsComponent.onEvent(
-                                    FormsStore.Intent.ChangeCFormClassNum(
-                                        it
-                                    )
-                                )
-                            }
-                        },
-                        onEnterClicked = {
-                            focusManager.moveFocus(FocusDirection.Next)
-                        },
-                        text = "Номер класса",
-                        isEnabled = !(component.nFormsInterface.networkModel.value.state == NetworkState.Loading),
-                        focusManager = focusManager,
-                        isMoveUpLocked = false,
-                        autoCorrect = false,
-                        keyboardType = KeyboardType.Number,
-                        supText = "Число [1-11]"
-                    )
-                    Spacer(Modifier.height(7.dp))
-                    CustomTextField(
-                        value = formsModel.cFormTitle,
-                        onValueChange = {
-                            component.formsComponent.onEvent(
-                                FormsStore.Intent.ChangeCFormTitle(
-                                    it
-                                )
-                            )
-                        },
-                        text = "Название направления",
-                        isEnabled = !(component.nFormsInterface.networkModel.value.state == NetworkState.Loading),
-                        onEnterClicked = {
-                            focusManager.moveFocus(FocusDirection.Next)
-                        },
-                        supText = "Инженерный/А",
-                        focusManager = focusManager,
-                        isMoveUpLocked = true,
-                        autoCorrect = true,
-                        keyboardType = KeyboardType.Text
-                    )
-                    Spacer(Modifier.height(7.dp))
-
-
-                    CustomTextField(
-                        value = formsModel.cFormShortTitle,
-                        onValueChange = {
-                            component.formsComponent.onEvent(
-                                FormsStore.Intent.ChangeCFormShortTitle(
-                                    it
-                                )
-                            )
-                        },
-                        text = "Сокращение",
-                        isEnabled = !(component.nFormsInterface.networkModel.value.state == NetworkState.Loading),
-                        onEnterClicked = {
-                            focusManager.moveFocus(FocusDirection.Next)
-                            expandedMentors = true
-                        },
-                        supText = "инж/А",
-                        focusManager = focusManager,
-                        isMoveUpLocked = true,
-                        autoCorrect = true,
-                        keyboardType = KeyboardType.Text
-                    )
-                    Spacer(Modifier.height(7.dp))
-
-                    val mentorsMap =
-                        formsModel.mentors.associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: "").first()}." }
-
-                    ExposedDropdownMenuBox(
-                        expanded = expandedMentors,
-                        onExpandedChange = {
-                            expandedMentors = !expandedMentors
-                        }
-                    ) {
-                        // textfield
-                        val mentor =
-                            formsModel.mentors.find { it.login == formsModel.cFormMentorLogin }
-                        val mentorName =
-                            try {
-                                "${mentor!!.fio.surname} ${mentor.fio.name.first()}. ${(mentor.fio.praname ?: " ").first()}."
-                            } catch (_: Throwable) {
-                                ""
-                            }
-                        OutlinedTextField(
-                            modifier = Modifier
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
-                            readOnly = true,
-                            value = mentorName,
-                            placeholder = { Text("Выберите") },
-                            onValueChange = {},
-                            label = { Text("Наставник") },
-                            trailingIcon = {
-                                val chevronRotation = animateFloatAsState(if (expandedMentors) 90f else -90f)
-                                GetAsyncIcon(
-                                    path = RIcons.ChevronLeft,
-                                    modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
-                                    size = 15.dp
-                                )
-                            },
-                            shape = RoundedCornerShape(15.dp),
-                            enabled = !(component.nFormsInterface.networkModel.value.state == NetworkState.Loading)
-                        )
-                        // menu
-
-                        ExposedDropdownMenu(
-                            expanded = expandedMentors,
-                            onDismissRequest = {
-                                expandedMentors = false
-                            },
-                        ) {
-                            // menu items
-                            mentorsMap.forEach { selectionOption ->
-                                DropdownMenuItem(
-                                    text = { Text(selectionOption.value) },
-                                    onClick = {
-                                        component.formsComponent.onEvent(
-                                            FormsStore.Intent.ChangeCFormMentorLogin(
-                                                selectionOption.key
-                                            )
-                                        )
-                                        expandedMentors = false
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                )
-                            }
-                        }
 
 
 //
@@ -778,211 +863,210 @@ fun GroupsContent(
 //                                }
 //                            },
 
-                    }
-                    Spacer(Modifier.height(7.dp))
-                    AnimatedCommonButton(
-                        text = "Создать",
-                        modifier = Modifier.width(TextFieldDefaults.MinWidth),
-                        isEnabled = num == properties.size
-                    ) {
-                        component.formsComponent.onEvent(FormsStore.Intent.CreateForm)
-                    }
-                    Spacer(Modifier.height(10.dp))
                 }
+                Spacer(Modifier.height(7.dp))
+                AnimatedCommonButton(
+                    text = "Создать",
+                    modifier = Modifier.width(TextFieldDefaults.MinWidth),
+                    isEnabled = num == properties.size
+                ) {
+                    component.formsComponent.onEvent(FormsStore.Intent.CreateForm)
+                }
+                Spacer(Modifier.height(10.dp))
             }
         }
+    }
 
-        CBottomSheetContent(
-            component = component.subjectsComponent.cGroupBottomSheet
-        ) {
-            val focusManager = LocalFocusManager.current
+    CBottomSheetContent(
+        component = component.subjectsComponent.cGroupBottomSheet
+    ) {
+        val focusManager = LocalFocusManager.current
 //                    Surface(
 //                        modifier = Modifier
 //                            .wrapContentWidth()
 //                            .wrapContentHeight(),
 //                        shape = MaterialTheme.shapes.large
 //                    ) {
-            var num = 0
-            Column(
-                Modifier.padding(top = 5.dp, bottom = 10.dp)
-                    .padding(horizontal = 10.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                var expandedTeachers by remember { mutableStateOf(false) }
-                val properties = listOf(
-                    subjectsModel.cName,
-                    subjectsModel.cTeacherLogin,
-                    subjectsModel.cDifficult
-                )
-                num = properties.count { (it).isNotBlank() }
+        var num: Int
+        Column(
+            Modifier.padding(top = 5.dp, bottom = 10.dp)
+                .padding(horizontal = 10.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            var expandedTeachers by remember { mutableStateOf(false) }
+            val properties = listOf(
+                subjectsModel.cName,
+                subjectsModel.cTeacherLogin,
+                subjectsModel.cDifficult
+            )
+            num = properties.count { (it).isNotBlank() }
 //                        if (model.cBirthday.length == 8) num++
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = MaterialTheme.typography.titleLarge.fontSize
+            Text(
+                buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize
+                        )
+                    ) {
+                        append("Создать новую группу ")
+                    }
+                    withStyle(
+                        SpanStyle(
+                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    ) {
+                        append("$num/${properties.size}")
+                    }
+                }
+            )
+            Spacer(Modifier.height(5.dp))
+            Column(
+                Modifier.imePadding()
+                    .verticalScroll(rememberScrollState())
+            ) {
+
+
+                Spacer(Modifier.height(7.dp))
+                CustomTextField(
+                    value = subjectsModel.cName,
+                    onValueChange = {
+                        component.subjectsComponent.onEvent(
+                            SubjectsStore.Intent.ChangeCName(
+                                it
                             )
-                        ) {
-                            append("Создать новую группу ")
+                        )
+                    },
+                    text = "Название группы",
+                    isEnabled = !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading),
+                    onEnterClicked = {
+                        focusManager.moveFocus(FocusDirection.Next)
+                        expandedTeachers = true
+                    },
+                    focusManager = focusManager,
+                    isMoveUpLocked = true,
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text,
+                    supText = "10 кл Профиль"
+                )
+                Spacer(Modifier.height(7.dp))
+
+                val teachersMap =
+                    model.teachers.sortedWith(
+                        compareBy(
+                            { it.subjectId != subjectsModel.chosenSubjectId },
+                            { it.fio.surname })
+                    )
+                        .associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}." }
+
+                ExposedDropdownMenuBox(
+                    expanded = expandedTeachers,
+                    onExpandedChange = {
+                        expandedTeachers = !expandedTeachers
+                    }
+                ) {
+                    // textfield
+                    val mentor =
+                        model.teachers.find { it.login == subjectsModel.cTeacherLogin }
+                    val mentorName =
+                        try {
+                            "${mentor!!.fio.surname} ${mentor.fio.name.first()}. ${(mentor.fio.praname ?: " ").first()}."
+                        } catch (_: Throwable) {
+                            ""
                         }
-                        withStyle(
-                            SpanStyle(
-                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
+                        readOnly = true,
+                        value = mentorName,
+                        placeholder = { Text("Выберите") },
+                        onValueChange = {},
+                        label = { Text("Учитель") },
+                        trailingIcon = {
+                            val chevronRotation = animateFloatAsState(if (expandedTeachers) 90f else -90f)
+                            GetAsyncIcon(
+                                path = RIcons.ChevronLeft,
+                                modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                size = 15.dp
                             )
-                        ) {
-                            append("$num/${properties.size}")
+                        },
+                        shape = RoundedCornerShape(15.dp),
+                        enabled = !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading)
+                    )
+                    // menu
+
+                    ExposedDropdownMenu(
+                        expanded = expandedTeachers,
+                        onDismissRequest = {
+                            expandedTeachers = false
+                        },
+                    ) {
+                        // menu items
+                        teachersMap.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption.value) },
+                                onClick = {
+                                    component.subjectsComponent.onEvent(
+                                        SubjectsStore.Intent.ChangeCTeacherLogin(
+                                            selectionOption.key
+                                        )
+                                    )
+                                    expandedTeachers = false
+                                    focusManager.moveFocus(FocusDirection.Next)
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                            )
                         }
                     }
-                )
-                Spacer(Modifier.height(5.dp))
-                Column(
-                    Modifier.imePadding()
-                        .verticalScroll(rememberScrollState())
-                ) {
-
-
-                    Spacer(Modifier.height(7.dp))
-                    CustomTextField(
-                        value = subjectsModel.cName,
-                        onValueChange = {
+                }
+                Spacer(Modifier.height(7.dp))
+                CustomTextField(
+                    value = subjectsModel.cDifficult,
+                    onValueChange = {
+                        if (it.length < 2) {
                             component.subjectsComponent.onEvent(
-                                SubjectsStore.Intent.ChangeCName(
+                                SubjectsStore.Intent.ChangeCDifficult(
                                     it
                                 )
                             )
-                        },
-                        text = "Название группы",
-                        isEnabled = !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading),
-                        onEnterClicked = {
-                            focusManager.moveFocus(FocusDirection.Next)
-                            expandedTeachers = true
-                        },
-                        focusManager = focusManager,
-                        isMoveUpLocked = true,
-                        autoCorrect = true,
-                        keyboardType = KeyboardType.Text,
-                        supText = "10 кл Профиль"
-                    )
-                    Spacer(Modifier.height(7.dp))
-
-                    val teachersMap =
-                        model.teachers.sortedWith(
-                            compareBy(
-                                { it.subjectId != subjectsModel.chosenSubjectId },
-                                { it.fio.surname })
-                        )
-                            .associate { it.login to "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}." }
-
-                    ExposedDropdownMenuBox(
-                        expanded = expandedTeachers,
-                        onExpandedChange = {
-                            expandedTeachers = !expandedTeachers
                         }
-                    ) {
-                        // textfield
-                        val mentor =
-                            model.teachers.find { it.login == subjectsModel.cTeacherLogin }
-                        val mentorName =
-                            try {
-                                "${mentor!!.fio.surname} ${mentor.fio.name.first()}. ${(mentor.fio.praname ?: " ").first()}."
-                            } catch (_: Throwable) {
-                                ""
-                            }
-                        OutlinedTextField(
-                            modifier = Modifier
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
-                            readOnly = true,
-                            value = mentorName,
-                            placeholder = { Text("Выберите") },
-                            onValueChange = {},
-                            label = { Text("Учитель") },
-                            trailingIcon = {
-                                val chevronRotation = animateFloatAsState(if (expandedTeachers) 90f else -90f)
-                                GetAsyncIcon(
-                                    path = RIcons.ChevronLeft,
-                                    modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
-                                    size = 15.dp
-                                )
-                            },
-                            shape = RoundedCornerShape(15.dp),
-                            enabled = !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading)
-                        )
-                        // menu
-
-                        ExposedDropdownMenu(
-                            expanded = expandedTeachers,
-                            onDismissRequest = {
-                                expandedTeachers = false
-                            },
-                        ) {
-                            // menu items
-                            teachersMap.forEach { selectionOption ->
-                                DropdownMenuItem(
-                                    text = { Text(selectionOption.value) },
-                                    onClick = {
-                                        component.subjectsComponent.onEvent(
-                                            SubjectsStore.Intent.ChangeCTeacherLogin(
-                                                selectionOption.key
-                                            )
-                                        )
-                                        expandedTeachers = false
-                                        focusManager.moveFocus(FocusDirection.Next)
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(7.dp))
-                    CustomTextField(
-                        value = subjectsModel.cDifficult,
-                        onValueChange = {
-                            if (it.length < 2) {
-                                component.subjectsComponent.onEvent(
-                                    SubjectsStore.Intent.ChangeCDifficult(
-                                        it
-                                    )
-                                )
-                            }
-                        },
-                        text = "Уровень сложности",
-                        isEnabled = !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading),
-                        onEnterClicked = {
-                            if (num == properties.size) {
-                                component.subjectsComponent.onEvent(SubjectsStore.Intent.CreateGroup)
-                            }
-                        },
-                        focusManager = focusManager,
-                        isMoveUpLocked = false,
-                        autoCorrect = false,
-                        keyboardType = KeyboardType.Number,
-                        supText = "Цифра [0-9]"
-                    )
-                    Spacer(Modifier.height(7.dp))
-                    AnimatedCommonButton(
-                        text = "Создать",
-                        modifier = Modifier.width(TextFieldDefaults.MinWidth),
-                        isEnabled = num == properties.size
-                    ) {
+                    },
+                    text = "Уровень сложности",
+                    isEnabled = !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading),
+                    onEnterClicked = {
                         if (num == properties.size) {
                             component.subjectsComponent.onEvent(SubjectsStore.Intent.CreateGroup)
                         }
+                    },
+                    focusManager = focusManager,
+                    isMoveUpLocked = false,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Number,
+                    supText = "Цифра [0-9]"
+                )
+                Spacer(Modifier.height(7.dp))
+                AnimatedCommonButton(
+                    text = "Создать",
+                    modifier = Modifier.width(TextFieldDefaults.MinWidth),
+                    isEnabled = num == properties.size
+                ) {
+                    if (num == properties.size) {
+                        component.subjectsComponent.onEvent(SubjectsStore.Intent.CreateGroup)
                     }
-                    Spacer(Modifier.height(10.dp))
                 }
+                Spacer(Modifier.height(10.dp))
             }
         }
-
-
-        ListDialogContent(component.studentsComponent.formsListComponent)
     }
 
 
+    EditGroupBottomSheet(component.subjectsComponent)
+    EditFormBottomSheet(component.formsComponent)
 }
+
 
 @Composable
 fun SubjectItem(

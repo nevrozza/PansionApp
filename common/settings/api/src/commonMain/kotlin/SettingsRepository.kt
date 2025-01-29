@@ -1,7 +1,6 @@
 import auth.RChangeLogin
 import auth.RFetchAllDevicesResponse
 import auth.RTerminateDeviceReceive
-import registration.RegistrationRequest
 import registration.ScanRequestQRResponse
 import registration.SendRegistrationRequestReceive
 
@@ -58,6 +57,9 @@ interface SettingsRepository {
 
     fun saveIsRefreshButtons(isRefreshButtons: Boolean)
     fun fetchIsRefreshButtons(): Boolean
+
+    fun saveIsLockedVerticalView(isLocked: Boolean)
+    fun fetchIsLockedVerticalView(): Boolean?
 
     fun saveIsAvatars(isAvatars: Boolean)
     fun fetchIsAvatars(): Boolean

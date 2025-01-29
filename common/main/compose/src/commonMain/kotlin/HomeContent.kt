@@ -55,7 +55,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -135,6 +134,7 @@ import view.blend
 import view.esp
 import view.handy
 import view.hazeMask
+import view.popupPositionProvider
 
 
 enum class HomeRoutings {
@@ -1306,7 +1306,7 @@ fun cGrade(mark: Grade, coroutineScope: CoroutineScope, onClick: () -> Unit) {
                     )
                 }
             },
-            positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
+            positionProvider = popupPositionProvider
         ) {
             RecentMarkContent(
                 mark.content,

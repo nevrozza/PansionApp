@@ -11,7 +11,6 @@ import achievements.HomeAchievementsComponent
 import activation.ActivationComponent
 import admin.AdminComponent
 import allGroupMarks.AllGroupMarksComponent
-import allGroupMarks.AllGroupMarksStore
 import applicationVersion
 import asValue
 import cabinets.CabinetsComponent
@@ -23,12 +22,10 @@ import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.router.stack.webhistory.WebHistoryController
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
-import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.essenty.statekeeper.StateKeeper
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent
 import di.Inject
@@ -43,7 +40,6 @@ import journal.JournalStore
 import kotlinx.coroutines.*
 import lessonReport.LessonReportComponent
 import lessonReport.LessonReportComponent.Output
-import lessonReport.LessonReportStore
 import login.LoginComponent
 import mentoring.MentoringComponent
 import mentoring.MentoringStore
@@ -52,7 +48,6 @@ import parents.AdminParentsComponent
 import profile.ProfileComponent
 import qr.QRComponent
 import rating.RatingComponent
-import rating.RatingStore
 import root.RootComponent.Child
 import root.RootComponent.Companion.WEB_PATH_ADMIN_ACHIEVEMENTS
 import root.RootComponent.Companion.WEB_PATH_ADMIN_CABINETS
@@ -93,7 +88,6 @@ import server.Moderation
 import server.Roles
 import studentLines.StudentLinesComponent
 import users.UsersComponent
-import webload.RFetchUserDataReceive
 import kotlin.reflect.KClass
 
 
@@ -144,7 +138,7 @@ class RootComponentImpl(
                 storeFactory = storeFactory,
                 isBottomBarShowing = isBottomBarShowing(),
                 //              !!!!!! stack?
-                currentScreen = stack?.value?.active?.configuration ?: getFirstScreen(),
+                currentScreen = stack.value?.active?.configuration ?: getFirstScreen(),
                 authRepository = authRepository,
                 journalRepository = journalRepository,
                 checkNInterface = checkNInterface,
@@ -180,6 +174,7 @@ class RootComponentImpl(
         ) else authRepository.isUserLoggedIn()
     }
 
+
     private fun getFirstScreen(): Config {
         // FIX WEB Uncaught (in promise) IllegalStateException: Configurations must be unique: [AuthActivation, AuthActivation]
         if (stack != null && stack.value.active.configuration == Config.AuthActivation) {
@@ -200,7 +195,7 @@ class RootComponentImpl(
 
 
     override fun onBackClicked() {
-        when (val child = childStack.active.instance) {
+        when (childStack.active.instance) {
             is Child.HomeSettings -> onHomeSettingsOutput(SettingsComponent.Output.Back)
             is Child.HomeStudentLines -> onHomeStudentLinesOutput(StudentLinesComponent.Output.Back)
             is Child.AdminCabinets -> onAdminCabinetsOutput(CabinetsComponent.Output.Back)
@@ -459,14 +454,18 @@ class RootComponentImpl(
             }
 
             is Config.LessonReport -> {
+                val journalComponent = getMainJournalComponent(childContext, true)
                 Child.LessonReport(
                     lessonReport = LessonReportComponent(
                         componentContext = childContext,
                         storeFactory = storeFactory,
                         output = ::onLessonReportOutput,
-                        reportData = config.reportData
+                        reportData = config.reportData,
+                        updateListScreen = {
+                            journalComponent.onEvent(JournalStore.Intent.Refresh)
+                        }
                     ),
-                    journalComponent = getMainJournalComponent(childContext, true)
+                    journalComponent = journalComponent
                 )
             }
 
@@ -818,13 +817,13 @@ class RootComponentImpl(
             ScheduleComponent.Output.Back -> popOnce(Child.AdminSchedule::class)
         }
 
-    private fun onLessonReportOutput(output: LessonReportComponent.Output): Unit =
+    private fun onLessonReportOutput(output: Output): Unit =
         when (output) {
             is Output.Back -> {
                 if (Child.LessonReport::class.isInstance(stack.active.instance)) {
                     val component = (stack.active.instance as? Child.LessonReport)?.lessonReport!!
-                    if ((component.state.value.isUpdateNeeded || component.state.value.homeTasksToEditIds.isNotEmpty() || true in component.state.value.hometasks.map { it.isNew }) && component.model.value.isEditable) {
-                        component.saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                    if (component.outerIsNeedToSave()) {
+                        component.outerDialogForSaving()
                     } else {
                         if (stack.value.items.size == 1 && onBackButtonPress != null) onBackButtonPress.invoke()
                         else navigation.pop {
@@ -945,11 +944,27 @@ class RootComponentImpl(
 
     private fun onJournalOutput(output: JournalComponent.Output): Unit =
         when (output) {
-            is JournalComponent.Output.NavigateToLessonReport -> navigation.bringToFront(
-                Config.LessonReport(
-                    output.reportData
-                )
-            )
+            is JournalComponent.Output.NavigateToLessonReport -> {
+                val goToReport = {
+                    navigation.bringToFront(
+                        Config.LessonReport(
+                            output.reportData
+                        )
+                    )
+                }
+                if (Child.LessonReport::class.isInstance(stack.active.instance)) {
+                    val component = (stack.active.instance as? Child.LessonReport)?.lessonReport!!
+
+                    if (component.outerIsNeedToSave()) {
+                        component.invokeAfterQuitClick = goToReport
+                        component.outerDialogForSaving()
+                    } else {
+                        goToReport()
+                    }
+                } else {
+                    goToReport()
+                }
+            }
 
 
             JournalComponent.Output.NavigateToSettings -> navigation.bringToFront(Config.HomeSettings)
@@ -1054,7 +1069,7 @@ class RootComponentImpl(
                     login = output.studentLogin,
                     fio = output.fio,
                     avatarId = output.avatarId,
-                    config = RootComponent.Config.MainHome,
+                    config = Config.MainHome,
                     isMentoring = false
                 )
             )
@@ -1237,8 +1252,6 @@ class RootComponentImpl(
                 rootStore.accept(RootStore.Intent.CheckConnection)
                 rootStore.accept(RootStore.Intent.HideGreetings())
             }
-        } else {
-
         }
     }
 

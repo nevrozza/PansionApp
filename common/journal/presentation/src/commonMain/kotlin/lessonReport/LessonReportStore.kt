@@ -1,13 +1,9 @@
 package lessonReport
 
-import ReportData
 import com.arkivanov.mvikotlin.core.store.Store
 import homework.CreateReportHomeworkItem
 import report.Attended
-import report.ReportHeader
 import report.UserMark
-import server.getEdYear
-import server.getLocalDate
 
 interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.State, LessonReportStore.Label> {
     data class State(
@@ -49,6 +45,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
         val isHomeTasksErrorAnimation: Boolean = false,
 
         val isUpdateNeeded: Boolean = false,
+        val isListUpdateNeeded: Boolean = false,
 
         val hometasks: List<CreateReportHomeworkItem> = emptyList(),
         val homeTasksNewTabs: List<List<String>> = emptyList(),
@@ -56,6 +53,7 @@ interface LessonReportStore : Store<LessonReportStore.Intent, LessonReportStore.
 
         val tabLogins: List<String>? = null,
         val newTabLogins: List<String> = listOf(),
+        val updateListScreen: () -> Unit,
 //        val deletingColumnReasondId: String = ""
 
     )

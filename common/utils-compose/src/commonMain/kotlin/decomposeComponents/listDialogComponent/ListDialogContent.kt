@@ -5,7 +5,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -26,13 +25,20 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,78 +55,25 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.CustomTextButton
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.DefaultModalBottomSheet
+import components.LoadingAnimation
+import components.hazeHeader
+import components.hazeUnder
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
-import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import view.*
+import view.ViewManager
+import view.esp
 
-@OptIn(ExperimentalFoundationApi::class)
-@ExperimentalMaterial3Api
-@Composable
-fun ListDialogContent(
-    component: ListComponent,
-    title: String = "Выберите"
-) {
-    val model by component.model.subscribeAsState()
-    val nModel by component.nModel.subscribeAsState()
-    val coroutineScope = rememberCoroutineScope()
-    val viewManager = LocalViewManager.current
-    val isShowingCostil = remember { mutableStateOf(false) }
-    val isTooltip = viewManager.orientation.value != WindowScreen.Vertical
-//    if(model.isDialogShowing) {
-//        AlertDialog({}){}
-//    }
-//    if(isTooltip) {
-//        DropdownVariant(
-//            component = component,
-//            viewManager = viewManager,
-//            model = model,
-//            nModel = nModel,
-//            isTooltip = isTooltip,
-//            offset =
-//        )
-//    }
-
-
-//    else {
-//        val modalBottomSheetState = rememberModalBottomSheetState(
-//            skipPartiallyExpanded = true
-//        )
-//
-//        DisposableEffect(model.isDialogShowing) {
-//            onDispose {
-//                if (!model.isDialogShowing) {
-//                    coroutineScope.launch {
-//                        modalBottomSheetState.hide()
-//                    }.invokeOnCompletion {
-//                        isShowingCostil.value = false
-//                    }
-//                } else {
-//                    isShowingCostil.value = true
-//                }
-//            }
-//
-//        }
-//
-//        BottomSheetVariant(
-//            component = component,
-//            model = model,
-//            nModel = nModel,
-//            isShowingCostil = isShowingCostil,
-//            coroutineScope = coroutineScope,
-//            modalBottomSheetState = modalBottomSheetState,
-//            title = title
-//        )
-//    }
-
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -250,7 +203,7 @@ fun BottomSheetVariant(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun DropdownVariant(
     component: ListComponent,
@@ -272,7 +225,8 @@ fun DropdownVariant(
         modifier = modifier.then(if (!isFullHeight) Modifier.sizeIn(maxHeight = 200.dp) else Modifier)
             .animateContentSize().hazeHeader(
                 viewManager = viewManager,
-                isMasked = false
+                isMasked = false,
+                customStyle = HazeMaterials.regular()
             ).hazeUnder(
                 viewManager,
                 zIndex = 3f
@@ -353,7 +307,7 @@ val LazyListState.customConnection: NestedScrollConnection
                     return available
                 }
 
-                private fun Float.toOffset() = Offset(0f, this)
+//                private fun Float.toOffset() = Offset(0f, this)
             }
         }
     }

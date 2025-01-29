@@ -45,7 +45,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -90,6 +89,7 @@ import server.getLocalDate
 import server.roundTo
 import view.esp
 import view.handy
+import view.popupPositionProvider
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -675,7 +675,7 @@ fun cMarkPlus(mark: UserMarkPlus, component: AllGroupMarksComponent, isModer: Bo
                 )
             }
         },
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
+        positionProvider = popupPositionProvider,
         enableUserInput = true
     ) {
         MarkContent(

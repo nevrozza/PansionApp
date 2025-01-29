@@ -55,10 +55,13 @@ fun main() {
         resourcePathMapping { path ->
             "/$path" }
     }
+    val deviceName = getDeviceName()
+
+
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
-            deviceName = getDeviceName().cut(20),//navigator.userAgent ?: "unknown",
+            deviceName = deviceName.cut(20),
             deviceType = DeviceTypex.web,
             deviceId = getOrCreateDeviceUUID() //navigator.userAgent
         )
@@ -97,6 +100,10 @@ fun main() {
 //            viewportContainerId = "composeApp",
 //        ) {
             val settingsRepository: SettingsRepository = Inject.instance()
+
+            initIsLockedVerticalView(settingsRepository.fetchIsLockedVerticalView(), deviceName) {
+                settingsRepository.saveIsLockedVerticalView(it)
+            }
             val rgb = settingsRepository.fetchSeedColor().toRGB()
             val viewManager = remember {
                 ViewManager(
@@ -164,36 +171,9 @@ fun changeThemeColor(newColor: String) {
 }
 
 
-fun getDeviceName(): String {
-    val userAgent = window.navigator.userAgent
-    var deviceName = when {
-        userAgent.contains("iPhone", ignoreCase = true) -> "iPhone"
-        userAgent.contains("Samsung", ignoreCase = true) -> "Samsung"
-        userAgent.contains("Ubuntu", ignoreCase = true) -> "Ubuntu"
-        userAgent.contains("Fedora", ignoreCase = true) -> "Fedora"
-        userAgent.contains("iPad", ignoreCase = true) -> "iPad"
-        userAgent.contains("Android", ignoreCase = true) -> "Android"
-        userAgent.contains("Windows", ignoreCase = true) -> "Windows"
-        userAgent.contains("Macintosh", ignoreCase = true) -> "MacOS"
-        userAgent.contains("Linux", ignoreCase = true) -> "Linux"
-        else -> "Устройство"
-    }
-    deviceName = when {
-        userAgent.contains("OPR", ignoreCase = true) -> "Opera "
-        userAgent.contains("Edg", ignoreCase = true) -> "Edge "
-        userAgent.contains("Firefox", ignoreCase = true) -> "Firefox "
 
-        userAgent.contains("EdgiOS", ignoreCase = true) -> "Edge "
-        userAgent.contains("FxiOS", ignoreCase = true) -> "Firefox "
-        userAgent.contains("CriOS", ignoreCase = true) -> "Chrome "
-        userAgent.contains("Chrome", ignoreCase = true) -> "Chrome "
-        userAgent.contains("Safari", ignoreCase = true) -> "Safari "
-        userAgent.contains("YaBrowser", ignoreCase = true) -> "Yandex "
-        else -> ""
-    } + deviceName
 
-    return deviceName + " JS"
-}
+fun getDeviceName(): String = getWebDeviceName(window.navigator.userAgent, "JS")
 
 class SizeManager {
     private val _changes = Channel<IntSize>(CONFLATED)

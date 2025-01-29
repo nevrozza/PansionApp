@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,15 +30,19 @@ fun Root(
     BoxWithConstraints() {
         viewManager.size = this
         viewManager.orientation.value =
-            WindowCalculator.calculateScreen(size = DpSize(this.maxWidth, this.maxHeight), device)
+            if (viewManager.isLockedVerticalView.value == true) WindowScreen.Vertical
+            else WindowCalculator.calculateScreen(
+                size = DpSize(this.maxWidth, this.maxHeight),
+                device
+            )
         CompositionLocalProvider(
             LocalHazeStyle provides HazeMaterials.regular(),
         ) {
 //            AppTheme() {
-                Surface(Modifier.fillMaxSize()) {
-                    StatusBarColorFix()
-                    RootContent(root)
-                }
+            Surface(Modifier.fillMaxSize()) {
+                StatusBarColorFix()
+                RootContent(root)
+            }
 //            }
         }
     }

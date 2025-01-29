@@ -2,7 +2,12 @@ package components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -10,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,6 +37,7 @@ import view.LocalViewManager
 import view.ViewManager
 import view.esp
 import view.handy
+import view.popupPositionProvider
 
 @Composable
 fun Color.getMarkColor(mark: String, viewManager: ViewManager, alpha: Float = 1f) =
@@ -123,7 +128,7 @@ fun MarkContent(
 @Composable
 fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = true, onClick: (() -> Unit)? = null) {
     val markSize = 30.dp
-    val yOffset = 3.dp
+//    val yOffset = 3.dp
     val tState = rememberTooltipState(isPersistent = false)
     TooltipBox(
         state = tState,
@@ -135,7 +140,7 @@ fun cMark(mark: UserMark, coroutineScope: CoroutineScope, showDate: Boolean = tr
                 )
             }
         },
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
+        positionProvider = popupPositionProvider
     ) {
         MarkContent(
             mark.content,

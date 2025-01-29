@@ -2,13 +2,42 @@ import achievements.AdminAchievementsComponent
 import achievements.AdminAchievementsStore
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,19 +50,90 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
-import components.refresh.RefreshButton
-import components.refresh.RefreshWithoutPullCircle
-import components.refresh.keyRefresh
+import components.AnimatedCommonButton
+import components.AppBar
+import components.CLazyColumn
+import components.CustomTextButton
+import components.CustomTextField
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncIcon
+import components.LoadingAnimation
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
+import components.refresh.RefreshButton
+import components.refresh.RefreshWithoutPullCircle
+import components.refresh.keyRefresh
 import decomposeComponents.CBottomSheetContent
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
 import pullRefresh.rememberPullRefreshState
 import resources.RIcons
 import view.LocalViewManager
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminAchievementsScreen(
+    component: AdminAchievementsComponent,
+    isExpanded: Boolean,
+    listScreen: @Composable () -> Unit
+) {
+    val viewManager = LocalViewManager.current
+
+
+    DefaultMultiPane(
+        isExpanded = isExpanded,
+        leftScreen = listScreen,
+        viewManager = viewManager
+    ) {
+        AdminAchievementsContent(component)
+    }
+
+
+    AdminAchievementsOverlay(
+        component
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminAchievementsOverlay(
+    component: AdminAchievementsComponent
+) {
+    val model by component.model.subscribeAsState()
+
+    CBottomSheetContent(
+        component = component.bottomSheetComponent
+    ) {
+        BottomSheetContent(
+            model = model,
+            component = component,
+            nBSInterface = component.nBSInterface
+        )
+    }
+    CBottomSheetContent(
+        component = component.hugeBottomSheetComponent
+    ) {
+        HugeBottomSheetContent(
+            model = model,
+            component = component,
+            nBSInterface = component.nBSInterface
+        )
+    }
+    CBottomSheetContent(
+        component = component.editBottomSheetComponent
+    ) {
+        EditBottomSheetContent(
+            model = model,
+            component = component,
+            nBSInterface = component.nBSInterface
+        )
+    }
+}
+
 
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
@@ -44,7 +144,6 @@ fun AdminAchievementsContent(
     component: AdminAchievementsComponent
 ) {
 
-    
 
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
@@ -61,7 +160,6 @@ fun AdminAchievementsContent(
     LaunchedEffect(Unit) {
         refreshState.onRefreshState.value()
     }
-
 
 
     val headers = model.achievements.sortedBy { it.id }.reversed().map {
@@ -84,7 +182,11 @@ fun AdminAchievementsContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    RefreshWithoutPullCircle(refreshing, refreshState.position, headers.isNotEmpty())
+                    RefreshWithoutPullCircle(
+                        refreshing,
+                        refreshState.position,
+                        headers.isNotEmpty()
+                    )
 
                 },
                 navigationRow = {
@@ -180,7 +282,9 @@ fun AdminAchievementsContent(
                                             Text(
                                                 text = a.id.toString(),
                                                 fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = .3f)
+                                                color = MaterialTheme.colorScheme.onBackground.copy(
+                                                    alpha = .3f
+                                                )
                                             )
                                             Spacer(Modifier.width(5.dp))
                                             Text(
@@ -230,7 +334,9 @@ fun AdminAchievementsContent(
                                     ) {
                                         Box(
                                             Modifier.fillMaxSize().background(
-                                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = .5f)
+                                                MaterialTheme.colorScheme.primaryContainer.copy(
+                                                    alpha = .5f
+                                                )
                                             ), contentAlignment = Alignment.Center
                                         ) {
                                             GetAsyncIcon(
@@ -258,33 +364,6 @@ fun AdminAchievementsContent(
             PullRefreshIndicator(refreshState, padding.calculateTopPadding())
         }
 
-        CBottomSheetContent(
-            component = component.bottomSheetComponent
-        ) {
-            BottomSheetContent(
-                model = model,
-                component = component,
-                nBSInterface = component.nBSInterface
-            )
-        }
-        CBottomSheetContent(
-            component = component.hugeBottomSheetComponent
-        ) {
-            HugeBottomSheetContent(
-                model = model,
-                component = component,
-                nBSInterface = component.nBSInterface
-            )
-        }
-        CBottomSheetContent(
-            component = component.editBottomSheetComponent
-        ) {
-            EditBottomSheetContent(
-                model = model,
-                component = component,
-                nBSInterface = component.nBSInterface
-            )
-        }
 
 
     }
@@ -327,7 +406,8 @@ private fun BottomSheetContent(
                     onValueChange = {},
                     label = { Text("Ученик") },
                     trailingIcon = {
-                        val chevronRotation = animateFloatAsState(if (expandedStudents) 90f else -90f)
+                        val chevronRotation =
+                            animateFloatAsState(if (expandedStudents) 90f else -90f)
                         GetAsyncIcon(
                             path = RIcons.ChevronLeft,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
@@ -409,7 +489,8 @@ private fun BottomSheetContent(
                     onValueChange = {},
                     label = { Text("Предмет") },
                     trailingIcon = {
-                        val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                        val chevronRotation =
+                            animateFloatAsState(if (expandedSubjects) 90f else -90f)
                         GetAsyncIcon(
                             path = RIcons.ChevronLeft,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
@@ -478,19 +559,19 @@ private fun BottomSheetContent(
 
             AnimatedCommonButton(
                 text =
-                    if (nBSModel.state == NetworkState.Error) {
-                        nBSModel.error
+                if (nBSModel.state == NetworkState.Error) {
+                    nBSModel.error
+                } else {
+                    if (isAllowed) {
+                        if (model.bsId == null) "Создать" else "Редактировать"
                     } else {
-                        if (isAllowed) {
-                            if (model.bsId == null) "Создать" else "Редактировать"
-                        } else {
-                            "Уже существует"
-                        }
-                    },
+                        "Уже существует"
+                    }
+                },
                 modifier = Modifier.padding(top = 6.dp).fillMaxWidth()
                     .height(TextFieldDefaults.MinHeight),
                 isEnabled =
-                    isAllowed && nBSModel.state != NetworkState.Loading && model.bsText.isNotEmpty() && model.bsDate.isNotEmpty() && model.bsStudentLogin.isNotEmpty() && model.bsSubjectId != null,
+                isAllowed && nBSModel.state != NetworkState.Loading && model.bsText.isNotEmpty() && model.bsDate.isNotEmpty() && model.bsStudentLogin.isNotEmpty() && model.bsSubjectId != null,
                 shape = RoundedCornerShape(15.dp)
             ) {
                 if (nBSModel.state == NetworkState.Error) {
@@ -610,7 +691,8 @@ private fun EditBottomSheetContent(
                     onValueChange = {},
                     label = { Text("Предмет") },
                     trailingIcon = {
-                        val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                        val chevronRotation =
+                            animateFloatAsState(if (expandedSubjects) 90f else -90f)
                         GetAsyncIcon(
                             path = RIcons.ChevronLeft,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
@@ -681,7 +763,8 @@ private fun EditBottomSheetContent(
                     onValueChange = {},
                     label = { Text("Ученик") },
                     trailingIcon = {
-                        val chevronRotation = animateFloatAsState(if (expandedStudents) 90f else -90f)
+                        val chevronRotation =
+                            animateFloatAsState(if (expandedStudents) 90f else -90f)
                         GetAsyncIcon(
                             path = RIcons.ChevronLeft,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
@@ -734,19 +817,19 @@ private fun EditBottomSheetContent(
 
             AnimatedCommonButton(
                 text =
-                    if (nBSModel.state == NetworkState.Error) {
-                        nBSModel.error
+                if (nBSModel.state == NetworkState.Error) {
+                    nBSModel.error
+                } else {
+                    if (isAllowed) {
+                        if (model.bsId == null) "Создать" else "Редактировать"
                     } else {
-                        if (isAllowed) {
-                            if (model.bsId == null) "Создать" else "Редактировать"
-                        } else {
-                            "Уже существует"
-                        }
-                    },
+                        "Уже существует"
+                    }
+                },
                 modifier = Modifier.padding(top = 6.dp).fillMaxWidth()
                     .height(TextFieldDefaults.MinHeight),
                 isEnabled =
-                    isAllowed && nBSModel.state != NetworkState.Loading && model.bsText.isNotEmpty() && model.bsDate.isNotEmpty() && model.bsStudentLogin.isNotEmpty() && model.bsSubjectId != null,
+                isAllowed && nBSModel.state != NetworkState.Loading && model.bsText.isNotEmpty() && model.bsDate.isNotEmpty() && model.bsStudentLogin.isNotEmpty() && model.bsSubjectId != null,
                 shape = RoundedCornerShape(15.dp)
             ) {
                 if (nBSModel.state == NetworkState.Error) {
