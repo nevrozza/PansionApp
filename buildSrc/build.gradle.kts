@@ -22,5 +22,6 @@ dependencies {
 }
 
 kotlin {
+    jvmToolchain(17)
     sourceSets.getByName("main").kotlin.srcDir("buildSrc/src/main/kotlin")
 }
