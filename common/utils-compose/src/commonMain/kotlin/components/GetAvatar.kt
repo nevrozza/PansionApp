@@ -43,7 +43,7 @@ fun GetAsyncIcon(
     modifier: Modifier = Modifier
 ) {
     AsyncImage(
-        model = Res.getUri("drawable/icons/${path}"),
+        model = "https://avatars.fastly.steamstatic.com/b8c349673cd49dbbe47a684d6d6fffc202bd4540_full.jpg",
         contentDescription = null
     )
 //    AsyncImage(
