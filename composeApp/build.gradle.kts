@@ -13,7 +13,7 @@ plugins {
 //    id("org.jetbrains.kotlin.plugin.compose")
 }
 
-version = "1.3.0-alpha08"
+version = "1.3.0"
 val versionAndroidCode = 29
 
 kotlin {
