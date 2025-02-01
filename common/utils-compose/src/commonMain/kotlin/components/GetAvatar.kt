@@ -45,8 +45,8 @@ fun GetAsyncIcon(
 ) {
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
-//            .memoryCachePolicy(CachePolicy.ENABLED)
-//            .networkCachePolicy(CachePolicy.ENABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
             .data(Res.getUri("drawable/icons/${path}"))
             .crossfade(true)
             .build(),

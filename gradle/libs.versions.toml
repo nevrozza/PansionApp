@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-coil = "3.1.0-SNAPSHOT"
+coil = "3.0.4"
 excelkt = "1.0.2"
 mpfilepicker = "3.1.0"
 plugin-android = "8.3.0"
