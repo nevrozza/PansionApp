@@ -1,7 +1,6 @@
 @file:Suppress("OPT_IN_USAGE")
 
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
 //    id("compose-setup")
@@ -14,7 +13,8 @@ plugins {
 //    id("org.jetbrains.kotlin.plugin.compose")
 }
 
-version = "1.2.22"
+version = "1.3.0-alpha08"
+val versionAndroidCode = 29
 
 kotlin {
     jvm("jvm")
@@ -226,7 +226,7 @@ android {
         applicationId = "com.nevrozq.pansion.android"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
+        versionCode = versionAndroidCode
         versionName = version.toString()
     }
     buildFeatures {

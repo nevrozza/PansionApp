@@ -138,7 +138,7 @@ class RootComponentImpl(
                 storeFactory = storeFactory,
                 isBottomBarShowing = isBottomBarShowing(),
                 //              !!!!!! stack?
-                currentScreen = stack.value?.active?.configuration ?: getFirstScreen(),
+                currentScreen = stack?.value?.active?.configuration ?: getFirstScreen(),
                 authRepository = authRepository,
                 journalRepository = journalRepository,
                 checkNInterface = checkNInterface,

@@ -23,11 +23,11 @@ fun <T : Any> Store<*, T, *>.asValue(): Value<T> =
         }
     }
 
-const val applicationVersion = 22
-const val applicationVersionString = "1.2.22"
+const val applicationVersion = 29
+const val applicationVersionString = "1.3.0-alpha08"
 
 
-const val isTestMode = true//false
+const val isTestMode = false
 
 
 expect val androidVersion: Int

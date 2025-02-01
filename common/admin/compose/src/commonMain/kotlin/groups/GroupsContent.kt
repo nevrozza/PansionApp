@@ -1,4 +1,6 @@
 package groups
+
+import CFilePicker
 import DefaultMultiPane
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -94,6 +96,7 @@ import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.hazeEffect
+import excel.importMarks
 import groups.forms.FormsStore
 import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
@@ -125,6 +128,15 @@ fun GroupsContent(
     val viewManager = LocalViewManager.current
     val coroutineScope = rememberCoroutineScope()
 
+    val showFilePicker = remember { mutableStateOf(false) }
+
+
+    CFilePicker(
+        showFilePicker = showFilePicker
+    ) {
+        importMarks(it)
+    }
+
     val isInited =
         model.forms.isNotEmpty() || model.teachers.isNotEmpty() || model.subjects.isNotEmpty()
 
@@ -138,7 +150,10 @@ fun GroupsContent(
 
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            val isBigView = viewManager.orientation.value in listOf(WindowScreen.Expanded, WindowScreen.Horizontal)
+            val isBigView = viewManager.orientation.value in listOf(
+                WindowScreen.Expanded,
+                WindowScreen.Horizontal
+            )
             val isHaze = viewManager.hazeHardware.value
             Column(
                 Modifier.then(
@@ -147,7 +162,8 @@ fun GroupsContent(
                         style = LocalHazeStyle.current
                     ) {
                         inputScale = HazeInputScale.Fixed(0.7f)
-                        mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                        mask =
+                            view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = hazeProgressive
                     }
                     else Modifier
@@ -199,7 +215,13 @@ fun GroupsContent(
                                             onClick = {
                                                 component.onEvent(GroupsStore.Intent.ChangeView(it.second))
                                             },
-                                            text = { Text(it.first, maxLines = 1, overflow = TextOverflow.Ellipsis) })
+                                            text = {
+                                                Text(
+                                                    it.first,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            })
                                     }
                                 }
                             }
@@ -306,7 +328,9 @@ fun GroupsContent(
                         item {
                             FilledTonalIconButton(
                                 onClick = {
-                                    component.subjectsComponent.cSubjectDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                    component.subjectsComponent.cSubjectDialog.onEvent(
+                                        CAlertDialogStore.Intent.ShowDialog
+                                    )
                                 },
                                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
@@ -340,10 +364,16 @@ fun GroupsContent(
                                                 subjectId = it.id
                                             )
                                         )
-                                        component.subjectsComponent.editSubjectDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                        component.subjectsComponent.editSubjectDialog.onEvent(
+                                            CAlertDialogStore.Intent.ShowDialog
+                                        )
                                     }
                                 ) {
-                                    component.subjectsComponent.onEvent(SubjectsStore.Intent.ClickOnSubject(it.id))
+                                    component.subjectsComponent.onEvent(
+                                        SubjectsStore.Intent.ClickOnSubject(
+                                            it.id
+                                        )
+                                    )
                                     coroutineScope.launch {
                                         bringIntoViewRequester.bringIntoView()
                                     }
@@ -453,7 +483,16 @@ fun GroupsContent(
                         },
                         shape = MaterialTheme.shapes.large
                     )
-                    Spacer(Modifier.width(25.dp))
+                    Spacer(Modifier.width(5.dp))
+                    SmallFloatingActionButton(onClick = {
+                        showFilePicker.value = !showFilePicker.value
+                    }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.Upload
+                        )
+                    }
+//                    Spacer(Modifier.width(25.dp))
                 }
             }
         }
@@ -552,7 +591,11 @@ fun GroupsContent(
                                             text = s.name
                                         )
                                     )
-                                    component.subjectsComponent.onEvent(SubjectsStore.Intent.EditSubject(sameCount = 0))
+                                    component.subjectsComponent.onEvent(
+                                        SubjectsStore.Intent.EditSubject(
+                                            sameCount = 0
+                                        )
+                                    )
                                 }
                             ) {
                                 GetAsyncIcon(
@@ -578,8 +621,10 @@ fun GroupsContent(
 
             Column(Modifier.padding(6.dp)) {
                 Text(
-                    "Создать урок", fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize, modifier = Modifier.padding(start = 5.dp)
+                    "Создать урок",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    modifier = Modifier.padding(start = 5.dp)
                 )
                 Spacer(Modifier.height(5.dp))
                 CustomTextField(
@@ -606,7 +651,7 @@ fun GroupsContent(
                     } else Modifier,
                     text = "Название урока",
                     isEnabled =
-                        !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading),
+                    !(component.nSubjectsInterface.networkModel.value.state == NetworkState.Loading),
                     onEnterClicked = {
 //                    focusManager.moveFocus(FocusDirection.Next)
                         if (isButtonEnabled) {
@@ -635,9 +680,6 @@ fun GroupsContent(
             }
 
         }
-
-
-
 
 
     }
@@ -820,10 +862,12 @@ fun GroupsOverlay(
                         onValueChange = {},
                         label = { Text("Наставник") },
                         trailingIcon = {
-                            val chevronRotation = animateFloatAsState(if (expandedMentors) 90f else -90f)
+                            val chevronRotation =
+                                animateFloatAsState(if (expandedMentors) 90f else -90f)
                             GetAsyncIcon(
                                 path = RIcons.ChevronLeft,
-                                modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                modifier = Modifier.padding(end = 10.dp)
+                                    .rotate(chevronRotation.value),
                                 size = 15.dp
                             )
                         },
@@ -986,10 +1030,12 @@ fun GroupsOverlay(
                         onValueChange = {},
                         label = { Text("Учитель") },
                         trailingIcon = {
-                            val chevronRotation = animateFloatAsState(if (expandedTeachers) 90f else -90f)
+                            val chevronRotation =
+                                animateFloatAsState(if (expandedTeachers) 90f else -90f)
                             GetAsyncIcon(
                                 path = RIcons.ChevronLeft,
-                                modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                modifier = Modifier.padding(end = 10.dp)
+                                    .rotate(chevronRotation.value),
                                 size = 15.dp
                             )
                         },

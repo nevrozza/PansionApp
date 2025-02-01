@@ -1,8 +1,6 @@
 package com.nevrozq.pansion.database.ratingTable
 
-import ForAvg
 import achievements.AchievementsDTO
-import admin.groups.Group
 import com.nevrozq.pansion.database.achievements.Achievements
 import com.nevrozq.pansion.database.calendar.Calendar
 import com.nevrozq.pansion.database.forms.Forms
@@ -15,17 +13,20 @@ import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
-import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.getModuleByDate
 import getWeeks
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
 import rating.PansionPeriod
 import rating.toStr
-import server.*
+import server.ExtraSubjectsId
+import server.getCurrentDate
+import server.getCurrentEdYear
+import server.roundTo
+import server.st
+import server.updateSafe
 
 fun getModuleDays(moduleDay: String): Pair<String, String?> {
     val module = Calendar.getModuleStartEnd(moduleDay.toIntOrNull() ?: 0)
@@ -363,10 +364,10 @@ fun updateRatings(edYear: Int) {
                 { it.period.toStr() },
                 { it.subjectId },
                 { it.avgAlg >= 0 },
-//                { it.avgAlg > 0 },
+
                 { -(it.topAvg + it.topStups) },
                 { it.stupsAlg },
-                { it.avgAlg.toFloat() },
+                { it.avgAlg },
             )
         ).reversed().map { x ->
             if (
