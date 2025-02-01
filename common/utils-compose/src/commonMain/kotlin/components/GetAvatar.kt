@@ -43,7 +43,7 @@ fun GetAsyncIcon(
     size: Dp = 22.dp,
     modifier: Modifier = Modifier
 ) {
-    val uri = Res.getUri("drawable/icons/${path}").replace("/", "\\")
+    val uri = Res.getUri("drawable/icons/${path}".replace("/", "\\"))
 
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
