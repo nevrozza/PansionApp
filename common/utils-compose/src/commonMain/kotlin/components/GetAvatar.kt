@@ -2,7 +2,6 @@ package components
 
 //import resources.getAvatarImageVector
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -14,7 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -29,7 +32,6 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import pansion.Res
 import resources.getAvatarPath
 import view.LocalViewManager
-import view.ThemeTint
 import view.esp
 
 @OptIn(ExperimentalResourceApi::class)
@@ -45,7 +47,7 @@ fun GetAsyncIcon(
         ImageRequest.Builder(LocalPlatformContext.current)
             .memoryCachePolicy(CachePolicy.ENABLED)
             .networkCachePolicy(CachePolicy.ENABLED)
-            .data(Res.getUri("drawable/icons/${path}"))
+            .data(Res.getUri("drawable/icons/${path}").replace("/", "\\"))
             .crossfade(true)
             .build(),
         modifier = modifier.size(size, size),
