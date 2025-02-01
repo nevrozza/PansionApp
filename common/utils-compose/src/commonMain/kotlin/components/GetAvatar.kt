@@ -29,14 +29,12 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.getResourceUri
 import pansion.Res
 import resources.getAvatarPath
 import view.LocalViewManager
 import view.esp
 
-@OptIn(ExperimentalResourceApi::class, InternalResourceApi::class)
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun GetAsyncIcon(
     path: String,
@@ -45,7 +43,8 @@ fun GetAsyncIcon(
     size: Dp = 22.dp,
     modifier: Modifier = Modifier
 ) {
-    val uri = getResourceUri("drawable/icons/${path}")
+    val uri = Res.getUri("drawable/address-book-regular.svg")
+
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
             .memoryCachePolicy(CachePolicy.ENABLED)
