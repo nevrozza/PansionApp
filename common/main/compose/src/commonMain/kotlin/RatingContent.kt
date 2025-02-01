@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -122,6 +123,7 @@ fun SharedTransitionScope.RatingContent(
             AppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+
                         Text(
                             "Рейтинг",
                             modifier = Modifier.padding(start = if (isExpanded) 10.dp else 0.dp),

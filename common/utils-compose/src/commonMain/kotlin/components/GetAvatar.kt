@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.ContentScale
@@ -44,16 +43,20 @@ fun GetAsyncIcon(
     modifier: Modifier = Modifier
 ) {
     AsyncImage(
-        ImageRequest.Builder(LocalPlatformContext.current)
-            .memoryCachePolicy(CachePolicy.ENABLED)
-            .networkCachePolicy(CachePolicy.ENABLED)
-            .data(Res.getUri("drawable/icons/${path}"))
-            .crossfade(true)
-            .build(),
-        modifier = modifier.size(size, size),
-        contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(tint)
+        model = Res.getUri("drawable/icons/${path}"),
+        contentDescription = null
     )
+//    AsyncImage(
+//        ImageRequest.Builder(LocalPlatformContext.current)
+//            .memoryCachePolicy(CachePolicy.ENABLED)
+//            .networkCachePolicy(CachePolicy.ENABLED)
+//            .data(Res.getUri("drawable/icons/${path}"))
+//            .crossfade(true)
+//            .build(),
+//        modifier = modifier.size(size, size),
+//        contentDescription = contentDescription,
+//        colorFilter = ColorFilter.tint(tint)
+//    )
 
 //            .components {
 //                add(SvgDecoder.Factory())
