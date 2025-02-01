@@ -67,6 +67,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -175,6 +176,11 @@ fun LessonReportScreen(
     LessonReportOverlay(
         component
     )
+
+
+    LaunchedEffect(Unit) {
+        component.setReportColumnsComponent.onEvent(CBottomSheetStore.Intent.ShowSheet)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -182,10 +188,6 @@ fun LessonReportScreen(
 fun LessonReportOverlay(
     component: LessonReportComponent
 ) {
-    SideEffect {
-        component.setReportColumnsComponent.onEvent(CBottomSheetStore.Intent.ShowSheet)
-    }
-
     val model by component.model.subscribeAsState()
     val nHomeTasksModel by component.nHomeTasksInterface.networkModel.subscribeAsState()
     Box(Modifier.fillMaxSize()) {

@@ -26,7 +26,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import pansion.common.utils_compose.generated.resources.Res
+import pansion.Res
 import resources.getAvatarPath
 import view.LocalViewManager
 import view.ThemeTint

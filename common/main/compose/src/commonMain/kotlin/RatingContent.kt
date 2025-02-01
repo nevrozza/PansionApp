@@ -110,7 +110,7 @@ fun SharedTransitionScope.RatingContent(
         })
 
     LaunchedEffect(Unit) {
-        refreshState.onRefreshState.value()
+        if (!refreshing) component.onEvent(RatingStore.Intent.Init)
     }
 
 

@@ -272,6 +272,9 @@ compose.desktop {
         mainClass = "Main_desktopKt"
         nativeDistributions {
             modules("java.base")
+            modules("java.sql")
+
+
             targetFormats(
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
 //                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Pkg,
@@ -292,8 +295,6 @@ compose.desktop {
                 version.set("7.6.1")
                 obfuscate.set(false)
                 isEnabled.set(true)
-//                configurationFiles.from("src/jvmMain/compose-desktop.pro")
-//                this.optimize = true
 
                 configurationFiles.from("src/jvmMain/compose-desktop.pro")
             }

@@ -737,7 +737,6 @@ class RootComponentImpl(
             SchoolComponent.Output.NavigateBack -> popOnce(Child.MainSchool::class)
 
             SchoolComponent.Output.NavigateToRating -> {
-                //mainRatingComponent?.onEvent(RatingStore.Intent.Init)
                 navigation.bringToFront(Config.MainRating)
             }
 

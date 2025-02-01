@@ -37,4 +37,6 @@ kotlin {
 
 compose.resources {
     generateResClass = always
+    this.publicResClass = true
+    packageOfResClass = "pansion"
 }

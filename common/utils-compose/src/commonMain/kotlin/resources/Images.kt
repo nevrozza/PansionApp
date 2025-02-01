@@ -1,33 +1,32 @@
 package resources
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.*
-import pansion.common.utils_compose.generated.resources.*
-import pansion.common.utils_compose.generated.resources.Geologica_Black
-import pansion.common.utils_compose.generated.resources.Geologica_BlackItalic
-import pansion.common.utils_compose.generated.resources.Geologica_Bold
-import pansion.common.utils_compose.generated.resources.Geologica_BoldItalic
-import pansion.common.utils_compose.generated.resources.Geologica_ExtraBold
-import pansion.common.utils_compose.generated.resources.Geologica_ExtraBoldItalic
-import pansion.common.utils_compose.generated.resources.Geologica_ExtraLight
-import pansion.common.utils_compose.generated.resources.Geologica_ExtraLightItalic
-import pansion.common.utils_compose.generated.resources.Geologica_Light
-import pansion.common.utils_compose.generated.resources.Geologica_LightItalic
-import pansion.common.utils_compose.generated.resources.Geologica_Medium
-import pansion.common.utils_compose.generated.resources.Geologica_MediumItalic
-import pansion.common.utils_compose.generated.resources.Geologica_Regular
-import pansion.common.utils_compose.generated.resources.Geologica_RegularItalic
-import pansion.common.utils_compose.generated.resources.Geologica_SemiBold
-import pansion.common.utils_compose.generated.resources.Geologica_SemiBoldItalic
-import pansion.common.utils_compose.generated.resources.Geologica_Thin
-import pansion.common.utils_compose.generated.resources.Geologica_ThinItalic
-import pansion.common.utils_compose.generated.resources.Res
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.Font
+import pansion.Geologica_Black
+import pansion.Geologica_BlackItalic
+import pansion.Geologica_Bold
+import pansion.Geologica_BoldItalic
+import pansion.Geologica_ExtraBold
+import pansion.Geologica_ExtraBoldItalic
+import pansion.Geologica_ExtraLight
+import pansion.Geologica_ExtraLightItalic
+import pansion.Geologica_Light
+import pansion.Geologica_LightItalic
+import pansion.Geologica_Medium
+import pansion.Geologica_MediumItalic
+import pansion.Geologica_Regular
+import pansion.Geologica_RegularItalic
+import pansion.Geologica_SemiBold
+import pansion.Geologica_SemiBoldItalic
+import pansion.Geologica_Thin
+import pansion.Geologica_ThinItalic
+import pansion.Res
 
 //Прости меня, Господи
 
@@ -507,7 +506,8 @@ data class PricedAvatar(
 
 data object Images {
     @OptIn(ExperimentalResourceApi::class)
-    suspend fun Confetti() = Res.readBytes("files/confetti.json").decodeToString()
+    suspend fun Confetti() =
+        Res.readBytes("files/confetti.json").decodeToString()
 
 //    val avatarsMap: Map<Int, ImageBitmap>
 //        @Composable get() {
