@@ -4,10 +4,25 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -45,9 +60,6 @@ import di.Inject
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -70,12 +82,19 @@ import resources.RIcons
 import root.RootComponentImpl
 import server.DeviceTypex
 import server.cut
-import view.*
+import view.AppTheme
+import view.GlobalHazeState
+import view.LocalViewManager
+import view.ThemeTint
+import view.ViewManager
+import view.WindowType
+import view.toRGB
+import view.toTint
 import java.awt.Dimension
 import java.io.File
 import java.net.InetAddress
 import java.net.NetworkInterface
-import java.util.*
+import java.util.UUID
 import javax.swing.SwingUtilities
 
 private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
@@ -95,9 +114,9 @@ private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
 fun main() {
 //
 
-        GlobalScope.launch(Dispatchers.IO) {
-            com.nevrozq.pansion.main()
-        }
+//        GlobalScope.launch(Dispatchers.IO) {
+//            com.nevrozq.pansion.main()
+//        }
 
     PlatformSDK.init(
         configuration = PlatformConfiguration(),

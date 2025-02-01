@@ -3,7 +3,7 @@
 -mergeinterfacesaggressively
 -dontnote *
 -dontwarn org.slf4j.impl.StaticLoggerBinder
-
+-keep class coil3.** { *; }
 # Most of volatile fields are updated with AtomicFU and should not be mangled/removed
 -keepclassmembers class io.ktor.** {
     volatile <fields>;
