@@ -43,18 +43,20 @@ fun GetAsyncIcon(
     size: Dp = 22.dp,
     modifier: Modifier = Modifier
 ) {
+    val uri = Res.getUri("drawable/icons/${path}").replace("/", "\\")
+
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
             .memoryCachePolicy(CachePolicy.ENABLED)
             .networkCachePolicy(CachePolicy.ENABLED)
-            .data(Res.getUri("drawable/icons/${path}"))
+            .data(uri)
             .crossfade(true)
             .build(),
         modifier = modifier.size(size, size),
         contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(tint)
     )
-    println("CHECK$: ${Res.getUri("drawable/icons/${path}")}")
+    println("CHECK$: $uri")
 
 //            .components {
 //                add(SvgDecoder.Factory())

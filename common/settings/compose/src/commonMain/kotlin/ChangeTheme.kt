@@ -94,7 +94,6 @@ fun setViewManager(viewManager: ViewManager) {
     viewManager.showAvatars.value = repository.fetchIsAvatars()
     viewManager.hardwareStatus.value = repository.fetchHardwareStatus()
     viewManager.isLockedVerticalView.value = repository.fetchIsLockedVerticalView()
-    println("S: ${repository.fetchIsLockedVerticalView()}")
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
