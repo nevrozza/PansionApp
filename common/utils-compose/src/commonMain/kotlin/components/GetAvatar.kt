@@ -43,7 +43,7 @@ fun GetAsyncIcon(
     size: Dp = 22.dp,
     modifier: Modifier = Modifier
 ) {
-    val uri = Res.getUri("drawable/icons/${path}")
+    val uri = "https://pansionapp-test.ru/composeResources/pansion/drawable/icons/${path}"//Res.getUri("drawable/icons/${path}")
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
             .memoryCachePolicy(CachePolicy.ENABLED)
@@ -58,7 +58,6 @@ fun GetAsyncIcon(
         contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(tint)
     )
-    println("WAIT: $uri")
 }
 
 @OptIn(ExperimentalResourceApi::class)
