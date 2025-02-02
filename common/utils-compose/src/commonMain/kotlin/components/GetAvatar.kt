@@ -30,6 +30,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import pansion.Res
+import pansion.icons
 import resources.getAvatarPath
 import view.LocalViewManager
 import view.esp
@@ -43,8 +44,7 @@ fun GetAsyncIcon(
     size: Dp = 22.dp,
     modifier: Modifier = Modifier
 ) {
-    val uri = Res.getUri("drawable/address-book-regular.svg")
-
+    val uri = Res.getUri("drawable/icons/${path}")
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
             .memoryCachePolicy(CachePolicy.ENABLED)
