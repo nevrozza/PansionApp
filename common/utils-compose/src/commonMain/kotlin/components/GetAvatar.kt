@@ -43,7 +43,7 @@ fun GetAsyncIcon(
     size: Dp = 22.dp,
     modifier: Modifier = Modifier
 ) {
-    val uri = Res.getUri("drawable/icons/${path}").removePrefix("jar:file:/").replace("/", "\\")
+    val uri = Res.getUri("drawable/icons/${path}")
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
             .memoryCachePolicy(CachePolicy.ENABLED)
