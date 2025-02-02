@@ -43,7 +43,7 @@ fun GetAsyncIcon(
     size: Dp = 22.dp,
     modifier: Modifier = Modifier
 ) {
-    val uri = "C:\\Users\\harla\\OneDrive\\Desktop\\PansionApp\\composeApp\\build\\compose\\binaries\\main-release\\app\\PansionApp\\address-book-regular.svg"
+    val uri = Res.getUri("drawable/icons/${path}").removePrefix("jar:file/")
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
             .memoryCachePolicy(CachePolicy.ENABLED)
