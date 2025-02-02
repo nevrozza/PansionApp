@@ -30,7 +30,6 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import pansion.Res
-import pansion.icons
 import resources.getAvatarPath
 import view.LocalViewManager
 import view.esp
@@ -44,7 +43,7 @@ fun GetAsyncIcon(
     size: Dp = 22.dp,
     modifier: Modifier = Modifier
 ) {
-    val uri = Res.getUri("drawable/icons/${path}")
+    val uri = "C:\\Users\\harla\\OneDrive\\Desktop\\PansionApp\\composeApp\\build\\compose\\binaries\\main-release\\app\\PansionApp\\address-book-regular.svg"
     AsyncImage(
         ImageRequest.Builder(LocalPlatformContext.current)
             .memoryCachePolicy(CachePolicy.ENABLED)
@@ -52,6 +51,9 @@ fun GetAsyncIcon(
             .data(uri)
             .crossfade(true)
             .build(),
+        onError = {
+            println(it.result)
+        },
         modifier = modifier.size(size, size),
         contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(tint)
