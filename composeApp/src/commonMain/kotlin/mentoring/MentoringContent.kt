@@ -3,35 +3,83 @@ package mentoring
 import MentorPerson
 import SettingsRepository
 import allGroupMarks.DatesFilter
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.AnimatedCommonButton
+import components.AnimatedElevatedButton
+import components.AppBar
+import components.CFilterChip
+import components.CLazyColumn
+import components.CustomCheckbox
+import components.CustomTextButton
+import components.CustomTextField
+import components.DatesLine
+import components.DefaultErrorView
+import components.DefaultErrorViewPos
+import components.GetAsyncAvatar
+import components.GetAsyncIcon
+import components.LoadingAnimation
+import components.MarkTable
+import components.cClickable
+import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
 import components.refresh.RefreshButton
 import components.refresh.RefreshWithoutPullCircle
 import components.refresh.keyRefresh
-import components.networkInterface.NetworkState
-import components.networkInterface.isLoading
 import di.Inject
-import io.github.alexzhirkevich.qrose.options.*
+import io.github.alexzhirkevich.qrose.options.QrBallShape
+import io.github.alexzhirkevich.qrose.options.QrFrameShape
+import io.github.alexzhirkevich.qrose.options.QrPixelShape
+import io.github.alexzhirkevich.qrose.options.QrShapes
+import io.github.alexzhirkevich.qrose.options.roundCorners
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import pullRefresh.PullRefreshIndicator
 import pullRefresh.pullRefresh
@@ -43,7 +91,6 @@ import root.RootComponent.Config
 import view.LocalViewManager
 import view.WindowScreen
 import view.esp
-import view.rememberImeState
 
 @ExperimentalLayoutApi
 @Composable
@@ -478,7 +525,9 @@ private fun FormsItem(
                                     Column(Modifier.cClickable { isLoginView.value = true }
                                         .padding(start = 3.dp).align(Alignment.CenterStart)) {
                                         Text("${s.fio.surname} ${s.fio.name}")
-                                        Text("${s.fio.praname}")
+                                        if (s.fio.praname.toString() != "null") {
+                                            Text("${s.fio.praname}")
+                                        }
                                     }
                                 } else {
                                     SelectionContainer(modifier = Modifier.align(Alignment.CenterStart)) {

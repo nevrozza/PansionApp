@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -8,32 +7,26 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
@@ -63,13 +56,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -94,12 +85,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.compose.ui.util.fastSumBy
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedElevatedButton
 import components.AppBar
@@ -113,8 +105,6 @@ import components.GetAsyncIcon
 import components.MarkContent
 import components.ReportTitle
 import components.SaveAnimation
-import components.ScrollBaredBox
-import components.Stepper
 import components.TeacherTime
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
@@ -125,8 +115,10 @@ import components.listDialog.ListItem
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
-import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
+import eu.wewox.minabox.MinaBox
+import eu.wewox.minabox.MinaBoxItem
+import eu.wewox.minabox.ScrollbarData
 import homeTasksDialog.HomeTasksDialogStore
 import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.delay
@@ -135,18 +127,15 @@ import lessonReport.ColumnTypes
 import lessonReport.LessonReportComponent
 import lessonReport.LessonReportStore
 import lessonReport.MarkColumn
+import lessonReport.ReportColumn
 import lessonReport.StudentLine
-import lessonReport.Stup
+import lessonReportUtils.LessonReportTableHeader
+import lessonReportUtils.TableCellOutline
 import resources.RIcons
 import server.fetchReason
-import server.getDate
-import server.getSixTime
 import server.roundTo
-import server.st
-import server.toMinutes
 import view.LocalViewManager
 import view.LockScreenOrientation
-import view.blend
 import view.esp
 import view.popupPositionProvider
 import kotlin.math.max
@@ -316,7 +305,7 @@ fun LessonReportOverlay(
                                     )
                                     Spacer(Modifier.height(15.dp))
 
-                                    SetupTabContent(component, isLikeMenuOpened, )
+                                    SetupTabContent(component, isLikeMenuOpened)
 //                                    MarksTabContent(component)
 
                                 }
@@ -489,8 +478,7 @@ fun LessonReportContent(
 
         val isFullView by mutableStateOf(this.maxWidth > 600.dp)
         Scaffold(
-            Modifier.fillMaxSize()
-            ,
+            Modifier.fillMaxSize(),
             topBar = {
                 LessonReportTopBar(component, isFullView) //, scrollBehavior
             },
@@ -628,21 +616,21 @@ fun LessonReportContent(
                 ListDialogMobileContent(
                     component = component.setMarkMenuComponent,
                     title =
-                        markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName,
+                    markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName,
                     modifier = Modifier.setMarksBind(component)
                 )
                 ListDialogMobileContent(
                     component = component.setDzMarkMenuComponent,
                     title =
-                        markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName,
+                    markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName,
                     modifier = Modifier.setMarksBind(component)
                 )
 
                 ListDialogMobileContent(
                     component = component.deleteMarkMenuComponent,
                     title =
-                        markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName + " - " + markValue
-                                + "\n" + model.selectedDeploy
+                    markStudentFIO + "\n${getColumnNamePrefix(model.selectedMarkReason)}: " + reasonColumnName + " - " + markValue
+                            + "\n" + model.selectedDeploy
                 )
             }
 
@@ -884,10 +872,12 @@ private fun ReportHomeTaskItem(
                             onValueChange = {},
                             label = { Text("Тип") },
                             trailingIcon = {
-                                val chevronRotation = animateFloatAsState(if (expandedType) 90f else -90f)
+                                val chevronRotation =
+                                    animateFloatAsState(if (expandedType) 90f else -90f)
                                 GetAsyncIcon(
                                     path = RIcons.ChevronLeft,
-                                    modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                    modifier = Modifier.padding(end = 10.dp)
+                                        .rotate(chevronRotation.value),
                                     size = 15.dp
                                 )
                             },
@@ -1476,7 +1466,7 @@ private fun ColumnsSettingsItem(
                     Text(
                         ("!${i.title}").removePrefix(currentId),
                         modifier = Modifier.width(145.dp),
-                        maxLines=1,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     CustomCheckbox(
@@ -1490,7 +1480,10 @@ private fun ColumnsSettingsItem(
     }
 }
 
+private fun List<Float>.sumOf(range: IntRange): Float =
+    range.sumOf { get(it).toDouble() }.toFloat()
 
+@OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun LessonTable(
@@ -1509,535 +1502,556 @@ fun LessonTable(
     val allWidth = remember { mutableStateOf(0.dp) }
     val lP = 50.dp
 
-    allWidth.value = model.columnNames.map {
-        when (it.type) {
-            ColumnTypes.prisut -> 150.dp
-            ColumnTypes.opozdanie -> 104.dp
-            ColumnTypes.srBall -> 50.dp
-            else -> 150.dp
-        }
-    }.fastSumBy { it.value.toInt() }.dp + lP
-
-    allHeight.value = 25.dp + (model.students.size * 55.dp)
-
-
-    ScrollBaredBox(
-        vState = vScrollState, hState = hScrollState,
-        height = allHeight, width = allWidth,
-        modifier = Modifier.animateContentSize()
-    ) {
-        Box(Modifier.horizontalScroll(hScrollState)) {
-            Row() {//modifier = Modifier.horizontalScroll(hhScrollState)
-//            Divider(Modifier.height(allHeight.value).width(1.dp))
-                Spacer(Modifier.width(lP))
-                model.columnNames.onEachIndexed { index, i ->
-                    if (index != model.columnNames.lastIndex) {
-                        val width: Dp = when (i.type) {
-                            ColumnTypes.prisut -> 150.dp - 1.5.dp
-                            ColumnTypes.opozdanie -> 104.dp - 1.5.dp
-                            ColumnTypes.srBall -> 50.dp - 1.5.dp
-                            else -> 150.dp - 1.5.dp
-                        }
-                        Spacer(Modifier.width(width))
-                        VerticalDivider(
-                            Modifier.height(allHeight.value).padding(vertical = 1.dp),
-                            thickness = (1.5).dp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
-                        )
-                    }
-                }
-
-
-            }
-            Column(
-                modifier = Modifier
-            ) {
-                Row(
-                    modifier = Modifier,
-//                        .onGloballyPositioned { layoutCoordinates ->
-//                        allWidth.value =
-//                            with(density) { layoutCoordinates.size.width.toDp() + lP / 4 }
-//                    }, //.horizontalScroll(hhScrollState)
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Spacer(Modifier.width(lP))
-                    model.columnNames.forEach { column ->
-
-//                        val isChecked = remember { mutableStateOf(false) }
-
-
-                        Box(
-                            modifier = Modifier.width(
-                                when (column.type) {
-                                    ColumnTypes.prisut -> 150.dp
-                                    ColumnTypes.opozdanie -> 104.dp
-                                    ColumnTypes.srBall -> 50.dp
-                                    else -> 150.dp
-                                }
-                            ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Box() {
-                                    when (column.type.subSequence(0, 3)) {
-                                        "!dz" -> {
-                                            GetAsyncIcon(
-                                                RIcons.Home,
-                                                size = 14.dp,
-                                                modifier = Modifier.offset(y = (0).dp, x = -1.dp)
-                                            )
-                                        }
-
-                                        "!st" -> {
-                                            GetAsyncIcon(
-                                                RIcons.Star,
-                                                size = 14.dp,
-                                                modifier = Modifier.offset(y = (0).dp, x = -1.dp)
-                                            )
-                                        }
-
-                                        "!ds" -> {
-                                            GetAsyncIcon(
-                                                RIcons.Shield,
-                                                size = 14.dp,
-                                                modifier = Modifier.offset(y = (0).dp, x = -1.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                                Text(
-                                    text = column.title.removePrefix("dz").removePrefix("cl")
-                                        .removePrefix("st").removePrefix("ds"),
-                                    fontWeight = FontWeight.ExtraBold,
-                                    textAlign = TextAlign.Center,
-
-                                    overflow = TextOverflow.Ellipsis,
-                                    softWrap = false
-                                )
-                            }
-                        }
-                    }
-                }
-
-
-                HorizontalDivider(
-                    Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp)//.height(1.dp)
-                    , color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
-                    thickness = 1.5.dp
-                )
-
-                LazyColumn(
-                    modifier = Modifier,
-                    state = vScrollState,
-                ) {
-                    itemsIndexed(items = model.students.sortedBy { it.shortFio }) { index, student ->
-                        val fioColor =
-                            MaterialTheme.colorScheme
-                                .onSurface.blend(
-                                    when (student.login) {
-                                        in model.likedList -> Color.Green
-                                        in model.dislikedList -> Color.Red
-                                        else -> MaterialTheme.colorScheme
-                                            .onSurface
-                                    }
-                                )
-
-                        val isPersonWasOnLesson = student.attended?.attendedType in listOf("0", null)
-
-                        
-                        Column {
-                            Row(
-                                modifier = Modifier
-                                    .padding(start = 10.dp)
-                                    .offset(with(density) { hScrollState.value.toDp() }),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = student.shortFio,
-                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    fontWeight = FontWeight.Normal,
-                                    color = fioColor,
-                                    modifier = Modifier
-                                )
-                                Spacer(Modifier.width(10.dp))
-                                LikeDislikeRow(
-                                    component = component,
-                                    student = student
-                                )
-                            }
-                            Row(Modifier.padding(start = lP)) {
-                                model.columnNames.forEach { column ->
-//                                    val isChecked = remember { mutableStateOf(false) }
-                                    Box(
-                                        modifier = Modifier.width(
-                                            when (column.type) {
-                                                ColumnTypes.prisut -> 150.dp
-                                                ColumnTypes.opozdanie -> 104.dp
-                                                ColumnTypes.srBall -> 50.dp
-                                                else -> 150.dp
-                                            }
-                                        ),
-//                                            .onGloballyPositioned {
-//                                                val width =
-//                                                    with(density) { it.size.width.toDp() }
-//                                                if (width > widths[column.title]!!) widths[column.title] =
-//                                                    width
-//                                                else isChecked.value = true
-//                                            }.then(
-//                                                if (!isChecked.value) Modifier.width(
-//                                                    IntrinsicSize.Min
-//                                                )
-//                                                else Modifier.width(widths[column.title]!!)
-//                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Box(modifier = Modifier.height(25.dp)) {
-                                            if (column.type in listOf(
-                                                    ColumnTypes.opozdanie,
-                                                    ColumnTypes.prisut,
-                                                    ColumnTypes.srBall
-                                                )
-                                            ) {
-                                                when (column.type) {
-                                                    ColumnTypes.prisut -> {
-                                                        val isDot = student.attended?.reason != null
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                            modifier = Modifier.padding(end = if (isDot) 6.dp else 0.dp)
-                                                        ) {
-                                                            if (isDot) {
-                                                                Box(
-                                                                    Modifier
-                                                                        .size(5.dp).clip(
-                                                                            CircleShape
-                                                                        )
-                                                                        .background(MaterialTheme.colorScheme.primary)
-                                                                )
-                                                            }
-                                                            Spacer(Modifier.width(3.dp))
-                                                            PrisutCheckBox(
-                                                                modifier = Modifier.size(25.dp),
-                                                                attendedType = student.attended?.attendedType
-                                                                    ?: "0",
-                                                                reason = student.attended?.reason,
-                                                                enabled = model.isEditable
-                                                            ) {
-                                                                component.onEvent(
-                                                                    LessonReportStore.Intent.ChangeAttendance(
-                                                                        studentLogin = student.login,
-                                                                        attendedType = it
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-
-                                                    ColumnTypes.opozdanie -> {
-                                                        Crossfade(student.lateTime) {
-//                                                            var x by remember {
-//                                                                mutableStateOf(
-//                                                                    0.0f
-//                                                                )
-//                                                            }
-//                                                            var y by remember {
-//                                                                mutableStateOf(
-//                                                                    0.0f
-//                                                                )
-//                                                            }
-                                                            when (it) {
-                                                                "0" -> Row(
-                                                                    Modifier.fillMaxWidth(),
-                                                                    verticalAlignment = Alignment.CenterVertically,
-                                                                    horizontalArrangement = Arrangement.Center
-                                                                ) {
-                                                                    val lessonMinutes =
-                                                                        model.time.toMinutes()
-                                                                    val currentMinutes =
-                                                                        getSixTime().toMinutes()
-                                                                    if ((model.date == getDate() && lessonMinutes <= currentMinutes && currentMinutes - lessonMinutes <= 40) && model.isEditable) {
-                                                                        FilledTonalButton(
-                                                                            enabled =  isPersonWasOnLesson,
-                                                                            contentPadding = PaddingValues(
-                                                                                horizontal = 5.dp
-                                                                            ), onClick = {
-                                                                                component.onEvent(
-                                                                                    LessonReportStore.Intent.SetLateTime(
-                                                                                        student.login,
-                                                                                        "auto"
-                                                                                    )
-                                                                                )
-                                                                            }) {
-                                                                            Text("Опозд.")
-                                                                        }
-                                                                    }
-                                                                    if (component.model.value.isEditable) {
-                                                                        Box() {
-                                                                            IconButton(
-                                                                                enabled =  isPersonWasOnLesson,
-                                                                                modifier = Modifier.width(
-                                                                                    30.dp
-                                                                                )
-                                                                                , onClick = {
-                                                                                    component.onEvent(
-                                                                                        LessonReportStore.Intent.OpenSetLateTimeMenu(
-                                                                                            student.login,
-                                                                                            x = 0f,
-                                                                                            y = 0f
-                                                                                        )
-                                                                                    )
-                                                                                }) {
-                                                                                GetAsyncIcon(
-                                                                                    RIcons.MoreVert
-                                                                                )
-                                                                            }
-                                                                            if (model.selectedLogin == student.login) {
-                                                                                ListDialogDesktopContent(
-                                                                                    component.setLateTimeMenuComponent,
-                                                                                    offset = DpOffset(
-                                                                                        x = 27.dp,
-                                                                                        y = -18.dp
-                                                                                    ),
-                                                                                    isFullHeight = true
-                                                                                )
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-
-                                                                else -> Row(
-                                                                    Modifier.fillMaxWidth(),
-                                                                    verticalAlignment = Alignment.CenterVertically,
-                                                                    horizontalArrangement = Arrangement.Center
-                                                                ) {
-                                                                    Text(
-                                                                        it,
-                                                                        fontWeight = FontWeight.Bold
-                                                                    )
-                                                                    if (component.model.value.isEditable) {
-                                                                        IconButton(
-                                                                            modifier = Modifier.width(
-                                                                                30.dp
-                                                                            ),
-                                                                            onClick = {
-                                                                                component.onEvent(
-                                                                                    LessonReportStore.Intent.SetLateTime(
-                                                                                        student.login,
-                                                                                        "0"
-                                                                                    )
-                                                                                )
-                                                                            }) {
-                                                                            GetAsyncIcon(
-                                                                                RIcons.Close
-                                                                            )
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    ColumnTypes.srBall -> {
-                                                        val marks =
-                                                            student.marksOfCurrentLesson.filter { it.isGoToAvg }
-                                                        val value =
-                                                            (student.avgMark.previousSum + marks.sumOf { it.value.toInt() }) / (student.avgMark.countOfMarks + marks.size).toFloat()
-
-                                                        if (value.isNaN()) {
-                                                            Text(
-                                                                text = "NaN",
-                                                                fontWeight = FontWeight.Black
-                                                            )
-                                                        } else {
-                                                            CustomTextButton(
-                                                                text = value.roundTo(2),
-                                                                fontWeight = FontWeight.Black,
-                                                                color = MaterialTheme.colorScheme.onSurface
-                                                            ) {
-                                                                component.onEvent(
-                                                                    LessonReportStore.Intent.OpenDetailedMarks(
-                                                                        student.login
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-
-                                                    else -> Text(
-                                                        text = column.title
-                                                    )
-                                                }
-                                            } else if (column.type.subSequence(
-                                                    0,
-                                                    3
-                                                ) !in listOf("!st", "!ds")
-                                            ) {
-
-                                                val marks =
-                                                    student.marksOfCurrentLesson.filter { it.reason == column.type }
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.Center,
-                                                ) {
-                                                    marks.forEachIndexed { index, mark ->
-//                                                        var x by remember { mutableStateOf(0.0f) }
-//                                                        var y by remember { mutableStateOf(0.0f) }
-                                                        Box() {
-                                                            MarkContent(
-                                                                mark = if (mark.value == "+2") "Д" else mark.value,
-                                                                offset = DpOffset(0.dp, -2.dp),
-                                                                background = if (student.login == model.selectedLogin && column.type == model.selectedMarkReason && index.toString() == model.selectedMarkValue) {
-                                                                    MaterialTheme.colorScheme.primary.copy(
-                                                                        alpha = .2f
-                                                                    ).hv()
-                                                                } else {
-                                                                    MaterialTheme.colorScheme.primary.copy(
-                                                                        alpha = .2f
-                                                                    )
-                                                                },
-                                                                addModifier = Modifier
-                                                                    .clickable(enabled = model.isEditable) {
-                                                                        component.onEvent(
-                                                                            LessonReportStore.Intent.OpenDeleteMarkMenu(
-                                                                                reasonId = column.type,
-                                                                                studentLogin = student.login,
-                                                                                markValue = index,
-                                                                                selectedDeploy = "${mark.deployLogin}: ${mark.deployDate} (${mark.deployTime})"
-                                                                            )
-                                                                        )
-                                                                    },
-                                                                paddingValues = PaddingValues(end = if (index != 3) 5.dp else 0.dp)
-                                                            )
-                                                            if (model.selectedMarkValue == index.toString()
-                                                                && (model.selectedLogin == student.login)
-                                                                && (model.selectedMarkReason == column.type)
-                                                            ) {
-                                                                ListDialogDesktopContent(
-                                                                    component.deleteMarkMenuComponent,
-                                                                    offset = DpOffset(
-                                                                        x = 27.dp,
-                                                                        y = -18.dp
-                                                                    ),
-                                                                    title = if (model.isModer) "Выставил ${mark.deployLogin}\nв ${mark.deployDate} (${mark.deployTime})" else null,
-                                                                    isFullHeight = true
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-
-                                                    if (marks.size != 4 && model.isEditable) {
-                                                        Box() {
-                                                            Box(
-                                                                Modifier.offset(y = -2.dp)
-                                                                    //.padding(start = 5.dp)
-                                                                    .size(25.dp)
-                                                                    .clip(RoundedCornerShape(percent = 30))
-                                                                    .background(
-                                                                        if (student.login == model.selectedLogin && column.type == model.selectedMarkReason && model.selectedMarkValue.isBlank()) {
-                                                                            MaterialTheme.colorScheme.primary.copy(
-                                                                                alpha = .2f
-                                                                            ).hv()
-                                                                        } else {
-                                                                            MaterialTheme.colorScheme.primary.copy(
-                                                                                alpha = .2f
-                                                                            )
-                                                                        }
-
-                                                                    )
-                                                                    .clickable {
-                                                                        component.onEvent(
-                                                                            LessonReportStore.Intent.OpenSetMarksMenu(
-                                                                                reasonId = column.type,
-                                                                                studentLogin = student.login,
-                                                                                x = 0f,
-                                                                                y = 0f
-                                                                            )
-                                                                        )
-                                                                    },
-                                                                contentAlignment = Alignment.Center
-                                                            ) {
-                                                                GetAsyncIcon(
-                                                                    RIcons.Add,
-                                                                    tint = MaterialTheme.colorScheme.onSurface
-                                                                )
-                                                            }
-                                                            if (model.selectedMarkReason == column.type && model.selectedLogin == student.login) {
-                                                                ListDialogDesktopContent(
-                                                                    if (column.type.st == "!dz") component.setDzMarkMenuComponent else component.setMarkMenuComponent,
-                                                                    offset = DpOffset(
-                                                                        x = 27.dp,
-                                                                        y = -18.dp
-                                                                    ),
-                                                                    isFullHeight = true,
-                                                                    modifier = Modifier.setMarksBind(
-                                                                        component
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            } else {
-                                                val reason =
-                                                    column.type
-                                                Stepper(
-                                                    isEditable = model.isEditable,
-                                                    count = (student.stupsOfCurrentLesson.firstOrNull { it.reason == column.type }
-                                                        ?: Stup(
-                                                            0,
-                                                            "",
-                                                            id = model.ids,
-                                                            deployTime = "",
-                                                            deployLogin = "",
-                                                            deployDate = "",
-                                                            custom = null
-                                                        )).value,
-                                                    maxCount =
-                                                        getMaxStupsCount(reason),
-                                                    minCount =
-                                                        when (reason) {
-                                                            "!st1" -> -1
-                                                            "!ds1" -> -1
-                                                            "!ds2" -> -3
-                                                            "!ds3" -> -10
-                                                            else -> 0
-                                                        }
-                                                ) {
-                                                    component.onEvent(
-                                                        LessonReportStore.Intent.ChangeStups(
-                                                            login = student.login,
-                                                            value = it,
-                                                            columnReason = column.type
-                                                        )
-                                                    )
-                                                }
-                                            }
-
-                                        }
-                                    }
-                                }
-                            }
-                            Spacer(Modifier.height(5.dp))
-                            if (index != model.students.lastIndex) {
-                                HorizontalDivider(
-                                    Modifier.padding(start = 1.dp)
-                                        .width(allWidth.value - 1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
-                                    thickness = 1.dp
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-
-        }
-
-
+    allWidth.value = remember {
+        model.columnNames.map {
+            getColumnWidth(it)
+        }.fastSumBy { it.value.toInt() }.dp + lP
     }
+
+    allHeight.value = remember { 25.dp + (model.students.size * 55.dp) }
+
+    val columnsCount = model.columnNames.size
+    val rowsCount = (model.students.size + 1)
+
+    MinaBox(
+        Modifier.border(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+            RoundedCornerShape(16.dp)
+        ).clip(RoundedCornerShape(16.dp)),
+        scrollBarData = ScrollbarData(
+            color = MaterialTheme.colorScheme.surfaceColorAtElevation((10).dp),
+            hoveredColor = MaterialTheme.colorScheme.surfaceColorAtElevation(40.dp),
+            padding = 5.dp,
+            thickness = 8.dp,
+            shapeRadius = 16.dp,
+            isOuterTable = true
+        )
+    ) {
+        items(
+            count = columnsCount * rowsCount,
+            layoutInfo = {
+                val column = it % columnsCount
+                val row = it / columnsCount
+                val reportColumn = model.columnNames[column]
+
+                val isHeader = it in 0..(columnsCount - 1)
+
+                val itemSizePx = with(density) {
+                    DpSize(
+                        width = getColumnWidth(reportColumn),
+                        if (isHeader) 30.dp else 55.dp
+                    ).toSize()
+                }
+                val prevX = model.columnNames
+                    .map { with(density) { getColumnWidth(it).toPx() } }.sumOf(0 until column)
+                MinaBoxItem(
+                    x = prevX,
+                    y = itemSizePx.height * row - with(density) { if (isHeader) 0f else 25.dp.toPx() },
+                    width = itemSizePx.width,
+                    height = itemSizePx.height,
+                    lockVertically = row == 0
+                )
+            }
+        ) { index ->
+            val columnIndex = index % columnsCount
+            val studentIndex = index / columnsCount
+
+            TableCellOutline {
+                if (index !in 0..(columnsCount - 1)) {
+                    Row(
+                        Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (columnIndex == 0) {
+                            Spacer(Modifier.width(50.dp))
+                        }
+                        Text(model.columnNames[columnIndex].title, modifier = Modifier.zIndex(2f))
+                    }
+
+                } else {
+                    LessonReportTableHeader(model.columnNames[columnIndex])
+                }
+            }
+
+        }
+    }
+
+
+//    ScrollBaredBox(
+//        vState = vScrollState, hState = hScrollState,
+//        height = allHeight, width = allWidth,
+//        modifier = Modifier.animateContentSize()
+//    ) {
+//        Box() { //Modifier.horizontalScroll(hScrollState)
+//
+//
+//
+////            LazyColumn(state = vScrollState) {
+////                stickyHeader {
+////                    Row(
+////                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+////                        verticalAlignment = Alignment.CenterVertically,
+////                    ) {
+//                        Spacer(Modifier.width(lP))
+//                        model.columnNames.forEach { column ->
+//                            val w = getColumnWidth(column)
+//                            Row(Modifier.width(w)) {
+//                                Box(
+//                                    modifier = Modifier.width(
+//                                         w - 1.5.dp
+//                                    ),
+//                                    contentAlignment = Alignment.Center
+//                                ) {
+//                                    Row(
+//                                        verticalAlignment = Alignment.CenterVertically,
+//                                        horizontalArrangement = Arrangement.Center
+//                                    ) {
+//                                        Box() {
+//                                            when (column.type.subSequence(0, 3)) {
+//                                                "!dz" -> {
+//                                                    GetAsyncIcon(
+//                                                        RIcons.Home,
+//                                                        size = 14.dp,
+//                                                        modifier = Modifier.offset(
+//                                                            y = (0).dp,
+//                                                            x = -1.dp
+//                                                        )
+//                                                    )
+//                                                }
+//
+//                                                "!st" -> {
+//                                                    GetAsyncIcon(
+//                                                        RIcons.Star,
+//                                                        size = 14.dp,
+//                                                        modifier = Modifier.offset(
+//                                                            y = (0).dp,
+//                                                            x = -1.dp
+//                                                        )
+//                                                    )
+//                                                }
+//
+//                                                "!ds" -> {
+//                                                    GetAsyncIcon(
+//                                                        RIcons.Shield,
+//                                                        size = 14.dp,
+//                                                        modifier = Modifier.offset(
+//                                                            y = (0).dp,
+//                                                            x = -1.dp
+//                                                        )
+//                                                    )
+//                                                }
+//                                            }
+//                                        }
+//                                        Text(
+//                                            text = column.title.removePrefix("dz")
+//                                                .removePrefix("cl")
+//                                                .removePrefix("st").removePrefix("ds"),
+//                                            fontWeight = FontWeight.ExtraBold,
+//                                            textAlign = TextAlign.Center,
+//
+//                                            overflow = TextOverflow.Ellipsis,
+//                                            softWrap = false
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                    HorizontalDivider(
+//                        Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp)//.height(1.dp)
+//                        , color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+//                        thickness = 1.5.dp
+//                    )
+////                }
+////
+//////                itemsIndexed(items = model.students, key = { _, item -> item.login }) { index, student ->
+//////                    val fioColor =
+//////                        MaterialTheme.colorScheme
+//////                            .onSurface.blend(
+//////                                when (student.login) {
+//////                                    in model.likedList -> Color.Green
+//////                                    in model.dislikedList -> Color.Red
+//////                                    else -> MaterialTheme.colorScheme
+//////                                        .onSurface
+//////                                }
+//////                            )
+//////
+//////                    val isPersonWasOnLesson = student.attended?.attendedType in listOf("0", null)
+//////
+//////
+//////                    Column {
+//////                        Row(
+//////                            modifier = Modifier
+//////                                .padding(start = 10.dp)
+//////                                .offset(with(density) { hScrollState.value.toDp() }),
+//////                            verticalAlignment = Alignment.CenterVertically
+//////                        ) {
+//////                            Text(
+//////                                text = student.shortFio,
+//////                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
+//////                                fontWeight = FontWeight.Normal,
+//////                                color = fioColor,
+//////                                modifier = Modifier
+//////                            )
+//////                            Spacer(Modifier.width(10.dp))
+//////                            LikeDislikeRow(
+//////                                component = component,
+//////                                student = student
+//////                            )
+//////                        }
+//////                        Row(Modifier.padding(start = lP)) {
+//////                            model.columnNames.forEach { column ->
+//////                                val w = getColumnWidth(column)
+//////                                Row(Modifier.height(IntrinsicSize.Max).width(w)) {
+//////                                    Box(
+//////                                        modifier = Modifier.width(
+//////                                            w - 1.5.dp
+//////                                        ),
+//////                                        contentAlignment = Alignment.Center
+//////                                    ) {
+//////                                        Box(modifier = Modifier.height(25.dp)) {
+//////                                            if (column.type in listOf(
+//////                                                    ColumnTypes.opozdanie,
+//////                                                    ColumnTypes.prisut,
+//////                                                    ColumnTypes.srBall
+//////                                                )
+//////                                            ) {
+//////                                                when (column.type) {
+//////                                                    ColumnTypes.prisut -> {
+//////                                                        val isDot = student.attended?.reason != null
+//////                                                        Row(
+//////                                                            verticalAlignment = Alignment.CenterVertically,
+//////                                                            modifier = Modifier.padding(end = if (isDot) 6.dp else 0.dp)
+//////                                                        ) {
+//////                                                            if (isDot) {
+//////                                                                Box(
+//////                                                                    Modifier
+//////                                                                        .size(5.dp).clip(
+//////                                                                            CircleShape
+//////                                                                        )
+//////                                                                        .background(MaterialTheme.colorScheme.primary)
+//////                                                                )
+//////                                                            }
+//////                                                            Spacer(Modifier.width(3.dp))
+//////                                                            PrisutCheckBox(
+//////                                                                modifier = Modifier.size(25.dp),
+//////                                                                attendedType = student.attended?.attendedType
+//////                                                                    ?: "0",
+//////                                                                reason = student.attended?.reason,
+//////                                                                enabled = model.isEditable
+//////                                                            ) {
+//////                                                                component.onEvent(
+//////                                                                    LessonReportStore.Intent.ChangeAttendance(
+//////                                                                        studentLogin = student.login,
+//////                                                                        attendedType = it
+//////                                                                    )
+//////                                                                )
+//////                                                            }
+//////                                                        }
+//////                                                    }
+//////
+//////                                                    ColumnTypes.opozdanie -> {
+//////                                                        Crossfade(student.lateTime) {
+//////                                                            when (it) {
+//////                                                                "0" -> Row(
+//////                                                                    Modifier.fillMaxWidth(),
+//////                                                                    verticalAlignment = Alignment.CenterVertically,
+//////                                                                    horizontalArrangement = Arrangement.Center
+//////                                                                ) {
+//////                                                                    val lessonMinutes =
+//////                                                                        model.time.toMinutes()
+//////                                                                    val currentMinutes =
+//////                                                                        getSixTime().toMinutes()
+//////                                                                    if ((model.date == getDate() && lessonMinutes <= currentMinutes && currentMinutes - lessonMinutes <= 40) && model.isEditable) {
+//////                                                                        FilledTonalButton(
+//////                                                                            enabled = isPersonWasOnLesson,
+//////                                                                            contentPadding = PaddingValues(
+//////                                                                                horizontal = 5.dp
+//////                                                                            ), onClick = {
+//////                                                                                component.onEvent(
+//////                                                                                    LessonReportStore.Intent.SetLateTime(
+//////                                                                                        student.login,
+//////                                                                                        "auto"
+//////                                                                                    )
+//////                                                                                )
+//////                                                                            }) {
+//////                                                                            Text("Опозд.")
+//////                                                                        }
+//////                                                                    }
+//////                                                                    if (component.model.value.isEditable) {
+//////                                                                        Box() {
+//////                                                                            IconButton(
+//////                                                                                enabled = isPersonWasOnLesson,
+//////                                                                                modifier = Modifier.width(
+//////                                                                                    30.dp
+//////                                                                                ), onClick = {
+//////                                                                                    component.onEvent(
+//////                                                                                        LessonReportStore.Intent.OpenSetLateTimeMenu(
+//////                                                                                            student.login,
+//////                                                                                            x = 0f,
+//////                                                                                            y = 0f
+//////                                                                                        )
+//////                                                                                    )
+//////                                                                                }) {
+//////                                                                                GetAsyncIcon(
+//////                                                                                    RIcons.MoreVert
+//////                                                                                )
+//////                                                                            }
+//////                                                                            if (model.selectedLogin == student.login) {
+//////                                                                                ListDialogDesktopContent(
+//////                                                                                    component.setLateTimeMenuComponent,
+//////                                                                                    offset = DpOffset(
+//////                                                                                        x = 27.dp,
+//////                                                                                        y = -18.dp
+//////                                                                                    ),
+//////                                                                                    isFullHeight = true
+//////                                                                                )
+//////                                                                            }
+//////                                                                        }
+//////                                                                    }
+//////                                                                }
+//////
+//////                                                                else -> Row(
+//////                                                                    Modifier.fillMaxWidth(),
+//////                                                                    verticalAlignment = Alignment.CenterVertically,
+//////                                                                    horizontalArrangement = Arrangement.Center
+//////                                                                ) {
+//////                                                                    Text(
+//////                                                                        it,
+//////                                                                        fontWeight = FontWeight.Bold
+//////                                                                    )
+//////                                                                    if (component.model.value.isEditable) {
+//////                                                                        IconButton(
+//////                                                                            modifier = Modifier.width(
+//////                                                                                30.dp
+//////                                                                            ),
+//////                                                                            onClick = {
+//////                                                                                component.onEvent(
+//////                                                                                    LessonReportStore.Intent.SetLateTime(
+//////                                                                                        student.login,
+//////                                                                                        "0"
+//////                                                                                    )
+//////                                                                                )
+//////                                                                            }) {
+//////                                                                            GetAsyncIcon(
+//////                                                                                RIcons.Close
+//////                                                                            )
+//////                                                                        }
+//////                                                                    }
+//////                                                                }
+//////                                                            }
+//////                                                        }
+//////                                                    }
+//////
+//////                                                    ColumnTypes.srBall -> {
+//////                                                        val marks =
+//////                                                            student.marksOfCurrentLesson.filter { it.isGoToAvg }
+//////                                                        val value =
+//////                                                            (student.avgMark.previousSum + marks.sumOf { it.value.toInt() }) / (student.avgMark.countOfMarks + marks.size).toFloat()
+//////
+//////                                                        if (value.isNaN()) {
+//////                                                            Text(
+//////                                                                text = "NaN",
+//////                                                                fontWeight = FontWeight.Black
+//////                                                            )
+//////                                                        } else {
+//////                                                            CustomTextButton(
+//////                                                                text = value.roundTo(2),
+//////                                                                fontWeight = FontWeight.Black,
+//////                                                                color = MaterialTheme.colorScheme.onSurface
+//////                                                            ) {
+//////                                                                component.onEvent(
+//////                                                                    LessonReportStore.Intent.OpenDetailedMarks(
+//////                                                                        student.login
+//////                                                                    )
+//////                                                                )
+//////                                                            }
+//////                                                        }
+//////                                                    }
+//////
+//////                                                    else -> Text(
+//////                                                        text = column.title
+//////                                                    )
+//////                                                }
+//////                                            } else if (column.type.subSequence(
+//////                                                    0,
+//////                                                    3
+//////                                                ) !in listOf("!st", "!ds")
+//////                                            ) {
+//////
+//////                                                val marks =
+//////                                                    student.marksOfCurrentLesson.filter { it.reason == column.type }
+//////                                                Row(
+//////                                                    verticalAlignment = Alignment.CenterVertically,
+//////                                                    horizontalArrangement = Arrangement.Center,
+//////                                                ) {
+//////                                                    marks.forEachIndexed { index, mark ->
+//////                                                        Box() {
+//////                                                            MarkContent(
+//////                                                                mark = if (mark.value == "+2") "Д" else mark.value,
+//////                                                                offset = DpOffset(0.dp, -2.dp),
+//////                                                                background = if (student.login == model.selectedLogin && column.type == model.selectedMarkReason && index.toString() == model.selectedMarkValue) {
+//////                                                                    MaterialTheme.colorScheme.primary.copy(
+//////                                                                        alpha = .2f
+//////                                                                    ).hv()
+//////                                                                } else {
+//////                                                                    MaterialTheme.colorScheme.primary.copy(
+//////                                                                        alpha = .2f
+//////                                                                    )
+//////                                                                },
+//////                                                                addModifier = Modifier
+//////                                                                    .clickable(enabled = model.isEditable) {
+//////                                                                        component.onEvent(
+//////                                                                            LessonReportStore.Intent.OpenDeleteMarkMenu(
+//////                                                                                reasonId = column.type,
+//////                                                                                studentLogin = student.login,
+//////                                                                                markValue = index,
+//////                                                                                selectedDeploy = "${mark.deployLogin}: ${mark.deployDate} (${mark.deployTime})"
+//////                                                                            )
+//////                                                                        )
+//////                                                                    },
+//////                                                                paddingValues = PaddingValues(end = if (index != 3) 5.dp else 0.dp)
+//////                                                            )
+//////                                                            if (model.selectedMarkValue == index.toString()
+//////                                                                && (model.selectedLogin == student.login)
+//////                                                                && (model.selectedMarkReason == column.type)
+//////                                                            ) {
+//////                                                                ListDialogDesktopContent(
+//////                                                                    component.deleteMarkMenuComponent,
+//////                                                                    offset = DpOffset(
+//////                                                                        x = 27.dp,
+//////                                                                        y = -18.dp
+//////                                                                    ),
+//////                                                                    title = if (model.isModer) "Выставил ${mark.deployLogin}\nв ${mark.deployDate} (${mark.deployTime})" else null,
+//////                                                                    isFullHeight = true
+//////                                                                )
+//////                                                            }
+//////                                                        }
+//////                                                    }
+//////
+//////                                                    if (marks.size != 4 && model.isEditable) {
+//////                                                        Box() {
+//////                                                            Box(
+//////                                                                Modifier.offset(y = -2.dp)
+//////                                                                    //.padding(start = 5.dp)
+//////                                                                    .size(25.dp)
+//////                                                                    .clip(RoundedCornerShape(percent = 30))
+//////                                                                    .background(
+//////                                                                        if (student.login == model.selectedLogin && column.type == model.selectedMarkReason && model.selectedMarkValue.isBlank()) {
+//////                                                                            MaterialTheme.colorScheme.primary.copy(
+//////                                                                                alpha = .2f
+//////                                                                            ).hv()
+//////                                                                        } else {
+//////                                                                            MaterialTheme.colorScheme.primary.copy(
+//////                                                                                alpha = .2f
+//////                                                                            )
+//////                                                                        }
+//////
+//////                                                                    )
+//////                                                                    .clickable {
+//////                                                                        component.onEvent(
+//////                                                                            LessonReportStore.Intent.OpenSetMarksMenu(
+//////                                                                                reasonId = column.type,
+//////                                                                                studentLogin = student.login,
+//////                                                                                x = 0f,
+//////                                                                                y = 0f
+//////                                                                            )
+//////                                                                        )
+//////                                                                    },
+//////                                                                contentAlignment = Alignment.Center
+//////                                                            ) {
+//////                                                                GetAsyncIcon(
+//////                                                                    RIcons.Add,
+//////                                                                    tint = MaterialTheme.colorScheme.onSurface
+//////                                                                )
+//////                                                            }
+//////                                                            if (model.selectedMarkReason == column.type && model.selectedLogin == student.login) {
+//////                                                                ListDialogDesktopContent(
+//////                                                                    if (column.type.st == "!dz") component.setDzMarkMenuComponent else component.setMarkMenuComponent,
+//////                                                                    offset = DpOffset(
+//////                                                                        x = 27.dp,
+//////                                                                        y = -18.dp
+//////                                                                    ),
+//////                                                                    isFullHeight = true,
+//////                                                                    modifier = Modifier.setMarksBind(
+//////                                                                        component
+//////                                                                    )
+//////                                                                )
+//////                                                            }
+//////                                                        }
+//////                                                    }
+//////                                                }
+//////                                            } else {
+//////                                                val reason =
+//////                                                    column.type
+//////                                                Stepper(
+//////                                                    isEditable = model.isEditable,
+//////                                                    count = (student.stupsOfCurrentLesson.firstOrNull { it.reason == column.type }
+//////                                                        ?: Stup(
+//////                                                            0,
+//////                                                            "",
+//////                                                            id = model.ids,
+//////                                                            deployTime = "",
+//////                                                            deployLogin = "",
+//////                                                            deployDate = "",
+//////                                                            custom = null
+//////                                                        )).value,
+//////                                                    maxCount =
+//////                                                    getMaxStupsCount(reason),
+//////                                                    minCount =
+//////                                                    when (reason) {
+//////                                                        "!st1" -> -1
+//////                                                        "!ds1" -> -1
+//////                                                        "!ds2" -> -3
+//////                                                        "!ds3" -> -10
+//////                                                        else -> 0
+//////                                                    }
+//////                                                ) {
+//////                                                    component.onEvent(
+//////                                                        LessonReportStore.Intent.ChangeStups(
+//////                                                            login = student.login,
+//////                                                            value = it,
+//////                                                            columnReason = column.type
+//////                                                        )
+//////                                                    )
+//////                                                }
+//////                                            }
+//////
+//////                                        }
+//////                                    }
+//////                                }
+//////                            }
+//////                        }
+//////                        Spacer(Modifier.height(5.dp))
+//////                        if (index != model.students.lastIndex) {
+//////                            HorizontalDivider(
+//////                                Modifier.padding(start = 1.dp)
+//////                                    .width(allWidth.value - 1.dp),
+//////                                color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+//////                                thickness = 1.dp
+//////                            )
+//////                        }
+//////                    }
+//////                }
+////
+////            }
+//
+//            Row {
+//                Spacer(Modifier.width(lP))
+//                model.columnNames.forEach { column ->
+//                    VerticalDivider(
+//                        Modifier.padding(start = getColumnWidth(column)-1.5.dp).padding(
+//                            vertical = 1.dp
+//                        ).height(allHeight.value),
+//                        thickness = (1.5).dp,
+//                        color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
+//                    )
+//                }
+//            }
+//        }
+//    }
     val detailedMarksName =
         model.students.firstOrNull { it.login == model.detailedMarksLogin }?.shortFio ?: "null"
 
@@ -2227,6 +2241,15 @@ fun LessonReportTopBar(
         }
     )
 
+}
+
+private fun getColumnWidth(column: ReportColumn): Dp {
+    return when (column.type) {
+        ColumnTypes.prisut -> (150).dp + 50.dp //lP
+        ColumnTypes.opozdanie -> (104).dp
+        ColumnTypes.srBall -> (50).dp
+        else -> 150.dp
+    }
 }
 
 @Composable

@@ -16,7 +16,19 @@ kotlin {
     jvm()
     androidTarget()
 
-    applyDefaultHierarchyTemplate()
+    applyDefaultHierarchyTemplate {
+        common {
+            group("web") {
+                withJs()
+                withWasmJs()
+            }
+            group("notWeb") {
+                withJvm()
+                withApple()
+                withAndroidTarget()
+            }
+        }
+    }
 
     iosX64()
     iosArm64()

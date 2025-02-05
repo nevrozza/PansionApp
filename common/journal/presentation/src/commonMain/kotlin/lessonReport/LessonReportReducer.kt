@@ -27,7 +27,7 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
             )
 
             is LessonReportStore.Message.StudentsUpdated -> copy(
-                students = msg.students,
+                students = msg.students.sortedBy { it.shortFio },
                 ids = ids + 1,
                 isUpdateNeeded = true
             )
@@ -77,7 +77,7 @@ object LessonReportReducer : Reducer<LessonReportStore.State, LessonReportStore.
             )
 
             is LessonReportStore.Message.Inited -> copy(
-                students = msg.students,
+                students = msg.students.sortedBy { it.shortFio },
                 likedList = msg.likedList,
                 dislikedList = msg.dislikedList,
                 isUpdateNeeded = false,
