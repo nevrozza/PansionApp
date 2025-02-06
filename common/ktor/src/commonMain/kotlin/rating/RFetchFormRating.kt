@@ -1,11 +1,9 @@
-package rating
+    package rating
 
 import FIO
 import kotlinx.serialization.Serializable
-import ForAvg
-import admin.calendar.Holiday
 
-@Serializable
+    @Serializable
 data class RFetchFormRatingReceive(
     val formId: Int,
     val formNum: Int,

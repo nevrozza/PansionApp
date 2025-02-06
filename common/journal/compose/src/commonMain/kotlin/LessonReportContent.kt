@@ -1,10 +1,10 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
@@ -45,7 +44,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
@@ -91,7 +89,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.compose.ui.util.fastSumBy
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.AnimatedElevatedButton
 import components.AppBar
@@ -129,8 +126,11 @@ import lessonReport.LessonReportStore
 import lessonReport.MarkColumn
 import lessonReport.ReportColumn
 import lessonReport.StudentLine
+import lessonReportUtils.LessonReportTableCell
 import lessonReportUtils.LessonReportTableHeader
+import lessonReportUtils.LessonReportTableTitle
 import lessonReportUtils.TableCellOutline
+import lessonReportUtils.getMaxStupsCount
 import resources.RIcons
 import server.fetchReason
 import server.roundTo
@@ -1511,8 +1511,12 @@ fun LessonTable(
     allHeight.value = remember { 25.dp + (model.students.size * 55.dp) }
 
     val columnsCount = model.columnNames.size
-    val rowsCount = (model.students.size + 1)
+    val rowsCount = (model.students.size)
 
+
+    val cellHeight = 57.dp
+
+    val headerPadding = with(density) { (cellHeight - 30.dp).toPx() }
     MinaBox(
         Modifier.border(
             width = 1.dp,
@@ -1531,50 +1535,104 @@ fun LessonTable(
         items(
             count = columnsCount * rowsCount,
             layoutInfo = {
-                val column = it % columnsCount
-                val row = it / columnsCount
+                val index = it + columnsCount
+                val column = index % columnsCount
+                val row = index / columnsCount
                 val reportColumn = model.columnNames[column]
-
-                val isHeader = it in 0..(columnsCount - 1)
 
                 val itemSizePx = with(density) {
                     DpSize(
                         width = getColumnWidth(reportColumn),
-                        if (isHeader) 30.dp else 55.dp
+                        cellHeight
                     ).toSize()
                 }
                 val prevX = model.columnNames
                     .map { with(density) { getColumnWidth(it).toPx() } }.sumOf(0 until column)
                 MinaBoxItem(
                     x = prevX,
-                    y = itemSizePx.height * row - with(density) { if (isHeader) 0f else 25.dp.toPx() },
+                    y = itemSizePx.height * row - headerPadding,
+                    width = itemSizePx.width,
+                    height = itemSizePx.height
+                )
+            },
+            key = { it }
+        ) { index ->
+            val columnIndex = index % columnsCount
+            val studentIndex = (index / (columnsCount))
+
+            TableCellOutline {
+                Row(
+                    Modifier.fillMaxSize().padding(bottom = 5.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    if (columnIndex == 0) {
+                        Spacer(Modifier.width(lP))
+                    }
+                    LessonReportTableCell(
+                        student = model.students[studentIndex],
+                        column = model.columnNames[columnIndex],
+                        model = model,
+                        component = component
+                    )
+                }
+            }
+        }
+
+        items(
+            rowsCount,
+            layoutInfo = {
+                val itemSizePx = with(density) {
+                    DpSize(
+                        width = 400.dp,
+                        height = cellHeight
+                    ).toSize()
+                }
+                MinaBoxItem(
+                    x = 0f,
+                    y = itemSizePx.height * (it),
                     width = itemSizePx.width,
                     height = itemSizePx.height,
-                    lockVertically = row == 0
+                    lockHorizontally = true
                 )
+
             }
         ) { index ->
             val columnIndex = index % columnsCount
-            val studentIndex = index / columnsCount
-
-            TableCellOutline {
-                if (index !in 0..(columnsCount - 1)) {
-                    Row(
-                        Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (columnIndex == 0) {
-                            Spacer(Modifier.width(50.dp))
-                        }
-                        Text(model.columnNames[columnIndex].title, modifier = Modifier.zIndex(2f))
-                    }
-
-                } else {
-                    LessonReportTableHeader(model.columnNames[columnIndex])
-                }
+            Box(Modifier.fillMaxSize().padding(bottom = 3.dp), contentAlignment = Alignment.BottomStart) {
+                LessonReportTableTitle(model.students[columnIndex], model, component)
             }
+        }
 
+        items(
+            count = columnsCount,
+            layoutInfo = {
+                val column = it % columnsCount
+                val row = it / columnsCount
+                val reportColumn = model.columnNames[column]
+
+                val itemSizePx = with(density) {
+                    DpSize(
+                        width = getColumnWidth(reportColumn),
+                        30.dp
+                    ).toSize()
+                }
+                val prevX = model.columnNames
+                    .map { with(density) { getColumnWidth(it).toPx() } }.sumOf(0 until column)
+                MinaBoxItem(
+                    x = prevX,
+                    y = itemSizePx.height * row,
+                    width = itemSizePx.width,
+                    height = itemSizePx.height,
+                    lockVertically = true
+                )
+            },
+            key = { it - model.columnNames.size }
+        ) { index ->
+            val columnIndex = index % columnsCount
+            TableCellOutline(backgroundColor = MaterialTheme.colorScheme.background) {
+                LessonReportTableHeader(model.columnNames[columnIndex], lP)
+            }
         }
     }
 
@@ -1678,7 +1736,7 @@ fun LessonTable(
 //////                                }
 //////                            )
 //////
-//////                    val isPersonWasOnLesson = student.attended?.attendedType in listOf("0", null)
+//////
 //////
 //////
 //////                    Column {
@@ -1720,7 +1778,7 @@ fun LessonTable(
 //////                                            ) {
 //////                                                when (column.type) {
 //////                                                    ColumnTypes.prisut -> {
-//////                                                        val isDot = student.attended?.reason != null
+//                                                        val isDot = student.attended?.reason != null
 //////                                                        Row(
 //////                                                            verticalAlignment = Alignment.CenterVertically,
 //////                                                            modifier = Modifier.padding(end = if (isDot) 6.dp else 0.dp)
@@ -1846,29 +1904,7 @@ fun LessonTable(
 //////                                                    }
 //////
 //////                                                    ColumnTypes.srBall -> {
-//////                                                        val marks =
-//////                                                            student.marksOfCurrentLesson.filter { it.isGoToAvg }
-//////                                                        val value =
-//////                                                            (student.avgMark.previousSum + marks.sumOf { it.value.toInt() }) / (student.avgMark.countOfMarks + marks.size).toFloat()
 //////
-//////                                                        if (value.isNaN()) {
-//////                                                            Text(
-//////                                                                text = "NaN",
-//////                                                                fontWeight = FontWeight.Black
-//////                                                            )
-//////                                                        } else {
-//////                                                            CustomTextButton(
-//////                                                                text = value.roundTo(2),
-//////                                                                fontWeight = FontWeight.Black,
-//////                                                                color = MaterialTheme.colorScheme.onSurface
-//////                                                            ) {
-//////                                                                component.onEvent(
-//////                                                                    LessonReportStore.Intent.OpenDetailedMarks(
-//////                                                                        student.login
-//////                                                                    )
-//////                                                                )
-//////                                                            }
-//////                                                        }
 //////                                                    }
 //////
 //////                                                    else -> Text(
@@ -2084,7 +2120,7 @@ fun LessonTable(
 }
 
 @Composable
-private fun LikeDislikeRow(
+fun LikeDislikeRow(
     component: LessonReportComponent,
     student: StudentLine
 ) {
@@ -2110,89 +2146,6 @@ private fun LikeDislikeRow(
             )
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PrisutCheckBox(
-    modifier: Modifier,
-    attendedType: String,
-    reason: String?,
-    enabled: Boolean,
-    onCheckedChange: (String) -> Unit
-) {
-    val tState = rememberTooltipState(isPersistent = true)
-    TooltipBox(
-        state = tState,
-        tooltip = {
-            if (reason != null) {
-                PlainTooltip() {
-                    Text(
-                        reason.toString()
-                    )
-                }
-            }
-        },
-        positionProvider = popupPositionProvider,
-        enableUserInput = true
-    ) {
-
-        Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            OutlinedCard(
-                modifier = Modifier
-                    .fillMaxSize(),//.alpha(if (checked) 1f else .5f),
-                shape = AbsoluteRoundedCornerShape(40),
-                border = BorderStroke(
-                    color = if (attendedType == "0") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, //if (checked) MaterialTheme.colorScheme.surface else
-                    width = 1.dp
-                ),
-                onClick = {
-                    //0-bil. 1-n. 2-Uv
-                    if (enabled) {
-                        val newValue = when (attendedType) {
-                            "0" -> "1"
-                            "1" -> "2"
-                            else -> "0"
-                        }
-                        onCheckedChange(newValue)
-                    }
-                }) {
-                AnimatedVisibility(attendedType == "0") {
-                    GetAsyncIcon(
-                        path = RIcons.Check,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.fillMaxSize()
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
-                }
-                AnimatedVisibility(attendedType == "1") {
-                    Text(
-                        text = "Н",
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.fillMaxSize(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-                AnimatedVisibility(attendedType == "2") {
-                    Text(
-                        text = "УВ",
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.fillMaxSize(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
-
-    }
-}
-
-private fun getMaxStupsCount(reason: String) = when (reason) {
-    "!ds1" -> 1
-    "!ds2" -> 1
-    "!ds3" -> 0
-    "!st5" -> 1
-    else -> 3
 }
 
 //val isCollapsed = remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.5 } }

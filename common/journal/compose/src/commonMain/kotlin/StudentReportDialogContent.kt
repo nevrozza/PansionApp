@@ -49,6 +49,7 @@ import components.dashedBorder
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import kotlinx.coroutines.launch
+import lessonReportUtils.PrisutCheckBox
 import resources.RIcons
 import server.fetchReason
 import server.getLocalDate
