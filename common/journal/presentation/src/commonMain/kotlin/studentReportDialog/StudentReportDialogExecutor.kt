@@ -1,16 +1,16 @@
 package studentReportDialog
 
-import CDispatcher
 import JournalRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
-import kotlinx.coroutines.launch
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import report.RFetchStudentReportReceive
 import studentReportDialog.StudentReportDialogStore.Intent
 import studentReportDialog.StudentReportDialogStore.Label
-import studentReportDialog.StudentReportDialogStore.State
 import studentReportDialog.StudentReportDialogStore.Message
+import studentReportDialog.StudentReportDialogStore.State
 
 class StudentReportDialogExecutor(
     private val journalRepository: JournalRepository,
@@ -24,14 +24,14 @@ class StudentReportDialogExecutor(
     }
 
     private fun openDialog(login: String, reportId: Int) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
-                scope.launch {
+                withMain {
                     dialog.nInterface.nStartLoading()
                     dialog.onEvent(CBottomSheetStore.Intent.ShowSheet)
                 }
                 val r = journalRepository.fetchStudentReport(RFetchStudentReportReceive(login = login, reportId = reportId))
-                scope.launch {
+                withMain {
                     dispatch(Message.DialogOpened(marks = r.marks, stups = r.stups, studentLine = r.studentLine, info = r.info, homeTasks = r.homeTasks))
                     dialog.nInterface.nSuccess()
                 }

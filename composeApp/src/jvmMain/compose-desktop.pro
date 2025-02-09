@@ -73,7 +73,7 @@
 -keep class kotlinx.coroutines.swing.SwingDispatcherFactory
 
 
-# Keep extension's common dependencies
+# Keep extension's COMMON dependencies
 -keep class ireader.core.source.** { public protected *; }
 -keep class ireader.core.http.** { public protected *; }
 -keep,allowoptimization class ireader.** { public protected *; }

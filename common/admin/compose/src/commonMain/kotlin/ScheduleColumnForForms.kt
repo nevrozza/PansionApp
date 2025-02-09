@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import components.CustomTextField
+import components.foundation.CTextField
 import components.GetAsyncIcon
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
@@ -72,7 +72,7 @@ import server.ScheduleIds
 import server.cut
 import server.isTimeFormat
 import server.toMinutes
-import view.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 
 
 //data class ScheduleForFormsItem(
@@ -112,7 +112,7 @@ fun LazyItemScope.ScheduleColumnForForms(
         }
 
         val trueItems =
-            model.items[key]?.filter { it.groupId in groups.map { x -> x.id } + (ScheduleIds.food) + (0) + (ScheduleIds.extra) }
+            model.items[key]?.filter { it.groupId in groups.map { x -> x.id } + (ScheduleIds.FOOD) + (0) + (ScheduleIds.EXTRA) }
                 ?.filter { (it.formId == null || it.formId == formId) && (it.groupId != -6 || form.logins.any { x -> it.custom.contains(x)  }) }
         AnimatedVisibility(
             visibleState = headerState,
@@ -159,7 +159,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                 }
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.Add
+                                    RIcons.ADD
                                 )
                             }
                             if (model.ciLogin == formId.toString()) {
@@ -178,7 +178,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                         model.ciId == null -> {
                                             val value = model.ciCustom.firstOrNull() ?: ""
                                             Row {
-                                                CustomTextField(
+                                                CTextField(
                                                     value = value,
                                                     onValueChange = {
                                                         component.onEvent(ScheduleStore.Intent.ciChangeCustom(listOf(it)))
@@ -203,7 +203,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                     enabled = value.isNotBlank()
                                                 ) {
                                                     GetAsyncIcon(
-                                                        RIcons.Check
+                                                        RIcons.CHECK
                                                     )
                                                 }
                                             }
@@ -237,7 +237,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                             if (model.ciTimings == null) {
                                                 Text("Загрузка..")
                                             } else {
-                                                CustomTextField(
+                                                CTextField(
                                                     value = model.ciCabinet.toString(),
                                                     onValueChange = {
                                                         if (it == "") {
@@ -279,7 +279,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                         )
                                                 } else {
                                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        CustomTextField(
+                                                        CTextField(
                                                             value = customTime,
                                                             onValueChange = {
                                                                 if (!it.contains(
@@ -357,7 +357,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                                 }
                                                                             ) {
                                                                                 GetAsyncIcon(
-                                                                                    RIcons.Check
+                                                                                    RIcons.CHECK
                                                                                 )
                                                                             }
                                                                         } else {
@@ -413,7 +413,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                                             }
                                                                         ) {
                                                                             GetAsyncIcon(
-                                                                                RIcons.Repeat
+                                                                                RIcons.REPEAT
                                                                             )
                                                                         }
                                                                     }
@@ -763,7 +763,7 @@ private fun BoxScope.ScheduleForFormsContent(
     onDeleteClick: () -> Unit
 ) {
     when (e.groupId) {
-        ScheduleIds.food -> {
+        ScheduleIds.FOOD -> {
             Text(
                 modifier = Modifier.align(Alignment.Center),
                 textAlign = TextAlign.Center,
@@ -794,7 +794,7 @@ private fun BoxScope.ScheduleForFormsContent(
             )
 
         }
-        ScheduleIds.extra -> {
+        ScheduleIds.EXTRA -> {
             val studentFio = model.students.filter { e.custom.contains(it.login) }
             Text(
                 modifier = Modifier.align(Alignment.Center),
@@ -965,7 +965,7 @@ private fun BoxScope.ScheduleForFormsContent(
                 modifier = Modifier.size(20.dp).align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp)
             ) {
                 GetAsyncIcon(
-                    RIcons.TrashCanRegular
+                    RIcons.TRASH_CAN_REGULAR
                 )
             }
         }

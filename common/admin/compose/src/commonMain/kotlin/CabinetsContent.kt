@@ -19,10 +19,10 @@ import androidx.compose.ui.unit.dp
 import cabinets.CabinetsComponent
 import cabinets.CabinetsStore
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CustomTextField
+import components.foundation.AppBar
+import components.foundation.CTextField
 import components.GetAsyncIcon
-import components.hazeUnder
+import components.foundation.hazeUnder
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import resources.RIcons
@@ -64,7 +64,7 @@ fun CabinetsContent(
                         onClick = { component.onOutput(CabinetsComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 }
@@ -82,7 +82,7 @@ fun CabinetsContent(
                     when (it) {
                         NetworkState.None -> {
                             GetAsyncIcon(
-                                path = RIcons.Save
+                                path = RIcons.SAVE
                             )
                         }
 
@@ -129,7 +129,7 @@ fun CabinetsContent(
                     )
 
                     Row {
-                        CustomTextField(
+                        CTextField(
                             value = cabinet?.cabinet?.toString() ?: "",
                             onValueChange = {
                                 if(it == "") {

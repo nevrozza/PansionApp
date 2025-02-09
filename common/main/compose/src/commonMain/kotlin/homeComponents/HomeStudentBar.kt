@@ -11,6 +11,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,14 +42,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import cGrade
-import components.CustomTextButton
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.FeatureButton
 import components.GetAsyncAvatar
 import components.GetAsyncIcon
 import components.GetAsyncImage
-import components.LoadingAnimation
+import components.foundation.LoadingAnimation
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import home.HomeComponent
@@ -61,7 +62,6 @@ import server.roundTo
 import studentReportDialog.StudentReportDialogStore
 import view.LocalViewManager
 import view.WindowScreen
-import view.esp
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -147,7 +147,7 @@ fun LazyListScope.homeStudentBar(
                                     fadeIn().togetherWith(fadeOut())
                                 }
                             ) {
-                                CustomTextButton(
+                                CTextButton(
                                     text = it,
                                     fontWeight = FontWeight.SemiBold,
                                     //color = MaterialTheme.colorScheme.primary//secondary
@@ -213,7 +213,7 @@ fun LazyListScope.homeStudentBar(
                     modifier = Modifier.align(Alignment.BottomEnd)
                 ) {
                     GetAsyncIcon(
-                        RIcons.ManageSearch
+                        RIcons.MANAGE_SEARCH
                     )
                 }
             }
@@ -223,7 +223,7 @@ fun LazyListScope.homeStudentBar(
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
             FeatureButton(
                 text = "Оценки",
-                decoration = RIcons.PlaylistAddCheckCircle,
+                decoration = RIcons.PLAYLIST_ADD_CHECK_CIRCLE,
                 isActive = currentRouting == HomeRoutings.Dnevnik
             ) {
                 component.onOutput(
@@ -245,18 +245,18 @@ fun LazyListScope.homeStudentBar(
                             if (deathsCount > 0) {
                                 for (i in 0..<deathsCount) {
                                     GetAsyncImage(
-                                        Images.Emoji.emoji6
+                                        Images.Emoji.EMOJI_6
                                     )
                                 }
                             } else {
                                 val emoji = when (model.homeWorkEmojiCount) {
-                                    0 -> Images.Emoji.emoji0
-                                    1 -> Images.Emoji.emoji1
-                                    2 -> Images.Emoji.emoji2
-                                    3 -> Images.Emoji.emoji3
-                                    4 -> Images.Emoji.emoji4
-                                    null -> Images.Emoji.emoji7
-                                    else -> Images.Emoji.emoji5
+                                    0 -> Images.Emoji.EMOJI_0
+                                    1 -> Images.Emoji.EMOJI_1
+                                    2 -> Images.Emoji.EMOJI_2
+                                    3 -> Images.Emoji.EMOJI_3
+                                    4 -> Images.Emoji.EMOJI_4
+                                    null -> Images.Emoji.EMOJI_7
+                                    else -> Images.Emoji.EMOJI_5
                                 }
 
                                 GetAsyncImage(
@@ -377,7 +377,7 @@ private fun QuickTabNotNull(
     value: String,
     onClick: () -> Unit
 ) {
-    CustomTextButton(
+    CTextButton(
         text = buildAnnotatedString {
             withStyle(SpanStyle(fontWeight = FontWeight.Normal)) {
                 append("$title: ")

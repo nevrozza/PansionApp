@@ -1,8 +1,6 @@
 package rating
 
 import FIO
-import admin.groups.forms.Form
-import admin.schedule.ScheduleGroup
 import admin.schedule.ScheduleSubject
 import com.arkivanov.mvikotlin.core.store.Store
 import rating.RatingStore.Intent
@@ -50,30 +48,30 @@ interface RatingStore : Store<Intent, State, Label> {
 }
 
 val startSubject =  ScheduleSubject(
-    id = ExtraSubjectsId.common,
+    id = ExtraSubjectsId.COMMON,
     name = "Общий рейтинг",
     isActive = true
 )
 val mvdSubject =  ScheduleSubject(
-    id = ExtraSubjectsId.mvd,
+    id = ExtraSubjectsId.MVD,
     name = "Дисциплина",
     isActive = true
 )
 
 val zdravoohrSubject =  ScheduleSubject(
-    id = ExtraSubjectsId.zdraoovhranenie,
+    id = ExtraSubjectsId.ZDRAV,
     name = "Здравоохранение",
     isActive = true
 )
 
 val socialWorkSubject =  ScheduleSubject(
-    id = ExtraSubjectsId.social,
+    id = ExtraSubjectsId.SOCIAL,
     name = "Общественная работа",
     isActive = true
 )
 
 val creativeSubject =  ScheduleSubject(
-    id = ExtraSubjectsId.creative,
+    id = ExtraSubjectsId.CREATIVE,
     name = "Творчество",
     isActive = true
 )

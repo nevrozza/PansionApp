@@ -11,6 +11,7 @@ import dev.chrisbanes.haze.LocalHazeStyle
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import root.RootComponent
+import utils.StatusBarColorFix
 import view.*
 
 @OptIn(ExperimentalHazeMaterialsApi::class)

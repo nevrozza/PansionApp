@@ -1,6 +1,5 @@
 package journal
 
-import CDispatcher
 import MainRepository
 import ReportData
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -10,16 +9,15 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import journal.JournalStore.Intent
 import journal.JournalStore.Label
-import journal.JournalStore.State
 import journal.JournalStore.Message
+import journal.JournalStore.State
 import journal.init.RFetchStudentsInGroupReceive
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import report.RCreateReportReceive
 import server.getDate
-import server.getSixTime
 
 class JournalExecutor(
     private val mainRepository: MainRepository,
@@ -44,7 +42,7 @@ class JournalExecutor(
             }
 
             is Intent.CreateReport -> {
-                scope.launch(CDispatcher) {
+                scope.launchIO {
                     try {
                         studentsInGroupCAlertDialogComponent.nInterface.nStartLoading()
                         val id = mainRepository.createReport(RCreateReportReceive(
@@ -54,7 +52,7 @@ class JournalExecutor(
                             studentLogins = state().studentsInGroup.filter { !it.isDeleted }.map { it.p.login },
                             lessonId = state().lessonId
                         )).reportId
-                        scope.launch {
+                        withMain {
                             dispatch(Message.ReportCreated(id))
                         }
                         studentsInGroupCAlertDialogComponent.nInterface.nSuccess()
@@ -65,7 +63,7 @@ class JournalExecutor(
                         ) {
                             studentsInGroupCAlertDialogComponent.nInterface.goToNone()
                         }
-                        scope.launch {
+                        withMain {
                             dispatch(Message.ReportCreated(-1))
                         }
                     }
@@ -74,32 +72,35 @@ class JournalExecutor(
 
             Intent.ResetCreatingId -> dispatch(Message.CreatingIdReseted)
             is Intent.FetchReportData -> {
-                scope.launch {
+                scope.launchIO {
                     try {
                         nOpenReportInterface.nStartLoading()
                         val rd = mainRepository.fetchReportData(intent.reportHeader.reportId)
-
-                        dispatch(
-                            Message.ReportDataFetched(
-                                ReportData(
-                                    header = intent.reportHeader,
-                                    description = rd.description,
-                                    editTime = rd.editTime,
-                                    ids = rd.ids,
-                                    isMentorWas = rd.isMentorWas,
-                                    isEditable = rd.isEditable,
-                                    customColumns = rd.customColumns
+                        withMain {
+                            dispatch(
+                                Message.ReportDataFetched(
+                                    ReportData(
+                                        header = intent.reportHeader,
+                                        description = rd.description,
+                                        editTime = rd.editTime,
+                                        ids = rd.ids,
+                                        isMentorWas = rd.isMentorWas,
+                                        isEditable = rd.isEditable,
+                                        customColumns = rd.customColumns
+                                    )
                                 )
                             )
-                        )
-                        nOpenReportInterface.nSuccess()
-                    } catch (e: Throwable) {
-                        nOpenReportInterface.nError(
-                            "Не удалось открыть отчёт", e
-                        ) {
-                            nOpenReportInterface.goToNone()
+                            nOpenReportInterface.nSuccess()
                         }
-                        dispatch(Message.ReportCreated(-1))
+                    } catch (e: Throwable) {
+                        withMain {
+                            nOpenReportInterface.nError(
+                                "Не удалось открыть отчёт", e
+                            ) {
+                                nOpenReportInterface.goToNone()
+                            }
+                            dispatch(Message.ReportCreated(-1))
+                        }
                     }
                 }
             }
@@ -158,23 +159,25 @@ class JournalExecutor(
     }
 
     private fun fetchChildrenGroupIds() {
-        scope.launch() {
+        scope.launchIO {
             try {
                 val r = mainRepository.fetchMentorGroupIds()
-                dispatch(Message.MyChildrenGroupsFetched(r.ids))
+                withMain {
+                    dispatch(Message.MyChildrenGroupsFetched(r.ids))
+                }
             } catch (_: Throwable) {
             }
         }
     }
 
     private fun initComponent() {
-        scope.launch {
+//        scope.launch {
             fetchHeaders() //async { }
             fetchTeacherGroups() //async { }
             if (state().isMentor) {
                 fetchChildrenGroupIds()
             }
-        }
+//        }
     }
 
     private fun fetchStudentsInGroup(
@@ -182,7 +185,7 @@ class JournalExecutor(
         date: String?,
         lessonId: Int?
     ) {
-        scope.launch {
+        scope.launchIO {
             try {
                 studentsInGroupCAlertDialogComponent.nInterface.nStartLoading()
                 val students = mainRepository.fetchStudentsInGroup(
@@ -192,8 +195,10 @@ class JournalExecutor(
                         lessonId = lessonId
                     )
                 ).students
-                dispatch(Message.StudentsInGroupUpdated(students, groupId))
-                studentsInGroupCAlertDialogComponent.nInterface.nSuccess()
+                withMain {
+                    dispatch(Message.StudentsInGroupUpdated(students, groupId))
+                    studentsInGroupCAlertDialogComponent.nInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 //CHECK
                 studentsInGroupCAlertDialogComponent.nInterface.nError(text = "Не удалось загрузить список учеников =/", e) {
@@ -206,11 +211,11 @@ class JournalExecutor(
     }
 
     private fun fetchHeaders() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nInterface.nStartLoading()
                 val headers = mainRepository.fetchReportHeaders()
-                scope.launch {
+                withMain {
                     dispatch(Message.HeadersUpdated(headers.reportHeaders, headers.currentModule))
                     nInterface.nSuccess()
 
@@ -280,21 +285,23 @@ class JournalExecutor(
     }
 
     private fun fetchTeacherGroups() {
-        scope.launch {
+        scope.launchIO {
             try {
                 groupListComponent.nInterface.nStartLoading()
                 val groups =
                     mainRepository.fetchTeacherGroups().groups.filter { it.teacherLogin == state().login }
-                groupListComponent.onEvent(ListDialogStore.Intent.InitList(
-                    groups.filter { it.cutedGroup.isActive }.sortedBy { it.subjectId }.map {
-                        ListItem(
-                            id = it.cutedGroup.groupId.toString(),
-                            text = "${it.subjectName} ${it.cutedGroup.groupName}"
-                        )
-                    }
-                ))
-                dispatch(Message.TeacherGroupsUpdated(groups))
-                groupListComponent.nInterface.nSuccess()
+                withMain {
+                    groupListComponent.onEvent(ListDialogStore.Intent.InitList(
+                        groups.filter { it.cutedGroup.isActive }.sortedBy { it.subjectId }.map {
+                            ListItem(
+                                id = it.cutedGroup.groupId.toString(),
+                                text = "${it.subjectName} ${it.cutedGroup.groupName}"
+                            )
+                        }
+                    ))
+                    dispatch(Message.TeacherGroupsUpdated(groups))
+                    groupListComponent.nInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 println(e)
                 groupListComponent.nInterface.nError("Не удалось загрузить список групп", e) {

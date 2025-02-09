@@ -1,5 +1,8 @@
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,12 +43,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CustomTextButton
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
-import components.MarkContent
-import components.dashedBorder
+import components.journal.MarkContent
+import components.journal.dashedBorder
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import kotlinx.coroutines.launch
@@ -55,9 +58,7 @@ import server.fetchReason
 import server.getLocalDate
 import server.toMinutes
 import studentReportDialog.StudentReportComponent
-import view.esp
-import view.handy
-import view.popupPositionProvider
+import utils.cursor.handy
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -180,7 +181,7 @@ fun StudentReportDialogContent(
                                     ) {
                                         if (model.studentLine!!.lateTime.isNotBlank() && model.studentLine!!.lateTime != "00 мин" && model.studentLine!!.lateTime != "0") {
                                             GetAsyncIcon(
-                                                RIcons.HourglassBottom,
+                                                RIcons.HOURGLASS_BOTTOM,
                                                 size = 18.dp
                                             )
                                             Spacer(Modifier.width(5.dp))
@@ -191,7 +192,7 @@ fun StudentReportDialogContent(
 
                                         if (model.studentLine!!.isLiked in listOf("t", "f")) {
                                             GetAsyncIcon(
-                                                RIcons.Like,
+                                                RIcons.LIKE,
                                                 modifier = Modifier.rotate(if (model.studentLine!!.isLiked != "t") 180f else 0f)
                                             )
                                             Spacer(Modifier.width(10.dp))
@@ -204,7 +205,7 @@ fun StudentReportDialogContent(
                                         ) {}
                                     }
                                     if (model.studentLine != null && model.studentLine!!.attended == "1" && changeToUV != null) {
-                                        CustomTextButton(
+                                        CTextButton(
                                             text = "Изменить на ув",
                                             modifier = Modifier.align(Alignment.End)
                                         ) {
@@ -247,7 +248,7 @@ fun StudentReportDialogContent(
                         modifier = Modifier.align(Alignment.TopEnd)
                     ) {
                         GetAsyncIcon(
-                            RIcons.Logout
+                            RIcons.LOGOUT
                         )
                     }
                 }

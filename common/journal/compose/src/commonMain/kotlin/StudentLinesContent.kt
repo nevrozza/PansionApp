@@ -35,10 +35,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
@@ -87,7 +87,7 @@ fun StudentLinesContent(
                         onClick = { component.onOutput(StudentLinesComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 }
@@ -184,7 +184,7 @@ private fun ClientStudentLineContent(
 
                 if (sl.lateTime.isNotBlank() && sl.lateTime != "00 мин" && sl.lateTime != "0") {
                     GetAsyncIcon(
-                        RIcons.HourglassBottom,
+                        RIcons.HOURGLASS_BOTTOM,
                         size = 18.dp
                     )
                     Spacer(Modifier.width(5.dp))
@@ -193,7 +193,7 @@ private fun ClientStudentLineContent(
                 }
                 if (sl.isLiked in listOf("t", "f")) {
                     GetAsyncIcon(
-                        RIcons.Like,
+                        RIcons.LIKE,
                         modifier = Modifier.rotate(if (sl.isLiked != "t") 180f else 0f)
                     )
                     Spacer(Modifier.width(10.dp))

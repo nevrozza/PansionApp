@@ -2,20 +2,17 @@
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -24,17 +21,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.useResource
@@ -47,23 +38,21 @@ import androidx.compose.ui.window.rememberWindowState
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import com.arkivanov.essenty.statekeeper.SerializableContainer
 import com.arkivanov.essenty.statekeeper.StateKeeperDispatcher
 import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
-import components.CustomTextButton
 import components.GetAsyncIcon
-import components.hazeHeader
-import components.hazeUnder
+import components.foundation.CTextButton
+import components.foundation.hazeHeader
+import components.foundation.hazeUnder
 import dev.chrisbanes.haze.HazeState
+import deviceSupport.deviceType
+import deviceSupport.launchIO
 import di.Inject
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
-import kotlinx.serialization.json.encodeToStream
+import kotlinx.coroutines.GlobalScope
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
@@ -80,10 +69,8 @@ import org.jetbrains.jewel.window.styling.TitleBarMetrics
 import org.jetbrains.jewel.window.styling.TitleBarStyle
 import resources.RIcons
 import root.RootComponentImpl
-import server.DeviceTypex
 import server.cut
 import view.AppTheme
-import view.GlobalHazeState
 import view.LocalViewManager
 import view.ThemeTint
 import view.ViewManager
@@ -91,13 +78,11 @@ import view.WindowType
 import view.toRGB
 import view.toTint
 import java.awt.Dimension
-import java.io.File
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.util.UUID
-import javax.swing.SwingUtilities
 
-private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
+//private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
 
 // c53379fe-19a7-3f07-911c-0c9d195b1925
 //@ExperimentalFoundationApi
@@ -114,15 +99,15 @@ private const val SAVED_STATE_FILE_NAME = "saved_state.dat"
 fun main() {
 //
 
-//        GlobalScope.launch(Dispatchers.IO) {
-//            com.nevrozq.pansion.main()
-//        }
+    GlobalScope.launchIO {
+        com.nevrozq.pansion.main()
+    }
 
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
             deviceName = getDeviceName()?.cut(20) ?: "unknown",
-            deviceType = DeviceTypex.desktop,
+            deviceType = deviceType,
             deviceId = getDeviceId()
         )
     )
@@ -239,7 +224,7 @@ fun main() {
                                     AlertDialog(
                                         onDismissRequest = { isCloseDialogVisible = false },
                                         confirmButton = {
-                                            CustomTextButton(
+                                            CTextButton(
                                                 text = "Свернуть в трею"
                                             ) {
                                                 isVisible = false
@@ -247,7 +232,7 @@ fun main() {
                                             }
                                         },
                                         dismissButton = {
-                                            CustomTextButton(
+                                            CTextButton(
                                                 text = "Закрыть"
                                             ) {
                                                 //stateKeeper.save().writeToFile(File(SAVED_STATE_FILE_NAME))
@@ -257,21 +242,26 @@ fun main() {
 //                                            title = { Text("Закрыть приложение?") },
                                         text = {
                                             Column {
-                                                Text("Закрыть приложение", fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.Bold)
+                                                Text(
+                                                    "Закрыть приложение",
+                                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                                    fontWeight = FontWeight.Bold
+                                                )
                                                 Spacer(Modifier.height(4.dp))
                                                 Text("Чтобы продолжить получать уведомления, выберите \"Свернуть\" (приложение будет работать в фоновом режиме)")
                                             }
                                         },
-                                        modifier = Modifier.clip(MaterialTheme.shapes.large).hazeHeader(
-                                            viewManager = viewManager,
-                                            isMasked = false
-                                        ).hazeUnder(
+                                        modifier = Modifier.clip(MaterialTheme.shapes.large)
+                                            .hazeHeader(
+                                                viewManager = viewManager,
+                                                isMasked = false
+                                            ).hazeUnder(
                                             viewManager,
                                             zIndex = 20f
                                         ),
-                                        containerColor = if(viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor,
+                                        containerColor = if (viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor,
 
-                                    )
+                                        )
                                 }
                             }
                         }
@@ -339,9 +329,9 @@ private fun DecoratedWindowScope.MainTitleBar(viewManager: ViewManager, l: Title
     ) {
         AnimatedContent(
             when (viewManager.tint.value) {
-                ThemeTint.Auto -> RIcons.AutoMode
-                ThemeTint.Dark -> RIcons.DarkMode
-                ThemeTint.Light -> RIcons.LightMode
+                ThemeTint.Auto -> RIcons.AUTO_MODE
+                ThemeTint.Dark -> RIcons.DARK_MODE
+                ThemeTint.Light -> RIcons.LIGHT_MODE
             },
             modifier = Modifier.align(Alignment.Start)
                 .padding(start = 5.dp),
@@ -371,67 +361,67 @@ private fun DecoratedWindowScope.MainTitleBar(viewManager: ViewManager, l: Title
 }
 
 
-@OptIn(ExperimentalSerializationApi::class)
-fun SerializableContainer.writeToFile(file: File) {
-    file.outputStream().use { output ->
-        Json.encodeToStream(SerializableContainer.serializer(), this, output)
-    }
-}
+//@OptIn(ExperimentalSerializationApi::class)
+//fun SerializableContainer.writeToFile(file: File) {
+//    file.outputStream().use { output ->
+//        Json.encodeToStream(SerializableContainer.serializer(), this, output)
+//    }
+//}
 
-@OptIn(ExperimentalSerializationApi::class)
-fun File.readSerializableContainer(): SerializableContainer? =
-    takeIf(File::exists)?.inputStream()?.use { input ->
-        try {
-            Json.decodeFromStream(SerializableContainer.serializer(), input)
-        } catch (e: Exception) {
-            null
-        }
-    }
+//@OptIn(ExperimentalSerializationApi::class)
+//fun File.readSerializableContainer(): SerializableContainer? =
+//    takeIf(File::exists)?.inputStream()?.use { input ->
+//        try {
+//            Json.decodeFromStream(SerializableContainer.serializer(), input)
+//        } catch (e: Exception) {
+//            null
+//        }
+//    }
 
 //    JFrame().init(root)
 
 
-object TrayIcon : Painter() {
-    override val intrinsicSize = Size(256f, 256f)
+//object TrayIcon : Painter() {
+//    override val intrinsicSize = Size(256f, 256f)
+//
+//    override fun DrawScope.onDraw() {
+////        this.drawImage(painterResource("resources/favicon.ico"))
+//    }
+//}
 
-    override fun DrawScope.onDraw() {
-//        this.drawImage(painterResource("resources/favicon.ico"))
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun Button(
-    text: String = "",
-    onClick: () -> Unit = {},
-    color: Color = Color(210, 210, 210),
-    size: Int = 16
-) {
-    val buttonHover = remember { mutableStateOf(false) }
-    Surface(
-        color = if (buttonHover.value)
-            Color(color.red / 1.3f, color.green / 1.3f, color.blue / 1.3f)
-        else
-            color,
-        shape = RoundedCornerShape((size / 2).dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .clickable(onClick = onClick)
-                .size(size.dp, size.dp)
-                .onPointerEvent(PointerEventType.Move) {
-                }
-                .onPointerEvent(PointerEventType.Enter) {
-                    buttonHover.value = true
-                }
-                .onPointerEvent(PointerEventType.Exit) {
-                    buttonHover.value = false
-                }
-        ) {
-            Text(text = text)
-        }
-    }
-}
+//@OptIn(ExperimentalComposeUiApi::class)
+//@Composable
+//fun Button(
+//    text: String = "",
+//    onClick: () -> Unit = {},
+//    color: Color = Color(210, 210, 210),
+//    size: Int = 16
+//) {
+//    val buttonHover = remember { mutableStateOf(false) }
+//    Surface(
+//        color = if (buttonHover.value)
+//            Color(color.red / 1.3f, color.green / 1.3f, color.blue / 1.3f)
+//        else
+//            color,
+//        shape = RoundedCornerShape((size / 2).dp)
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .clickable(onClick = onClick)
+//                .size(size.dp, size.dp)
+//                .onPointerEvent(PointerEventType.Move) {
+//                }
+//                .onPointerEvent(PointerEventType.Enter) {
+//                    buttonHover.value = true
+//                }
+//                .onPointerEvent(PointerEventType.Exit) {
+//                    buttonHover.value = false
+//                }
+//        ) {
+//            Text(text = text)
+//        }
+//    }
+//}
 
 fun ComposeWindow.setMinSize(width: Int, height: Int) =
     Dimension(width, height).also { this.minimumSize = it }
@@ -481,13 +471,13 @@ fun getDeviceId(): String {
 }
 
 
-fun <T> invokeOnAwtSync(block: () -> T): T {
-    var result: T? = null
-    SwingUtilities.invokeAndWait { result = block() }
-
-    @Suppress("UNCHECKED_CAST")
-    return result as T
-}
+//fun <T> invokeOnAwtSync(block: () -> T): T {
+//    var result: T? = null
+//    SwingUtilities.invokeAndWait { result = block() }
+//
+//    @Suppress("UNCHECKED_CAST")
+//    return result as T
+//}
 //val osName = System.getProperty("os.name")
 //    val osVersion = System.getProperty("os.version")
 //    val userName = System.getProperty("user.name")

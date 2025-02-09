@@ -20,7 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
-import forks.colorPicker.toHex
+import utils.toHex
 import io.github.alexzhirkevich.qrose.options.*
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.launch
@@ -29,8 +29,12 @@ import login.LoginComponent.Output
 import login.LoginStore.Intent
 import resources.RIcons
 import view.LocalViewManager
-import view.bringIntoView
-import view.rememberImeState
+import androidx.compose.desktop.ui.tooling.preview.utils.bringIntoView
+import components.foundation.AnimatedCommonButton
+import components.foundation.CentreAppBar
+import components.foundation.CTextField
+import components.foundation.LoadingAnimation
+import utils.rememberImeState
 
 @ExperimentalFoundationApi
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,7 +98,7 @@ fun LoginContent(
                         onClick = { component.onOutput(Output.BackToActivation) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 }
@@ -117,7 +121,7 @@ fun LoginContent(
                     Crossfade(model.qrToken == "", modifier = Modifier.animateContentSize()) {
                         if (it) {
                             GetAsyncIcon(
-                                path = RIcons.SchoolCap,
+                                path = RIcons.SCHOOL_CAP,
                                 size = 150.dp
                             )
                         } else {
@@ -141,7 +145,7 @@ fun LoginContent(
                             }
                         }
                     }
-                    CustomTextField(
+                    CTextField(
                         value = model.login,
                         onValueChange = {
                             component.onEvent(Intent.InputLogin(it))
@@ -150,7 +154,7 @@ fun LoginContent(
                         isEnabled = !model.isInProcess,
                         leadingIcon = {
                             GetAsyncIcon(
-                                path = RIcons.User,
+                                path = RIcons.USER,
                                 size = 19.dp
                             )
                         },
@@ -166,7 +170,7 @@ fun LoginContent(
 
                     Spacer(Modifier.height(15.dp))
 
-                    CustomTextField(
+                    CTextField(
                         value = model.password,
                         onValueChange = {
                             component.onEvent(Intent.InputPassword(it))
@@ -204,7 +208,7 @@ fun LoginContent(
                             enabled = false
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.Qr
+                                path = RIcons.QR
                             )
                         }
                         AnimatedCommonButton(
@@ -220,7 +224,7 @@ fun LoginContent(
                                 component.onEvent(Intent.GetQrToken)
                             }
                         ) {
-                            AnimatedContent(if (model.qrToken == "") RIcons.Qr else RIcons.Refresh) {
+                            AnimatedContent(if (model.qrToken == "") RIcons.QR else RIcons.REFRESH) {
                                 GetAsyncIcon(
                                     path = it
                                 )

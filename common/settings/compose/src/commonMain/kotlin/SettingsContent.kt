@@ -1,8 +1,38 @@
-import androidx.compose.animation.*
+
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,20 +50,31 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.foundation.AnimatedCommonButton
+import components.foundation.AppBar
+import components.BottomThemePanel
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.CTextField
+import components.GetAsyncIcon
+import components.ThemePreview
 import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import forks.colorPicker.toHex
+import deviceSupport.DeviceTypex
+import deviceSupport.deviceType
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.HorizontalSplitPane
 import forks.splitPane.dSplitter
 import resources.RIcons
-import server.DeviceTypex
-import view.*
+import utils.cursor.handy
+import utils.toHex
+import view.FontTypes
+import view.LocalViewManager
+import view.ViewManager
 
 
 @ExperimentalSplitPaneApi
@@ -121,7 +162,7 @@ fun SettingsView(
                         onClick = { component.onOutput(SettingsComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 },
@@ -158,7 +199,7 @@ fun SettingsView(
                                 textAlign = TextAlign.Center
                             )
                         }
-                        CustomTextButton(
+                        CTextButton(
                             text = "Сменить логин",
                             modifier = Modifier.handy()
                         ) {
@@ -178,7 +219,7 @@ fun SettingsView(
                                 modifier = Modifier.size(25.dp)
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.BigBrush
+                                    RIcons.BIG_BRUSH
                                 )
                             }
                         }
@@ -195,7 +236,7 @@ fun SettingsView(
                                 fontWeight = FontWeight.Normal
                             )
                             Box() {
-                                CustomTextButton(
+                                CTextButton(
                                     text = colorModes[viewManager.colorMode.value].toString(),
                                     maxLines = 1
                                 ) {
@@ -263,7 +304,7 @@ fun SettingsView(
                             fontSize = 10.esp,
                             lineHeight = 10.esp
                         )
-                        if(deviceType == DeviceTypex.web ) {
+                        if(deviceType == DeviceTypex.WEB ) {
                             Spacer(Modifier.height(8.dp))
                             SettingsSwitchRow(
                                 text = "Мобильный вид (всегда)",
@@ -288,7 +329,7 @@ fun SettingsView(
                 }
 
                 item {
-                    CustomTextField(
+                    CTextField(
                         value = viewManager.hardwareStatus.value,
                         onValueChange = {
                             changeHardwareStatus(viewManager, it)
@@ -324,7 +365,7 @@ fun SettingsView(
                                     else -> "???"
                                 }
                                 AnimatedContent(fontName) { aText ->
-                                    CustomTextButton(
+                                    CTextButton(
                                         text = aText,
                                         maxLines = 1
                                     ) {
@@ -404,7 +445,7 @@ fun SettingsView(
                                 onClick = { component.onOutput(SettingsComponent.Output.GoToScanner) }
                             ) {
                                 GetAsyncIcon(
-                                    path = RIcons.Qr
+                                    path = RIcons.QR
                                 )
                             }
                             AnimatedVisibility(nDevicesModel.state == NetworkState.Loading) {
@@ -417,7 +458,7 @@ fun SettingsView(
                                     }
                                 ) {
                                     GetAsyncIcon(
-                                        path = RIcons.Repeat
+                                        path = RIcons.REPEAT
                                     )
                                 }
                             }
@@ -480,7 +521,7 @@ fun SettingsView(
                                                             alpha = .5f
                                                         )
                                                     )
-                                                    CustomTextButton(
+                                                    CTextButton(
                                                         text = if (device.isThisSession) "Вы" else "Удалить",
                                                         fontSize = 13.esp
                                                     ) {
@@ -521,7 +562,7 @@ fun SettingsView(
                             contentPadding = PaddingValues(horizontal = 15.dp)
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.Logout,
+                                path = RIcons.LOGOUT,
                                 tint = colorRed,
                                 size = 25.dp
                             )
@@ -593,7 +634,7 @@ fun SettingsView(
                     fontSize = MaterialTheme.typography.titleLarge.fontSize, modifier = Modifier.padding(start = 5.dp)
                 )
                 Spacer(Modifier.height(5.dp))
-                CustomTextField(
+                CTextField(
                     value = model.eSecondLogin,
                     onValueChange = {
                         component.onEvent(

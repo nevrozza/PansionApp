@@ -25,8 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
 import components.GetAsyncIcon
 import resources.RIcons
 
@@ -54,7 +54,9 @@ fun AdminContent(
                         "Администрация",
                         modifier = Modifier.padding(start = 10.dp),
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-                        fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             )
@@ -92,7 +94,7 @@ fun AdminItemCompose(title: String, isEnabled: Boolean, isActive: Boolean, onCli
         Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text(title, fontSize = MaterialTheme.typography.titleLarge.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             GetAsyncIcon(
-                path = RIcons.ChevronLeft,
+                path = RIcons.CHEVRON_LEFT,
                 modifier = Modifier.rotate(180f)
             )
         }

@@ -1,8 +1,15 @@
 package server
 
-import kotlinx.datetime.*
-
-
+import applicationTimeZone
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.todayIn
 
 
 val String.st: String
@@ -19,7 +26,7 @@ fun <K, V> MutableMap<K, List<V>>.updateSafe(key: K?, value: V) {
 }
 
 fun getCurrentEdYear(): Int {
-    val today = Clock.System.now().toLocalDateTime(appTimeZone).date
+    val today = Clock.System.now().toLocalDateTime(applicationTimeZone).date
     return getEdYear(today)
 }
 
@@ -55,7 +62,7 @@ fun LocalDateTime.to10() = date.to10()//"${date.dayOfMonth.twoNums()}.${date.mon
 fun LocalDate.to10() = "${dayOfMonth.twoNums()}.${monthNumber.twoNums()}.${year}"
 
 fun getCurrentDayTime(): String {
-    val today = Clock.System.now().toLocalDateTime(appTimeZone)
+    val today = Clock.System.now().toLocalDateTime(applicationTimeZone)
     return "${today.time.hour.twoNums()}:${today.time.minute.twoNums()}"
 }
 
@@ -73,10 +80,10 @@ fun isTimeFormat(str: String): Boolean {
 }
 
 fun getWeekDays(): List<String> {
-    val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).date
+    val today = Clock.System.now().toLocalDateTime(applicationTimeZone).date
     val days = mutableListOf<LocalDate>()
-    val firstWeekDay = today.daysShift(-DayOfWeek.values().indexOf(today.dayOfWeek))
-    for (i in 0 until DayOfWeek.values().count()) {
+    val firstWeekDay = today.daysShift(-DayOfWeek.entries.indexOf(today.dayOfWeek))
+    for (i in 0 until DayOfWeek.entries.toTypedArray().count()) {
         days.add(firstWeekDay.daysShift(i))
     }
     return days.map { time ->
@@ -87,7 +94,7 @@ fun getWeekDays(): List<String> {
 }
 
 fun getPreviousWeekDays(): List<String> {
-    val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).date
+    val today = Clock.System.now().toLocalDateTime(applicationTimeZone).date
     val days = mutableListOf<LocalDate>()
     val firstWeekDay =
         today.daysShift(-DayOfWeek.entries.indexOf(today.dayOfWeek) - 7) // Calculate the first day of the previous week
@@ -160,13 +167,6 @@ fun fetchTitle(reasonId: String): String {
                 else -> "null"
             }
         }
-        //"!zd1" to "Манжеты",
-//        "!zd2" to "Ворот",
-//        "!zd3" to "Как отутюжена",
-//        "!zd4" to "Общ состояние",
-        //"!zd5" to "Обуви",
-//        "!zd6" to "Причёски",
-//        "!zd7" to "Ногти, макияж"
         "!zd" -> {
             when (reasonId.last()) {
                 '1' -> "Манжеты"
@@ -205,23 +205,23 @@ fun Int.twoNums(): String {
 
 //123456789012345
 //00:00-18-sat-13
-fun getSixteenTime(): String {
-    val time = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
-    return "${time.hour.twoNums()}:" +
-            "${time.minute.twoNums()}-" +
-            "${time.dayOfMonth.twoNums()}-" +
-            "${time.month.toString().subSequence(0, 3)}-" +
-            "${time.year.toString().subSequence(2, 4)}"
-}
+//fun getSixteenTime(): String {
+//    val time = Clock.System.now().toLocalDateTime(applicationTimeZone)
+//    return "${time.hour.twoNums()}:" +
+//            "${time.minute.twoNums()}-" +
+//            "${time.dayOfMonth.twoNums()}-" +
+//            "${time.month.toString().subSequence(0, 3)}-" +
+//            "${time.year.toString().subSequence(2, 4)}"
+//}
 
 fun getSixTime(): String {
-    val time = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
+    val time = Clock.System.now().toLocalDateTime(applicationTimeZone)
     return "${time.hour.twoNums()}:" +
             time.minute.twoNums()
 }
 
 fun getDate(): String {
-    val time = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
+    val time = Clock.System.now().toLocalDateTime(applicationTimeZone)
     return "${time.dayOfMonth.twoNums()}." +
             "${time.monthNumber.twoNums()}." +
             "${time.year}"
@@ -305,7 +305,7 @@ fun getStringDayTime(): String {
 }
 
 fun getCurrentDate(): Pair<Int, String> {
-    val today = Clock.System.todayIn(TimeZone.of("UTC+3"))
+    val today = Clock.System.todayIn(applicationTimeZone)
     val dayOfWeek = when (today.dayOfWeek) {
         DayOfWeek.MONDAY -> 1
         DayOfWeek.TUESDAY -> 2
@@ -325,7 +325,7 @@ fun getCurrentDate(): Pair<Int, String> {
 
 fun getDates(minus: Int = 0, plus: Int = 7): List<Pair<Int, String>> {
     val dates = mutableListOf<Pair<Int, String>>()
-    val today = Clock.System.todayIn(TimeZone.of("UTC+3"))
+    val today = Clock.System.todayIn(applicationTimeZone)
     val startDate = today.minus(minus, DateTimeUnit.DAY)// сегодняшняя дата //минус 7 дней
     val endDate = today.plus(plus, DateTimeUnit.DAY) // сегодняшняя дата плюс 7 дней
 

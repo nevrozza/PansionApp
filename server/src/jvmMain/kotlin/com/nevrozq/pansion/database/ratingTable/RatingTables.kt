@@ -12,7 +12,6 @@ import com.nevrozq.pansion.database.ratingEntities.RatingEntityDTO
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
-import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.getModuleByDate
 import getWeeks
@@ -133,19 +132,19 @@ private fun initItems(login: String, studentSubjects: Map<Int, Int>, groups: Lis
         }
     }
 
-    // YEAR COMMON ExtraSubjectsId.common
+    // YEAR COMMON ExtraSubjectsId.COMMON
     val yearCommonAvg = getAvgSafelyPlusAlg(yearMarks, PansionPeriod.Year, 0)
     run {
         val thisStups = yearAchievements.filter {
             it.subjectId !in listOf(
-                ExtraSubjectsId.creative,
-                ExtraSubjectsId.mvd,
-                ExtraSubjectsId.social
+                ExtraSubjectsId.CREATIVE,
+                ExtraSubjectsId.MVD,
+                ExtraSubjectsId.SOCIAL
             )
         }.sumOf { it.stups } + yearStups.filter { it.reason.st == "!st" }.sumOf { it.content.toInt() }
         output.add(
             RatingItem(
-                subjectId = ExtraSubjectsId.common,
+                subjectId = ExtraSubjectsId.COMMON,
                 avg = yearCommonAvg.first,
                 stups = thisStups,
                 period = PansionPeriod.Year,
@@ -195,28 +194,28 @@ private fun initItems(login: String, studentSubjects: Map<Int, Int>, groups: Lis
                 "h" -> PansionPeriod.Half(num)
                 else -> PansionPeriod.Half(num)
             }
-            val l_achievements = (r_achievements[num] ?: listOf())
-            val l_stups = (r_stups[num] ?: listOf())
-            val l_ed_stups = (r_stups[num] ?: listOf()).filter { it.reason.st == "!st" }
-            val l_marks = (r_marks[num] ?: listOf())
-            // COMMON ExtraSubjectsId.common
+            val lAchievements = (r_achievements[num] ?: listOf())
+//            val l_stups = (r_stups[num] ?: listOf())
+            val lEdStups = (r_stups[num] ?: listOf()).filter { it.reason.st == "!st" }
+            val lMarks = (r_marks[num] ?: listOf())
+            // COMMON ExtraSubjectsId.COMMON
             run {
-                val achievements = l_achievements
+                val achievements = lAchievements
                     .filter {
                         it.subjectId !in listOf(
-                            ExtraSubjectsId.creative,
-                            ExtraSubjectsId.mvd,
-                            ExtraSubjectsId.social
+                            ExtraSubjectsId.CREATIVE,
+                            ExtraSubjectsId.MVD,
+                            ExtraSubjectsId.SOCIAL
                         )
                     }.sumOf { it.stups }
-                val stups = l_ed_stups
+                val stups = lEdStups
                     .sumOf { it.content.toInt() }
-                val marks = l_marks
+                val marks = lMarks
                 val avg = getAvgSafelyPlusAlg(marks, period, 0)
 
                 output.add(
                     RatingItem(
-                        subjectId = ExtraSubjectsId.common,
+                        subjectId = ExtraSubjectsId.COMMON,
                         avg = avg.first,
                         stups = achievements + stups,
                         period = period,
@@ -232,9 +231,9 @@ private fun initItems(login: String, studentSubjects: Map<Int, Int>, groups: Lis
             studentSubjects.forEach { (subjectId, groupId) ->
                 val group = groups.firstOrNull { it.id == groupId }
                 val difficulty = group?.difficult?.toIntOrNull() ?: 0
-                val achievements = l_achievements.filter { it.subjectId == subjectId }.sumOf { it.stups }
-                val stups = l_ed_stups.filter { it.subjectId == subjectId }.sumOf { it.content.toInt() }
-                val marks = l_marks.filter { it.subjectId == subjectId }
+                val achievements = lAchievements.filter { it.subjectId == subjectId }.sumOf { it.stups }
+                val stups = lEdStups.filter { it.subjectId == subjectId }.sumOf { it.content.toInt() }
+                val marks = lMarks.filter { it.subjectId == subjectId }
                 val avg = getAvgSafelyPlusAlg(marks, period, difficulty)
                 output.add(
                     RatingItem(
@@ -267,7 +266,7 @@ fun updateRatings(edYear: Int) {
     println("wazap-start")
     val forms = Forms.getAllForms().sortedBy { it.isActive }
     val groups = Groups.getAllGroups().sortedBy { it.isActive }
-    val subjects = Subjects.fetchAllSubjects().sortedBy { it.isActive }
+//    val subjects = Subjects.fetchAllSubjects().sortedBy { it.isActive }
     val studentsInGroup = StudentGroups.fetchAll()
     val studentsInForm = StudentsInForm.fetchAll()
     val students = Users.fetchAllStudents()

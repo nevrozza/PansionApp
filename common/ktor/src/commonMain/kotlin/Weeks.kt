@@ -1,10 +1,14 @@
+
 import admin.calendar.Holiday
-import kotlinx.datetime.*
-import kotlinx.datetime.format.DateTimeFormat
-import kotlinx.datetime.format.DateTimeFormatBuilder
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
-import server.*
+import server.daysShift
+import server.getCurrentEdYear
+import server.to10
 
 
 @Serializable
@@ -24,7 +28,7 @@ fun getWeeks(
     val startDate = LocalDate.parse("${edYear}-09-01")
     val endDate =
         if (isWhole) LocalDate.parse("${edYear + 1}-09-01")
-        else Clock.System.now().toLocalDateTime(appTimeZone).date
+        else Clock.System.now().toLocalDateTime(applicationTimeZone).date
 
 
     val weeks = mutableListOf<Week>()
@@ -33,10 +37,10 @@ fun getWeeks(
     var weekNum = 1
 
     while (currentDate <= endDate) {
-        val firstWeekDay = currentDate.daysShift(-DayOfWeek.values().indexOf(currentDate.dayOfWeek))
+        val firstWeekDay = currentDate.daysShift(-DayOfWeek.entries.indexOf(currentDate.dayOfWeek))
         if (firstWeekDay.toEpochDays() >= startDate.toEpochDays()) {
             var weekDates = mutableListOf<String>()
-            for (i in 0 until DayOfWeek.values().count()) {
+            for (i in 0 until DayOfWeek.entries.toTypedArray().count()) {
                 weekDates.add(firstWeekDay.daysShift(i).to10())
             }
 
@@ -59,7 +63,7 @@ fun getWeeks(
 fun getDateRange(startStr: String, endStr: String): List<String> {
     // Форматируем строки в объекты LocalDate
     val formatter = LocalDate.Format {
-        dayOfMonth(); char('.'); monthNumber();char('.');year();
+        dayOfMonth(); char('.'); monthNumber();char('.');year()
     }
     val startDate = LocalDate.parse(startStr, formatter)
     val endDate = LocalDate.parse(endStr, formatter)

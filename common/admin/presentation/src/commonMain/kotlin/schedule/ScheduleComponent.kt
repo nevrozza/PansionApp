@@ -1,22 +1,16 @@
 package schedule
 
 import AdminRepository
-import CDispatcher
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cAlertDialog.CAlertDialogComponent
-import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.mpChose.MpChoseComponent
 import components.networkInterface.NetworkInterface
 import di.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class ScheduleComponent(
     componentContext: ComponentContext,

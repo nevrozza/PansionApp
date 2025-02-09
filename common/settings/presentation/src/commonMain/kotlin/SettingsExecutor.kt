@@ -1,25 +1,21 @@
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
+
 import SettingsStore.Intent
 import SettingsStore.Label
-import SettingsStore.State
 import SettingsStore.Message
+import SettingsStore.State
 import auth.RChangeLogin
 import auth.RTerminateDeviceReceive
+import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
-import components.listDialog.ListComponent
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import view.Language
-import view.ThemeTint
-import view.isCanInDynamic
 
 class SettingsExecutor(
     private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository,
-    private val colorModeListComponent: ListComponent,
     private val nDevicesInterface: NetworkInterface,
     private val changeLoginDialog: CAlertDialogComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
@@ -44,17 +40,21 @@ class SettingsExecutor(
         }
     }
     private fun saveSecondLogin() {
-        scope.launch {
+        scope.launchIO {
             changeLoginDialog.nInterface.nStartLoading()
             try {
                 settingsRepository.changeLogin(RChangeLogin(
                     state().eSecondLogin
                 ))
-                dispatch(Message.SecondLoginChanged(
-                    if (state().eSecondLogin.isBlank()) null
-                    else state().eSecondLogin
-                ))
-                changeLoginDialog.fullySuccess()
+                withMain {
+                    dispatch(
+                        Message.SecondLoginChanged(
+                            if (state().eSecondLogin.isBlank()) null
+                            else state().eSecondLogin
+                        )
+                    )
+                    changeLoginDialog.fullySuccess()
+                }
             } catch (e: Throwable) {
                 changeLoginDialog.nInterface.nError("Что-то пошло не так", e) {
                     changeLoginDialog.nInterface.goToNone()
@@ -64,7 +64,7 @@ class SettingsExecutor(
     }
 
     private fun terminate(id: String) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 settingsRepository.terminateDevice(RTerminateDeviceReceive(id = id))
                 fetchDevices()
@@ -75,7 +75,7 @@ class SettingsExecutor(
     @OptIn(DelicateCoroutinesApi::class)
     private fun quit() {
 
-        GlobalScope.launch(CDispatcher) {
+        GlobalScope.launchIO {
 
             try {
                 authRepository.logout()
@@ -86,10 +86,10 @@ class SettingsExecutor(
     }
 
     private fun fetchDevices() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 val devices = settingsRepository.fetchDevices()
-                scope.launch {
+                withMain {
                     dispatch(Message.DevicesFetched(devices.tokens.reversed()))
                     dispatch(Message.SecondLoginChanged(devices.secondLogin))
                 }

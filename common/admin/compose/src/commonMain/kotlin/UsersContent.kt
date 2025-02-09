@@ -6,6 +6,7 @@ import admin.users.UserInit
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -78,19 +79,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AppBar
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.CustomTextField
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AnimatedCommonButton
+import components.foundation.AppBar
+import components.foundation.CCheckbox
+import components.foundation.CTextButton
+import components.foundation.CTextField
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
-import components.LoadingAnimation
+import components.foundation.LoadingAnimation
 import components.ScrollBaredBox
 import components.cBottomSheet.CBottomSheetStore
-import components.cClickable
-import components.hazeUnder
+import components.foundation.cClickable
+import components.foundation.hazeUnder
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import components.refresh.RefreshButton
@@ -104,17 +105,17 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.rememberPullRefreshState
+import components.refresh.PullRefreshIndicator
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import resources.RIcons
 import server.Roles
 import server.twoNums
 import users.UsersComponent
 import users.UsersStore
+import utils.LockScreenOrientation
+import view.DefaultMultiPane
 import view.LocalViewManager
-import view.LockScreenOrientation
-import view.esp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -215,14 +216,14 @@ fun UsersContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Search
+                                RIcons.SEARCH
                             )
                         }
                         AnimatedVisibility(
                             isTextFieldShown.value
                         ) {
                             Row {
-                                CustomTextField(
+                                CTextField(
                                     value = model.userFindField,
                                     onValueChange = {
                                         component.onEvent(UsersStore.Intent.UpdateUserFind(it))
@@ -255,7 +256,7 @@ fun UsersContent(
                                 )
                             }
                         ) {
-                            CustomCheckbox(
+                            CCheckbox(
                                 checked = model.fTeachers
                             )
                             Text("Учителя")
@@ -268,7 +269,7 @@ fun UsersContent(
                                 )
                             }.padding(start = 7.dp)
                         ) {
-                            CustomCheckbox(
+                            CCheckbox(
                                 checked = model.fStudents
                             )
                             Text("Ученики")
@@ -282,7 +283,7 @@ fun UsersContent(
                                 )
                             }.padding(start = 7.dp)
                         ) {
-                            CustomCheckbox(
+                            CCheckbox(
                                 checked = model.fOther
                             )
 
@@ -296,7 +297,7 @@ fun UsersContent(
                                 )
                             }.padding(start = 7.dp)
                         ) {
-                            CustomCheckbox(
+                            CCheckbox(
                                 checked = model.fParents
                             )
                             Text("Родители")
@@ -309,7 +310,7 @@ fun UsersContent(
                                 )
                             }.padding(start = 7.dp)
                         ) {
-                            CustomCheckbox(
+                            CCheckbox(
                                 checked = model.fNoAdmin
                             )
                             Text("Не админ")
@@ -322,7 +323,7 @@ fun UsersContent(
                                 )
                             }.padding(start = 7.dp)
                         ) {
-                            CustomCheckbox(
+                            CCheckbox(
                                 checked = model.fInActive
                             )
                             Text("Inactive")
@@ -343,7 +344,7 @@ fun UsersContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.Upload
+                                path = RIcons.UPLOAD
                             )
                         }
                     }
@@ -353,7 +354,7 @@ fun UsersContent(
                         onClick = { component.onOutput(UsersComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 },
@@ -366,7 +367,7 @@ fun UsersContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Add
+                                RIcons.ADD
                             )
                         }
                     }
@@ -399,9 +400,9 @@ fun UsersContent(
         }
 
         val roles = listOfNotNull(
-            if (model.fOther) Roles.nothing else null,
-            if (model.fTeachers) Roles.teacher else null,
-            if (model.fStudents) Roles.student else null
+            if (model.fOther) Roles.NOTHING else null,
+            if (model.fTeachers) Roles.TEACHER else null,
+            if (model.fStudents) Roles.STUDENT else null
         )
 
         Box(
@@ -419,7 +420,7 @@ fun UsersContent(
                                 val isInActive =
                                     if (!model.fInActive) it.isActive else true
                                 val moder =
-                                    if (!model.fNoAdmin) it.user.moderation != Roles.nothing else true
+                                    if (!model.fNoAdmin) it.user.moderation != Roles.NOTHING else true
                                 val parent =
                                     if (!model.fParents) !it.user.isParent else true
                                 val fio = with(it.user.fio) {
@@ -449,8 +450,8 @@ fun UsersContent(
                                                 "null"
                                             },
                                             columnNames[4] to when (it.user.role) {
-                                                Roles.teacher -> "учитель"
-                                                Roles.student -> "ученик"
+                                                Roles.TEACHER -> "учитель"
+                                                Roles.STUDENT -> "ученик"
                                                 else -> "другое"
                                             },
                                             columnNames[5] to it.user.moderation,
@@ -603,7 +604,7 @@ private fun editUserSheet(
 
 
                     Spacer(Modifier.height(7.dp))
-                    CustomTextField(
+                    CTextField(
                         value = model.eSurname,
                         onValueChange = {
                             component.onEvent(UsersStore.Intent.ChangeESurname(it))
@@ -620,7 +621,7 @@ private fun editUserSheet(
                         keyboardType = KeyboardType.Password
                     )
                     Spacer(Modifier.height(7.dp))
-                    CustomTextField(
+                    CTextField(
                         value = model.eName,
                         onValueChange = {
                             component.onEvent(UsersStore.Intent.ChangeEName(it))
@@ -636,7 +637,7 @@ private fun editUserSheet(
                         keyboardType = KeyboardType.Password
                     )
                     Spacer(Modifier.height(7.dp))
-                    CustomTextField(
+                    CTextField(
                         value = model.ePraname ?: "",
                         onValueChange = {
                             component.onEvent(UsersStore.Intent.ChangeEPraname(it))
@@ -652,7 +653,7 @@ private fun editUserSheet(
                         keyboardType = KeyboardType.Password
                     )
                     Spacer(Modifier.height(7.dp))
-                    CustomTextField(
+                    CTextField(
                         value = model.eBirthday,
                         onValueChange = {
                             if (it.length <= 8 && (it.matches("\\d{1,8}".toRegex()) || it.isEmpty())) {
@@ -683,7 +684,7 @@ private fun editUserSheet(
                                 enabled = !isEditingInProcess
                             ) {
                                 GetAsyncIcon(
-                                    path = RIcons.Calendar
+                                    path = RIcons.CALENDAR
                                 )
                             }
                         }
@@ -714,7 +715,7 @@ private fun editUserSheet(
                                 )
                             },
                             confirmButton = {
-                                CustomTextButton(
+                                CTextButton(
                                     "Ок",
                                     modifier = Modifier.padding(
                                         end = 30.dp,
@@ -730,7 +731,7 @@ private fun editUserSheet(
                                             Instant.fromEpochMilliseconds(
                                                 datePickerState.selectedDateMillis!!
                                             )
-                                                .toLocalDateTime(TimeZone.of("UTC+3"))
+                                                .toLocalDateTime(applicationTimeZone)
                                         component.onEvent(
                                             UsersStore.Intent.ChangeEBirthday(
                                                 "${date.dayOfMonth.twoNums()}${date.monthNumber.twoNums()}${date.year}"
@@ -745,7 +746,7 @@ private fun editUserSheet(
                                 }
                             },
                             dismissButton = {
-                                CustomTextButton(
+                                CTextButton(
                                     "Отмена",
                                     modifier = Modifier.padding(bottom = 10.dp)
                                 ) {
@@ -776,9 +777,9 @@ private fun editUserSheet(
                     Spacer(Modifier.height(7.dp))
 
                     val rolesList = mapOf(
-                        Roles.student to "Ученик",
-                        Roles.teacher to "Учитель",
-                        Roles.nothing to "Другое"
+                        Roles.STUDENT to "Ученик",
+                        Roles.TEACHER to "Учитель",
+                        Roles.NOTHING to "Другое"
                     )
                     ExposedDropdownMenuBox(
                         expanded = expandedRoles,
@@ -792,9 +793,9 @@ private fun editUserSheet(
                                 .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                             readOnly = true,
                             value = when (model.eRole) {
-                                Roles.teacher -> "Учитель"
-                                Roles.student -> "Ученик"
-                                Roles.nothing -> "Другое"
+                                Roles.TEACHER -> "Учитель"
+                                Roles.STUDENT -> "Ученик"
+                                Roles.NOTHING -> "Другое"
                                 else -> ""
                             },
                             placeholder = { Text("Выберите") },
@@ -803,7 +804,7 @@ private fun editUserSheet(
                             trailingIcon = {
                                 val chevronRotation = animateFloatAsState(if (expandedRoles) 90f else -90f)
                                 GetAsyncIcon(
-                                    path = RIcons.ChevronLeft,
+                                    path = RIcons.CHEVRON_LEFT,
                                     modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                                     size = 15.dp
                                 )
@@ -836,7 +837,7 @@ private fun editUserSheet(
                         }
                     }
                     Spacer(Modifier.height(7.dp))
-                    if (model.eRole == Roles.teacher) {
+                    if (model.eRole == Roles.TEACHER) {
                         var expandedSubjects by remember { mutableStateOf(false) }
 
                         ExposedDropdownMenuBox(
@@ -858,7 +859,7 @@ private fun editUserSheet(
                                 trailingIcon = {
                                     val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
                                     GetAsyncIcon(
-                                        path = RIcons.ChevronLeft,
+                                        path = RIcons.CHEVRON_LEFT,
                                         modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                                         size = 15.dp
                                     )
@@ -972,13 +973,13 @@ private fun editUserSheet(
                         AnimatedVisibility(
                             !model.eIsMentor && !model.eIsModerator
                         ) {
-                            CustomTextButton(if (model.eRole == Roles.student) "Отчислить" else "Удалить") {
+                            CTextButton(if (model.eRole == Roles.STUDENT) "Отчислить" else "Удалить") {
                                 component.onEvent(UsersStore.Intent.DeleteAccountInit(model.eLogin))
                             }
                             Spacer(Modifier.height(7.dp))
                         }
                     } else {
-                        CustomTextButton("Восстановить") {
+                        CTextButton("Восстановить") {
                             component.onEvent(UsersStore.Intent.EditUser)
                         }
                         Spacer(Modifier.height(7.dp))
@@ -989,7 +990,7 @@ private fun editUserSheet(
                         modifier = Modifier.padding(horizontal = 10.dp)
                     ) {
                         if (model.eIsPassword) {
-                            CustomTextButton(
+                            CTextButton(
                                 "Сбросить пароль",
                                 color = if (!isEditingInProcess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(
                                     alpha = 0.3f
@@ -1023,7 +1024,7 @@ private fun editUserSheet(
 //                Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //                    Text(model.eError)
 //                    Spacer(Modifier.height(7.dp))
-//                    CustomTextButton("Попробовать ещё раз") {
+//                    CTextButton("Попробовать ещё раз") {
 //                        component.onEvent(UsersStore.Intent.TryEditUserAgain)
 //                    }
 //                }
@@ -1124,7 +1125,7 @@ private fun createUserSheet(
 
 
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cSurname,
                             onValueChange = {
                                 component.onEvent(UsersStore.Intent.ChangeCSurname(it))
@@ -1140,7 +1141,7 @@ private fun createUserSheet(
                             keyboardType = KeyboardType.Password
                         )
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cName,
                             onValueChange = {
                                 component.onEvent(UsersStore.Intent.ChangeCName(it))
@@ -1156,7 +1157,7 @@ private fun createUserSheet(
                             keyboardType = KeyboardType.Password
                         )
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cPraname ?: "",
                             onValueChange = {
                                 component.onEvent(UsersStore.Intent.ChangeCPraname(it))
@@ -1172,7 +1173,7 @@ private fun createUserSheet(
                             keyboardType = KeyboardType.Password
                         )
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cBirthday,
                             onValueChange = {
                                 if (it.length <= 8 && (it.matches("\\d{1,8}".toRegex()) || it.isEmpty())) {
@@ -1203,7 +1204,7 @@ private fun createUserSheet(
                                     enabled = !isCreatingInProcess
                                 ) {
                                     GetAsyncIcon(
-                                        RIcons.Calendar
+                                        RIcons.CALENDAR
                                     )
                                 }
                             }
@@ -1234,7 +1235,7 @@ private fun createUserSheet(
                                     )
                                 },
                                 confirmButton = {
-                                    CustomTextButton(
+                                    CTextButton(
                                         "Ок",
                                         modifier = Modifier.padding(
                                             end = 30.dp,
@@ -1250,7 +1251,7 @@ private fun createUserSheet(
                                                 Instant.fromEpochMilliseconds(
                                                     datePickerState.selectedDateMillis!!
                                                 )
-                                                    .toLocalDateTime(TimeZone.of("UTC+3"))
+                                                    .toLocalDateTime(applicationTimeZone)
                                             component.onEvent(
                                                 UsersStore.Intent.ChangeCBirthday(
                                                     "${date.dayOfMonth.twoNums()}${date.monthNumber.twoNums()}${date.year}"
@@ -1265,7 +1266,7 @@ private fun createUserSheet(
                                     }
                                 },
                                 dismissButton = {
-                                    CustomTextButton(
+                                    CTextButton(
                                         "Отмена",
                                         modifier = Modifier.padding(bottom = 10.dp)
                                     ) {
@@ -1296,9 +1297,9 @@ private fun createUserSheet(
                         Spacer(Modifier.height(7.dp))
 
                         val rolesList = mapOf(
-                            Roles.student to "Ученик",
-                            Roles.teacher to "Учитель",
-                            Roles.nothing to "Другое"
+                            Roles.STUDENT to "Ученик",
+                            Roles.TEACHER to "Учитель",
+                            Roles.NOTHING to "Другое"
                         )
 
                         ExposedDropdownMenuBox(
@@ -1313,9 +1314,9 @@ private fun createUserSheet(
                                     .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                                 readOnly = true,
                                 value = when (model.cRole) {
-                                    Roles.teacher -> "Учитель"
-                                    Roles.student -> "Ученик"
-                                    Roles.nothing -> "Другое"
+                                    Roles.TEACHER -> "Учитель"
+                                    Roles.STUDENT -> "Ученик"
+                                    Roles.NOTHING -> "Другое"
                                     else -> ""
                                 },
                                 placeholder = { Text("Выберите") },
@@ -1324,7 +1325,7 @@ private fun createUserSheet(
                                 trailingIcon = {
                                     val chevronRotation = animateFloatAsState(if (expandedRoles) 90f else -90f)
                                     GetAsyncIcon(
-                                        path = RIcons.ChevronLeft,
+                                        path = RIcons.CHEVRON_LEFT,
                                         modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                                         size = 15.dp
                                     )
@@ -1357,7 +1358,7 @@ private fun createUserSheet(
                             }
                         }
                         Spacer(Modifier.height(7.dp))
-                        if (model.cRole == Roles.teacher) {
+                        if (model.cRole == Roles.TEACHER) {
                             var expandedSubjects by remember { mutableStateOf(false) }
 
                             ExposedDropdownMenuBox(
@@ -1379,7 +1380,7 @@ private fun createUserSheet(
                                     trailingIcon = {
                                         val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
                                         GetAsyncIcon(
-                                            path = RIcons.ChevronLeft,
+                                            path = RIcons.CHEVRON_LEFT,
                                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                                             size = 15.dp
                                         )
@@ -1412,7 +1413,7 @@ private fun createUserSheet(
                                 }
                             }
                         }
-                        if (model.cRole != Roles.student) {
+                        if (model.cRole != Roles.STUDENT) {
                             Row(
                                 Modifier.width(TextFieldDefaults.MinWidth)
                                     .padding(horizontal = 7.dp),
@@ -1510,7 +1511,7 @@ private fun createUserSheet(
                                     trailingIcon = {
                                         val chevronRotation = animateFloatAsState(if (expandedForms) 90f else -90f)
                                         GetAsyncIcon(
-                                            path = RIcons.ChevronLeft,
+                                            path = RIcons.CHEVRON_LEFT,
                                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                                             size = 15.dp
                                         )
@@ -1547,7 +1548,7 @@ private fun createUserSheet(
                                 }
                             }
                             Spacer(Modifier.height(7.dp))
-                            CustomTextField(
+                            CTextField(
                                 value = model.cParentFirstFIO,
                                 onValueChange = {
                                     component.onEvent(UsersStore.Intent.ChangeCParentFirstFIO(it))
@@ -1564,7 +1565,7 @@ private fun createUserSheet(
                                 supText = "Фамилия Имя Отчество"
                             )
                             Spacer(Modifier.height(7.dp))
-                            CustomTextField(
+                            CTextField(
                                 value = model.cParentSecondFIO,
                                 onValueChange = {
                                     component.onEvent(UsersStore.Intent.ChangeCParentSecondFIO(it))
@@ -1610,7 +1611,7 @@ private fun createUserSheet(
 //                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //                                Text(cNModel.value.error)
 //                                Spacer(Modifier.height(7.dp))
-//                                CustomTextButton("Попробовать ещё раз") {
+//                                CTextButton("Попробовать ещё раз") {
 //                                    component.cUserBottomSheet.nInterface.fixError()
 //                                }
 //                            }
@@ -1793,7 +1794,7 @@ fun TableScreen(
                                         modifier = Modifier.padding(top = 5.dp).size(15.dp)
                                     ) {
                                         GetAsyncIcon(
-                                            RIcons.Edit,
+                                            RIcons.EDIT,
                                             size = 10.dp
                                         )
                                     }

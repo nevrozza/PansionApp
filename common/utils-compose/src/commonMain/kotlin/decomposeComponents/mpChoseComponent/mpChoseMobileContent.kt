@@ -154,7 +154,7 @@ package decomposeComponents.mpChoseComponent
 //
 //                            Text(nModel.error)
 //                            Spacer(Modifier.height(7.dp))
-//                            CustomTextButton("Попробовать ещё раз") {
+//                            CTextButton("Попробовать ещё раз") {
 //                                nModel.onFixErrorClick()
 //                            }
 //                        }

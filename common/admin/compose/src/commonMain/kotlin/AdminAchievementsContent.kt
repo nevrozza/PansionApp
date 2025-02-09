@@ -50,15 +50,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AppBar
-import components.CLazyColumn
-import components.CustomTextButton
-import components.CustomTextField
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AnimatedCommonButton
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.CTextField
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
-import components.LoadingAnimation
+import components.foundation.LoadingAnimation
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
@@ -66,10 +66,11 @@ import components.refresh.RefreshButton
 import components.refresh.RefreshWithoutPullCircle
 import components.refresh.keyRefresh
 import decomposeComponents.CBottomSheetContent
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.rememberPullRefreshState
+import components.refresh.PullRefreshIndicator
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import resources.RIcons
+import view.DefaultMultiPane
 import view.LocalViewManager
 
 
@@ -194,7 +195,7 @@ fun AdminAchievementsContent(
                         onClick = { component.onOutput(AdminAchievementsComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 },
@@ -205,7 +206,7 @@ fun AdminAchievementsContent(
                         onClick = { component.onEvent(AdminAchievementsStore.Intent.OpenCreateBS) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.Add
+                            path = RIcons.ADD
                         )
                     }
                 }
@@ -223,7 +224,7 @@ fun AdminAchievementsContent(
                             val achievements =
                                 model.achievements.filter { it.text == h.text && it.date == h.date && it.showDate == h.showDate }
                             Column(modifier = Modifier.padding(bottom = 7.dp)) {
-                                CustomTextButton(
+                                CTextButton(
                                     text = buildAnnotatedString {
                                         withStyle(
                                             SpanStyle(
@@ -340,7 +341,7 @@ fun AdminAchievementsContent(
                                             ), contentAlignment = Alignment.Center
                                         ) {
                                             GetAsyncIcon(
-                                                path = RIcons.Add
+                                                path = RIcons.ADD
                                             )
                                         }
                                     }
@@ -409,7 +410,7 @@ private fun BottomSheetContent(
                         val chevronRotation =
                             animateFloatAsState(if (expandedStudents) 90f else -90f)
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft,
+                            path = RIcons.CHEVRON_LEFT,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                             size = 15.dp
                         )
@@ -444,7 +445,7 @@ private fun BottomSheetContent(
                 }
             }
             Spacer(Modifier.width(5.dp))
-            CustomTextField(
+            CTextField(
                 value = model.bsDate,
                 onValueChange = {
                     component.onEvent(AdminAchievementsStore.Intent.ChangeDate(it))
@@ -458,7 +459,7 @@ private fun BottomSheetContent(
                 supText = "дд.мм.гггг"
             )
         }
-        CustomTextField(
+        CTextField(
             value = model.bsText,
             onValueChange = {
                 component.onEvent(AdminAchievementsStore.Intent.ChangeText(it))
@@ -492,7 +493,7 @@ private fun BottomSheetContent(
                         val chevronRotation =
                             animateFloatAsState(if (expandedSubjects) 90f else -90f)
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft,
+                            path = RIcons.CHEVRON_LEFT,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                             size = 15.dp
                         )
@@ -527,7 +528,7 @@ private fun BottomSheetContent(
                 }
             }
             Spacer(Modifier.width(5.dp))
-            CustomTextField(
+            CTextField(
                 value = if (model.bsStups != 0) model.bsStups.toString() else "",
                 onValueChange = {
                     component.onEvent(AdminAchievementsStore.Intent.ChangeStups(if (it.isNotEmpty()) it.toInt() else 0))
@@ -542,7 +543,7 @@ private fun BottomSheetContent(
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            CustomTextField(
+            CTextField(
                 value = model.bsShowDate,
                 onValueChange = {
                     component.onEvent(AdminAchievementsStore.Intent.ChangeShowDate(it))
@@ -598,7 +599,7 @@ private fun HugeBottomSheetContent(
     val nBSModel by nBSInterface.networkModel.subscribeAsState()
 
     Column(Modifier.padding(horizontal = 10.dp).padding(bottom = 10.dp)) {
-        CustomTextField(
+        CTextField(
             value = model.bsText,
             onValueChange = {
                 component.onEvent(AdminAchievementsStore.Intent.ChangeText(it))
@@ -613,7 +614,7 @@ private fun HugeBottomSheetContent(
             supText = "Например: ВСОШ Математика [Региональный этап]"
         )
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            CustomTextField(
+            CTextField(
                 value = model.bsDate,
                 onValueChange = {
                     component.onEvent(AdminAchievementsStore.Intent.ChangeDate(it))
@@ -627,7 +628,7 @@ private fun HugeBottomSheetContent(
                 supText = "дд.мм.гггг"
             )
             Spacer(Modifier.width(5.dp))
-            CustomTextField(
+            CTextField(
                 value = model.bsShowDate,
                 onValueChange = {
                     component.onEvent(AdminAchievementsStore.Intent.ChangeShowDate(it))
@@ -694,7 +695,7 @@ private fun EditBottomSheetContent(
                         val chevronRotation =
                             animateFloatAsState(if (expandedSubjects) 90f else -90f)
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft,
+                            path = RIcons.CHEVRON_LEFT,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                             size = 15.dp
                         )
@@ -729,7 +730,7 @@ private fun EditBottomSheetContent(
                 }
             }
             Spacer(Modifier.width(5.dp))
-            CustomTextField(
+            CTextField(
                 value = if (model.bsStups != 0) model.bsStups.toString() else "",
                 onValueChange = {
                     component.onEvent(AdminAchievementsStore.Intent.ChangeStups(if (it.isNotEmpty()) it.toInt() else 0))
@@ -766,7 +767,7 @@ private fun EditBottomSheetContent(
                         val chevronRotation =
                             animateFloatAsState(if (expandedStudents) 90f else -90f)
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft,
+                            path = RIcons.CHEVRON_LEFT,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                             size = 15.dp
                         )

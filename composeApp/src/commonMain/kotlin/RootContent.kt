@@ -57,9 +57,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import animations.iosSlide
-import animations.slideEnterModifier
-import animations.slideExitModifier
+import transitions.iosSlide
+import transitions.slideEnterModifier
+import transitions.slideExitModifier
 import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -70,11 +70,11 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.essenty.backhandler.BackEvent
-import components.CustomTextButton
-import components.DefaultErrorView
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
 import components.GetAsyncIcon
-import components.hazeHeader
-import components.hazeUnder
+import components.foundation.hazeHeader
+import components.foundation.hazeUnder
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import forks.splitPane.ExperimentalSplitPaneApi
@@ -90,7 +90,6 @@ import io.github.alexzhirkevich.compottie.rememberLottieComposition
 import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import journal.JournalStore
 import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mentoring.MentoringComponent
 import mentoring.MentoringContent
@@ -138,7 +137,7 @@ import view.LocalViewManager
 import view.ViewManager
 import view.WindowCalculator
 import view.WindowScreen
-import view.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -208,7 +207,7 @@ fun RootContent(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         CustomNavigationBar(
-                            viewManager, component, model, childStack, items
+                            viewManager, component, childStack, items
                         )
 //                    bottomBarAnimationScope = this
                     }
@@ -321,7 +320,7 @@ fun RootContent(
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(child.reason, textAlign = TextAlign.Center)
                                     Spacer(Modifier.height(35.dp))
-                                    CustomTextButton(
+                                    CTextButton(
                                         "Перейти на главный экран"
                                     ) {
                                         component.onOutput(RootComponent.Output.NavigateToHome)
@@ -353,7 +352,7 @@ fun RootContent(
                                     )
                                 },
                                 secondScreen = {
-                                    if ((model.moderation != Moderation.nothing || model.role == Roles.teacher && component.isMentoring == null
+                                    if ((model.moderation != Moderation.NOTHING || model.role == Roles.TEACHER && component.isMentoring == null
                                                 ) && component.secondLogin == null
                                     ) {
                                         JournalContent(
@@ -509,7 +508,7 @@ fun RootContent(
                                         modifier = Modifier.padding(bottom = if (!isExpanded) 80.dp else 10.dp)
                                     ) {
                                         GetAsyncIcon(
-                                            path = RIcons.MagicWand
+                                            path = RIcons.MAGIC_WAND
                                         )
                                         Spacer(Modifier.width(10.dp))
                                         Text("Расписание БЕТА")
@@ -697,7 +696,7 @@ fun RootContent(
 
                             val confettiComposition = rememberLottieComposition {
                                 LottieCompositionSpec.JsonString(
-                                    Images.Confetti()
+                                    Images.confetti()
                                 )
                             }
 
@@ -730,8 +729,7 @@ fun RootContent(
                                 viewManager = viewManager,
                                 currentScreen = {
                                     HomeTasksContent(
-                                        child.homeTasksComponent,
-                                        isVisible = stack.active.instance is HomeTasks
+                                        child.homeTasksComponent
                                     ) {
                                         if (confettiProgress in listOf(0.0f, 1.0f)) {
                                             confettiIsPlaying.value = true
@@ -749,8 +747,7 @@ fun RootContent(
                                 },
                                 secondScreen = {
                                     HomeTasksContent(
-                                        child.homeTasksComponent,
-                                        isVisible = stack.active.instance is HomeTasks
+                                        child.homeTasksComponent
                                     ) {
                                         if (confettiProgress in listOf(0.0f, 1.0f)) {
                                             confettiIsPlaying.value = true
@@ -931,7 +928,7 @@ fun RootContent(
                     currentChild.value = it
                 }
                 if (component.secondLogin == null) {
-                    CustomNavigationRail(isVertical, component, model, childStack, items)
+                    CustomNavigationRail(isVertical, component, childStack, items)
                 }
             }
         }
@@ -964,14 +961,14 @@ fun RootContent(
                         AnimatedVisibility(isBirthday) {
                             Column {
                                 GetAsyncIcon(
-                                    path = RIcons.Gift,
+                                    path = RIcons.GIFT,
                                     size = 100.dp
                                 )
                                 Spacer(Modifier.height(20.dp))
                             }
                         }
                         Text(
-                            when (Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3")).hour) {
+                            when (Clock.System.now().toLocalDateTime(applicationTimeZone).hour) {
                                 in 5..10 -> "Доброе утро!"
                                 in 11..18 -> "Добрый день!"
                                 in 19..21 -> "Добрый вечер!"
@@ -1007,7 +1004,7 @@ fun RootContent(
                                         text = if (nCheckModel.error != "") nCheckModel.error else "Загрузка..."
                                     )
                                     Spacer(Modifier.height(7.dp))
-                                    CustomTextButton(text = "Продолжить без синхронизации") {
+                                    CTextButton(text = "Продолжить без синхронизации") {
                                         component.checkNInterface.nSuccess()
                                         component.onOutput(RootComponent.Output.NavigateToHome)
                                     }
@@ -1016,7 +1013,7 @@ fun RootContent(
                                 it is NetworkState.None && !model.isTokenValid -> {
                                     Text("Ваш токен недействителен!")
                                     Spacer(Modifier.height(7.dp))
-                                    CustomTextButton(text = "Перезайти в аккаунт") {
+                                    CTextButton(text = "Перезайти в аккаунт") {
                                         component.onOutput(RootComponent.Output.NavigateToAuth)
                                         component.onEvent(
                                             RootStore.Intent.ChangeTokenValidationStatus(
@@ -1043,7 +1040,7 @@ fun RootContent(
         AlertDialog(
             onDismissRequest = { isNewVersionDialogShowing.value = false },
             confirmButton = {
-                CustomTextButton(
+                CTextButton(
                     text = "Понятно"
                 ) {
                     isNewVersionDialogShowing.value = false

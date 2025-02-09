@@ -2,9 +2,7 @@ package homeComponents
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
@@ -12,9 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import components.CustomTextButton
-import components.DefaultErrorView
-import components.LoadingAnimation
+import components.foundation.DefaultErrorView
+import components.foundation.LoadingAnimation
 import components.NotificationItem
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState

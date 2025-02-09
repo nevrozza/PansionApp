@@ -1,47 +1,88 @@
-import androidx.compose.animation.*
+
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.hazeMask
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.DatesLine
+import components.GetAsyncIcon
+import components.MinistryKidItem
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.CTextField
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.cClickable
+import components.journal.Stepper
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import components.refresh.RefreshWithoutPullCircle
+import components.refresh.rememberPullRefreshState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 import ministry.MinistryComponent
 import ministry.MinistryStore
 import resources.RIcons
+import server.Ministries
 import server.headerTitlesForMinistry
 import view.LocalViewManager
-import view.esp
-import dev.chrisbanes.haze.HazeInputScale
-import pullRefresh.rememberPullRefreshState
-import server.Ministries
-import view.GlobalHazeState
 
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalHazeApi::class
+)
 @Composable
 fun SharedTransitionScope.MinistryContent(
     component: MinistryComponent,
@@ -77,14 +118,17 @@ fun SharedTransitionScope.MinistryContent(
             val isHaze = viewManager.hazeHardware.value
             Column(
                 Modifier.then(
-                    if (isHaze) Modifier.hazeChild(
-                        state = GlobalHazeState.current,
-                        style = LocalHazeStyle.current
-                    ) {
-                        inputScale = HazeInputScale.Fixed(0.7f)
-                        mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                    if (isHaze) //Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = view.hazeProgressive
-                    }
+                        Modifier.hazeEffect(
+                            state = GlobalHazeState.current,
+                            style = LocalHazeStyle.current,
+                            block = fun HazeEffectScope.() {
+                                inputScale = HazeInputScale.Fixed(0.7f)
+                                mask =
+                                    hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                                //                        progressive = view.hazeProgressive
+                            })
                     else Modifier
                 )
             ) {
@@ -130,7 +174,7 @@ fun SharedTransitionScope.MinistryContent(
                             onClick = { component.onOutput(MinistryComponent.Output.Back) }
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft
+                                path = RIcons.CHEVRON_LEFT
                             )
                         }
                     },
@@ -165,7 +209,6 @@ fun SharedTransitionScope.MinistryContent(
 
 
                     },
-                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
                     isTransparentHaze = isHaze
                 )
                 DatesLine(
@@ -219,7 +262,7 @@ fun SharedTransitionScope.MinistryContent(
                 items(model.forms, key = { it.id }) { form ->
                     val isOpened = remember(form.id) { mutableStateOf(true) }
                     Column(Modifier.animateContentSize()) {
-                        val kidList = (ministryList?.kids[form.id]) ?: listOf()
+                        val kidList = (ministryList?.kids?.get(form.id)) ?: listOf()
                         Text(
                             "${form.form.classNum}-${form.form.shortTitle}",
                             fontSize = 22.esp,
@@ -299,19 +342,19 @@ fun SharedTransitionScope.MinistryContent(
                     Text("МВД")
                     Spacer(Modifier.width(10.dp))
                     GetAsyncIcon(
-                        RIcons.Shield
+                        RIcons.SHIELD
                     )
                 }
                 Spacer(Modifier.height(10.dp))
                 ElevatedButton(
                     onClick = {
-                        component.onEvent(MinistryStore.Intent.ChangeMinistry(Ministries.DressCode))
+                        component.onEvent(MinistryStore.Intent.ChangeMinistry(Ministries.DRESS_CODE))
                     }
                 ) {
                     Text("Здравоохранение")
                     Spacer(Modifier.width(10.dp))
                     GetAsyncIcon(
-                        RIcons.Styler
+                        RIcons.STYLER
                     )
                 }
 
@@ -357,7 +400,7 @@ fun SharedTransitionScope.MinistryContent(
                 )
             }
 
-            CustomTextField(
+            CTextField(
                 value = model.mvdCustom,
                 onValueChange = {
                     component.onEvent(

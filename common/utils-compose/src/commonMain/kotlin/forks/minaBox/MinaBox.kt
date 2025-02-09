@@ -61,11 +61,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
-import deviceType
+import deviceSupport.DeviceTypex
+import deviceSupport.deviceType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import server.DeviceTypex
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -83,7 +83,7 @@ import kotlin.math.roundToInt
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-public fun MinaBox(
+fun MinaBox(
     modifier: Modifier = Modifier,
     outerPadding: PaddingValues = PaddingValues(0.dp),
     state: MinaBoxState = rememberMinaBoxState(),
@@ -488,7 +488,7 @@ private fun Modifier.lazyLayoutPointerInput(
 
                         // for WEB || JVM controls this automatically
                         val isHorizontal =
-                            deviceType == DeviceTypex.web && event.keyboardModifiers.isShiftPressed //&& !state.translateY.isRunning
+                            deviceType == DeviceTypex.WEB && event.keyboardModifiers.isShiftPressed //&& !state.translateY.isRunning
                         when (scrollDirection) {
                             MinaBoxScrollDirection.BOTH ->
                                 onMouseScroll(

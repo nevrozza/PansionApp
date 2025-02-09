@@ -1,17 +1,17 @@
 package groups.forms
 
 import AdminRepository
-import CDispatcher
 import admin.groups.forms.FormInit
 import admin.groups.forms.outside.REditFormReceive
-import admin.groups.subjects.REditGroupReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
+import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import groups.forms.FormsStore.Intent
 import groups.forms.FormsStore.Label
-import groups.forms.FormsStore.State
 import groups.forms.FormsStore.Message
+import groups.forms.FormsStore.State
 import kotlinx.coroutines.launch
 
 class FormsExecutor(
@@ -21,39 +21,39 @@ class FormsExecutor(
     private val creatingFormBottomSheet: CBottomSheetComponent,
     private val editFormBottomSheet: CBottomSheetComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
-    override fun executeIntent(i: Intent) {
-        when (i) {
-            is Intent.ClickOnForm -> chooseForm(i.formId)
+    override fun executeIntent(intent: Intent) {
+        when (intent) {
+            is Intent.ClickOnForm -> chooseForm(intent.formId)
 
-            is Intent.ChangeCFormTitle -> dispatch(Message.CFormTitleChanged(i.title))
-            is Intent.ChangeCFormClassNum -> dispatch(Message.CFormClassNumChanged(i.classNum))
-            is Intent.ChangeCFormShortTitle -> dispatch(Message.CFormShortTitleChanged(i.shortTitle))
+            is Intent.ChangeCFormTitle -> dispatch(Message.CFormTitleChanged(intent.title))
+            is Intent.ChangeCFormClassNum -> dispatch(Message.CFormClassNumChanged(intent.classNum))
+            is Intent.ChangeCFormShortTitle -> dispatch(Message.CFormShortTitleChanged(intent.shortTitle))
             Intent.CreateForm -> createForm(state())
 
             Intent.OpenFormGroupCreationMenu -> dispatch(Message.FormGroupCreatingMenuOpened)
             Intent.CloseFormGroupCreationMenu -> dispatch(Message.FormGroupCreationMenuClosed)
 
-            is Intent.ChangeCFormGroupGroupId -> dispatch(Message.CFormGroupGroupIdChanged(i.groupId))
-            is Intent.ChangeCFormGroupSubjectId -> changeCFormGroupSubjectId(i.subjectId)
-            is Intent.ChangeCFormMentorLogin -> dispatch(Message.CFormMentorLoginChanged(i.mentorLogin))
+            is Intent.ChangeCFormGroupGroupId -> dispatch(Message.CFormGroupGroupIdChanged(intent.groupId))
+            is Intent.ChangeCFormGroupSubjectId -> changeCFormGroupSubjectId(intent.subjectId)
+            is Intent.ChangeCFormMentorLogin -> dispatch(Message.CFormMentorLoginChanged(intent.mentorLogin))
             Intent.CreateFormGroup -> createFormGroup(state())
             Intent.UpdateMentors -> updateMentors()
             is Intent.DeleteFormGroup -> deleteFormGroup(
-                subjectId = i.subjectId,
-                groupId = i.groupId
+                subjectId = intent.subjectId,
+                groupId = intent.groupId
             )
 
-            is Intent.ChangeEFormClassNum -> dispatch(Message.ChangeEFormClassNum(i.classNum))
-            is Intent.ChangeEFormMentorLogin -> dispatch(Message.ChangeEFormMentorLogin(i.mentorLogin))
-            is Intent.ChangeEFormShortTitle -> dispatch(Message.ChangeEFormShortTitle(i.shortTitle))
-            is Intent.ChangeEFormTitle -> dispatch(Message.ChangeEFormTitle(i.title))
+            is Intent.ChangeEFormClassNum -> dispatch(Message.ChangeEFormClassNum(intent.classNum))
+            is Intent.ChangeEFormMentorLogin -> dispatch(Message.ChangeEFormMentorLogin(intent.mentorLogin))
+            is Intent.ChangeEFormShortTitle -> dispatch(Message.ChangeEFormShortTitle(intent.shortTitle))
+            is Intent.ChangeEFormTitle -> dispatch(Message.ChangeEFormTitle(intent.title))
             Intent.EditForm -> editForm()
-            is Intent.EditFormInit -> dispatch(Message.EditFormInit(i.formId))
+            is Intent.EditFormInit -> dispatch(Message.EditFormInit(intent.formId))
         }
     }
 
     private fun editForm() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 editFormBottomSheet.nInterface.nStartLoading()
                 adminRepository.editForm(
@@ -67,7 +67,7 @@ class FormsExecutor(
                         )
                     )
                 )
-                scope.launch {
+                withMain {
                     updateForms()
                     editFormBottomSheet.fullySuccess()
                 }
@@ -82,12 +82,13 @@ class FormsExecutor(
 
     private fun changeCFormGroupSubjectId(subjectId: Int) {
         dispatch(Message.CFormGroupSubjectIdChanged(subjectId))
-        scope.launch {
+        scope.launchIO {
             try {
                 val cutedGroups =
                     adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().formGroups.map { it.groupId } }
-
-                dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
+                withMain {
+                    dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
+                }
 //                creatingFormBottomSheet.nInterface.nSuccess()
             } catch (_: Throwable) {
 //                creatingFormBottomSheet.nInterface.nError("Не удалось загрузить список") {
@@ -100,11 +101,13 @@ class FormsExecutor(
 
     private fun updateMentors() {
         creatingFormBottomSheet.nInterface.nStartLoading()
-        scope.launch {
+        scope.launchIO {
             try {
                 val mentors = adminRepository.fetchAllMentors().mentors
-                dispatch(Message.MentorsUpdated(mentors))
-                creatingFormBottomSheet.nInterface.nSuccess()
+                withMain {
+                    dispatch(Message.MentorsUpdated(mentors))
+                    creatingFormBottomSheet.nInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 creatingFormBottomSheet.nInterface.nError("Не удалось загрузить список", e) {
                     updateMentors()
@@ -119,8 +122,6 @@ class FormsExecutor(
         } else {
             scope.launch {
                 try {
-
-//                    dispatch(Message.FormsProcessStarted(formId))
                     dispatch(Message.ChosenFormIdChanged(formId))
                     nFormGroupsInterface.nStartLoading()
                     updateFormGroups(formId)
@@ -138,7 +139,7 @@ class FormsExecutor(
     }
 
     private fun createForm(state: State) {
-        scope.launch {
+        scope.launchIO {
 //            dispatch(GroupsStore.Message.CreatingFormProcessStarted)
             //nInterfaceOfSheetLoading
             creatingFormBottomSheet.nInterface.nStartLoading()
@@ -150,14 +151,15 @@ class FormsExecutor(
                     shortTitle = state.cFormShortTitle
                 )
 
-
-                dispatch(Message.CFormTitleChanged(""))
-                dispatch(Message.CFormClassNumChanged(""))
-                dispatch(Message.CFormShortTitleChanged(""))
-                dispatch(Message.CFormMentorLoginChanged(""))
+                withMain {
+                    dispatch(Message.CFormTitleChanged(""))
+                    dispatch(Message.CFormClassNumChanged(""))
+                    dispatch(Message.CFormShortTitleChanged(""))
+                    dispatch(Message.CFormMentorLoginChanged(""))
 
 //                dispatch(GroupsStore.Message.FormCreated(forms))
-                creatingFormBottomSheet.fullySuccess()
+                    creatingFormBottomSheet.fullySuccess()
+                }
                 //nInterfaceOfSheet
             } catch (e: Throwable) {
 //                dispatch(GroupsStore.Message.CreationFormError)
@@ -168,7 +170,9 @@ class FormsExecutor(
                 }
                 //nInterfaceOfSheetError
             }
-            updateForms()
+            withMain {
+                updateForms()
+            }
         }
     }
 
@@ -206,7 +210,7 @@ class FormsExecutor(
     }
 
     private fun createFormGroup(state: State) {
-        scope.launch {
+        scope.launchIO {
 //            dispatch(Message.CreatingProcessStarted)
             nFormGroupsInterface.nStartLoading()
             try {
@@ -215,8 +219,9 @@ class FormsExecutor(
                     subjectId = state.cFormGroupSubjectId,
                     groupId = state.cFormGroupGroupId
                 )
-                dispatch(Message.FormGroupCreated)
-
+                withMain {
+                    dispatch(Message.FormGroupCreated)
+                }
             } catch (e: Throwable) {
                 with(nFormGroupsInterface) {
                     nError("Что-то пошло не так =/", e, onFixErrorClick = {
@@ -224,14 +229,16 @@ class FormsExecutor(
                     })
                 }
             }
-            try {
-                updateFormGroups(state.chosenFormId)
-            } catch (e: Throwable) {
-                nFormGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
-                    this.launch {
-                        updateFormGroups(state.chosenFormId)
-                    }
-                })
+            withMain {
+                try {
+                    updateFormGroups(state.chosenFormId)
+                } catch (e: Throwable) {
+                    nFormGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
+                        this.launch {
+                            updateFormGroups(state.chosenFormId)
+                        }
+                    })
+                }
             }
 
         }

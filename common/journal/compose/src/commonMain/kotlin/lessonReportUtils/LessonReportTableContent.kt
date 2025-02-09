@@ -27,12 +27,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import components.CustomTextButton
+import components.foundation.CTextButton
 import components.GetAsyncIcon
-import components.MarkContent
-import components.Stepper
+import components.journal.MarkContent
+import components.journal.Stepper
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
-import hv
 import lessonReport.ColumnTypes
 import lessonReport.LessonReportComponent
 import lessonReport.LessonReportStore
@@ -46,6 +45,7 @@ import server.roundTo
 import server.st
 import server.toMinutes
 import setMarksBind
+import utils.hv
 
 
 @Composable
@@ -57,13 +57,13 @@ fun LessonReportTableCell(
 ) {
     val isPersonWasOnLesson = student.attended?.attendedType in listOf("0", null)
     when (column.type) {
-        ColumnTypes.prisut -> PrisutBox(
+        ColumnTypes.PRISUT -> PrisutBox(
             student, model, component
         )
-        ColumnTypes.opozdanie -> OpozdanieBox(
+        ColumnTypes.OPOZDANIE -> OpozdanieBox(
             student, isPersonWasOnLesson, model, component
         )
-        ColumnTypes.srBall -> SrBallBox(
+        ColumnTypes.SR_BALL -> SrBallBox(
             student, component
         )
         else -> RatingEntityCell(
@@ -180,7 +180,7 @@ private fun OpozdanieBox(
                                 )
                             }) {
                             GetAsyncIcon(
-                                RIcons.MoreVert
+                                RIcons.MORE_VERT
                             )
                         }
                         if (model.selectedLogin == student.login) {
@@ -220,7 +220,7 @@ private fun OpozdanieBox(
                             )
                         }) {
                         GetAsyncIcon(
-                            RIcons.Close
+                            RIcons.CLOSE
                         )
                     }
                 }
@@ -245,7 +245,7 @@ private fun SrBallBox(
             fontWeight = FontWeight.Black
         )
     } else {
-        CustomTextButton(
+        CTextButton(
             text = value.roundTo(2),
             fontWeight = FontWeight.Black,
             color = MaterialTheme.colorScheme.onSurface
@@ -349,7 +349,7 @@ private fun MarksBox(
                     contentAlignment = Alignment.Center
                 ) {
                     GetAsyncIcon(
-                        RIcons.Add,
+                        RIcons.ADD,
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }

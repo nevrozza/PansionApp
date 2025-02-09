@@ -1,32 +1,29 @@
+
+import deviceSupport.DeviceTypex
 import resources.RIcons
-import server.DeviceTypex
 
 fun getDeviceIcon(deviceType: String, deviceName: String): String {
     return when (deviceType) {
-        DeviceTypex.desktop -> when {
-            deviceName.contains("windows", true) -> RIcons.Devices.Desktop.windows
-            deviceName.contains("mac", true)
-                || deviceName.contains("air", true)
-                || deviceName.contains("pro", true) -> RIcons.Devices.Desktop.laptop
-
-            else -> RIcons.Devices.Desktop.computer
-        }
-
-        DeviceTypex.android -> RIcons.Devices.Mobile.Android
-        DeviceTypex.ios -> RIcons.Devices.Mobile.Apple
-        DeviceTypex.web -> with(RIcons.Devices.Web) {
+        DeviceTypex.MAC -> RIcons.Devices.Desktop.LAPTOP
+        DeviceTypex.WINDOWS -> RIcons.Devices.Desktop.WINDOWS
+        DeviceTypex.LINUX -> RIcons.Devices.Desktop.COMPUTER
+        "Desktop" ->  RIcons.Devices.Desktop.COMPUTER
+        DeviceTypex.ANDROID -> RIcons.Devices.Mobile.ANDROID
+        DeviceTypex.IOS -> RIcons.Devices.Mobile.APPLE
+        "IOS" -> RIcons.Devices.Mobile.APPLE
+        DeviceTypex.WEB -> with(RIcons.Devices.Web) {
             when {
-                deviceName.contains("edge", true) -> Edge
-                deviceName.contains("chrome", true) -> Chrome
-                deviceName.contains("safari", true) -> Safari
-                deviceName.contains("yandex", true) -> Yandex
-                deviceName.contains("opera", true) -> Opera
-                deviceName.contains("firefox", true) -> Firefox
-                else -> Web
+                deviceName.contains("edge", true) -> EDGE
+                deviceName.contains("chrome", true) -> CHROME
+                deviceName.contains("safari", true) -> SAFARI
+                deviceName.contains("yandex", true) -> YANDEX
+                deviceName.contains("opera", true) -> OPERA
+                deviceName.contains("firefox", true) -> FIREFOX
+                else -> WEB
             }
         }
 
-        else -> RIcons.QuestionCircle
+        else -> RIcons.QUESTION_CIRCLE
 
     }
 }

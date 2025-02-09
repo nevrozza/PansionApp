@@ -19,9 +19,9 @@ object UsersReducer : Reducer<State, Message> {
             is Message.CBirthdayChanged -> copy(cBirthday = msg.birthday)
             is Message.CRoleChanged -> copy(
                 cRole = msg.role,
-                cIsModerator = if (msg.role == Roles.student) false else cIsModerator,
-                cIsMentor = if (msg.role == Roles.student) false else cIsMentor,
-                cIsParent = if (msg.role == Roles.student) false else cIsParent
+                cIsModerator = if (msg.role == Roles.STUDENT) false else cIsModerator,
+                cIsMentor = if (msg.role == Roles.STUDENT) false else cIsMentor,
+                cIsParent = if (msg.role == Roles.STUDENT) false else cIsParent
             )
             is Message.CIsModeratorChanged -> copy(cIsModerator = msg.isModerator)
             is Message.CIsMentorChanged -> copy(cIsMentor = msg.isMentor)
@@ -51,9 +51,9 @@ object UsersReducer : Reducer<State, Message> {
             is Message.EBirthdayChanged -> copy(eBirthday = msg.birthday)
             is Message.ERoleChanged -> copy(
                 eRole = msg.role,
-                eIsModerator = if (msg.role == Roles.student) false else eIsModerator,
-                eIsMentor = if (msg.role == Roles.student) false else eIsMentor,
-                eIsParent = if (msg.role == Roles.student) false else eIsParent
+                eIsModerator = if (msg.role == Roles.STUDENT) false else eIsModerator,
+                eIsMentor = if (msg.role == Roles.STUDENT) false else eIsMentor,
+                eIsParent = if (msg.role == Roles.STUDENT) false else eIsParent
             )
             is Message.EIsModeratorChanged -> copy(eIsModerator = msg.isModerator)
             is Message.EIsMentorChanged -> copy(eIsMentor = msg.isMentor)

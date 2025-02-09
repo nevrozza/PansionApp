@@ -3,10 +3,10 @@ package users
 import admin.groups.forms.CutedForm
 import admin.users.ToBeCreatedStudent
 import admin.users.User
+import applicationTimeZone
 import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.mvikotlin.core.store.Store
 import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import users.UsersStore.Intent
@@ -21,7 +21,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         val subjects: Map<Int, String> = emptyMap(),
         val isDateDialogShowing: Boolean = false,
         val currentYear: Int = Clock.System.now()
-            .toLocalDateTime(TimeZone.of("UTC+3")).year,
+            .toLocalDateTime(applicationTimeZone).year,
         val currentMillis: Long = Clock.System.now().toEpochMilliseconds(),
         val cLogin: String = "",
         val cParentLogins: List<String>? = null,

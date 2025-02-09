@@ -1,4 +1,5 @@
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -23,14 +24,16 @@ import com.arkivanov.essenty.lifecycle.stop
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.benasher44.uuid.uuid4
 import dev.chrisbanes.haze.HazeState
+import deviceSupport.deviceType
+import deviceSupport.getWebDeviceName
+import deviceSupport.initIsLockedVerticalView
 import di.Inject
-import forks.colorPicker.toHex
+import utils.toHex
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 import js.core.asList
 import org.jetbrains.skiko.wasm.onWasmReady
 import root.RootComponentImpl
-import server.DeviceTypex
 import kotlinx.browser.window
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
@@ -62,7 +65,7 @@ fun main() {
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
             deviceName = deviceName.cut(20),
-            deviceType = DeviceTypex.web,
+            deviceType = deviceType,
             deviceId = getOrCreateDeviceUUID() //navigator.userAgent
         )
     )

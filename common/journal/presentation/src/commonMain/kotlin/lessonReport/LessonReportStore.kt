@@ -207,9 +207,9 @@ data class ReportColumn(
 )
 
 object ColumnTypes {
-    const val prisut = "!pr"
-    const val srBall = "!sr"
-    const val opozdanie = "!la"
+    const val PRISUT = "!pr"
+    const val SR_BALL = "!sr"
+    const val OPOZDANIE = "!la"
 }
 
 //sealed interface ColumnTypes {

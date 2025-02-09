@@ -139,7 +139,7 @@ class MinistryComponent(
             ListDialogStore.Intent.InitList(
                 listOf(
                     Ministries.MVD to "МВД",
-                    Ministries.DressCode to "Здравоохранение",
+                    Ministries.DRESS_CODE to "Здравоохранение",
                 )
                     .map {
                         ListItem(

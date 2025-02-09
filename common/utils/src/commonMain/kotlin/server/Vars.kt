@@ -1,77 +1,58 @@
 package server
 
-import kotlinx.datetime.TimeZone
-
 
 const val delayForNewQRToken : Long = 1000 * 60 * 5
 
-val appTimeZone = TimeZone.of("UTC+3")
-
 object ExtraSubjectsId {
-    const val common = -1
-    const val mvd = -2
-    const val social = -3
-    const val creative = -4
-    const val zdraoovhranenie = -5
+    const val COMMON = -1
+    const val MVD = -2
+    const val SOCIAL = -3
+    const val CREATIVE = -4
+    const val ZDRAV = -5
 }
 
 object ScheduleIds {
-    const val extra = -6
-    const val food = -11
+    const val EXTRA = -6
+    const val FOOD = -11
 }
 
 val headerTitlesForMinistry = mapOf(
     "0" to "...",
     Ministries.MVD to "МВД",
-    Ministries.Culture to "Культура",
-    Ministries.DressCode to "Здравоохранение",
-    Ministries.Education to "Образование",
-    Ministries.Print to "Печать",
-    Ministries.Social to "Соц опрос",
-    Ministries.Sport to "Спорт",
+    Ministries.CULTURE to "Культура",
+    Ministries.DRESS_CODE to "Здравоохранение",
+    Ministries.EDUCATION to "Образование",
+    Ministries.PRINT to "Печать",
+    Ministries.SOCIAL to "Соц опрос",
+    Ministries.SPORT to "Спорт",
 )
 
-object DeviceTypex {
-    const val android = "Android"
-    const val ios = "IOS"
-    const val web = "WEB"
-    const val desktop = "Desktop"
-}
 
 object Roles {
-
-    const val nothing = "0"
-    const val student = "1"
-    const val teacher = "2"
+    const val NOTHING = "0"
+    const val STUDENT = "1"
+    const val TEACHER = "2"
 }
 
 object Ministries {
     const val MVD = "1"
-    const val Culture = "2"
-    const val Social = "3"
-    const val DressCode = "4"
-    const val Education = "5"
-    const val Sport = "6"
-    const val Print = "7"
+    const val CULTURE = "2"
+    const val SOCIAL = "3"
+    const val DRESS_CODE = "4"
+    const val EDUCATION = "5"
+    const val SPORT = "6"
+    const val PRINT = "7"
 }
 
 object Moderation {
-    const val nothing = "0"
-    const val mentor = "1"
-    const val moderator = "2"
-    const val both = "3"
-//    const val superModerator = "4"
-//    const val superBoth = "5"
-}
-
-object IsParentStatus {
-
-    const val no = "0"
-    const val yes = "1"
+    const val NOTHING = "0"
+    const val MENTOR = "1"
+    const val MODERATOR = "2"
+    const val BOTH = "3"
 }
 
 object DataLength {
-    const val passwordLength = 70
+    const val PASSWORD_LENGTH = 70
 }
 
 

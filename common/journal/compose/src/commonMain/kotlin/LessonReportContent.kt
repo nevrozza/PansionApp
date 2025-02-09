@@ -5,6 +5,8 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,7 +24,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -86,27 +87,25 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
-import androidx.compose.ui.util.fastSumBy
 import androidx.compose.ui.window.DialogProperties
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedElevatedButton
-import components.AppBar
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.CustomTextField
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
 import components.ErrorAnimation
 import components.GetAsyncIcon
-import components.MarkContent
-import components.ReportTitle
 import components.SaveAnimation
-import components.TeacherTime
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
-import components.cClickable
-import components.hazeUnder
+import components.foundation.AnimatedElevatedButton
+import components.foundation.AppBar
+import components.foundation.CCheckbox
+import components.foundation.CTextButton
+import components.foundation.CTextField
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.cClickable
+import components.foundation.hazeUnder
+import components.journal.MarkContent
+import components.journal.ReportTitle
+import components.journal.TeacherTime
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkState
@@ -134,10 +133,9 @@ import lessonReportUtils.getMaxStupsCount
 import resources.RIcons
 import server.fetchReason
 import server.roundTo
+import utils.LockScreenOrientation
+import view.DefaultMultiPane
 import view.LocalViewManager
-import view.LockScreenOrientation
-import view.esp
-import view.popupPositionProvider
 import kotlin.math.max
 
 
@@ -339,7 +337,7 @@ fun LessonReportOverlay(
                                                 )
                                             }
                                             if (nHomeTasksModel.state is NetworkState.Error) {
-                                                CustomTextButton("Кнопка") {
+                                                CTextButton("Кнопка") {
                                                     nHomeTasksModel.onFixErrorClick()
                                                 }
                                             }
@@ -353,7 +351,7 @@ fun LessonReportOverlay(
                                                     enabled = true
                                                 ) {
                                                     GetAsyncIcon(
-                                                        RIcons.Save
+                                                        RIcons.SAVE
                                                     )
                                                 }
                                             }
@@ -368,7 +366,7 @@ fun LessonReportOverlay(
                                                 }
                                             ) {
                                                 GetAsyncIcon(
-                                                    RIcons.History
+                                                    RIcons.HISTORY
                                                 )
                                             }
                                         }
@@ -394,7 +392,7 @@ fun LessonReportOverlay(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Tune
+                                RIcons.TUNE
                             )
                         }
                         if (component.model.value.isEditable) {
@@ -411,7 +409,7 @@ fun LessonReportOverlay(
                                 }
                             ) {
                                 GetAsyncIcon(
-                                    path = RIcons.Thumbtack
+                                    path = RIcons.THUMBTACK
                                 )
                             }
                         }
@@ -428,7 +426,7 @@ fun LessonReportOverlay(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.HomeWork
+                                RIcons.HOMEWORK
                             )
                         }
                         AnimatedVisibility(model.settingsTab == LessonReportStore.SettingsTab.SetupTab) {
@@ -441,12 +439,12 @@ fun LessonReportOverlay(
                             ) {
                                 Box(Modifier.size(30.dp)) {
                                     GetAsyncIcon(
-                                        RIcons.Like,
+                                        RIcons.LIKE,
                                         size = 16.dp,
                                         modifier = Modifier.align(Alignment.TopStart)
                                     )
                                     GetAsyncIcon(
-                                        RIcons.Like,
+                                        RIcons.LIKE,
                                         size = 16.dp,
                                         modifier = Modifier.rotate(180f).align(Alignment.BottomEnd)
                                     )
@@ -517,7 +515,7 @@ fun LessonReportContent(
                                     when (it) {
                                         NetworkState.None -> {
                                             GetAsyncIcon(
-                                                RIcons.Save
+                                                RIcons.SAVE
                                             )
                                         }
 
@@ -735,7 +733,7 @@ private fun HomeWorkTabContent(
                                                     .align(Alignment.CenterEnd)
                                             ) {
                                                 GetAsyncIcon(
-                                                    RIcons.Edit,
+                                                    RIcons.EDIT,
                                                     size = 15.dp
                                                 )
                                             }
@@ -759,7 +757,7 @@ private fun HomeWorkTabContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.PersonAdd
+                                RIcons.PERSON_ADD
                             )
                         }
                     }
@@ -822,7 +820,7 @@ private fun HomeWorkTabContent(
                                 )
                             }
                         }) {
-                        CustomCheckbox(
+                        CCheckbox(
                             checked = isChecked
                         )
                         Spacer(Modifier.width(5.dp))
@@ -875,7 +873,7 @@ private fun ReportHomeTaskItem(
                                 val chevronRotation =
                                     animateFloatAsState(if (expandedType) 90f else -90f)
                                 GetAsyncIcon(
-                                    path = RIcons.ChevronLeft,
+                                    path = RIcons.CHEVRON_LEFT,
                                     modifier = Modifier.padding(end = 10.dp)
                                         .rotate(chevronRotation.value),
                                     size = 15.dp
@@ -914,7 +912,7 @@ private fun ReportHomeTaskItem(
 
                     Spacer(Modifier.width(8.dp))
                     if (isStups) {
-                        CustomTextField(
+                        CTextField(
                             value = if (task.stups == 0) "" else task.stups.toString(),
                             onValueChange = {
                                 if (component.model.value.isEditable) {
@@ -942,7 +940,7 @@ private fun ReportHomeTaskItem(
                     }
                 }
 
-                CustomTextField(
+                CTextField(
                     value = task.text,
                     onValueChange = {
                         if (component.model.value.isEditable) {
@@ -984,7 +982,7 @@ private fun ReportHomeTaskItem(
                 ) {
                     Text("Обязательное задание")
                     Spacer(Modifier.width(6.dp))
-                    CustomCheckbox(
+                    CCheckbox(
                         checked = task.isNec
                     )
                 }
@@ -1013,7 +1011,7 @@ private fun ReportHomeTaskItem(
             modifier = Modifier.size(20.dp).align(Alignment.TopEnd)
         ) {
             GetAsyncIcon(
-                RIcons.Menu
+                RIcons.MENU
             )
         }
     }
@@ -1048,7 +1046,7 @@ private fun SetupTabContent(
             .padding(start = 30.dp)
     ) {
 
-        CustomTextField(
+        CTextField(
             value = model.topic,
             onValueChange = {
                 if (component.model.value.isEditable) {
@@ -1113,7 +1111,7 @@ private fun SetupTabContent(
 
             Spacer(Modifier.height(10.dp))
         }
-        CustomTextField(
+        CTextField(
             value = model.description,
             onValueChange = {
                 if (component.model.value.isEditable) {
@@ -1143,7 +1141,7 @@ private fun SetupTabContent(
                     component.onEvent(LessonReportStore.Intent.ChangeIsMentorWas)
                 }) {
                 Text("Наставник")
-                CustomCheckbox(
+                CCheckbox(
                     checked = isChecked,
                     modifier = Modifier.padding(start = 10.dp).size(25.dp)
                 )
@@ -1412,7 +1410,7 @@ private fun ColumnsSettingsItem(
             if (!isExpanded) {
                 val chevronRotation = animateFloatAsState(if (isOpened.value) 90f else -90f)
                 GetAsyncIcon(
-                    path = RIcons.ChevronLeft,
+                    path = RIcons.CHEVRON_LEFT,
                     modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                     size = 15.dp
                 )
@@ -1469,7 +1467,7 @@ private fun ColumnsSettingsItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    CustomCheckbox(
+                    CCheckbox(
                         checked = isChecked,
                         modifier = Modifier.size(25.dp)
                     )
@@ -1495,20 +1493,8 @@ fun LessonTable(
 //    val viewManager = LocalViewManager.current
 
     val density = LocalDensity.current
-    val vScrollState = rememberLazyListState()
-    val hScrollState = rememberScrollState()
 
-    val allHeight = remember { mutableStateOf(0.dp) }
-    val allWidth = remember { mutableStateOf(0.dp) }
     val lP = 50.dp
-
-    allWidth.value = remember {
-        model.columnNames.map {
-            getColumnWidth(it)
-        }.fastSumBy { it.value.toInt() }.dp + lP
-    }
-
-    allHeight.value = remember { 25.dp + (model.students.size * 55.dp) }
 
     val columnsCount = model.columnNames.size
     val rowsCount = (model.students.size)
@@ -1636,458 +1622,6 @@ fun LessonTable(
         }
     }
 
-
-//    ScrollBaredBox(
-//        vState = vScrollState, hState = hScrollState,
-//        height = allHeight, width = allWidth,
-//        modifier = Modifier.animateContentSize()
-//    ) {
-//        Box() { //Modifier.horizontalScroll(hScrollState)
-//
-//
-//
-////            LazyColumn(state = vScrollState) {
-////                stickyHeader {
-////                    Row(
-////                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-////                        verticalAlignment = Alignment.CenterVertically,
-////                    ) {
-//                        Spacer(Modifier.width(lP))
-//                        model.columnNames.forEach { column ->
-//                            val w = getColumnWidth(column)
-//                            Row(Modifier.width(w)) {
-//                                Box(
-//                                    modifier = Modifier.width(
-//                                         w - 1.5.dp
-//                                    ),
-//                                    contentAlignment = Alignment.Center
-//                                ) {
-//                                    Row(
-//                                        verticalAlignment = Alignment.CenterVertically,
-//                                        horizontalArrangement = Arrangement.Center
-//                                    ) {
-//                                        Box() {
-//                                            when (column.type.subSequence(0, 3)) {
-//                                                "!dz" -> {
-//                                                    GetAsyncIcon(
-//                                                        RIcons.Home,
-//                                                        size = 14.dp,
-//                                                        modifier = Modifier.offset(
-//                                                            y = (0).dp,
-//                                                            x = -1.dp
-//                                                        )
-//                                                    )
-//                                                }
-//
-//                                                "!st" -> {
-//                                                    GetAsyncIcon(
-//                                                        RIcons.Star,
-//                                                        size = 14.dp,
-//                                                        modifier = Modifier.offset(
-//                                                            y = (0).dp,
-//                                                            x = -1.dp
-//                                                        )
-//                                                    )
-//                                                }
-//
-//                                                "!ds" -> {
-//                                                    GetAsyncIcon(
-//                                                        RIcons.Shield,
-//                                                        size = 14.dp,
-//                                                        modifier = Modifier.offset(
-//                                                            y = (0).dp,
-//                                                            x = -1.dp
-//                                                        )
-//                                                    )
-//                                                }
-//                                            }
-//                                        }
-//                                        Text(
-//                                            text = column.title.removePrefix("dz")
-//                                                .removePrefix("cl")
-//                                                .removePrefix("st").removePrefix("ds"),
-//                                            fontWeight = FontWeight.ExtraBold,
-//                                            textAlign = TextAlign.Center,
-//
-//                                            overflow = TextOverflow.Ellipsis,
-//                                            softWrap = false
-//                                        )
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                    HorizontalDivider(
-//                        Modifier.padding(start = 1.dp).width(allWidth.value - 1.dp)//.height(1.dp)
-//                        , color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
-//                        thickness = 1.5.dp
-//                    )
-////                }
-////
-//////                itemsIndexed(items = model.students, key = { _, item -> item.login }) { index, student ->
-//////                    val fioColor =
-//////                        MaterialTheme.colorScheme
-//////                            .onSurface.blend(
-//////                                when (student.login) {
-//////                                    in model.likedList -> Color.Green
-//////                                    in model.dislikedList -> Color.Red
-//////                                    else -> MaterialTheme.colorScheme
-//////                                        .onSurface
-//////                                }
-//////                            )
-//////
-//////
-//////
-//////
-//////                    Column {
-//////                        Row(
-//////                            modifier = Modifier
-//////                                .padding(start = 10.dp)
-//////                                .offset(with(density) { hScrollState.value.toDp() }),
-//////                            verticalAlignment = Alignment.CenterVertically
-//////                        ) {
-//////                            Text(
-//////                                text = student.shortFio,
-//////                                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-//////                                fontWeight = FontWeight.Normal,
-//////                                color = fioColor,
-//////                                modifier = Modifier
-//////                            )
-//////                            Spacer(Modifier.width(10.dp))
-//////                            LikeDislikeRow(
-//////                                component = component,
-//////                                student = student
-//////                            )
-//////                        }
-//////                        Row(Modifier.padding(start = lP)) {
-//////                            model.columnNames.forEach { column ->
-//////                                val w = getColumnWidth(column)
-//////                                Row(Modifier.height(IntrinsicSize.Max).width(w)) {
-//////                                    Box(
-//////                                        modifier = Modifier.width(
-//////                                            w - 1.5.dp
-//////                                        ),
-//////                                        contentAlignment = Alignment.Center
-//////                                    ) {
-//////                                        Box(modifier = Modifier.height(25.dp)) {
-//////                                            if (column.type in listOf(
-//////                                                    ColumnTypes.opozdanie,
-//////                                                    ColumnTypes.prisut,
-//////                                                    ColumnTypes.srBall
-//////                                                )
-//////                                            ) {
-//////                                                when (column.type) {
-//////                                                    ColumnTypes.prisut -> {
-//                                                        val isDot = student.attended?.reason != null
-//////                                                        Row(
-//////                                                            verticalAlignment = Alignment.CenterVertically,
-//////                                                            modifier = Modifier.padding(end = if (isDot) 6.dp else 0.dp)
-//////                                                        ) {
-//////                                                            if (isDot) {
-//////                                                                Box(
-//////                                                                    Modifier
-//////                                                                        .size(5.dp).clip(
-//////                                                                            CircleShape
-//////                                                                        )
-//////                                                                        .background(MaterialTheme.colorScheme.primary)
-//////                                                                )
-//////                                                            }
-//////                                                            Spacer(Modifier.width(3.dp))
-//////                                                            PrisutCheckBox(
-//////                                                                modifier = Modifier.size(25.dp),
-//////                                                                attendedType = student.attended?.attendedType
-//////                                                                    ?: "0",
-//////                                                                reason = student.attended?.reason,
-//////                                                                enabled = model.isEditable
-//////                                                            ) {
-//////                                                                component.onEvent(
-//////                                                                    LessonReportStore.Intent.ChangeAttendance(
-//////                                                                        studentLogin = student.login,
-//////                                                                        attendedType = it
-//////                                                                    )
-//////                                                                )
-//////                                                            }
-//////                                                        }
-//////                                                    }
-//////
-//////                                                    ColumnTypes.opozdanie -> {
-//////                                                        Crossfade(student.lateTime) {
-//////                                                            when (it) {
-//////                                                                "0" -> Row(
-//////                                                                    Modifier.fillMaxWidth(),
-//////                                                                    verticalAlignment = Alignment.CenterVertically,
-//////                                                                    horizontalArrangement = Arrangement.Center
-//////                                                                ) {
-//////                                                                    val lessonMinutes =
-//////                                                                        model.time.toMinutes()
-//////                                                                    val currentMinutes =
-//////                                                                        getSixTime().toMinutes()
-//////                                                                    if ((model.date == getDate() && lessonMinutes <= currentMinutes && currentMinutes - lessonMinutes <= 40) && model.isEditable) {
-//////                                                                        FilledTonalButton(
-//////                                                                            enabled = isPersonWasOnLesson,
-//////                                                                            contentPadding = PaddingValues(
-//////                                                                                horizontal = 5.dp
-//////                                                                            ), onClick = {
-//////                                                                                component.onEvent(
-//////                                                                                    LessonReportStore.Intent.SetLateTime(
-//////                                                                                        student.login,
-//////                                                                                        "auto"
-//////                                                                                    )
-//////                                                                                )
-//////                                                                            }) {
-//////                                                                            Text("Опозд.")
-//////                                                                        }
-//////                                                                    }
-//////                                                                    if (component.model.value.isEditable) {
-//////                                                                        Box() {
-//////                                                                            IconButton(
-//////                                                                                enabled = isPersonWasOnLesson,
-//////                                                                                modifier = Modifier.width(
-//////                                                                                    30.dp
-//////                                                                                ), onClick = {
-//////                                                                                    component.onEvent(
-//////                                                                                        LessonReportStore.Intent.OpenSetLateTimeMenu(
-//////                                                                                            student.login,
-//////                                                                                            x = 0f,
-//////                                                                                            y = 0f
-//////                                                                                        )
-//////                                                                                    )
-//////                                                                                }) {
-//////                                                                                GetAsyncIcon(
-//////                                                                                    RIcons.MoreVert
-//////                                                                                )
-//////                                                                            }
-//////                                                                            if (model.selectedLogin == student.login) {
-//////                                                                                ListDialogDesktopContent(
-//////                                                                                    component.setLateTimeMenuComponent,
-//////                                                                                    offset = DpOffset(
-//////                                                                                        x = 27.dp,
-//////                                                                                        y = -18.dp
-//////                                                                                    ),
-//////                                                                                    isFullHeight = true
-//////                                                                                )
-//////                                                                            }
-//////                                                                        }
-//////                                                                    }
-//////                                                                }
-//////
-//////                                                                else -> Row(
-//////                                                                    Modifier.fillMaxWidth(),
-//////                                                                    verticalAlignment = Alignment.CenterVertically,
-//////                                                                    horizontalArrangement = Arrangement.Center
-//////                                                                ) {
-//////                                                                    Text(
-//////                                                                        it,
-//////                                                                        fontWeight = FontWeight.Bold
-//////                                                                    )
-//////                                                                    if (component.model.value.isEditable) {
-//////                                                                        IconButton(
-//////                                                                            modifier = Modifier.width(
-//////                                                                                30.dp
-//////                                                                            ),
-//////                                                                            onClick = {
-//////                                                                                component.onEvent(
-//////                                                                                    LessonReportStore.Intent.SetLateTime(
-//////                                                                                        student.login,
-//////                                                                                        "0"
-//////                                                                                    )
-//////                                                                                )
-//////                                                                            }) {
-//////                                                                            GetAsyncIcon(
-//////                                                                                RIcons.Close
-//////                                                                            )
-//////                                                                        }
-//////                                                                    }
-//////                                                                }
-//////                                                            }
-//////                                                        }
-//////                                                    }
-//////
-//////                                                    ColumnTypes.srBall -> {
-//////
-//////                                                    }
-//////
-//////                                                    else -> Text(
-//////                                                        text = column.title
-//////                                                    )
-//////                                                }
-//////                                            } else if (column.type.subSequence(
-//////                                                    0,
-//////                                                    3
-//////                                                ) !in listOf("!st", "!ds")
-//////                                            ) {
-//////
-//////                                                val marks =
-//////                                                    student.marksOfCurrentLesson.filter { it.reason == column.type }
-//////                                                Row(
-//////                                                    verticalAlignment = Alignment.CenterVertically,
-//////                                                    horizontalArrangement = Arrangement.Center,
-//////                                                ) {
-//////                                                    marks.forEachIndexed { index, mark ->
-//////                                                        Box() {
-//////                                                            MarkContent(
-//////                                                                mark = if (mark.value == "+2") "Д" else mark.value,
-//////                                                                offset = DpOffset(0.dp, -2.dp),
-//////                                                                background = if (student.login == model.selectedLogin && column.type == model.selectedMarkReason && index.toString() == model.selectedMarkValue) {
-//////                                                                    MaterialTheme.colorScheme.primary.copy(
-//////                                                                        alpha = .2f
-//////                                                                    ).hv()
-//////                                                                } else {
-//////                                                                    MaterialTheme.colorScheme.primary.copy(
-//////                                                                        alpha = .2f
-//////                                                                    )
-//////                                                                },
-//////                                                                addModifier = Modifier
-//////                                                                    .clickable(enabled = model.isEditable) {
-//////                                                                        component.onEvent(
-//////                                                                            LessonReportStore.Intent.OpenDeleteMarkMenu(
-//////                                                                                reasonId = column.type,
-//////                                                                                studentLogin = student.login,
-//////                                                                                markValue = index,
-//////                                                                                selectedDeploy = "${mark.deployLogin}: ${mark.deployDate} (${mark.deployTime})"
-//////                                                                            )
-//////                                                                        )
-//////                                                                    },
-//////                                                                paddingValues = PaddingValues(end = if (index != 3) 5.dp else 0.dp)
-//////                                                            )
-//////                                                            if (model.selectedMarkValue == index.toString()
-//////                                                                && (model.selectedLogin == student.login)
-//////                                                                && (model.selectedMarkReason == column.type)
-//////                                                            ) {
-//////                                                                ListDialogDesktopContent(
-//////                                                                    component.deleteMarkMenuComponent,
-//////                                                                    offset = DpOffset(
-//////                                                                        x = 27.dp,
-//////                                                                        y = -18.dp
-//////                                                                    ),
-//////                                                                    title = if (model.isModer) "Выставил ${mark.deployLogin}\nв ${mark.deployDate} (${mark.deployTime})" else null,
-//////                                                                    isFullHeight = true
-//////                                                                )
-//////                                                            }
-//////                                                        }
-//////                                                    }
-//////
-//////                                                    if (marks.size != 4 && model.isEditable) {
-//////                                                        Box() {
-//////                                                            Box(
-//////                                                                Modifier.offset(y = -2.dp)
-//////                                                                    //.padding(start = 5.dp)
-//////                                                                    .size(25.dp)
-//////                                                                    .clip(RoundedCornerShape(percent = 30))
-//////                                                                    .background(
-//////                                                                        if (student.login == model.selectedLogin && column.type == model.selectedMarkReason && model.selectedMarkValue.isBlank()) {
-//////                                                                            MaterialTheme.colorScheme.primary.copy(
-//////                                                                                alpha = .2f
-//////                                                                            ).hv()
-//////                                                                        } else {
-//////                                                                            MaterialTheme.colorScheme.primary.copy(
-//////                                                                                alpha = .2f
-//////                                                                            )
-//////                                                                        }
-//////
-//////                                                                    )
-//////                                                                    .clickable {
-//////                                                                        component.onEvent(
-//////                                                                            LessonReportStore.Intent.OpenSetMarksMenu(
-//////                                                                                reasonId = column.type,
-//////                                                                                studentLogin = student.login,
-//////                                                                                x = 0f,
-//////                                                                                y = 0f
-//////                                                                            )
-//////                                                                        )
-//////                                                                    },
-//////                                                                contentAlignment = Alignment.Center
-//////                                                            ) {
-//////                                                                GetAsyncIcon(
-//////                                                                    RIcons.Add,
-//////                                                                    tint = MaterialTheme.colorScheme.onSurface
-//////                                                                )
-//////                                                            }
-//////                                                            if (model.selectedMarkReason == column.type && model.selectedLogin == student.login) {
-//////                                                                ListDialogDesktopContent(
-//////                                                                    if (column.type.st == "!dz") component.setDzMarkMenuComponent else component.setMarkMenuComponent,
-//////                                                                    offset = DpOffset(
-//////                                                                        x = 27.dp,
-//////                                                                        y = -18.dp
-//////                                                                    ),
-//////                                                                    isFullHeight = true,
-//////                                                                    modifier = Modifier.setMarksBind(
-//////                                                                        component
-//////                                                                    )
-//////                                                                )
-//////                                                            }
-//////                                                        }
-//////                                                    }
-//////                                                }
-//////                                            } else {
-//////                                                val reason =
-//////                                                    column.type
-//////                                                Stepper(
-//////                                                    isEditable = model.isEditable,
-//////                                                    count = (student.stupsOfCurrentLesson.firstOrNull { it.reason == column.type }
-//////                                                        ?: Stup(
-//////                                                            0,
-//////                                                            "",
-//////                                                            id = model.ids,
-//////                                                            deployTime = "",
-//////                                                            deployLogin = "",
-//////                                                            deployDate = "",
-//////                                                            custom = null
-//////                                                        )).value,
-//////                                                    maxCount =
-//////                                                    getMaxStupsCount(reason),
-//////                                                    minCount =
-//////                                                    when (reason) {
-//////                                                        "!st1" -> -1
-//////                                                        "!ds1" -> -1
-//////                                                        "!ds2" -> -3
-//////                                                        "!ds3" -> -10
-//////                                                        else -> 0
-//////                                                    }
-//////                                                ) {
-//////                                                    component.onEvent(
-//////                                                        LessonReportStore.Intent.ChangeStups(
-//////                                                            login = student.login,
-//////                                                            value = it,
-//////                                                            columnReason = column.type
-//////                                                        )
-//////                                                    )
-//////                                                }
-//////                                            }
-//////
-//////                                        }
-//////                                    }
-//////                                }
-//////                            }
-//////                        }
-//////                        Spacer(Modifier.height(5.dp))
-//////                        if (index != model.students.lastIndex) {
-//////                            HorizontalDivider(
-//////                                Modifier.padding(start = 1.dp)
-//////                                    .width(allWidth.value - 1.dp),
-//////                                color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
-//////                                thickness = 1.dp
-//////                            )
-//////                        }
-//////                    }
-//////                }
-////
-////            }
-//
-//            Row {
-//                Spacer(Modifier.width(lP))
-//                model.columnNames.forEach { column ->
-//                    VerticalDivider(
-//                        Modifier.padding(start = getColumnWidth(column)-1.5.dp).padding(
-//                            vertical = 1.dp
-//                        ).height(allHeight.value),
-//                        thickness = (1.5).dp,
-//                        color = MaterialTheme.colorScheme.outline.copy(alpha = .4f)
-//                    )
-//                }
-//            }
-//        }
-//    }
     val detailedMarksName =
         model.students.firstOrNull { it.login == model.detailedMarksLogin }?.shortFio ?: "null"
 
@@ -2129,7 +1663,7 @@ fun LikeDislikeRow(
             component.onEvent(LessonReportStore.Intent.LikeStudent(student.login))
         }, modifier = Modifier.size(20.dp)) {
             GetAsyncIcon(
-                path = RIcons.Like
+                path = RIcons.LIKE
             )
         }
         Spacer(Modifier.width(7.dp))
@@ -2141,7 +1675,7 @@ fun LikeDislikeRow(
             )
         }, modifier = Modifier.size(20.dp)) {
             GetAsyncIcon(
-                path = RIcons.Like,
+                path = RIcons.LIKE,
                 modifier = Modifier.rotate(180f)
             )
         }
@@ -2198,9 +1732,9 @@ fun LessonReportTopBar(
 
 private fun getColumnWidth(column: ReportColumn): Dp {
     return when (column.type) {
-        ColumnTypes.prisut -> (150).dp + 50.dp //lP
-        ColumnTypes.opozdanie -> (104).dp
-        ColumnTypes.srBall -> (50).dp
+        ColumnTypes.PRISUT -> (150).dp + 50.dp //lP
+        ColumnTypes.OPOZDANIE -> (104).dp
+        ColumnTypes.SR_BALL -> (50).dp
         else -> 150.dp
     }
 }
@@ -2215,7 +1749,7 @@ private fun settingsAB(
         }
     ) {
         GetAsyncIcon(
-            path = RIcons.Menu
+            path = RIcons.MENU
         )
     }
 }
@@ -2230,7 +1764,7 @@ private fun backAB(
         }
     ) {
         GetAsyncIcon(
-            path = RIcons.ChevronLeft
+            path = RIcons.CHEVRON_LEFT
         )
     }
 }

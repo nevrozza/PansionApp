@@ -21,7 +21,11 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
 import components.networkInterface.NetworkState
 import resources.RIcons
-import view.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
@@ -40,10 +44,12 @@ fun SharedTransitionScope.HomeAchievementsContent(
         topBar = {
             AppBar(
                 title = {
-                    Box(Modifier.sharedElementWithCallerManagedVisibility(
-                        sharedContentState = rememberSharedContentState(key = "EventsTitle"),
-                        visible = isVisible
-                    )) {
+                    Box(
+                        Modifier.sharedElementWithCallerManagedVisibility(
+                            sharedContentState = rememberSharedContentState(key = "EventsTitle"),
+                            visible = isVisible
+                        )
+                    ) {
                         Text(
                             "События",
                             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -58,7 +64,7 @@ fun SharedTransitionScope.HomeAchievementsContent(
                         onClick = { component.onOutput(HomeAchievementsComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 },
@@ -68,10 +74,11 @@ fun SharedTransitionScope.HomeAchievementsContent(
                         name = model.name,
                         size = 35.dp,
                         textSize = 13.esp,
-                        modifier = Modifier.padding(end = 10.dp).sharedElementWithCallerManagedVisibility(
-                            sharedContentState = rememberSharedContentState(key = model.login + "avatar"),
-                            visible = isVisible
-                        )
+                        modifier = Modifier.padding(end = 10.dp)
+                                                    .sharedElementWithCallerManagedVisibility(
+                                                        sharedContentState = rememberSharedContentState(key = model.login + "avatar"),
+                                                        visible = isVisible
+                                                    )
                     )
                 }
             )

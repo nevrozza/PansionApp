@@ -41,7 +41,7 @@ class LessonReportStoreFactory(
             initialState = LessonReportStore.State(
                 lessonReportId = data.header.reportId,
                 isEditable = data.header.teacherLogin == authRepository.fetchLogin()
-                             || authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator),
+                             || authRepository.fetchModeration() in listOf(Moderation.BOTH, Moderation.MODERATOR),
                 subjectName = data.header.subjectName,
                 groupName = data.header.groupName,
                 groupId = data.header.groupId,
@@ -58,7 +58,7 @@ class LessonReportStoreFactory(
                 columnNames = getColumns(((data.customColumns) - "")),
                 subjectId = data.header.subjectId,
                 module = data.header.module.toIntOrNull() ?: 1,
-                isModer = authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator),
+                isModer = authRepository.fetchModeration() in listOf(Moderation.BOTH, Moderation.MODERATOR),
                 updateListScreen = updateListScreen
             ),
             executorFactory = {
@@ -83,15 +83,15 @@ private fun getColumns(cColumns: List<String>) : List<ReportColumn> {
     val columns = mutableListOf(
         ReportColumn(
             title = prisut,
-            type = ColumnTypes.prisut
+            type = ColumnTypes.PRISUT
         ),
         ReportColumn(
             title = srBall,
-            type = ColumnTypes.srBall
+            type = ColumnTypes.SR_BALL
         ),
         ReportColumn(
             title = opozdanie,
-            type = ColumnTypes.opozdanie
+            type = ColumnTypes.OPOZDANIE
         )
     )
 

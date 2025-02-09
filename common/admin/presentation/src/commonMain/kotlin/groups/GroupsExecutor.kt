@@ -4,18 +4,16 @@ import AdminRepository
 import admin.groups.forms.Form
 import admin.groups.forms.formSort
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import components.networkInterface.NetworkInterface
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
+import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import groups.GroupsStore.Intent
 import groups.GroupsStore.Label
-import groups.GroupsStore.State
 import groups.GroupsStore.Message
-import groups.subjects.SubjectsComponent
-import groups.subjects.SubjectsStore
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import groups.GroupsStore.State
 
 class GroupsExecutor(
     private val adminRepository: AdminRepository,
@@ -33,19 +31,6 @@ class GroupsExecutor(
             is Intent.ChangeView -> dispatch(
                 Message.ViewChanged(
                     intent.view
-//                    when (state().view) {
-//                        GroupsStore.Views.Subjects -> {
-//                            GroupsStore.Views.Forms
-//                        }
-//
-//                        GroupsStore.Views.Forms -> {
-//                            GroupsStore.Views.Students
-//                        }
-//
-//                        else -> {
-//                            GroupsStore.Views.Subjects
-//                        }
-//                    }
                 )
             )
 
@@ -55,14 +40,15 @@ class GroupsExecutor(
     }
 
     private fun updateForms() {
-        scope.launch {
+        scope.launchIO {
             nFormsInterface.nStartLoading()
             try {
                 val forms = adminRepository.fetchAllForms().forms.formSort()
-          
-                dispatch(Message.FormsListChanged(forms))
-                nFormsInterface.nSuccess()
-                updateFormsList(forms)
+                withMain {
+                    dispatch(Message.FormsListChanged(forms))
+                    nFormsInterface.nSuccess()
+                    updateFormsList(forms)
+                }
             } catch (e: Throwable) {
                 nFormsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     updateForms()
@@ -72,12 +58,14 @@ class GroupsExecutor(
     }
 
     private fun updateSubjects() {
-        scope.launch {
+        scope.launchIO {
             nSubjectsInterface.nStartLoading()
             try {
                 val subjects = adminRepository.fetchAllSubjects().subjects
-                dispatch(Message.SubjectListChanged(subjects))
-                nSubjectsInterface.nSuccess()
+                withMain {
+                    dispatch(Message.SubjectListChanged(subjects))
+                    nSubjectsInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 nSubjectsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
                     updateSubjects()
@@ -88,33 +76,32 @@ class GroupsExecutor(
 
     private fun init() {
         nGroupsInterface.nStartLoading()
-        scope.launch {
+        scope.launchIO {
             try {
                 val teachersA = adminRepository.fetchAllTeachers().teachers
                 val subjectsA =  adminRepository.fetchAllSubjects().subjects
                 val formsA = adminRepository.fetchAllForms().forms.formSort()
-                updateMentorsInForms()
                 // async {
 
 //                val subjects = subjectsA.await()
 //                val teachers = teachersA.await()
 //                val forms = formsA.await()
-
-                dispatch(
-                    Message.ListInited(
-                        subjectsA,
-                        teachersA,
-                        formsA
+                withMain {
+                    updateMentorsInForms()
+                    dispatch(
+                        Message.ListInited(
+                            subjectsA,
+                            teachersA,
+                            formsA
+                        )
                     )
-                )
-                nGroupsInterface.nSuccess()
-//                subjectsComponent.onEvent(SubjectsStore.Intent.ClickOnSubject(subjectsA.first().id))
-                updateFormsList(formsA)
+                    nGroupsInterface.nSuccess()
+                    updateFormsList(formsA)
+                }
             } catch (e: Throwable) {
                 nGroupsInterface.nError("Что-то пошло не так =/", e) {
                         init()
                 }
-                println(e)
             }
 
         }

@@ -1,14 +1,14 @@
 package achievements
 
-import CDispatcher
 import JournalRepository
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import achievements.HomeAchievementsStore.Intent
 import achievements.HomeAchievementsStore.Label
-import achievements.HomeAchievementsStore.State
 import achievements.HomeAchievementsStore.Message
+import achievements.HomeAchievementsStore.State
+import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.launch
+import deviceSupport.launchIO
+import deviceSupport.withMain
 
 class HomeAchievementsExecutor(
     private val nInterface: NetworkInterface,
@@ -21,13 +21,13 @@ class HomeAchievementsExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val r = journalRepository.fetchAchievementsForStudent(
                     RFetchAchievementsForStudentReceive(studentLogin = state().login)
                 )
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.Inited(
                             achievements = r.list,

@@ -65,18 +65,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.BorderStup
-import components.CFilterChip
-import components.CLazyColumn
-import components.CustomTextButton
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AppBar
+import components.journal.BorderStup
+import components.foundation.CFilterChip
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
-import components.MarkContent
-import components.MarkTable
+import components.journal.MarkContent
+import components.journal.MarkTable
 import components.MarkTableItem
-import components.StupsButtons
+import components.journal.StupsButtons
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
@@ -87,9 +87,10 @@ import resources.RIcons
 import server.fetchReason
 import server.getLocalDate
 import server.roundTo
-import view.esp
-import view.handy
-import view.popupPositionProvider
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import utils.cursor.handy
+import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
+import androidx.compose.material3.LocalTextStyle
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -122,18 +123,11 @@ fun AllGroupMarksContent(
 //                .nestedScroll(scrollBehavior.nestedScrollConnection)
             topBar = {
                 AppBar(
-                    navigationRow = {
-                        IconButton(
-                            onClick = { component.onOutput(AllGroupMarksComponent.Output.Back) }
-                        ) {
-                            GetAsyncIcon(
-                                path = RIcons.ChevronLeft
-                            )
-                        }
-                    },
                     title = {
-                        val bigTextSize = MaterialTheme.typography.titleLarge.fontSize// if (!isLarge) else 40.sp
-                        val smallTextSize = MaterialTheme.typography.titleSmall.fontSize//if (!isLarge)  else 28.sp
+                        val bigTextSize =
+                            MaterialTheme.typography.titleLarge.fontSize// if (!isLarge) else 40.sp
+                        val smallTextSize =
+                            MaterialTheme.typography.titleSmall.fontSize//if (!isLarge)  else 28.sp
 
                         Column(
                             Modifier.padding(horizontal = 3.dp)
@@ -152,7 +146,7 @@ fun AllGroupMarksContent(
                                     overflow = TextOverflow.Ellipsis,
                                     fontSize = bigTextSize,
                                     maxLines = 1,
-                                    style = androidx.compose.material3.LocalTextStyle.current.copy(
+                                    style = LocalTextStyle.current.copy(
                                         lineHeightStyle = LineHeightStyle(
                                             alignment = LineHeightStyle.Alignment.Bottom,
                                             trim = LineHeightStyle.Trim.LastLineBottom
@@ -176,7 +170,7 @@ fun AllGroupMarksContent(
                                 },
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1,
-                                style = androidx.compose.material3.LocalTextStyle.current.copy(
+                                style = LocalTextStyle.current.copy(
                                     fontSize = smallTextSize,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f),
@@ -187,6 +181,15 @@ fun AllGroupMarksContent(
                                 )
                             )
 
+                        }
+                    },
+                    navigationRow = {
+                        IconButton(
+                            onClick = { component.onOutput(AllGroupMarksComponent.Output.Back) }
+                        ) {
+                            GetAsyncIcon(
+                                path = RIcons.CHEVRON_LEFT
+                            )
                         }
                     },
 
@@ -202,7 +205,7 @@ fun AllGroupMarksContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                path = if (!model.isTableView) RIcons.Table else RIcons.ContactBook
+                                path = if (!model.isTableView) RIcons.TABLE else RIcons.CONTACT_BOOK
                             )
                         }
 
@@ -217,7 +220,7 @@ fun AllGroupMarksContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.HomeWork
+                                path = RIcons.HOMEWORK
                             )
                         }
                     }
@@ -539,7 +542,7 @@ private fun AllGroupMarksStudentItem(
                         if (isFullView.value) "Закрыть" else "Открыть все оценки",
                         transitionSpec = { fadeIn().togetherWith(fadeOut()) }
                     ) {
-                        CustomTextButton(text = it) {
+                        CTextButton(text = it) {
                             isFullView.value = !isFullView.value
                         }
                     }

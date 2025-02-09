@@ -1,4 +1,5 @@
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
@@ -15,13 +16,13 @@ import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.ApplicationLifecycle
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import dev.chrisbanes.haze.HazeState
+import deviceSupport.deviceType
 import di.Inject
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 import platform.UIKit.UIDevice
 import platform.UIKit.UIViewController
 import root.RootComponentImpl
-import server.DeviceTypex
 import server.cut
 import view.*
 
@@ -36,7 +37,7 @@ fun MainViewController(): UIViewController =
             configuration = PlatformConfiguration(),
             cConfiguration = CommonPlatformConfiguration(
                 deviceName = UIDevice.currentDevice.name.cut(20),
-                deviceType = DeviceTypex.ios,
+                deviceType = deviceType,
                 deviceId = UIDevice.currentDevice.identifierForVendor.toString()//getDeviceId()
             )
         )

@@ -1,8 +1,6 @@
 package parents
 
 import AdminRepository
-import CDispatcher
-import achievements.AdminAchievementsStore
 import admin.parents.RFetchParentsListResponse
 import admin.parents.RUpdateParentsListReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -10,11 +8,13 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import kotlinx.coroutines.launch
 import parents.AdminParentsStore.Intent
 import parents.AdminParentsStore.Label
-import parents.AdminParentsStore.State
 import parents.AdminParentsStore.Message
+import parents.AdminParentsStore.State
 import server.updateSafe
 
 class AdminParentsExecutor(
@@ -51,12 +51,10 @@ class AdminParentsExecutor(
     }
 
     private fun pickParent(login: String) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
-                if(login == "0" && state().editId == 0) {
-
-                } else {
+                if (login != "0" || state().editId != 0) {
                     val r = adminRepository.updateParents(
                         RUpdateParentsListReceive(
                             studentLogin = state().addToStudent,
@@ -64,7 +62,7 @@ class AdminParentsExecutor(
                             parentLogin = login
                         )
                     )
-                    scope.launch {
+                    withMain {
                         dispatch(
                             Message.Inited(
                                 users = r.users,
@@ -81,7 +79,7 @@ class AdminParentsExecutor(
                     }
 
                 }
-                scope.launch {
+                withMain {
                     parentEditPicker.onEvent(ListDialogStore.Intent.HideDialog)
                 }
             } catch (e: Throwable) {
@@ -140,12 +138,12 @@ class AdminParentsExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val r = adminRepository.fetchParents()
                 val oldKids = r.lines.map { it.studentLogin }.toSet().toList()
-                scope.launch {
+                withMain {
                     dispatch(Message.Inited(
                         users = r.users,
                         lines = r.lines,

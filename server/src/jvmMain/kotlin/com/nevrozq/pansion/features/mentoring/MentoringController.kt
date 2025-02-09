@@ -11,7 +11,6 @@ import com.nevrozq.pansion.database.parents.ParentsDTO
 import com.nevrozq.pansion.database.preAttendance.PreAttendance
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
-import com.nevrozq.pansion.database.schedule.Schedule
 import com.nevrozq.pansion.database.studentGroups.StudentGroups
 import com.nevrozq.pansion.database.studentLines.StudentLines
 import com.nevrozq.pansion.database.studentsInForm.StudentInFormDTO
@@ -210,8 +209,8 @@ class MentoringController {
                             surname = r.request.surname,
                             praname = r.request.praname,
                             birthday = r.request.birthday,
-                            role = Roles.student,
-                            moderation = Moderation.nothing,
+                            role = Roles.STUDENT,
+                            moderation = Moderation.NOTHING,
                             isParent = false,
                             avatarId = r.request.avatarId,
                             isActive = true,
@@ -238,8 +237,8 @@ class MentoringController {
                                     surname = fio[0],
                                     praname = fio.getOrNull(2),
                                     birthday = "01012000",
-                                    role = Roles.nothing,
-                                    moderation = Moderation.nothing,
+                                    role = Roles.NOTHING,
+                                    moderation = Moderation.NOTHING,
                                     isParent = true,
                                     avatarId = 0,
                                     isActive = true,
@@ -347,13 +346,13 @@ class MentoringController {
                             ScheduleForAttendance(
                                 groupId = s.groupId,
                                 subjectName = if (group != null) subjects[group.subjectId].toString() else when (s.groupId) {
-                                    ScheduleIds.food -> "Приём пищи"
-                                    ScheduleIds.extra -> "Доп занятие"
+                                    ScheduleIds.FOOD -> "Приём пищи"
+                                    ScheduleIds.EXTRA -> "Доп занятие"
                                     else -> s.custom.firstOrNull().toString()
                                 },
                                 groupName = group?.name ?: when (s.groupId) {
-                                    ScheduleIds.food -> ""
-                                    ScheduleIds.extra -> s.teacherLogin
+                                    ScheduleIds.FOOD -> ""
+                                    ScheduleIds.EXTRA -> s.teacherLogin
                                     else -> ""
                                 },
                                 start = s.t.start,

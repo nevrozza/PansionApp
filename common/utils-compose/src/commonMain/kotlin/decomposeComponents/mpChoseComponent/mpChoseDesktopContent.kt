@@ -22,12 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
-import components.LoadingAnimation
-import components.hazeHeader
-import components.hazeUnder
+import components.foundation.LoadingAnimation
+import components.foundation.hazeHeader
+import components.foundation.hazeUnder
 import components.mpChose.MpChoseComponent
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
@@ -106,7 +106,7 @@ fun DropdownVariant(
                         modifier = Modifier.padding(top = (9.2f).dp).size(30.dp).offset(x = 8.dp)
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 }

@@ -1,10 +1,28 @@
 package components
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -47,7 +65,7 @@ fun GroupPicker(
             val subjectsMap =
                 subjects.filter { it.isActive }
                     .sortedBy { it.id in sortedList }
-                    .associate { it.id to "${it.name}" }
+                    .associate { it.id to it.name }
 
             ExposedDropdownMenuBox(
                 expanded = expandedGSubjects,
@@ -79,7 +97,7 @@ fun GroupPicker(
                     trailingIcon = {
                         val chevronRotation = animateFloatAsState(if (expandedGSubjects) 90f else -90f)
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft,
+                            path = RIcons.CHEVRON_LEFT,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                             size = 15.dp
                         )
@@ -158,7 +176,7 @@ fun GroupPicker(
                     trailingIcon = {
                         val chevronRotation = animateFloatAsState(if (expandedGroups) 90f else -90f)
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft,
+                            path = RIcons.CHEVRON_LEFT,
                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                             size = 15.dp
                         )
@@ -210,7 +228,7 @@ fun GroupPicker(
                     }
                 ) {
                     GetAsyncIcon(
-                        RIcons.Close
+                        RIcons.CLOSE
                     )
                 }
 

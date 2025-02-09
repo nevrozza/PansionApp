@@ -1,13 +1,14 @@
 package groups
 
 import CFilePicker
-import DefaultMultiPane
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
+import androidx.compose.desktop.ui.tooling.preview.utils.hazeMask
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -80,14 +81,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AppBar
-import components.CustomTextField
+import components.foundation.AnimatedCommonButton
+import components.foundation.AppBar
+import components.foundation.CTextField
 import components.GetAsyncIcon
-import components.LoadingAnimation
+import components.foundation.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
-import components.hazeUnder
+import components.foundation.hazeUnder
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
@@ -102,7 +103,7 @@ import groups.students.StudentsStore
 import groups.subjects.SubjectsStore
 import kotlinx.coroutines.launch
 import resources.RIcons
-import view.GlobalHazeState
+import view.DefaultMultiPane
 import view.LocalViewManager
 import view.WindowScreen
 
@@ -163,7 +164,7 @@ fun GroupsContent(
                     ) {
                         inputScale = HazeInputScale.Fixed(0.7f)
                         mask =
-                            view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                            hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = hazeProgressive
                     }
                     else Modifier
@@ -232,14 +233,14 @@ fun GroupsContent(
                             onClick = { component.onOutput(GroupsComponent.Output.Back) }
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft
+                                path = RIcons.CHEVRON_LEFT
                             )
                         }
                     },
                     actionRow = {
 //                        ) {
 //                            buttonsRow.forEach {
-////                                CustomTextButton(
+////                                CTextButton(
 ////                                    text = it.first,
 ////                                    modifier = Modifier.padding(end = if(it.second != GroupsStore.Views.Students) 4.dp else 7.dp),
 ////                                    fontWeight = if(it.second == model.view) FontWeight.Black else FontWeight.SemiBold,
@@ -252,7 +253,6 @@ fun GroupsContent(
 //                        }
 
                     },
-                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
                     isTransparentHaze = isHaze
                 )
                 AnimatedVisibility(
@@ -340,7 +340,7 @@ fun GroupsContent(
                                 modifier = Modifier.height(30.dp)
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.Add
+                                    RIcons.ADD
                                 )
                             }
 
@@ -397,7 +397,7 @@ fun GroupsContent(
                                     modifier = Modifier.height(30.dp)
                                 ) {
                                     GetAsyncIcon(
-                                        RIcons.TrashCanRegular,
+                                        RIcons.TRASH_CAN_REGULAR,
                                         size = 19.dp
                                     )
                                 }
@@ -441,7 +441,7 @@ fun GroupsContent(
                             when (it) {
                                 NetworkState.None -> {
                                     GetAsyncIcon(
-                                        RIcons.Refresh
+                                        RIcons.REFRESH
                                     )
                                 }
 
@@ -466,7 +466,7 @@ fun GroupsContent(
                         },
                         icon = {
                             GetAsyncIcon(
-                                RIcons.Add
+                                RIcons.ADD
                             )
                         },
                         onClick = {
@@ -489,7 +489,7 @@ fun GroupsContent(
                     }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.Upload
+                            path = RIcons.UPLOAD
                         )
                     }
 //                    Spacer(Modifier.width(25.dp))
@@ -599,7 +599,7 @@ fun GroupsContent(
                                 }
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.Repeat
+                                    RIcons.REPEAT
                                 )
                             }
                         }
@@ -627,7 +627,7 @@ fun GroupsContent(
                     modifier = Modifier.padding(start = 5.dp)
                 )
                 Spacer(Modifier.height(5.dp))
-                CustomTextField(
+                CTextField(
                     value = subjectsModel.cSubjectText,
                     onValueChange = {
 //                        component.onEvent(
@@ -765,7 +765,7 @@ fun GroupsOverlay(
                     .verticalScroll(rememberScrollState())
             ) {
                 Spacer(Modifier.height(5.dp))
-                CustomTextField(
+                CTextField(
                     value = formsModel.cFormClassNum,
                     onValueChange = {
                         if (it.length < 3) {
@@ -789,7 +789,7 @@ fun GroupsOverlay(
                     supText = "Число [1-11]"
                 )
                 Spacer(Modifier.height(7.dp))
-                CustomTextField(
+                CTextField(
                     value = formsModel.cFormTitle,
                     onValueChange = {
                         component.formsComponent.onEvent(
@@ -812,7 +812,7 @@ fun GroupsOverlay(
                 Spacer(Modifier.height(7.dp))
 
 
-                CustomTextField(
+                CTextField(
                     value = formsModel.cFormShortTitle,
                     onValueChange = {
                         component.formsComponent.onEvent(
@@ -865,7 +865,7 @@ fun GroupsOverlay(
                             val chevronRotation =
                                 animateFloatAsState(if (expandedMentors) 90f else -90f)
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft,
+                                path = RIcons.CHEVRON_LEFT,
                                 modifier = Modifier.padding(end = 10.dp)
                                     .rotate(chevronRotation.value),
                                 size = 15.dp
@@ -975,7 +975,7 @@ fun GroupsOverlay(
 
 
                 Spacer(Modifier.height(7.dp))
-                CustomTextField(
+                CTextField(
                     value = subjectsModel.cName,
                     onValueChange = {
                         component.subjectsComponent.onEvent(
@@ -1033,7 +1033,7 @@ fun GroupsOverlay(
                             val chevronRotation =
                                 animateFloatAsState(if (expandedTeachers) 90f else -90f)
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft,
+                                path = RIcons.CHEVRON_LEFT,
                                 modifier = Modifier.padding(end = 10.dp)
                                     .rotate(chevronRotation.value),
                                 size = 15.dp
@@ -1069,7 +1069,7 @@ fun GroupsOverlay(
                     }
                 }
                 Spacer(Modifier.height(7.dp))
-                CustomTextField(
+                CTextField(
                     value = subjectsModel.cDifficult,
                     onValueChange = {
                         if (it.length < 2) {
@@ -1146,7 +1146,7 @@ fun SubjectItem(
                     },
                 ) {
                     GetAsyncIcon(
-                        RIcons.Edit,
+                        RIcons.EDIT,
                         size = 19.dp
                     )
                 }

@@ -329,8 +329,8 @@ class RootComponentImpl(
                 storeFactory = storeFactory,
                 output = ::onMainSchoolOutput,
                 login = secondLogin ?: authRepository.fetchLogin(),
-                role = if (secondLogin != null) Roles.student else authRepository.fetchRole(),
-                moderation = if (secondLogin != null) Moderation.nothing else authRepository.fetchModeration(),
+                role = if (secondLogin != null) Roles.STUDENT else authRepository.fetchRole(),
+                moderation = if (secondLogin != null) Moderation.NOTHING else authRepository.fetchModeration(),
                 isSecondScreen = secondLogin != null
             )
             mainSchoolComponent!!
@@ -357,10 +357,10 @@ class RootComponentImpl(
                 name = secondFIO?.name ?: authRepository.fetchName(),
                 surname = secondFIO?.surname ?: authRepository.fetchSurname(),
                 praname = secondFIO?.praname ?: authRepository.fetchPraname(),
-                role = if (secondLogin == null) authRepository.fetchRole() else Roles.student,
+                role = if (secondLogin == null) authRepository.fetchRole() else Roles.STUDENT,
                 onBackButtonPress = onBackButtonPress,
                 isParent = if (secondLogin == null) authRepository.fetchIsParent() else false,
-                moderation = if (secondLogin == null) authRepository.fetchModeration() else Roles.nothing
+                moderation = if (secondLogin == null) authRepository.fetchModeration() else Roles.NOTHING
             )
             mainHomeComponent!!
         }
@@ -1368,8 +1368,8 @@ class RootComponentImpl(
             WEB_PATH_ADMIN_CALENDAR -> Config.AdminCalendar
             WEB_PATH_ADMIN_SCHEDULE -> Config.AdminSchedule(
                 isModerator = model.value.moderation in listOf(
-                    Moderation.both,
-                    Moderation.moderator
+                    Moderation.BOTH,
+                    Moderation.MODERATOR
                 )
             )
 

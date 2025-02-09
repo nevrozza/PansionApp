@@ -1,17 +1,17 @@
 package homeTasks
 
-import CDispatcher
 import JournalRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import homeTasks.HomeTasksStore.Intent
 import homeTasks.HomeTasksStore.Label
-import homeTasks.HomeTasksStore.State
 import homeTasks.HomeTasksStore.Message
+import homeTasks.HomeTasksStore.State
 import homework.RCheckHomeTaskReceive
 import homework.RFetchHomeTasksReceive
 import homework.RFetchTasksInitReceive
-import kotlinx.coroutines.launch
 
 class HomeTasksExecutor(
     private val journalRepository: JournalRepository,
@@ -23,7 +23,7 @@ class HomeTasksExecutor(
         when (intent) {
             is Intent.CheckTask -> checkTask(taskId = intent.taskId, isCheck = intent.isCheck, doneId = intent.doneId)
             Intent.Init -> init()
-            is Intent.OpenDateItem -> scope.launch {
+            is Intent.OpenDateItem -> {
                 dispatch(Message.LoadingDateChanged(intent.date))
                 fetchTasks(date = intent.date)
             }
@@ -31,7 +31,7 @@ class HomeTasksExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInitInterface.nStartLoading()
             fetchInitFirst()
             fetchTasks(null)
@@ -41,7 +41,7 @@ class HomeTasksExecutor(
     private suspend fun fetchInitFirst() {
         try {
             val r = journalRepository.fetchHomeTasksInit(RFetchTasksInitReceive(state().login))
-            scope.launch {
+            withMain {
                 dispatch(Message.DatesGroupsSubjectsInited(
                     dates = r.dates.toSet().toList(),
                     groups = r.groups,
@@ -61,7 +61,7 @@ class HomeTasksExecutor(
     }
 
     private fun fetchTasks(date: String?) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nInterface.nStartLoading()
                 val r = journalRepository.fetchHomeTasks(
@@ -78,7 +78,7 @@ class HomeTasksExecutor(
                         else it
                     } + r.tasks
                 }
-                scope.launch {
+                withMain {
                     dispatch(Message.TasksUpdated(tasks))
                     if(state().groups.isNotEmpty() || state().dates.isNotEmpty()) {
                         nInitInterface.nSuccess()
@@ -101,9 +101,9 @@ class HomeTasksExecutor(
     }
 
     private fun checkTask(taskId: Int, isCheck: Boolean, doneId: Int?) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             val newTasks = state().homeTasks.map { if (it.id == taskId) it.copy(done = isCheck) else it }
-            scope.launch {
+            withMain {
                 dispatch(Message.TasksUpdated(newTasks))
             }
             try {
@@ -115,7 +115,7 @@ class HomeTasksExecutor(
                         id = doneId
                     )
                 )
-                scope.launch {
+                withMain {
                     updateHTCount(newTasks.filter { it.isNec }.count { !it.done })
                 }
             } catch (e: Throwable) {

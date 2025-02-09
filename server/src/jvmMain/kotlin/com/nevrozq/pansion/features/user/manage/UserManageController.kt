@@ -51,7 +51,7 @@ class UserManageController() {
                     ),
                     isActive = it.isActive,
                     isParent = it.isParent,
-                    isStudent = it.role == Roles.student,
+                    isStudent = it.role == Roles.STUDENT,
                     formId = StudentsInForm.fetchFormIdOfLoginNullable(it.login)
                 )
             }.sortedBy { it.fio.surname }.sortedBy { !it.isActive }
@@ -131,8 +131,8 @@ class UserManageController() {
                             surname = fio[0],
                             praname = fio.getOrNull(2),
                             birthday = "01012000",
-                            role = Roles.nothing,
-                            moderation = Moderation.nothing,
+                            role = Roles.NOTHING,
+                            moderation = Moderation.NOTHING,
                             isParent = true,
                             avatarId = 0,
                             isActive = true,
@@ -234,8 +234,8 @@ class UserManageController() {
                                 surname = pFio.surname.replace("ë", "ё"),
                                 praname = pFio.praname?.replace("ë", "ё"),
                                 birthday = pp.second.replace(".", ""),
-                                role = Roles.nothing,
-                                moderation = Moderation.nothing,
+                                role = Roles.NOTHING,
+                                moderation = Moderation.NOTHING,
                                 isParent = true,
                                 avatarId = 1,
                                 isActive = true,

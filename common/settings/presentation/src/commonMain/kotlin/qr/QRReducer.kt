@@ -1,11 +1,11 @@
 package qr
 
+import applicationTimeZone
 import com.arkivanov.mvikotlin.core.store.Reducer
 import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import qr.QRStore.State
 import qr.QRStore.Message
+import qr.QRStore.State
 
 object QRReducer : Reducer<State, Message> {
     override fun State.reduce(msg: Message): State {
@@ -24,7 +24,7 @@ object QRReducer : Reducer<State, Message> {
                 cBirthday = "",
                 cLogin = "",
                 currentYear = Clock.System.now()
-                    .toLocalDateTime(TimeZone.of("UTC+3")).year,
+                    .toLocalDateTime(applicationTimeZone).year,
                 currentMillis = Clock.System.now().toEpochMilliseconds(),
                 isDateDialogShowing = false,
                 cParentSecondFIO = "",

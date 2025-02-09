@@ -1,7 +1,6 @@
 package schedule
 
 import AdminRepository
-import CDispatcher
 import admin.schedule.ScheduleFormValue
 import admin.schedule.SchedulePerson
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -11,13 +10,14 @@ import components.listDialog.ListItem
 import components.mpChose.MpChoseComponent
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import schedule.ScheduleStore.Intent
 import schedule.ScheduleStore.Label
-import schedule.ScheduleStore.State
 import schedule.ScheduleStore.Message
+import schedule.ScheduleStore.State
 import server.toMinutes
 
 class ScheduleExecutor(
@@ -31,9 +31,9 @@ class ScheduleExecutor(
         when (intent) {
             Intent.Init -> init()
             is Intent.ciChooseGroup -> chooseGroup(intent.groupId)
-            is Intent.ciChooseTime -> scope.launch(CDispatcher) {
+            is Intent.ciChooseTime -> scope.launchIO {
                 val timing = getScheduleTiming(Pair(intent.t.start, intent.t.end))
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.ciTimeChosed(
                             timing
@@ -48,37 +48,37 @@ class ScheduleExecutor(
                 mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
             }
 
-            Intent.ciPreview -> scope.launch { dispatch(Message.ciPreviewed) }
+            Intent.ciPreview -> dispatch(Message.ciPreviewed)
 
-            is Intent.ciStart -> scope.launch {
+            is Intent.ciStart -> {
                 if (intent.login != state().ciLogin) dispatch(Message.ciReset)
                 val cabinet =
                     state().cabinets.firstOrNull { it.login == intent.login }?.cabinet ?: 0
                 dispatch(Message.ciStarted(intent.login, cabinet, formId = intent.formId))
             }
 
-            Intent.ciNullGroupId -> scope.launch {
+            Intent.ciNullGroupId ->
                 dispatch(Message.ciGroupIdNulled)
-            }
 
-            Intent.ciFalsePreview -> scope.launch {
+
+            Intent.ciFalsePreview ->
                 dispatch(Message.ciPreviewFalsed)
-            }
+
 
             Intent.UpdateCTeacherList -> updateCreateTeacherList()
-            is Intent.CreateTeacher -> scope.launch(CDispatcher) {
+            is Intent.CreateTeacher -> scope.launchIO {
                 val key =
                     if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                 val new = state().activeTeachers.toMutableMap()
                 new[key] =
                     (state().activeTeachers[key] ?: emptyList()).plus(intent.login)
-                scope.launch {
+                withMain {
                     dispatch(Message.TeacherCreated(new.toMap(HashMap())))
                     updateCreateTeacherList()
                 }
             }
 
-            is Intent.ciChangeCabinet -> scope.launch {
+            is Intent.ciChangeCabinet -> {
                 dispatch(Message.ciCabinetChanged(intent.cabinet))
 
                 if (intent.cabinet.toString().length == 3) {
@@ -86,36 +86,35 @@ class ScheduleExecutor(
                 }
             }
 
-            is Intent.eiChangeCabinet -> scope.launch {
+            is Intent.eiChangeCabinet ->
                 dispatch(Message.eiCabinetChanged(intent.cabinet))
-            }
 
-            is Intent.StartEdit -> scope.launch {
+
+            is Intent.StartEdit -> {
                 mpEditItem.onEvent(MpChoseStore.Intent.ShowDialog)
                 dispatch(Message.EditStarted(index = intent.index, formId = intent.formId))
             }
 
-            is Intent.eiChooseGroup -> scope.launch {
+            is Intent.eiChooseGroup ->
                 dispatch(Message.eiGroupChosed(intent.groupId))
-            }
 
-            is Intent.eiChangeState -> scope.launch {
+
+            is Intent.eiChangeState ->
                 dispatch(Message.eiStateChanged(intent.state))
-            }
 
-            is Intent.eiChangeTiming -> scope.launch {
+
+            is Intent.eiChangeTiming ->
                 dispatch(Message.eiTimingChanged(intent.timing))
-            }
+
 
             is Intent.eiCheck -> updateEditErrors(
                 cabinet = intent.cabinet,
                 login = intent.login,
-                id = intent.id,
                 s = intent.s
             )
 
             is Intent.eiSave -> {
-                scope.launch(CDispatcher) {
+                scope.launchIO {
                     val key =
                         if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                     val newItems = (state().items[key] ?: emptyList()).toMutableList()
@@ -142,7 +141,7 @@ class ScheduleExecutor(
                         val newSolveConflictItems = state().solveConflictItems.toMutableMap()
                         newSolveConflictItems[key]?.set(intent.index, emptyList())
 
-                        scope.launch {
+                        withMain {
                             dispatch(
                                 Message.SolveConflictItemsUpdated(
                                     newSolveConflictItems.toMap(HashMap()),
@@ -151,7 +150,7 @@ class ScheduleExecutor(
                             )
                         }
                     }
-                    scope.launch {
+                    withMain {
                         dispatch(
                             Message.ItemsUpdated(
                                 newItems
@@ -165,26 +164,25 @@ class ScheduleExecutor(
             }
 
             is Intent.eiDelete -> eiDelete(intent.index)
-            Intent.ciChangeIsPair -> scope.launch {
+            Intent.ciChangeIsPair ->
                 dispatch(Message.ciIsPairChanged)
-            }
 
-            Intent.ChangeEditMode -> scope.launch {
+
+            Intent.ChangeEditMode -> {
                 dispatch(Message.EditModeChanged)
                 fetchItems(
                     state().currentDate.first,
                     if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                 )
-//                updateCreateTeacherList()
             }
 
-            is Intent.ChangeDefaultDate -> scope.launch {
+            is Intent.ChangeDefaultDate -> {
                 dispatch(Message.DefaultDateChanged(intent.date))
                 fetchItems(intent.date, intent.date.toString())
 //                updateCreateTeacherList()
             }
 
-            is Intent.ChangeCurrentDate -> scope.launch {
+            is Intent.ChangeCurrentDate -> {
                 dispatch(Message.CurrentDateChanged(intent.date))
                 fetchItems(intent.date.first, intent.date.second)
 //                updateCreateTeacherList()
@@ -196,35 +194,41 @@ class ScheduleExecutor(
             is Intent.eiChangeLogin -> dispatch(Message.eiLoginChanged(intent.login))
             is Intent.ciChangeCustom -> dispatch(Message.ciCustomChanged(intent.custom))
             is Intent.CopyFromStandart -> copyFromStandart()
-            is Intent.StartConflict -> {dispatch(
-                Message.ConflictStarted(
-                    niFormId = intent.niFormId,
-                    niGroupId = intent.niGroupId,
-                    niCustom = intent.niCustom,
-                    niErrors = intent.niErrors,
-                    niTeacherLogin = intent.niTeacherLogin,
-                    niId = intent.niId,
-                    niOnClick = {
-                        intent.niOnClick()
-                        dispatch(Message.NiOnClicked)
-                    }
-                )) }
+            is Intent.StartConflict ->
+                dispatch(
+                    Message.ConflictStarted(
+                        niFormId = intent.niFormId,
+                        niGroupId = intent.niGroupId,
+                        niCustom = intent.niCustom,
+                        niErrors = intent.niErrors,
+                        niTeacherLogin = intent.niTeacherLogin,
+                        niId = intent.niId,
+                        niOnClick = {
+                            intent.niOnClick()
+                            dispatch(Message.NiOnClicked)
+                        }
+                    ))
 
-            is Intent.SolveConflict -> solveConflict(lessonId = intent.lessonId, studentLogins = intent.studentLogins)
+
+            is Intent.SolveConflict -> solveConflict(
+                lessonId = intent.lessonId,
+                studentLogins = intent.studentLogins
+            )
 
             is Intent.ciChangeSubjectId -> dispatch(Message.ciSubjectIdChanged(intent.subjectId))
         }
     }
 
     private fun eiDelete(index: Int) {
-        scope.launch(CDispatcher) {
-            val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+        scope.launchIO {
+            val key =
+                if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
             val list = (state().items[key] ?: emptyList()).toMutableList()
             list.remove(list.first { it.index == index })
             val newSolveConflictItems = state().solveConflictItems.toMutableMap()
             newSolveConflictItems[key]?.set(index, emptyList())
 
-            scope.launch {
+            withMain {
                 dispatch(Message.ItemsUpdated(list))
                 dispatch(
                     Message.SolveConflictItemsUpdated(
@@ -238,23 +242,27 @@ class ScheduleExecutor(
     }
 
     private fun solveConflict(lessonId: Int, studentLogins: List<String>) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
-                val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+                val key =
+                    if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                 val newSolveConflictItems = state().solveConflictItems.toMutableMap()
                 if (newSolveConflictItems.containsKey(key)) {
                     newSolveConflictItems[key]!![lessonId] =
                         (newSolveConflictItems[key]?.get(1) ?: listOf()) + studentLogins
                 } else {
                     newSolveConflictItems[key] =
-                        mutableMapOf(lessonId to (newSolveConflictItems[key]?.get(1) ?: listOf()) + studentLogins)
+                        mutableMapOf(
+                            lessonId to (newSolveConflictItems[key]?.get(1)
+                                ?: listOf()) + studentLogins
+                        )
                 }
                 val niErrors = state().niErrors.mapNotNull {
                     if (it.logins == studentLogins) {
                         null
                     } else it
                 }
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.SolveConflictItemsUpdated(
                             newSolveConflictItems.toMap(HashMap()),
@@ -269,7 +277,7 @@ class ScheduleExecutor(
                     val lesson = lessons.firstOrNull { it.index == lessonId }
                     if (lesson != null) {
                         if (lesson.groupId == -6) {
-                            val newList = lesson.custom- studentLogins.toSet()
+                            val newList = lesson.custom - studentLogins.toSet()
                             lessons.remove(lesson)
                             lessons.add(lesson.copy(custom = newList))
                             dispatch(
@@ -288,27 +296,31 @@ class ScheduleExecutor(
     }
 
     private fun copyFromStandart() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val standartItems = state().items[state().currentDate.first.toString()]!!
                     .map {
                         it.copy(
                             index = it.index
-                                    + (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1)
+                                    + (state().items.flatMap { it.value.map { it.index } }
+                                .maxByOrNull { it } ?: 1)
                         )
                     }
                 val globalOldSolvedConflictItems =
                     (state().solveConflictItems)
                 val oldSolvedConflictItems = mutableMapOf<Int, List<String>>()
 
-                val a = (state().solveConflictItems[state().currentDate.first.toString()] ?: mapOf())
+                val a =
+                    (state().solveConflictItems[state().currentDate.first.toString()] ?: mapOf())
                 a.forEach {
                     oldSolvedConflictItems[it.key
-                            + (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1)
+                            + (state().items.flatMap { it.value.map { it.index } }
+                        .maxByOrNull { it } ?: 1)
                     ] = it.value
                 }
-                globalOldSolvedConflictItems[state().currentDate.second.toString()] = oldSolvedConflictItems
+                globalOldSolvedConflictItems[state().currentDate.second] =
+                    oldSolvedConflictItems
 
 
                 val items = hashMapOf(
@@ -318,8 +330,9 @@ class ScheduleExecutor(
                     state().activeTeachers.toMutableMap()
 
                 standartItems.forEach { item ->
-                    val teacher = if (item.teacherLogin in state().teachers.map { it.login }) item.teacherLogin
-                    else null
+                    val teacher =
+                        if (item.teacherLogin in state().teachers.map { it.login }) item.teacherLogin
+                        else null
                     if (teacher != null) {
                         val list =
                             (commonList[state().currentDate.second])
@@ -336,7 +349,7 @@ class ScheduleExecutor(
                     }
                 }
 
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.TeacherListUpdated(
                             activeTeachers = commonList.toMap(HashMap())
@@ -363,7 +376,7 @@ class ScheduleExecutor(
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun saveItems() {
-        GlobalScope.launch(CDispatcher) {
+        GlobalScope.launchIO {
             try {
                 nInterface.nStartLoading()
                 adminRepository.saveSchedule(
@@ -372,7 +385,7 @@ class ScheduleExecutor(
                         conflictList = state().solveConflictItems
                     )
                 )
-                scope.launch {
+                withMain {
                     dispatch(Message.IsSavedAnimation(true))
                     nInterface.nSuccess()
                 }
@@ -385,11 +398,10 @@ class ScheduleExecutor(
     }
 
     private fun fetchItems(dayOfWeek: Int, date: String) {
-        scope.launch {
-            dispatch(Message.ciReset)
-        }
-        scope.launch(CDispatcher) {
-
+        scope.launchIO {
+            withMain {
+                dispatch(Message.ciReset)
+            }
             try {
                 val commonList =
                     state().activeTeachers.toMutableMap()
@@ -403,8 +415,9 @@ class ScheduleExecutor(
                     )
                     r.list.forEach {
                         it.value.forEach { item ->
-                            val teacher = if (item.teacherLogin in state().teachers.map { it.login }) item.teacherLogin
-                            else null
+                            val teacher =
+                                if (item.teacherLogin in state().teachers.map { it.login }) item.teacherLogin
+                                else null
                             if (teacher != null) {
                                 val list =
                                     (commonList[date])
@@ -421,15 +434,13 @@ class ScheduleExecutor(
                             }
                         }
                     }
-                    scope.launch {
-                        scope.launch {
-                            dispatch(
-                                Message.TeacherListUpdated(
-                                    activeTeachers = commonList.toMap(HashMap())
-                                )
+                    withMain {
+                        /// wtf launch
+                        dispatch(
+                            Message.TeacherListUpdated(
+                                activeTeachers = commonList.toMap(HashMap())
                             )
-
-                        }
+                        )
                         dispatch(Message.ListUpdated((state().items + r.list).toMap(HashMap())))
                         dispatch(
                             Message.SolveConflictItemsUpdated(
@@ -446,8 +457,9 @@ class ScheduleExecutor(
                     nInterface.nStartLoading()
                     val items = state().items[date]
                     items?.forEach { item ->
-                        val teacher = if (item.teacherLogin in state().teachers.map { it.login }) item.teacherLogin
-                        else null
+                        val teacher =
+                            if (item.teacherLogin in state().teachers.map { it.login }) item.teacherLogin
+                            else null
                         if (teacher != null) {
                             val list =
                                 (commonList[date])
@@ -463,15 +475,13 @@ class ScheduleExecutor(
                             }
                         }
                     }
-                    scope.launch {
-                        scope.launch {
-                            dispatch(
-                                Message.TeacherListUpdated(
-                                    activeTeachers = commonList.toMap(HashMap())
-                                )
+                    withMain {
+                        /// wtf launch
+                        dispatch(
+                            Message.TeacherListUpdated(
+                                activeTeachers = commonList.toMap(HashMap())
                             )
-
-                        }
+                        )
                         nInterface.nSuccess()
                         updateCreateTeacherList()
                     }
@@ -488,9 +498,10 @@ class ScheduleExecutor(
 
 
     private fun updateCreateTeacherList(isError: Boolean = false) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             if (!isError) {
-                val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+                val key =
+                    if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                 val activeTeachers =
                     state().activeTeachers[key]
                 val newList =
@@ -501,11 +512,11 @@ class ScheduleExecutor(
                                 text = "${it.fio.surname} ${it.fio.name} ${it.fio.praname}"
                             )
                         }
-                scope.launch {
+                withMain {
                     listCreateTeacher.onEvent(ListDialogStore.Intent.InitList(newList))
                 }
             } else {
-                scope.launch {
+                withMain {
                     listCreateTeacher.onEvent(ListDialogStore.Intent.InitList(listOf()))
                 }
             }
@@ -521,12 +532,14 @@ class ScheduleExecutor(
             teacherLoginBefore = state().ciLogin ?: state().login,
             formId = state().ciFormId,
             custom = state().ciCustom,
-            index = (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1,
+            index = (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it }
+                ?: 1) + 1,
             subjectId = state().ciSubjectId,
             isMarked = false
         )
-        scope.launch(CDispatcher) {
-            val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+        scope.launchIO {
+            val key =
+                if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
             val items =
                 (state().items[key]
                     ?: emptyList()).toMutableList()
@@ -534,33 +547,31 @@ class ScheduleExecutor(
             items.add(
                 item
             )
-            scope.launch {
+            withMain {
                 dispatch(Message.ItemsUpdated(items))
-                deleteEmptyLessons(item) //
+                deleteEmptyLessons(item)
             }
 
-            scope.launch {
+            withMain {
                 dispatch(Message.ciReset)
             }
         }
     }
 
     private fun chooseGroup(groupId: Int) {
-        scope.launch {
-            dispatch(Message.ciGroupChosed(groupId))
-            updateTimePeekList()
-        }
+        dispatch(Message.ciGroupChosed(groupId))
+        updateTimePeekList()
     }
 
     private fun updateTimePeekList() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             val timings: MutableList<ScheduleTiming> = mutableListOf()
 
             timingsPairs.forEach { s ->
                 timings.add(getScheduleTiming(s))
             }
 
-            scope.launch {
+            withMain {
                 dispatch(Message.ciTimingsGot(timings))
             }
         }
@@ -570,12 +581,13 @@ class ScheduleExecutor(
     private fun deleteEmptyLessons(
         immuniItem: ScheduleItem? = null
     ) {
-        scope.launch(CDispatcher) {
-            val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+        scope.launchIO {
+            val key =
+                if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
             val trueItems =
                 (state().items[key]
                     ?: emptyList())
-            trueItems.mapNotNull {
+            trueItems.map {
                 if (fetchLoginsOfLesson(
                         trueItems = trueItems,
                         solvedConflictsItems = state().solveConflictItems[key],
@@ -606,11 +618,11 @@ class ScheduleExecutor(
     private fun updateEditErrors(
         cabinet: Int,
         login: String,
-        id: Int,
         s: Pair<String, String>
     ) {
-        scope.launch(CDispatcher) {
-            val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+        scope.launchIO {
+            val key =
+                if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
             val trueItems =
                 state().items[key]
                     ?: emptyList()
@@ -635,9 +647,9 @@ class ScheduleExecutor(
                 state().students.firstOrNull { it.login == l }
             } ?: listOf()
             val allStudents =
-                ((((logins?.deletedLogins ?: listOf()) + (logins?.okLogins)) ?: listOf())).mapNotNull { l ->
+                ((logins?.deletedLogins ?: listOf()) + (logins?.okLogins)).mapNotNull { l ->
                     state().students.firstOrNull { it.login == l }
-                } ?: listOf()
+                }
 
             val okErrors = getStudentErrors(
                 coItems = coItems,
@@ -663,7 +675,7 @@ class ScheduleExecutor(
                 }
             }?.groupId ?: 0
 
-            scope.launch {
+            withMain {
                 dispatch(
                     Message.IsEditItemCouldBeBLABLABLAChanged(allErrors == okErrors)
                 )
@@ -678,7 +690,8 @@ class ScheduleExecutor(
     }
 
     private fun getScheduleTiming(s: Pair<String, String>): ScheduleTiming {
-        val key = if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
+        val key =
+            if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
         val trueItems =
             state().items[key]
                 ?: emptyList()
@@ -695,7 +708,8 @@ class ScheduleExecutor(
             solvedConflictsItems = state().solveConflictItems[key],
             students = state().students,
             forms = state().forms,
-            lessonIndex = (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1,
+            lessonIndex = (state().items.flatMap { it.value.map { it.index } }.maxByOrNull { it }
+                ?: 1) + 1,
             state = state(),
             timing = ScheduleTiming(start = s.first, end = s.second)
         )?.okLogins?.mapNotNull { l ->
@@ -757,14 +771,14 @@ class ScheduleExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
 //                val ar = async { adminRepository.fetchInitSchedule() }
 //                val acR = async { adminRepository.fetchCabinets() }
                 val r = adminRepository.fetchInitSchedule()//ar.await()
                 val cabinets = adminRepository.fetchCabinets().cabinets//acR.await().cabinets
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.Inited(
                             teachers = r.teachers,
@@ -805,14 +819,14 @@ data class LoginsOfLesson(
 fun getStudentErrors(
     coItems: List<ScheduleItem>,
     students: List<SchedulePerson>,
-    state: ScheduleStore.State
+    state: State
 ): MutableList<StudentError> {
     val key = if (state.isDefault) state.defaultDate.toString() else state.currentDate.second
     val studentErrors: MutableList<StudentError> = mutableListOf()
     val studentErrorItems =
         coItems.filter { coItem ->
             coItem.groupId in students.filter {
-               it.login !in (state.solveConflictItems[key]?.get(coItem.index) ?: listOf())
+                it.login !in (state.solveConflictItems[key]?.get(coItem.index) ?: listOf())
             }.flatMap { student -> student.groups.map { it.first } } ||
                     (students.map { student -> student.login }).any { coItem.custom.contains(it) }
                     ||
@@ -829,10 +843,12 @@ fun getStudentErrors(
             groupId = item.groupId,
             logins = students.filter { s ->
                 (
-                item.groupId in s.groups.map { it.first }
-                || (item.custom.contains(s.login))
-                || item.formId == (state.forms.toList().firstOrNull { s.login in it.second.logins }?.first)
-                        ) && (s.login !in (state.solveConflictItems[key]?.get(item.index) ?: listOf()))
+                        item.groupId in s.groups.map { it.first }
+                                || (item.custom.contains(s.login))
+                                || item.formId == (state.forms.toList()
+                            .firstOrNull { s.login in it.second.logins }?.first)
+                        ) && (s.login !in (state.solveConflictItems[key]?.get(item.index)
+                    ?: listOf()))
             }.map { it.login },
             teacherLogin = item.teacherLogin,
             id = item.index
@@ -854,10 +870,11 @@ fun fetchLoginsOfLesson(
     students: List<SchedulePerson>,
     forms: HashMap<Int, ScheduleFormValue>,
     lessonIndex: Int,
-    state: ScheduleStore.State,
+    state: State,
     timing: ScheduleTiming? = null
 ): LoginsOfLesson? {
-    val newItemIndex = (state.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1
+    val newItemIndex =
+        (state.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1
     val item = if (newItemIndex != lessonIndex) trueItems.firstOrNull { it.index == lessonIndex }
     else ScheduleItem(
         teacherLogin = state.ciLogin ?: state.login,
@@ -876,7 +893,8 @@ fun fetchLoginsOfLesson(
         val beforeLogins = students.filter { s ->
             item.groupId in s.groups.map { it.first }
                     || item.custom.contains(s.login)
-                    || item.formId == (forms.toList().firstOrNull { s.login in it.second.logins }?.first)
+                    || item.formId == (forms.toList()
+                .firstOrNull { s.login in it.second.logins }?.first)
         }.map { it.login }
         LoginsOfLesson(
             okLogins = (beforeLogins - minusLogins.toSet()).toList(),

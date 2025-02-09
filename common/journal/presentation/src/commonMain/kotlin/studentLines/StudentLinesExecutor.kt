@@ -1,17 +1,17 @@
 package studentLines
 
-import CDispatcher
 import JournalRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.launch
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import report.RFetchStudentLinesReceive
 import server.getLocalDate
 import server.toMinutes
 import studentLines.StudentLinesStore.Intent
 import studentLines.StudentLinesStore.Label
-import studentLines.StudentLinesStore.State
 import studentLines.StudentLinesStore.Message
+import studentLines.StudentLinesStore.State
 
 class StudentLinesExecutor(
     private val journalRepository: JournalRepository,
@@ -24,11 +24,11 @@ class StudentLinesExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nInterface.nStartLoading()
                 val r = journalRepository.fetchStudentLines(RFetchStudentLinesReceive(login = state().login, edYear = state().edYear))
-                scope.launch {
+                withMain {
                     dispatch(Message.StudentLinesInited(
                         r.studentLines.sortedWith(
                             compareBy(

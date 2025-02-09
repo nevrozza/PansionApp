@@ -1,25 +1,16 @@
 package view
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.window.PopupPositionProvider
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
 import com.materialkolor.ktx.blend
 import resources.GeologicaFont
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-val popupPositionProvider: PopupPositionProvider
-    @Composable
-    get() = TooltipDefaults.rememberPlainTooltipPositionProvider()
 
 @Composable
 fun Color.blend(to: Color, amount: Float = .8f) = this.blend(to = to, amount = amount)
@@ -151,28 +142,3 @@ fun AppTheme(content: @Composable () -> Unit) {
         }
     }
 }
-
-
-//@Composable
-//fun colorSchemeGetter(isDark: Boolean, color: String): ColorScheme {
-//    return if (isDark) {
-//        when (color) {
-//            ThemeColors.Default.name -> defaultDarkPalette()
-//            ThemeColors.Green.name -> greenDarkPalette()
-//            ThemeColors.Red.name -> redDarkPalette()
-//            ThemeColors.Yellow.name -> yellowDarkPalette()
-//            ThemeColors.Dynamic.name -> dynamicDarkScheme() ?: defaultDarkPalette()
-//            else -> defaultDarkPalette()
-//
-//        }
-//    } else {
-//        when (color) {
-//            ThemeColors.Default.name -> defaultLightPalette()
-//            ThemeColors.Green.name -> greenLightPalette()
-//            ThemeColors.Red.name -> redLightPalette()
-//            ThemeColors.Yellow.name -> yellowLightPalette()
-//            ThemeColors.Dynamic.name -> dynamicLightScheme() ?: defaultLightPalette()
-//            else -> defaultLightPalette()
-//        }
-//    }
-//}

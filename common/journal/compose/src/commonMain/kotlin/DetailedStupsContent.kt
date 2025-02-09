@@ -20,6 +20,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.*
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.journal.BorderStup
+import components.journal.StupsButtons
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import detailedStups.DetailedStupsComponent
@@ -74,7 +81,7 @@ fun DetailedStupsContent(
                         onClick = { component.onOutput(DetailedStupsComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 },
@@ -83,7 +90,7 @@ fun DetailedStupsContent(
                         if (model.reason == "0") "За неделю" else "За год",
                         modifier = Modifier.padding(end = 5.dp)
                     ) {
-                        CustomTextButton(
+                        CTextButton(
                             text = it
                         ) {
                             component.onEvent(DetailedStupsStore.Intent.ChangeReason)
@@ -191,7 +198,7 @@ private fun DetailedStupsSubjectItem(
                     }
                 ) {
                     GetAsyncIcon(
-                        path = if (showDs.value) RIcons.Star else RIcons.StarOutlined
+                        path = if (showDs.value) RIcons.STAR else RIcons.STAR_OUTLINE
                     )
                 }
             }

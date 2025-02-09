@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -24,15 +23,13 @@ import root.store.RootStore
 import server.Moderation
 import server.Roles
 import root.RootComponent.RootCategories.*
-import root.RootComponent.Child.*
 import root.RootComponent.Config
-import view.GlobalHazeState
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
 import view.ViewManager
-import view.easedVerticalGradient
+import androidx.compose.desktop.ui.tooling.preview.utils.easedVerticalGradient
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
-import components.hazeHeader
-import components.hazeUnder
+import components.foundation.hazeUnder
 import dev.chrisbanes.haze.*
 
 
@@ -52,46 +49,46 @@ fun getNavItems(
 ): List<NavigationItem?> {
     val items = listOf<NavigationItem?>(
         NavigationItem(
-            iconPath = RIcons.Home,
+            iconPath = RIcons.HOME,
             label = "Главная",
-            category = if (isExpanded && getCategory(childStack.active.configuration as RootComponent.Config) == Journal) Journal
+            category = if (isExpanded && getCategory(childStack.active.configuration as Config) == Journal) Journal
             else Home,
             onClickOutput = RootComponent.Output.NavigateToHome
         ),
-        if (!isExpanded && (model.role == Roles.teacher || model.moderation in listOf(
-                Moderation.moderator,
-                Moderation.mentor,
-                Moderation.both
+        if (!isExpanded && (model.role == Roles.TEACHER || model.moderation in listOf(
+                Moderation.MODERATOR,
+                Moderation.MENTOR,
+                Moderation.BOTH
             )) && component.isMentoring == null
         ) NavigationItem(
-            iconPath = RIcons.Book,//Icons.AutoMirrored.Rounded.LibraryBooks,
+            iconPath = RIcons.BOOK,//Icons.AutoMirrored.Rounded.LibraryBooks,
             label = "Журнал",
             size = 20.dp,
             category = Journal,
             onClickOutput = RootComponent.Output.NavigateToJournal
         ) else null,
         NavigationItem(
-            iconPath = RIcons.School,//Icons.Rounded.Token,
+            iconPath = RIcons.SCHOOL,//Icons.Rounded.Token,
             size = 24.dp,
             label = "Пансион",
             category = School,
             onClickOutput = RootComponent.Output.NavigateToSchool
         ),
-        if (model.moderation != Moderation.nothing
+        if (model.moderation != Moderation.NOTHING
             && component.isMentoring == null
         ) NavigationItem(
-            iconPath = RIcons.Group,//Icons.Rounded.Diversity1,
+            iconPath = RIcons.GROUP,//Icons.Rounded.Diversity1,
             label = "Ученики",
             size = 24.dp,
             category = Mentoring,
             onClickOutput = RootComponent.Output.NavigateToMentoring
         ) else null,
         if (model.moderation in listOf(
-                Moderation.moderator,
-                Moderation.both
+                Moderation.MODERATOR,
+                Moderation.BOTH
             ) && component.isMentoring == null
         ) NavigationItem(
-            iconPath = RIcons.SovietSettings, //Icons.Rounded.GridView,
+            iconPath = RIcons.SOVIET_SETTINGS, //Icons.Rounded.GridView,
             label = "Админ",
             category = Admin,
             size = 20.dp,
@@ -154,12 +151,9 @@ private fun getCategory(config: Config): RootComponent.RootCategories {
 fun CustomNavigationBar(
     viewManager: ViewManager,
     component: RootComponent,
-    model: RootStore.State,
     childStack: ChildStack<*, Child>,
     items: List<NavigationItem?>
 ) {
-    val density = LocalDensity.current
-
     NavigationBar(
         modifier = Modifier.then(
             if (viewManager.hazeHardware.value) Modifier.hazeEffect(
@@ -205,7 +199,6 @@ fun CustomNavigationBar(
 fun CustomNavigationRail(
     isVertical: Boolean,
     component: RootComponent,
-    model: RootStore.State,
     childStack: ChildStack<*, Child>,
     items: List<NavigationItem?>
 ) {
@@ -216,7 +209,7 @@ fun CustomNavigationRail(
         exit = fadeOut(animationSpec = tween(300)) + slideOutHorizontally { -it },
         modifier = Modifier.width(80.dp)
     ) {
-        NavigationRail() {
+        NavigationRail {
             Column(
                 Modifier.fillMaxHeight().verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)

@@ -1,6 +1,5 @@
 package formRating
 
-import CDispatcher
 import JournalRepository
 import admin.groups.forms.formSort
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -10,17 +9,16 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import formRating.FormRatingStore.Intent
 import formRating.FormRatingStore.Label
-import formRating.FormRatingStore.State
 import formRating.FormRatingStore.Message
-import getWeeks
-import kotlinx.coroutines.launch
+import formRating.FormRatingStore.State
 import rating.PansionPeriod
 import rating.RFetchFormRatingReceive
 import rating.toStr
 import server.Roles
-import server.getCurrentEdYear
 
 class FormRatingExecutor(
     private val nInterface: NetworkInterface,
@@ -43,7 +41,7 @@ class FormRatingExecutor(
                 initFormPicker()
             }
 
-            is Intent.ChangeForm -> scope.launch {
+            is Intent.ChangeForm -> {
                 val form = state().availableForms.first { it.id == intent.formId }
                 dispatch(
                     Message.FormChanged(
@@ -78,7 +76,7 @@ class FormRatingExecutor(
 
     private fun init(formId: Int?, period: PansionPeriod?, formNum: Int?) {
         if (formId != null) {
-            scope.launch(CDispatcher) {
+            scope.launchIO {
                 nInterface.nStartLoading()
                 try {
                     val r = journalRepository.fetchFormRating(
@@ -90,9 +88,9 @@ class FormRatingExecutor(
                     )
                     val newPages = state().formRatingPages.toMutableList()
                     newPages.remove(newPages.firstOrNull { it.formId == formId && it.period == period })
-                    val topEd: MutableMap<Int, List<String>> = mutableMapOf()
-                    val topMarks: MutableMap<Int, List<String>> = mutableMapOf()
-                    val topStups: MutableMap<Int, List<String>> = mutableMapOf()
+//                    val topEd: MutableMap<Int, List<String>> = mutableMapOf()
+//                    val topMarks: MutableMap<Int, List<String>> = mutableMapOf()
+//                    val topStups: MutableMap<Int, List<String>> = mutableMapOf()
 
 //                    val students = r.students
 
@@ -120,7 +118,7 @@ class FormRatingExecutor(
                             { it.avgAlg >= 0 },
                             { -(it.topAvg + it.topStups) },
                             { it.stupsAlg },
-                            { it.avgAlg.toFloat() },
+                            { it.avgAlg },
                         )
                     ).reversed().map { x ->
                         if (previousAvg != x.avgAlg || previousStups != x.stupsAlg) top++
@@ -137,7 +135,7 @@ class FormRatingExecutor(
                             students = items
                         )
                     )
-                    scope.launch {
+                    withMain {
                         if (period == null) dispatch(Message.PeriodChanged(PansionPeriod.Week(r.currentWeek)))
                         dispatch(Message.FormRatingPagesUpdated(newPages, r.subjects))
 
@@ -200,13 +198,13 @@ class FormRatingExecutor(
     }
 
     private fun initFormPicker() {
-        if (state().role != Roles.student) {
-            scope.launch(CDispatcher) {
+        if (state().role != Roles.STUDENT) {
+            scope.launchIO {
                 formPickerDialog.nInterface.nStartLoading()
                 try {
                     val r = journalRepository.fetchFormsForFormRating()
                     val forms = r.forms.formSort()
-                    scope.launch {
+                    withMain {
                         formPickerDialog.onEvent(
                             ListDialogStore.Intent.InitList(
                                 forms.map {

@@ -6,8 +6,27 @@ import admin.groups.Group
 import admin.groups.GroupInit
 import admin.groups.Subject
 import admin.users.UserInit
+import applicationTimeZone
 import applicationVersion
-import auth.*
+import auth.ActivationReceive
+import auth.ActivationResponse
+import auth.CheckActivationReceive
+import auth.CheckActivationResponse
+import auth.Device
+import auth.LoginReceive
+import auth.LoginResponse
+import auth.RActivateQrTokenResponse
+import auth.RChangeAvatarIdReceive
+import auth.RChangeLogin
+import auth.RChangeStatsSettingsReceive
+import auth.RCheckConnectionResponse
+import auth.RCheckGIASubjectReceive
+import auth.RFetchAboutMeReceive
+import auth.RFetchAboutMeResponse
+import auth.RFetchAllDevicesResponse
+import auth.RFetchQrTokenReceive
+import auth.RFetchQrTokenResponse
+import auth.RTerminateDeviceReceive
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.forms.mapToForm
 import com.nevrozq.pansion.database.pansCoins.PansCoins
@@ -22,19 +41,26 @@ import com.nevrozq.pansion.database.studentMinistry.StudentMinistry
 import com.nevrozq.pansion.database.studentMinistry.StudentMinistryDTO
 import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import com.nevrozq.pansion.database.tokens.TokenDTO
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
-import com.nevrozq.pansion.utils.*
+import com.nevrozq.pansion.utils.dRes
+import com.nevrozq.pansion.utils.done
+import com.nevrozq.pansion.utils.isMember
+import com.nevrozq.pansion.utils.isMentor
+import com.nevrozq.pansion.utils.isParent
+import com.nevrozq.pansion.utils.login
+import com.nevrozq.pansion.utils.nullUUID
+import com.nevrozq.pansion.utils.toId
+import com.nevrozq.pansion.utils.token
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
 import kotlinx.coroutines.delay
+import kotlinx.datetime.Clock
+import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.mindrot.jbcrypt.BCrypt
 import server.DataLength
 import server.Moderation
@@ -43,8 +69,8 @@ import server.cut
 import server.delayForNewQRToken
 import webload.RFetchUserDataReceive
 import webload.RFetchUserDataResponse
-import java.util.HashMap
 import java.util.UUID
+import kotlin.collections.set
 
 
 val authQRCalls: MutableMap<String, ApplicationCall> = mutableMapOf()
@@ -198,7 +224,7 @@ class AuthController {
                     deviceName = device.name,
                     deviceType = device.type,
                     time = Clock.System.now()
-                        .toLocalDateTime(TimeZone.of("UTC+3")).toString()
+                        .toLocalDateTime(applicationTimeZone).toString()
                         .cut(16)
                 )
             )
@@ -315,14 +341,14 @@ class AuthController {
     suspend fun checkConnection(call: ApplicationCall) {
         call.dRes(true, "Can't check connection") {
             val isTokenValid: Boolean = Tokens.isTokenValid(this.token.toId())
-            var name: String = ""
-            var surname: String = ""
+            var name = ""
+            var surname = ""
             var praname: String? = ""
-            var role: String = ""
-            var moderation: String = ""
-            var avatarId: Int = 0
-            var isParent: Boolean = false
-            var birthday: String = ""
+            var role = ""
+            var moderation = ""
+            var avatarId = 0
+            var isParent = false
+            var birthday = ""
 
             if (isTokenValid) {
                 val user = Users.fetchUser(this.login)!!
@@ -404,7 +430,7 @@ class AuthController {
                             token = token,
                             deviceName = authReceive.deviceName,
                             deviceType = authReceive.deviceType,
-                            time = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
+                            time = Clock.System.now().toLocalDateTime(applicationTimeZone)
                                 .toString()
                                 .cut(16)
                         )
@@ -467,8 +493,8 @@ class AuthController {
             )
         } else {
             if (receive.deviceId.toId() != nullUUID) {
-                val serverPassword = userDTO.password ?: "".cut(DataLength.passwordLength)
-                val passwordToCheck = receive.password.cut(DataLength.passwordLength)
+                val serverPassword = userDTO.password ?: "".cut(DataLength.PASSWORD_LENGTH)
+                val passwordToCheck = receive.password.cut(DataLength.PASSWORD_LENGTH)
                 if (serverPassword.isNotEmpty() && BCrypt.checkpw(
                         passwordToCheck,
                         serverPassword
@@ -483,7 +509,7 @@ class AuthController {
                             deviceName = receive.deviceName,
                             deviceType = receive.deviceType,
                             time = Clock.System.now()
-                                .toLocalDateTime(TimeZone.of("UTC+3")).toString()
+                                .toLocalDateTime(applicationTimeZone).toString()
                                 .cut(16)
                         )
                     )
@@ -533,8 +559,8 @@ private fun errorLogin(reason: String): LoginResponse {
                     praname = ""
                 ),
                 birthday = "22012008",
-                role = Roles.nothing,
-                moderation = Moderation.nothing,
+                role = Roles.NOTHING,
+                moderation = Moderation.NOTHING,
                 isParent = false
             ),
             login = ""

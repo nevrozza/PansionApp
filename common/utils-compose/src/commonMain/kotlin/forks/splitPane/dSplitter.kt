@@ -3,7 +3,13 @@ package forks.splitPane
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -13,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import components.GetAsyncIcon
-import cursorForHorizontalResize
 import resources.RIcons
+import utils.cursor.cursorForHorizontalResize
 import view.LocalViewManager
 
 @ExperimentalSplitPaneApi
@@ -26,7 +32,7 @@ fun SplitPaneScope.dSplitter(
         Box(Modifier.fillMaxHeight()) {
             if (isFullScreen != null) {
                 AnimatedContent(
-                    if (isFullScreen.value) RIcons.Minimize else RIcons.Maximize,
+                    if (isFullScreen.value) RIcons.MINIMIZE else RIcons.MAXIMIZE,
                     modifier = Modifier.size(25.dp).offset(x = 20.dp, y = viewManager.topPadding + 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -68,7 +74,7 @@ fun SplitPaneScope.dSplitter(
                     if (isFullScreen == null || (!isFullScreen.value)) {
 
                         Modifier.markAsHandle()
-                            .cursorForHorizontalResize()
+                            .cursorForHorizontalResize(isHorizontal = true)
                     } else {
                         Modifier
                     }

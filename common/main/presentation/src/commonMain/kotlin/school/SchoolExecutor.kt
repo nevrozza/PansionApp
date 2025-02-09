@@ -1,15 +1,22 @@
 package school
 
-import CDispatcher
 import JournalRepository
 import MainRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.launch
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import main.RFetchSchoolDataReceive
-import main.school.*
+import main.school.MinistryListItem
+import main.school.MinistrySettingsReason
+import main.school.RCreateMinistryStudentReceive
+import main.school.RFetchDutyReceive
+import main.school.RFetchMinistryStudentsReceive
+import main.school.RMinistryListReceive
+import main.school.RStartNewDayDuty
+import main.school.RUpdateTodayDuty
 import school.SchoolStore.Intent
 import school.SchoolStore.Label
 import school.SchoolStore.Message
@@ -30,13 +37,13 @@ class SchoolExecutor(
         when (intent) {
             Intent.Init -> {
                 init()
-                if (state().moderation in listOf(Moderation.both, Moderation.mentor) || state().role == Roles.student) {
+                if (state().moderation in listOf(Moderation.BOTH, Moderation.MENTOR) || state().role == Roles.STUDENT) {
                     fetchDuty()
                 }
             }
 
             Intent.RefreshOnlyDuty -> {
-                if (state().moderation in listOf(Moderation.both, Moderation.mentor) || state().role == Roles.student) {
+                if (state().moderation in listOf(Moderation.BOTH, Moderation.MENTOR) || state().role == Roles.STUDENT) {
                     fetchDuty()
                 }
             }
@@ -55,7 +62,7 @@ class SchoolExecutor(
     private fun openMinistryOverview(ministryOverviewId: String, date: String) {
         dispatch(Message.MinistryOverviewOpened(ministryOverviewId = ministryOverviewId))
         ministryOverview.onEvent(CBottomSheetStore.Intent.ShowSheet)
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             ministryOverview.nInterface.nStartLoading()
             try {
                 val r = journalRepository.fetchMinistryList(
@@ -77,7 +84,7 @@ class SchoolExecutor(
                         kids = mapOf(0 to r.kids)
                     )
                 )
-                scope.launch {
+                withMain {
                     dispatch(Message.MinistryListUpdated(newList))
                     ministryOverview.nInterface.nSuccess()
                 }
@@ -94,7 +101,7 @@ class SchoolExecutor(
     }
 
     private fun startNewDayDuty(newDutyPeopleCount: Int) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nDutyInterface.nStartLoading()
             try {
                 mainRepository.startNewDayDuty(
@@ -102,7 +109,7 @@ class SchoolExecutor(
                         newDutiesCount = newDutyPeopleCount
                     )
                 )
-                scope.launch {
+                withMain {
                     nDutyInterface.nSuccess()
                     fetchDuty()
                 }
@@ -117,7 +124,7 @@ class SchoolExecutor(
         }
     }
     private fun updateTodayDuty(newDutyPeopleCount: Int, kids: List<String>) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nDutyInterface.nStartLoading()
             try {
                 mainRepository.updateTodayDuty(
@@ -126,7 +133,7 @@ class SchoolExecutor(
                         kids = kids
                     )
                 )
-                scope.launch {
+                withMain {
                     nDutyInterface.nSuccess()
                     fetchDuty()
                 }
@@ -142,7 +149,7 @@ class SchoolExecutor(
     }
 
     private fun setMinistryStudent(ministryId: String, login: String?, fio: String) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             openMinSettingsBottom.nInterface.nStartLoading()
             try {
                 val r = mainRepository.createMinistryStudent(
@@ -154,7 +161,7 @@ class SchoolExecutor(
                         reason = state().ministrySettingsReason
                     )
                 )
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.MinistrySettingsOpened(r.students)
                     )
@@ -174,7 +181,7 @@ class SchoolExecutor(
     private fun openMinistrySettings(reason: MinistrySettingsReason) {
         dispatch(Message.MinistrySettingsReasonChanged(reason))
         openMinSettingsBottom.onEvent(CBottomSheetStore.Intent.ShowSheet)
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             openMinSettingsBottom.nInterface.nStartLoading()
             try {
                 val r = mainRepository.fetchMinistrySettings(
@@ -182,7 +189,7 @@ class SchoolExecutor(
                         reason = reason
                     )
                 )
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.MinistrySettingsOpened(r.students)
                     )
@@ -200,7 +207,7 @@ class SchoolExecutor(
     }
 
     private fun fetchDuty() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nDutyInterface.nStartLoading()
             try {
                 val r = mainRepository.fetchDuty(
@@ -208,7 +215,7 @@ class SchoolExecutor(
                         login = state().login
                     )
                 )
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.DutyFetched(
                             dutyKids = r.list,
@@ -228,7 +235,7 @@ class SchoolExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val r = mainRepository.fetchSchoolData(
@@ -236,7 +243,7 @@ class SchoolExecutor(
                         login = state().login
                     )
                 )
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.Inited(
                             formId = r.formId,

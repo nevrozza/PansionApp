@@ -1,22 +1,18 @@
 package root.store
 
 import AuthRepository
-import CDispatcher
 import JournalRepository
 import RFetchGroupDataReceive
-import activation.ActivationStore
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
-import components.networkInterface.NetworkState
-import home.HomeComponent
-import home.HomeStore
-import kotlinx.coroutines.Job
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import root.store.RootStore.Intent
 import root.store.RootStore.Label
-import root.store.RootStore.State
 import root.store.RootStore.Message
+import root.store.RootStore.State
 import webload.RFetchUserDataReceive
 
 class RootExecutor(
@@ -36,23 +32,31 @@ class RootExecutor(
             )
 
             Intent.CheckConnection -> checkConnection()
-            is Intent.ChangeTokenValidationStatus -> dispatch(Message.TokenValidationStatusChanged(intent.isTokenValid))
+            is Intent.ChangeTokenValidationStatus -> dispatch(
+                Message.TokenValidationStatusChanged(
+                    intent.isTokenValid
+                )
+            )
+
             is Intent.DeleteStart -> dispatch(Message.StartFetched(null, null, null, null))
-            is Intent.FetchStartUser -> fetchStartUser(login = intent.login, routing = intent.routing)
+            is Intent.FetchStartUser -> fetchStartUser(
+                login = intent.login,
+                routing = intent.routing
+            )
+
             is Intent.FetchStartGroup -> fetchStartGroup(intent.groupId)
             is Intent.FetchStartReport -> fetchStartReport(intent.reportId)
         }
     }
 
 
-
     private fun fetchStartReport(reportId: Int) {
         dispatch(Message.StartIsNeeded)
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 val r = journalRepository.fetchFullReportData(reportId)
 
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.StartFetched(
                             rUser = null,
@@ -64,7 +68,7 @@ class RootExecutor(
                 }
 
             } catch (_: Throwable) {
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.StartFetched(
                             rUser = null,
@@ -80,13 +84,13 @@ class RootExecutor(
 
     private fun fetchStartGroup(groupId: Int) {
         dispatch(Message.StartIsNeeded)
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 val r = authRepository.fetchGroupData(
                     RFetchGroupDataReceive(groupId)
                 )
 
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.StartFetched(
                             rUser = null,
@@ -98,7 +102,7 @@ class RootExecutor(
                 }
 
             } catch (_: Throwable) {
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.StartFetched(
                             rUser = null,
@@ -114,7 +118,7 @@ class RootExecutor(
 
     private fun fetchStartUser(login: String, routing: QuickRoutings) {
         dispatch(Message.StartIsNeeded)
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 val r = authRepository.fetchUserData(
                     RFetchUserDataReceive(
@@ -122,7 +126,7 @@ class RootExecutor(
                     )
                 )
 
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.StartFetched(
                             rUser = r,
@@ -134,7 +138,7 @@ class RootExecutor(
                 }
 
             } catch (_: Throwable) {
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.StartFetched(
                             rUser = null,
@@ -149,22 +153,22 @@ class RootExecutor(
     }
 
     private fun updatePermissions(role: String, moderation: String, birthday: String) {
-        scope.launch {
-            dispatch(
-                Message.PermissionsUpdated(
-                    role, moderation, birthday
-                )
+
+        dispatch(
+            Message.PermissionsUpdated(
+                role, moderation, birthday
             )
-        }
+        )
+
     }
 
     private fun checkConnection() {
         checkNInterface.nStartLoading()
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 val r = authRepository.checkConnection()
 
-                scope.launch {
+                withMain {
                     checkNInterface.nSuccess()
                     dispatch(Message.VersionFetched(r.version))
                     if (r.isTokenValid) {

@@ -13,6 +13,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
@@ -95,19 +97,19 @@ import androidx.compose.ui.unit.times
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.CustomTextField
+import components.foundation.AppBar
+import components.foundation.CCheckbox
+import components.foundation.CTextButton
+import components.foundation.CTextField
 import components.DateButton
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
 import components.SaveAnimation
 import components.ScrollBaredBox
 import components.cAlertDialog.CAlertDialogStore
-import components.cClickable
-import components.hazeUnder
+import components.foundation.cClickable
+import components.foundation.hazeUnder
 import components.listDialog.ListDialogStore
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
@@ -129,11 +131,9 @@ import schedule.timingsPairs
 import server.isTimeFormat
 import server.toMinutes
 import server.weekPairs
+import utils.LockScreenOrientation
 import view.LocalViewManager
-import view.LockScreenOrientation
 import view.blend
-import view.esp
-import view.popupPositionProvider
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -172,15 +172,6 @@ fun ScheduleContent(
         ),
         topBar = {
             AppBar(
-                navigationRow = {
-                    IconButton(
-                        onClick = { component.onOutput(ScheduleComponent.Output.Back) }
-                    ) {
-                        GetAsyncIcon(
-                            path = RIcons.ChevronLeft
-                        )
-                    }
-                },
                 title = {
 
                     Row(
@@ -191,7 +182,7 @@ fun ScheduleContent(
                         AnimatedContent(
                             targetState = if (model.isDefault) "Стандартное" else "Актуальное"
                         ) { text ->
-                            CustomTextButton(
+                            CTextButton(
                                 text = text,
                                 fontSize = MaterialTheme.typography.headlineSmall.fontSize
 
@@ -280,6 +271,15 @@ fun ScheduleContent(
                     }
 
                 },
+                navigationRow = {
+                    IconButton(
+                        onClick = { component.onOutput(ScheduleComponent.Output.Back) }
+                    ) {
+                        GetAsyncIcon(
+                            path = RIcons.CHEVRON_LEFT
+                        )
+                    }
+                },
                 actionRow = {
                     IconButton(
                         onClick = {
@@ -287,7 +287,7 @@ fun ScheduleContent(
                         }
                     ) {
                         GetAsyncIcon(
-                            path = if (model.isTeachersView) RIcons.User else RIcons.Group
+                            path = if (model.isTeachersView) RIcons.USER else RIcons.GROUP
                         )
                     }
 
@@ -298,7 +298,7 @@ fun ScheduleContent(
                         }
                     ) {
                         GetAsyncIcon(
-                            RIcons.Puzzle
+                            RIcons.PUZZLE
                         )
                     }
                 }
@@ -326,7 +326,7 @@ fun ScheduleContent(
                         when (it) {
                             NetworkState.None -> {
                                 GetAsyncIcon(
-                                    RIcons.Save
+                                    RIcons.SAVE
                                 )
                             }
 
@@ -423,7 +423,7 @@ fun ScheduleContent(
                                         }
                                     ) {
                                         GetAsyncIcon(
-                                            RIcons.PersonAdd
+                                            RIcons.PERSON_ADD
                                         )
                                     }
                                     ListDialogDesktopContent(
@@ -520,7 +520,7 @@ fun ScheduleContent(
                                 Text("Здесь пока нет предметов")
                                 Spacer(Modifier.height(7.dp))
                                 AnimatedVisibility(!model.isDefault && model.items[model.currentDate.first.toString()]?.isNotEmpty() == true && component.isCanBeEdited) {
-                                    CustomTextButton("Копировать из\nстандартного расписания") {
+                                    CTextButton("Копировать из\nстандартного расписания") {
                                         component.onEvent(ScheduleStore.Intent.CopyFromStandart)
                                     }
                                 }
@@ -578,7 +578,7 @@ fun ScheduleContent(
                             model = model,
                             id = model.niId!!
                         )
-                        CustomTextButton(
+                        CTextButton(
                             text = prevText
                         ) {
                             component.onEvent(
@@ -589,7 +589,7 @@ fun ScheduleContent(
                             )
                         }
                         Text("ИЛИ")
-                        CustomTextButton(
+                        CTextButton(
                             text = nextText
                         ) {
                             component.onEvent(
@@ -705,7 +705,7 @@ private fun LazyItemScope.ScheduleColumn(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Add
+                                RIcons.ADD
                             )
                         }
                         if (model.ciLogin == c.login) {
@@ -775,7 +775,7 @@ private fun LazyItemScope.ScheduleColumn(
                                         if (model.ciTimings == null) {
                                             Text("Загрузка..")
                                         } else {
-                                            CustomTextField(
+                                            CTextField(
                                                 value = model.ciCabinet.toString(),
                                                 onValueChange = {
                                                     if (it == "") {
@@ -817,7 +817,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                 )
                                             } else {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    CustomTextField(
+                                                    CTextField(
                                                         value = customTime,
                                                         onValueChange = {
                                                             if (!it.contains(
@@ -904,7 +904,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                                         }
                                                                     ) {
                                                                         GetAsyncIcon(
-                                                                            RIcons.Check
+                                                                            RIcons.CHECK
                                                                         )
                                                                     }
                                                                 } else {
@@ -959,7 +959,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                                     }
                                                                 ) {
                                                                     GetAsyncIcon(
-                                                                        path = RIcons.Repeat
+                                                                        path = RIcons.REPEAT
                                                                     )
                                                                 }
                                                             }
@@ -1098,7 +1098,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                             },
                                                         verticalAlignment = Alignment.CenterVertically
                                                     ) {
-                                                        CustomCheckbox(
+                                                        CCheckbox(
                                                             checked = model.ciIsPair
                                                         )
                                                         Text("Ещё урок")
@@ -1115,7 +1115,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                             }
                                                         ) {
                                                             GetAsyncIcon(
-                                                                RIcons.Close
+                                                                RIcons.CLOSE
                                                             )
                                                         }
                                                         IconButton(
@@ -1135,7 +1135,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                             }
                                                         ) {
                                                             GetAsyncIcon(
-                                                                RIcons.Check
+                                                                RIcons.CHECK
                                                             )
                                                         }
                                                     }
@@ -1175,7 +1175,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                     }
                                                 ) {
                                                     GetAsyncIcon(
-                                                        RIcons.ChevronLeft
+                                                        RIcons.CHEVRON_LEFT
                                                     )
                                                 }
                                                 Column {
@@ -1220,7 +1220,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                                 val chevronRotation =
                                                                     animateFloatAsState(if (expandedGSubjects) 90f else -90f)
                                                                 GetAsyncIcon(
-                                                                    path = RIcons.ChevronLeft,
+                                                                    path = RIcons.CHEVRON_LEFT,
                                                                     modifier = Modifier.padding(end = 10.dp)
                                                                         .rotate(chevronRotation.value),
                                                                     size = 15.dp
@@ -1265,7 +1265,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                     }
 
 
-                                                    CustomTextField(
+                                                    CTextField(
                                                         value = filterStudents.value,
                                                         onValueChange = {
                                                             filterStudents.value = it
@@ -1327,7 +1327,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                         }
                                                     ) {
                                                         GetAsyncIcon(
-                                                            RIcons.Check
+                                                            RIcons.CHECK
                                                         )
                                                     }
                                                 }
@@ -1727,7 +1727,7 @@ fun BoxScope.EditPopup(
                                     8.dp
                                 )
                             )
-                            CustomTextButton(
+                            CTextButton(
                                 buildAnnotatedString {
                                     withStyle(
                                         ParagraphStyle(
@@ -1763,7 +1763,7 @@ fun BoxScope.EditPopup(
                                     7.dp
                                 )
                             )
-                            CustomTextButton(
+                            CTextButton(
                                 buildAnnotatedString {
                                     withStyle(
                                         ParagraphStyle(
@@ -1795,7 +1795,7 @@ fun BoxScope.EditPopup(
                                 )
                             )
 
-                            CustomTextField(
+                            CTextField(
                                 value = cabinetik.toString(),
                                 onValueChange = {
                                     if (component.isCanBeEdited) {
@@ -1863,7 +1863,7 @@ fun BoxScope.EditPopup(
                                         }
                                     ) {
                                         GetAsyncIcon(
-                                            RIcons.TrashCanRegular
+                                            RIcons.TRASH_CAN_REGULAR
                                         )
                                     }
                                     IconButton(
@@ -1876,7 +1876,7 @@ fun BoxScope.EditPopup(
                                         }
                                     ) {
                                         GetAsyncIcon(
-                                            path = RIcons.SwapHoriz
+                                            path = RIcons.SWAP_HORIZ
                                         )
                                     }
                                     AnimatedVisibility(
@@ -1912,7 +1912,7 @@ fun BoxScope.EditPopup(
                                                 }
                                             ) {
                                                 GetAsyncIcon(
-                                                    RIcons.Check
+                                                    RIcons.CHECK
                                                 )
                                             }
                                         } else {
@@ -2055,7 +2055,7 @@ fun BoxScope.EditPopup(
                                 )
                             } else {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    CustomTextField(
+                                    CTextField(
                                         value = customTime,
                                         onValueChange = {
                                             if (!it.contains(
@@ -2122,7 +2122,7 @@ fun BoxScope.EditPopup(
                                             }
                                         ) {
                                             GetAsyncIcon(
-                                                RIcons.Check
+                                                RIcons.CHECK
                                             )
                                         }
 
@@ -2210,7 +2210,7 @@ fun BoxScope.EditPopup(
                         }
                     ) {
                         GetAsyncIcon(
-                            RIcons.TrashCanRegular
+                            RIcons.TRASH_CAN_REGULAR
                         )
                     }
                 }
@@ -2224,7 +2224,7 @@ fun BoxScope.EditPopup(
                 ),
                 backButton = null
             ) {
-                CustomTextButton(
+                CTextButton(
                     text = "Удалить${if (e.groupId == -6) " доп" else ""}",
                     modifier = Modifier.padding(7.dp)
                 ) {
@@ -2355,7 +2355,7 @@ fun ErrorsTooltip(
             enabled = true
         ) {
             GetAsyncIcon(
-                path = RIcons.ErrorOutline,
+                path = RIcons.ERROR_OUTLINE,
                 tint = MaterialTheme.colorScheme.error
             )
         }

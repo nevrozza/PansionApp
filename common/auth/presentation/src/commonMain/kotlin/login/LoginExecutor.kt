@@ -2,17 +2,16 @@ package login
 
 import AuthRepository
 import CommonPlatformConfiguration
-import auth.*
-import activation.ActivationStore
+import auth.RFetchQrTokenReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import di.Inject
 import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.network.sockets.SocketTimeoutException
-import kotlinx.coroutines.launch
 import login.LoginStore.Intent
 import login.LoginStore.Label
-import login.LoginStore.State
 import login.LoginStore.Message
+import login.LoginStore.State
 
 class LoginExecutor(private val authRepository: AuthRepository) :
     CoroutineExecutor<Intent, Unit, State, Message, Label>() {
@@ -20,7 +19,7 @@ class LoginExecutor(private val authRepository: AuthRepository) :
         when (intent) {
             is Intent.InputLogin -> dispatch(Message.LoginChanged(intent.login))
             is Intent.InputPassword -> dispatch(Message.PasswordChanged(intent.password))
-            Intent.CheckToGoMain -> checkToGoMain(state())
+            Intent.CheckToGoMain -> checkToGoMain()
             Intent.HideError -> dispatch(Message.ErrorHided)
             Intent.GetQrToken -> getQRToken()
         }
@@ -29,7 +28,7 @@ class LoginExecutor(private val authRepository: AuthRepository) :
     }
 
     private fun startQRPolling() {
-        scope.launch {
+        scope.launchIO {
             try {
                 val platformConfiguration: CommonPlatformConfiguration = Inject.instance()
                 val r = authRepository.pollQrToken(
@@ -44,7 +43,9 @@ class LoginExecutor(private val authRepository: AuthRepository) :
                         avatarId = r.avatarId,
                         a = r.activation
                     )
-                    dispatch(Message.Logined)
+                    withMain {
+                        dispatch(Message.Logined)
+                    }
                 }
 
 
@@ -56,7 +57,7 @@ class LoginExecutor(private val authRepository: AuthRepository) :
 
 
     private fun getQRToken() {
-        scope.launch {
+        scope.launchIO {
             try {
                 val platformConfiguration: CommonPlatformConfiguration = Inject.instance()
                 val r = authRepository.fetchQrToken(
@@ -66,45 +67,53 @@ class LoginExecutor(private val authRepository: AuthRepository) :
                         platformConfiguration.deviceName
                     )
                 )
-                dispatch(Message.QrTokenGet(r.token))
-                startQRPolling()
+                withMain {
+                    dispatch(Message.QrTokenGet(r.token))
+                    startQRPolling()
+                }
             } catch (_: Throwable) {
 
             }
         }
     }
 
-    private fun checkToGoMain(state: State) {
+    private fun checkToGoMain() {
         dispatch(Message.ProcessStarted)
-        scope.launch {
+        scope.launchIO {
             try {
-                val r = authRepository.performLogin(state.login, state.password)
+                val r = authRepository.performLogin(state().login, state().password)
                 val token = r.activation.token
-                if (token == "password") {
-                    dispatch(Message.CustomError("Неправильный пароль"))
-                } else if (token == "user") {
-                    dispatch(Message.CustomError("Неправильный логин"))
-                } else if (token == "deactivated") {
-                    dispatch(Message.CustomError("Аккаунт деактивирован"))
-                } else if (r.activation.token.isNotBlank()) {
-                    dispatch(Message.Logined)
-                } else {
-                    dispatch(Message.CustomError("Неправильный пароль или логин"))
+                withMain {
+                    if (token == "password") {
+                        dispatch(Message.CustomError("Неправильный пароль"))
+                    } else if (token == "user") {
+                        dispatch(Message.CustomError("Неправильный логин"))
+                    } else if (token == "deactivated") {
+                        dispatch(Message.CustomError("Аккаунт деактивирован"))
+                    } else if (r.activation.token.isNotBlank()) {
+                        dispatch(Message.Logined)
+                    } else {
+                        dispatch(Message.CustomError("Неправильный пароль или логин"))
+                    }
                 }
             } catch (e: ConnectTimeoutException) {
-                dispatch(Message.CustomError("Не удаётся подключиться к серверу"))
-            } catch (e: Throwable) {
-                if (e.message.toString()
-                        .commonPrefixWith("failed to connect to /") == "failed to connect to /"
-                ) {
+                withMain {
                     dispatch(Message.CustomError("Не удаётся подключиться к серверу"))
-                } else if (
-                    e.message.toString()
-                        .commonPrefixWith("Failed to connect to /") == "Failed to connect to /"
-                ) {
-                    dispatch(Message.CustomError("Проверьте подключение к интернету"))
-                } else {
-                    dispatch(Message.CustomError("Что-то пошло не так =/"))
+                }
+            } catch (e: Throwable) {
+                withMain {
+                    if (e.message.toString()
+                            .commonPrefixWith("failed to connect to /") == "failed to connect to /"
+                    ) {
+                        dispatch(Message.CustomError("Не удаётся подключиться к серверу"))
+                    } else if (
+                        e.message.toString()
+                            .commonPrefixWith("Failed to connect to /") == "Failed to connect to /"
+                    ) {
+                        dispatch(Message.CustomError("Проверьте подключение к интернету"))
+                    } else {
+                        dispatch(Message.CustomError("Что-то пошло не так =/"))
+                    }
                 }
             }
         }

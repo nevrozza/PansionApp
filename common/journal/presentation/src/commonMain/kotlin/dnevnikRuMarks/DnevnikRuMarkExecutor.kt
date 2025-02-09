@@ -1,20 +1,17 @@
 package dnevnikRuMarks
 
-import CDispatcher
 import JournalRepository
-import allGroupMarks.AllGroupMarksStore
-import allGroupMarks.DatesFilter
-import allGroupMarks.getDF
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.MarkTableItem
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import dnevnikRuMarks.DnevnikRuMarkStore.Intent
 import dnevnikRuMarks.DnevnikRuMarkStore.Label
-import dnevnikRuMarks.DnevnikRuMarkStore.State
 import dnevnikRuMarks.DnevnikRuMarkStore.Message
-import kotlinx.coroutines.launch
+import dnevnikRuMarks.DnevnikRuMarkStore.State
 import report.DnevnikRuMarksSubject
 import report.RFetchDnevnikRuMarksReceive
 import server.sortedDate
@@ -39,12 +36,10 @@ class DnevnikRuMarkExecutor(
             }
 
             is Intent.ClickOnStupsSubject -> {
-                scope.launch {
                     stupsDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
                     dispatch(
                         Message.OnStupsSubjectClicked(intent.id)
                     )
-                }
             }
 
             is Intent.ChangeTableView -> dispatch(Message.TableViewChanged(intent.isTableView))
@@ -123,7 +118,7 @@ class DnevnikRuMarkExecutor(
     }
 
     private fun fetchSubjects() {
-        scope.launch {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val subjects = journalRepository.fetchDnevnikRuMarks(
@@ -134,10 +129,11 @@ class DnevnikRuMarkExecutor(
                         edYear = state().edYear
                     )
                 ).subjects
-                dispatch(Message.SubjectsUpdated(subjects))
-                nInterface.nSuccess()
-
-                updateMarkTable()
+                withMain {
+                    dispatch(Message.SubjectsUpdated(subjects))
+                    nInterface.nSuccess()
+                    updateMarkTable()
+                }
             } catch (e: Throwable) {
                 nInterface.nError("Не удалось загрузить список оценок", e) {
                     fetchSubjects()
@@ -147,12 +143,12 @@ class DnevnikRuMarkExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val isQuarters = journalRepository.fetchIsQuarter(state().studentLogin)
                 val tabsCount = if (isQuarters.isQuarters) isQuarters.num else 2
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.IsQuartersInited(
                             isQuarters = isQuarters.isQuarters,

@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.GetAsyncIcon
 import resources.RIcons
-import view.popupPositionProvider
+import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +69,7 @@ fun PrisutCheckBox(
                 }) {
                 AnimatedVisibility(attendedType == "0") {
                     GetAsyncIcon(
-                        path = RIcons.Check,
+                        path = RIcons.CHECK,
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.fillMaxSize()
                             .background(MaterialTheme.colorScheme.primary)

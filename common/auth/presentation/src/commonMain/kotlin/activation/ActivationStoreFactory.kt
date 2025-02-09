@@ -1,16 +1,13 @@
 package activation
 
 import AuthRepository
-import SettingsRepository
+import activation.ActivationStore.Intent
+import activation.ActivationStore.State
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import activation.ActivationStore.Intent
-import activation.ActivationStore.Step
-import activation.ActivationStore.State
 
 class ActivationStoreFactory(
     private val storeFactory: StoreFactory,
-    private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository
 ) {
 
@@ -25,7 +22,6 @@ class ActivationStoreFactory(
             initialState = State(),
             executorFactory = {
                 ActivationExecutor(
-                    settingsRepository = settingsRepository,
                     authRepository = authRepository
                 )
             },

@@ -39,7 +39,7 @@ fun SaveAnimation(isShowing: Boolean, customText: String? = null, modifier: Modi
                     modifier = Modifier.padding(15.dp)
                 ) {
                     GetAsyncIcon(
-                        path = RIcons.Check,
+                        path = RIcons.CHECK,
                         tint = Color.Green,
                         size = 70.dp
                     )
@@ -75,7 +75,7 @@ fun ErrorAnimation(isShowing: Boolean, textError: String, modifier: Modifier? = 
                     modifier = Modifier.padding(15.dp)
                 ) {
                     GetAsyncIcon(
-                        path = RIcons.Close,
+                        path = RIcons.CLOSE,
                         tint = Color.Red,
                         size = 70.dp
                     )

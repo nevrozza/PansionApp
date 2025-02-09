@@ -1,18 +1,18 @@
 package profile
 
 import AuthRepository
-import CDispatcher
 import auth.RChangeStatsSettingsReceive
 import auth.RCheckGIASubjectReceive
 import auth.RFetchAboutMeReceive
 import auth.StatsSettingsDTO
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.launch
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import profile.ProfileStore.Intent
 import profile.ProfileStore.Label
-import profile.ProfileStore.State
 import profile.ProfileStore.Message
+import profile.ProfileStore.State
 
 class ProfileExecutor(
     private val authRepository: AuthRepository,
@@ -33,7 +33,7 @@ class ProfileExecutor(
 
     private fun changeStatsSettings() {
         val newStatsOpened = !(state().isStatsOpened ?: false)
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nAboutMeInterface.nStartLoading()
                 authRepository.changeStatsSettings(RChangeStatsSettingsReceive(
@@ -42,7 +42,7 @@ class ProfileExecutor(
                         isOpened = newStatsOpened
                     )
                 ))
-                scope.launch {
+                withMain {
                     dispatch(Message.StatsSettingsChanged(newStatsOpened))
                 }
             } catch (_: Throwable) {
@@ -52,7 +52,7 @@ class ProfileExecutor(
     }
 
     private fun clickOnGia(subjectId: Int, isChecked: Boolean) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 authRepository.checkGIASubject(RCheckGIASubjectReceive(subjectId = subjectId, isChecked = isChecked, login = state().studentLogin))
                 val newList = state().giaSubjects.toMutableList()
@@ -61,7 +61,7 @@ class ProfileExecutor(
                 } else {
                     newList.remove(element = subjectId)
                 }
-                scope.launch {
+                withMain {
                     dispatch(Message.GIASubjectsUpdated(newList))
                 }
             } catch (_: Throwable) {
@@ -71,7 +71,7 @@ class ProfileExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nAboutMeInterface.nStartLoading()
             try {
                 val aboutMe = authRepository.fetchAboutMe(
@@ -80,7 +80,7 @@ class ProfileExecutor(
                         edYear = state().edYear
                     )
                 )
-                scope.launch {
+                withMain {
                     dispatch(Message.AboutMeUpdated(
                         form = aboutMe.form,
                         groups = aboutMe.groups,
@@ -108,13 +108,13 @@ class ProfileExecutor(
     }
 
     private fun saveAvatarId(avatarId: Int, price: Int) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nAvatarInterface.nStartLoading()
             try {
                 authRepository.changeAvatarId(avatarId = avatarId, price = price)
                 nAvatarInterface.nSuccess()
                 authRepository.saveAvatarId(avatarId = avatarId)
-                scope.launch {
+                withMain {
                     changeAvatarOnMain(avatarId)
                     dispatch(Message.AvatarIdSaved(price = price, avatarId = avatarId))
                 }
@@ -124,7 +124,6 @@ class ProfileExecutor(
                         goToNone()
                     })
                 }
-                println(e)
             }
         }
     }

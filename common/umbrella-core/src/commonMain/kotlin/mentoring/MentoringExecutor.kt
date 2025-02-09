@@ -1,6 +1,5 @@
 package mentoring
 
-import CDispatcher
 import MainRepository
 import allGroupMarks.DateModule
 import allGroupMarks.DatesFilter
@@ -8,7 +7,8 @@ import allGroupMarks.getDF
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.MarkTableItem
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.launch
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import mentoring.MentoringStore.Intent
 import mentoring.MentoringStore.Label
 import mentoring.MentoringStore.Message
@@ -94,7 +94,7 @@ class MentoringExecutor(
     }
 
     private fun updateTableAfterPeriod() {
-        scope.launch {
+        scope.launchIO {
             val filteredDates = state().allDates.filter {
                 when (state().dateFilter) {
                     is DatesFilter.Week -> it.date in state().weekDays
@@ -115,18 +115,20 @@ class MentoringExecutor(
                 }
                 marks.isNotEmpty() || nki.isNotEmpty()
             }
-            dispatch(
-                Message.UpdateTableAfterPeriod(
-                    filteredSubjects, filteredDates
+            withMain {
+                dispatch(
+                    Message.UpdateTableAfterPeriod(
+                        filteredSubjects, filteredDates
+                    )
                 )
-            )
 
-            updateTableAfterSubject()
+                updateTableAfterSubject()
+            }
         }
     }
 
     private fun updateTableAfterSubject() {
-        scope.launch {
+        scope.launchIO {
             val groupsIds =
                 state().allGroups.filter { it.subjectId == state().chosenSubject }
                     .map { it.groupId }.toSet()
@@ -153,13 +155,20 @@ class MentoringExecutor(
                 }).isNullOrEmpty()
             }
 
-
-            dispatch(Message.UpdateTableAfterSubject(filteredMarks, filteredNki, filteredStudents))
+            withMain {
+                dispatch(
+                    Message.UpdateTableAfterSubject(
+                        filteredMarks,
+                        filteredNki,
+                        filteredStudents
+                    )
+                )
+            }
         }
     }
 
     private fun fetchTable() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val r = mainRepository.fetchJournalBySubjects(
@@ -208,7 +217,7 @@ class MentoringExecutor(
                     }
                 }
 
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.TableLoaded(
                             allSubjects = r.subjects,
@@ -226,7 +235,7 @@ class MentoringExecutor(
                     nInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-                scope.launch {
+                withMain {
                     nInterface.nError("Не удалось загрузить таблицу", e) {
                         nInterface.goToNone()
                         dispatch(Message.ViewChanged(false))
@@ -237,7 +246,7 @@ class MentoringExecutor(
     }
 
     private fun solveRequest(isAccepted: Boolean, r: RegistrationRequest) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 mainRepository.solveRegistrationRequest(
                     SolveRequestReceive(
@@ -253,7 +262,7 @@ class MentoringExecutor(
     }
 
     private fun manageQR(formId: Int, isOpen: Boolean) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 if (isOpen) {
                     mainRepository.openRegistrationQR(
@@ -268,7 +277,7 @@ class MentoringExecutor(
                         )
                     )
                 }
-                scope.launch {
+                withMain {
                     dispatch(Message.FormsUpdated(
                         forms = state().forms.map {
                             if (it.id == formId)
@@ -292,7 +301,7 @@ class MentoringExecutor(
         reason: String,
         isGood: Boolean
     ) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nPreAttendance.nStartLoading()
                 val PA = ClientPreAttendance(
@@ -318,7 +327,7 @@ class MentoringExecutor(
                     newPreAttendance[login] = mapOf(date to PA)
                 }
 
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.PreAttendanceUpdate(
                             preAttendance = newPreAttendance,
@@ -339,7 +348,7 @@ class MentoringExecutor(
     private fun selectPreAttendance(login: String?, date: String, dayOfWeek: String) {
         dispatch(Message.PreAttendanceLoginChanged(login))
         if (login != null) {
-            scope.launch(CDispatcher) {
+            scope.launchIO {
                 nPreAttendance.nStartLoading()
                 try {
                     val r = mainRepository.fetchPreAttendanceDay(
@@ -369,7 +378,7 @@ class MentoringExecutor(
                         newPreAttendance[login] = mapOf(date to r.attendance)
                     }
 
-                    scope.launch {
+                    withMain {
                         dispatch(
                             Message.PreAttendanceUpdate(
                                 preAttendance = newPreAttendance,
@@ -389,11 +398,11 @@ class MentoringExecutor(
     }
 
     private fun fetchStudents() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val r = mainRepository.fetchMentorStudents()
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.StudentsFetched(
                             forms = r.forms,

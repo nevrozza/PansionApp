@@ -1,13 +1,10 @@
 package home
 
-import AuthRepository
 import FIO
 import JournalRepository
 import MainRepository
-import admin.AdminComponent
 import asValue
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
@@ -75,14 +72,13 @@ class HomeComponent(
         storeFactory = storeFactory
     )
 
-    private val authRepository: AuthRepository = Inject.instance()
+//    private val authRepository: AuthRepository = Inject.instance()
     private val mainRepository: MainRepository = Inject.instance()
     private val journalRepository: JournalRepository = Inject.instance()
     private val homeStore =
         instanceKeeper.getStore {
             HomeStoreFactory(
                 storeFactory = storeFactory,
-                authRepository = authRepository,
                 mainRepository = mainRepository,
                 quickTabNInterface = quickTabNInterface,
                 teacherNInterface = teacherNInterface,
@@ -95,8 +91,8 @@ class HomeComponent(
                 surname = surname,
                 praname = praname,
                 role = role,
-                isParent = isParent,
                 moderation = moderation,
+                isParent = isParent,
                 journalRepository = journalRepository
             ).create()
         }
@@ -106,9 +102,9 @@ class HomeComponent(
     @OptIn(ExperimentalCoroutinesApi::class)
     val state: StateFlow<HomeStore.State> = homeStore.stateFlow
 
-    fun getLogin() : String {
-        return model.value.login
-    }
+//    fun getLogin() : String {
+//        return model.value.login
+//    }
 
     fun onEvent(event: HomeStore.Intent) {
         homeStore.accept(event)

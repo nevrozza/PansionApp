@@ -54,17 +54,17 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.CLazyColumn
-import components.CustomTextButton
-import components.CustomTextField
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AnimatedCommonButton
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.CTextField
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
-import components.LoadingAnimation
+import components.foundation.LoadingAnimation
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
-import components.cClickable
+import components.foundation.cClickable
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -163,12 +163,12 @@ fun SubjectsContent(
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
 
                                                     Spacer(Modifier.width(4.dp))
-                                                    GetAsyncIcon(RIcons.User, size = 18.dp)
+                                                    GetAsyncIcon(RIcons.USER, size = 18.dp)
                                                     Spacer(Modifier.width(4.dp))
                                                     Text(text = mentorName)
                                                     Spacer(Modifier.width(6.dp))
                                                     GetAsyncIcon(
-                                                        path = RIcons.Fire,
+                                                        path = RIcons.FIRE,
                                                         size = 18.dp
                                                     )
                                                     Spacer(Modifier.width(4.dp))
@@ -204,7 +204,7 @@ fun SubjectsContent(
                                                 modifier = Modifier.weight(0.1f, false)
                                             ) {
                                                 GetAsyncIcon(
-                                                    path = RIcons.Edit
+                                                    path = RIcons.EDIT
                                                 )
                                             }
                                         }
@@ -234,7 +234,7 @@ fun SubjectsContent(
                                                         modifier = Modifier.size(25.dp)
                                                     ) {
                                                         GetAsyncIcon(
-                                                            RIcons.Close
+                                                            RIcons.CLOSE
                                                         )
                                                     }
                                                 }
@@ -242,7 +242,7 @@ fun SubjectsContent(
                                             val isWannaCreate = remember { mutableStateOf(false) }
                                             Column {
                                                 if (isWannaCreate.value) {
-                                                    CustomTextField(
+                                                    CTextField(
                                                         value = model.addStudentToGroupLogin,
                                                         onValueChange = {
                                                             component.onEvent(SubjectsStore.Intent.ChangeAddStudentToGroupLogin(it))
@@ -269,7 +269,7 @@ fun SubjectsContent(
                                                         modifier = Modifier.size(25.dp)
                                                     ) {
                                                         GetAsyncIcon(
-                                                            RIcons.Add
+                                                            RIcons.ADD
                                                         )
                                                     }
                                                 }
@@ -303,7 +303,7 @@ fun SubjectsContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
         ) {
-            CustomTextField(
+            CTextField(
                 value = model.eSubjectText,
                 onValueChange = {
                     component.onEvent(
@@ -327,7 +327,7 @@ fun SubjectsContent(
                 keyboardType = KeyboardType.Text
             )
             Spacer(Modifier.height(7.dp))
-            CustomTextButton("Удалить") {
+            CTextButton("Удалить") {
                 component.deleteSubjectDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
             }
         }
@@ -403,7 +403,7 @@ fun EditGroupBottomSheet(
 
 
                 Spacer(Modifier.height(7.dp))
-                CustomTextField(
+                CTextField(
                     value = model.eName,
                     onValueChange = {
                         component.onEvent(
@@ -455,7 +455,7 @@ fun EditGroupBottomSheet(
                         trailingIcon = {
                             val chevronRotation = animateFloatAsState(if (expandedTeachers) 90f else -90f)
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft,
+                                path = RIcons.CHEVRON_LEFT,
                                 modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                                 size = 15.dp
                             )
@@ -490,7 +490,7 @@ fun EditGroupBottomSheet(
                     }
                 }
                 Spacer(Modifier.height(7.dp))
-                CustomTextField(
+                CTextField(
                     value = model.eDifficult,
                     onValueChange = {
                         if (it.length < 2) {
@@ -517,17 +517,17 @@ fun EditGroupBottomSheet(
                 Spacer(Modifier.height(7.dp))
                 if (isActive) {
                     AnimatedVisibility(!deleteGroup) {
-                        CustomTextButton("Удалить группу") {
+                        CTextButton("Удалить группу") {
                             deleteGroup = true
                         }
                     }
                     AnimatedVisibility(deleteGroup) {
                         Row() {
-                            CustomTextButton("Удалить") {
+                            CTextButton("Удалить") {
                                 component.onEvent(SubjectsStore.Intent.DeleteGroup)
                             }
                             Spacer(Modifier.width(40.dp))
-                            CustomTextButton("Отмена") {
+                            CTextButton("Отмена") {
                                 deleteGroup = false
                             }
                         }

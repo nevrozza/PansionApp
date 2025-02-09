@@ -37,10 +37,10 @@ import forks.splitPane.SplitPaneState
 import io.ktor.util.decodeBase64Bytes
 import root.RootComponent
 import root.RootComponentImpl
-import server.DeviceTypex
 import server.cut
 import view.AppTheme
-import view.GlobalHazeState
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
+import deviceSupport.deviceType
 import view.LocalViewManager
 import view.ViewManager
 import view.toRGB
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             configuration = PlatformConfiguration(applicationContext),
             cConfiguration = CommonPlatformConfiguration(
                 deviceName = Build.MODEL?.cut(20) ?: "unknown",
-                deviceType = DeviceTypex.android,
+                deviceType = deviceType,
                 deviceId = uuid.toString()
             )
         )

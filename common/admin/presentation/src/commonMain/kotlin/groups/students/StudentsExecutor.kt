@@ -2,12 +2,15 @@ package groups.students
 
 import AdminRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import components.networkInterface.NetworkInterface
 import components.listDialog.ListComponent
+import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withIO
+import deviceSupport.withMain
 import groups.students.StudentsStore.Intent
 import groups.students.StudentsStore.Label
-import groups.students.StudentsStore.State
 import groups.students.StudentsStore.Message
+import groups.students.StudentsStore.State
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -31,13 +34,23 @@ class StudentsExecutor(
             is Intent.ChangeCFormGroupSubjectId -> changeCFormGroupSubjectId(intent.subjectId)
             Intent.CreateFormGroup -> createFormGroup(state())
 
-            is Intent.DeleteStudentGroup -> deleteStudentGroup(login = intent.login, subjectId = intent.subjectId, groupId = intent.groupId, afterAll = intent.afterAll)
+            is Intent.DeleteStudentGroup -> deleteStudentGroup(
+                login = intent.login,
+                subjectId = intent.subjectId,
+                groupId = intent.groupId,
+                afterAll = intent.afterAll
+            )
         }
     }
 
 
-    private fun deleteStudentGroup(subjectId: Int, groupId: Int, login: String, afterAll: () -> Unit) {
-        scope.launch {
+    private fun deleteStudentGroup(
+        subjectId: Int,
+        groupId: Int,
+        login: String,
+        afterAll: () -> Unit
+    ) {
+        scope.launchIO {
 //            dispatch(Message.CreatingProcessStarted)
             nStudentGroupsInterface.nStartLoading()
             try {
@@ -46,13 +59,10 @@ class StudentsExecutor(
                     subjectId = subjectId,
                     groupId = groupId
                 )
-//                adminRepository.createFormGroup(
-//                    formId = state.chosenFormId,
-//                    subjectId = state.cFormGroupSubjectId,
-//                    eiGroupId = state.cFormGroupGroupId
-//                )
-                dispatch(Message.FormGroupCreated)
-                afterAll()
+                withMain {
+                    dispatch(Message.FormGroupCreated)
+                    afterAll()
+                }
 
             } catch (e: Throwable) {
                 with(nStudentGroupsInterface) {
@@ -65,7 +75,7 @@ class StudentsExecutor(
                 updateStudentsGroups(state().chosenStudentLogin)
             } catch (e: Throwable) {
                 nStudentGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
-                    this.launch {
+                    this.launchIO {
                         updateStudentsGroups(state().chosenStudentLogin)
                     }
                 })
@@ -75,8 +85,7 @@ class StudentsExecutor(
     }
 
     private fun createFormGroup(state: State) {
-        scope.launch {
-//            dispatch(Message.CreatingProcessStarted)
+        scope.launchIO {
             nStudentGroupsInterface.nStartLoading()
             try {
                 adminRepository.createStudentGroup(
@@ -84,13 +93,9 @@ class StudentsExecutor(
                     subjectId = state.cFormGroupSubjectId,
                     groupId = state.cFormGroupGroupId
                 )
-//                adminRepository.createFormGroup(
-//                    formId = state.chosenFormId,
-//                    subjectId = state.cFormGroupSubjectId,
-//                    eiGroupId = state.cFormGroupGroupId
-//                )
-                dispatch(Message.FormGroupCreated)
-
+                withMain {
+                    dispatch(Message.FormGroupCreated)
+                }
             } catch (e: Throwable) {
                 with(nStudentGroupsInterface) {
                     nError("Что-то пошло не так =/", e, onFixErrorClick = {
@@ -102,7 +107,7 @@ class StudentsExecutor(
                 updateStudentsGroups(state().chosenStudentLogin)
             } catch (e: Throwable) {
                 nStudentGroupsInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
-                    this.launch {
+                    this.launchIO {
                         updateStudentsGroups(state().chosenStudentLogin)
                     }
                 })
@@ -113,12 +118,14 @@ class StudentsExecutor(
 
     private fun changeCFormGroupSubjectId(subjectId: Int) {
         dispatch(Message.CFormGroupSubjectIdChanged(subjectId))
-        scope.launch {
+        scope.launchIO {
             try {
-                val cutedGroups = adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().studentGroups.map { it.id } }
+                val cutedGroups =
+                    adminRepository.fetchCutedGroups(subjectId).groups.filter { it.groupId !in state().studentGroups.map { it.id } }
 
-                dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
-//                creatingFormBottomSheet.nInterface.nSuccess()
+                withMain {
+                    dispatch(Message.CFormGroupSubjectIdChangedAtAll(subjectId, cutedGroups))
+                }
             } catch (_: Throwable) {
 //                creatingFormBottomSheet.nInterface.nError("Не удалось загрузить список") {
 //                    updateMentors()
@@ -131,9 +138,11 @@ class StudentsExecutor(
     private fun changeStudent(login: String) {
 
         scope.launch {
-            if(login != state().chosenStudentLogin) {
+            if (login != state().chosenStudentLogin) {
                 dispatch(Message.OnStudentClicked(login))
-                updateStudentsGroups(login)
+                withIO {
+                    updateStudentsGroups(login)
+                }
             } else {
                 dispatch(Message.OnStudentClicked(""))
             }
@@ -142,14 +151,14 @@ class StudentsExecutor(
     }
 
     private fun changeCurrentFormTab(formId: Int) {
-        scope.launch {
-            dispatch(Message.ChosenFormChanged(formId))
+        dispatch(Message.ChosenFormChanged(formId))
+        scope.launchIO {
             updateStudentsInForm(formId)
         }
     }
 
     private fun bindStudentToForm(state: State, formId: Int) {
-        scope.launch {
+        scope.launchIO {
 //            formListComponent.onEvent(ListDialogStore.Intent.StartProcess)
             formsListComponent.nInterface.nStartLoading()
             try {
@@ -166,9 +175,12 @@ class StudentsExecutor(
                     nInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-                formsListComponent.nInterface.nError("Что-то пошло не так =/", e, onFixErrorClick = {
-                    bindStudentToForm(state, formId)
-                })
+                formsListComponent.nInterface.nError(
+                    "Что-то пошло не так =/",
+                    e,
+                    onFixErrorClick = {
+                        bindStudentToForm(state, formId)
+                    })
             }
             updateStudentsInForm(state.chosenFormTabId)
         }
@@ -178,13 +190,15 @@ class StudentsExecutor(
         try {
             nStudentGroupsInterface.nStartLoading()
             val groups = adminRepository.fetchStudentGroups(studentLogin).groups
-            if(studentLogin == state().chosenStudentLogin) {
-                dispatch(Message.StudentGroupsUpdated(groups))
-                nStudentGroupsInterface.nSuccess()
+            withMain {
+                if (studentLogin == state().chosenStudentLogin) {
+                    dispatch(Message.StudentGroupsUpdated(groups))
+                    nStudentGroupsInterface.nSuccess()
+                }
             }
         } catch (e: Throwable) {
             nStudentGroupsInterface.nError("Что-то пошло не так", e, onFixErrorClick = {
-                scope.launch {
+                scope.launchIO {
                     updateStudentsGroups(studentLogin)
                 }
             })
@@ -195,13 +209,15 @@ class StudentsExecutor(
         try {
             nStudentsInterface.nStartLoading()
             val students = adminRepository.fetchStudentsInForm(formId).students
-            if(state().chosenFormTabId == formId) {
-                dispatch(Message.StudentsUpdated(students))
-                nStudentsInterface.nSuccess()
+            withMain {
+                if (state().chosenFormTabId == formId) {
+                    dispatch(Message.StudentsUpdated(students))
+                    nStudentsInterface.nSuccess()
+                }
             }
         } catch (e: Throwable) {
             nStudentsInterface.nError("Что-то пошло не так", e, onFixErrorClick = {
-                scope.launch {
+                scope.launchIO {
                     updateStudentsInForm(formId)
                 }
             })

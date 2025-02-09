@@ -4,42 +4,45 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.GetAsyncImage
 import components.NotificationItem
-import components.dashedBorder
+import components.journal.dashedBorder
 import home.HomeComponent
 import home.HomeStore
 import main.school.DutyKid
 import resources.Images
-import resources.RIcons
-import school.SchoolComponent
-import school.SchoolStore
 import studentReportDialog.StudentReportDialogStore
 import view.ViewManager
 import view.blend
-import view.easedGradient
-import view.esp
 
 
 // macsmillian page 28-29
@@ -101,7 +104,7 @@ fun LazyListScope.homeStudentNotifications(
 //                        horizontalArrangement = Arrangement.Center
                     ) {
                         GetAsyncImage(
-                            Images.Emoji.emojiCook,
+                            Images.Emoji.EMOJI_COOK,
                             modifier = Modifier.padding(vertical = (2.5f).dp).size(35.dp)
                         )
                         Text(text, modifier = Modifier.padding(start = 20.dp))
@@ -126,7 +129,7 @@ fun LazyListScope.homeStudentNotifications(
                         horizontalArrangement = Arrangement.Start
                     ) {
 
-                        GetAsyncImage(Images.Emoji.emojiWoah, modifier = Modifier.padding(vertical = (2.5f).dp).size(35.dp))
+                        GetAsyncImage(Images.Emoji.EMOJI_WOAH, modifier = Modifier.padding(vertical = (2.5f).dp).size(35.dp))
                         Text("У тебя есть долги...\nНе забудь исправить их!", modifier = Modifier.padding(start = 20.dp))
 
                     }

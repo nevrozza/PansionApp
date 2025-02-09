@@ -2,7 +2,6 @@ package com.nevrozq.pansion.features.achievements
 
 import FIO
 import Person
-import achievements.AchievementsDTO
 import achievements.RCreateAchievementReceive
 import achievements.RDeleteAchievementReceive
 import achievements.REditAchievementReceive
@@ -16,11 +15,9 @@ import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.utils.*
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import org.jetbrains.exposed.sql.deleteWhere
 import server.Ministries
 
 class AchievementsController {
@@ -100,7 +97,7 @@ class AchievementsController {
 
     suspend fun fetchAllAchievements(call: ApplicationCall) {
         val minDTO = StudentMinistry.fetchMinistryWithLogin(call.login)
-        val perm = call.isMentor || call.isModer || minDTO?.ministry == Ministries.Culture
+        val perm = call.isMentor || call.isModer || minDTO?.ministry == Ministries.CULTURE
 
         call.dRes(perm, "Can't fetch all achievements") {
             val achievements = Achievements.fetchAll()
@@ -139,7 +136,7 @@ class AchievementsController {
     suspend fun createAchievement(call: ApplicationCall) {
         val minId = StudentMinistry.fetchMinistryWithLogin(call.login)?.ministry
 
-        val perm = call.isMentor || call.isModer || minId == Ministries.Culture
+        val perm = call.isMentor || call.isModer || minId == Ministries.CULTURE
 
         call.dRes(perm, "Can't create achievement") {
             val r = this.receive<RCreateAchievementReceive>()

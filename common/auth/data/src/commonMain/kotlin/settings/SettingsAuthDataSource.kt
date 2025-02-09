@@ -10,104 +10,104 @@ class SettingsAuthDataSource(
 ) {
 
     fun saveAvatarId(avatarId: Int) {
-        settings[avatarKey] = avatarId
+        settings[AVATAR_KEY] = avatarId
     }
 
     fun updateAfterFetch(r: RCheckConnectionResponse) {
-        settings[nameKey] = r.name
-        settings[surnameKey] = r.surname
-        settings[pranameKey] = r.praname
-        settings[roleKey] = r.role
-        settings[moderationKey] = r.moderation
-        settings[avatarKey] = r.avatarId
-        settings[isParentKey] = r.isParent
-        settings[birthdayKey] = r.birthday
+        settings[NAME_KEY] = r.name
+        settings[SURNAME_KEY] = r.surname
+        settings[PRANAME_KEY] = r.praname
+        settings[ROLE_KEY] = r.role
+        settings[MODERATION_KEY] = r.moderation
+        settings[AVATAR_KEY] = r.avatarId
+        settings[IS_PARENT_KEY] = r.isParent
+        settings[BIRTHDAY_KEY] = r.birthday
     }
 
     fun logout() {
-        settings[tokenKey] = ""
-        settings[loginKey] = ""
-        settings[nameKey] = ""
-        settings[surnameKey] = ""
-        settings[pranameKey] = ""
-        settings[roleKey] = ""
-        settings[moderationKey] = ""
-        settings[avatarKey] = 0
-        settings[isParentKey] = false
-        settings[birthdayKey] = ""
+        settings[TOKEN_KEY] = ""
+        settings[LOGIN_KEY] = ""
+        settings[NAME_KEY] = ""
+        settings[SURNAME_KEY] = ""
+        settings[PRANAME_KEY] = ""
+        settings[ROLE_KEY] = ""
+        settings[MODERATION_KEY] = ""
+        settings[AVATAR_KEY] = 0
+        settings[IS_PARENT_KEY] = false
+        settings[BIRTHDAY_KEY] = ""
     }
 
-    fun saveToken(token: String) {
-        settings[tokenKey] = token
-    }
+//    fun saveToken(token: String) {
+//        settings[TOKEN_KEY] = token
+//    }
 
     fun fetchToken(): String {
-        return settings[tokenKey, ""]
+        return settings[TOKEN_KEY, ""]
     }
 
     fun fetchLogin(): String {
-        return settings[loginKey, ""]
+        return settings[LOGIN_KEY, ""]
     }
 
 
     fun deleteToken() {
-        settings[tokenKey] = ""
+        settings[TOKEN_KEY] = ""
     }
 
     fun fetchAvatarId(): Int {
-        return settings[avatarKey, 0]
+        return settings[AVATAR_KEY, 0]
     }
 
     fun fetchName(): String {
-        return settings[nameKey, ""]
+        return settings[NAME_KEY, ""]
     }
 
     fun fetchSurname(): String {
-        return settings[surnameKey, ""]
+        return settings[SURNAME_KEY, ""]
     }
 
     fun saveUser(token: String, login: String, name: String, surname: String, praname: String?, role: String, moderation: String, avatarId: Int, isParent: Boolean, birthday: String) {
-        settings[loginKey] = login
-        settings[tokenKey] = token
-        settings[nameKey] = name
-        settings[surnameKey] = surname
-        settings[pranameKey] = praname
-        settings[roleKey] = role
-        settings[moderationKey] = moderation
-        settings[avatarKey] = avatarId
-        settings[isParentKey] = isParent
-        settings[birthdayKey] = birthday
+        settings[LOGIN_KEY] = login
+        settings[TOKEN_KEY] = token
+        settings[NAME_KEY] = name
+        settings[SURNAME_KEY] = surname
+        settings[PRANAME_KEY] = praname
+        settings[ROLE_KEY] = role
+        settings[MODERATION_KEY] = moderation
+        settings[AVATAR_KEY] = avatarId
+        settings[IS_PARENT_KEY] = isParent
+        settings[BIRTHDAY_KEY] = birthday
     }
 
     fun fetchPraname(): String {
-        return settings[pranameKey, ""]
+        return settings[PRANAME_KEY, ""]
     }
 
     fun fetchRole(): String {
-        return settings[roleKey, "0"]
+        return settings[ROLE_KEY, "0"]
     }
 
     fun fetchModeration(): String {
-        return settings[moderationKey, "0"]
+        return settings[MODERATION_KEY, "0"]
     }
     fun fetchIsParent(): Boolean {
-        return settings[isParentKey, false]
+        return settings[IS_PARENT_KEY, false]
     }
     fun fetchBirthday(): String {
-        return settings[birthdayKey, ""]
+        return settings[BIRTHDAY_KEY, ""]
     }
 
 
     companion object {
-        const val tokenKey = "tokenPansionAppKey"
-        const val loginKey = "loginKey"
-        const val nameKey = "nameKey"
-        const val surnameKey = "surnameKey"
-        const val pranameKey = "pranameKey"
-        const val roleKey = "roleKey"
-        const val moderationKey = "moderationKey"
-        const val avatarKey = "avatarKey"
-        const val isParentKey = "isParentKey"
-        const val birthdayKey = "birthdayKey"
+        const val TOKEN_KEY = "tokenPansionAppKey"
+        const val LOGIN_KEY = "loginKey"
+        const val NAME_KEY = "nameKey"
+        const val SURNAME_KEY = "surnameKey"
+        const val PRANAME_KEY = "pranameKey"
+        const val ROLE_KEY = "roleKey"
+        const val MODERATION_KEY = "moderationKey"
+        const val AVATAR_KEY = "AVATAR_KEY"
+        const val IS_PARENT_KEY = "IS_PARENT_KEY"
+        const val BIRTHDAY_KEY = "BIRTHDAY_KEY"
     }
 }

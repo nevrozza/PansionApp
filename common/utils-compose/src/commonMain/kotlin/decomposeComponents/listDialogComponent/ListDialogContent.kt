@@ -55,13 +55,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import components.CustomTextButton
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.DefaultModalBottomSheet
-import components.LoadingAnimation
-import components.hazeHeader
-import components.hazeUnder
+import components.foundation.LoadingAnimation
+import components.foundation.hazeHeader
+import components.foundation.hazeUnder
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
@@ -72,7 +72,7 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import view.ViewManager
-import view.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -273,7 +273,7 @@ fun DropdownVariant(
                     else -> {
                         Text(nModel.error)
                         Spacer(Modifier.height(7.dp))
-                        CustomTextButton("Попробовать ещё раз") {
+                        CTextButton("Попробовать ещё раз") {
                             nModel.onFixErrorClick()
                         }
                     }

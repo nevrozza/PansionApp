@@ -1,20 +1,21 @@
 package groups.subjects
 
 import AdminRepository
-import CDispatcher
 import FIO
 import MainRepository
 import admin.groups.subjects.RAddStudentToGroup
 import admin.groups.subjects.REditGroupReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import components.networkInterface.NetworkInterface
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetComponent
+import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import groups.subjects.SubjectsStore.Intent
 import groups.subjects.SubjectsStore.Label
-import groups.subjects.SubjectsStore.State
 import groups.subjects.SubjectsStore.Message
+import groups.subjects.SubjectsStore.State
 import journal.init.RFetchStudentsInGroupReceive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -40,7 +41,11 @@ class SubjectsExecutor(
             is Intent.ClickOnSubject -> changeSubjectId(intent.subjectId)
             Intent.CreateGroup -> createGroup(state())
             Intent.CreateSubject -> createSubject(state())
-            is Intent.FetchStudents -> fetchStudents(groupId = intent.groupId, openAfterThis = intent.openAfterThis)
+            is Intent.FetchStudents -> fetchStudents(
+                groupId = intent.groupId,
+                openAfterThis = intent.openAfterThis
+            )
+
             is Intent.ChangeESubjectText -> dispatch(Message.ESubjectTextChanged(intent.text))
             Intent.DeleteSubject -> deleteSubject()
             is Intent.EditSubject -> if (intent.sameCount <= 1) editSubject()
@@ -67,7 +72,7 @@ class SubjectsExecutor(
     }
 
     private fun addStudentToGroup() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 val x = state().addStudentToGroupLogin.split(" ")
                 val groupId = state().currentGroup
@@ -82,12 +87,12 @@ class SubjectsExecutor(
                         subjectId = state().chosenSubjectId
                     )
                 )
-                scope.launch {
+                withMain {
                     fetchStudents(groupId, true)
                     dispatch(Message.AddStudentToGroupLoginChanged(""))
                 }
             } catch (e: Throwable) {
-                scope.launch {
+                withMain {
                     dispatch(Message.AddStudentToGroupLoginChanged(""))
                 }
             }
@@ -96,7 +101,7 @@ class SubjectsExecutor(
     }
 
     private fun editGroup(isActive: Boolean) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             if (state().eName.isNotBlank() && state().eDifficult.isNotBlank()) {
                 try {
                     eGroupBottomSheet.nInterface.nStartLoading()
@@ -124,16 +129,14 @@ class SubjectsExecutor(
     }
 
     private fun update() {
-        scope.launch {
-            try {
-                updateSubjects()
-            } catch (e: Throwable) {
-                cSubjectDialog.nInterface.nError(
-                    "Что-то пошло не так =/", e,
-                    onFixErrorClick = {
-                        updateSubjects()
-                    })
-            }
+        try {
+            updateSubjects()
+        } catch (e: Throwable) {
+            cSubjectDialog.nInterface.nError(
+                "Что-то пошло не так =/", e,
+                onFixErrorClick = {
+                    updateSubjects()
+                })
         }
     }
 
@@ -149,7 +152,7 @@ class SubjectsExecutor(
 
     private fun editSubject() {
 
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             if (state().eSubjectText.isNotBlank()) {
                 try {
                     editSubjectDialog.nInterface.nStartLoading()
@@ -166,7 +169,7 @@ class SubjectsExecutor(
     }
 
     private fun deleteSubject() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 deleteSubjectDialog.nInterface.nStartLoading()
                 adminRepository.deleteSubject(state().eSubjectId)
@@ -182,7 +185,7 @@ class SubjectsExecutor(
     private fun fetchStudents(groupId: Int, openAfterThis: Boolean) {
         if (groupId != state().currentGroup || openAfterThis) {
             dispatch(Message.CurrentGroupChanged(groupId))
-            scope.launch(CDispatcher) {
+            scope.launchIO {
                 nGroupInterface.nStartLoading()
                 try {
                     val students = mainRepository.fetchStudentsInGroup(

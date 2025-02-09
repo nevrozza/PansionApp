@@ -32,14 +32,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CustomTextButton
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
-import components.LoadingAnimation
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.LoadingAnimation
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
-import components.hazeHeader
-import components.hazeUnder
+import components.foundation.hazeHeader
+import components.foundation.hazeUnder
 import components.networkInterface.NetworkState
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
@@ -124,7 +124,7 @@ fun CAlertDialogContent(
                                                     .padding(end = 20.dp),
                                                 horizontalArrangement = Arrangement.End
                                             ) {
-                                                CustomTextButton(
+                                                CTextButton(
                                                     acceptText,
                                                     modifier = Modifier.padding(
                                                         end = 20.dp
@@ -134,7 +134,7 @@ fun CAlertDialogContent(
                                                 ) {
                                                     model.onAcceptClick.invoke()
                                                 }
-                                                CustomTextButton(
+                                                CTextButton(
                                                     declineText
                                                 ) {
                                                     model.onDeclineClick.invoke()

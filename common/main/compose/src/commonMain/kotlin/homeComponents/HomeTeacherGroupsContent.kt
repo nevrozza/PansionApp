@@ -92,7 +92,7 @@ fun LazyListScope.homeTeacherGroupsContent(
     //                                        ) {
     //                                            Text(nTeacherModel.error)
     //                                            Spacer(Modifier.height(7.dp))
-    //                                            CustomTextButton("Попробовать ещё раз") {
+    //                                            CTextButton("Попробовать ещё раз") {
     //                                                nTeacherModel.onFixErrorClick()
     //                                            }
     //                                        }

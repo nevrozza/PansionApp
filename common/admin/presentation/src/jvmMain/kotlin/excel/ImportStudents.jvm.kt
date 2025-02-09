@@ -34,8 +34,8 @@ actual fun importStudents(path: String, component: UsersComponent) {
                 praname = student.getOrNull(2)+ (if (student.getOrNull(3) != null) " "+student.getOrNull(3) else "")
             ),
             birthday = bDay,
-            role = Roles.student,
-            moderation = Moderation.nothing,
+            role = Roles.STUDENT,
+            moderation = Moderation.NOTHING,
             isParent = false
         )
         toBeCreated.add(

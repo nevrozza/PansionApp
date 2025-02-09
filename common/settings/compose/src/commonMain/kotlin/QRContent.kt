@@ -1,13 +1,41 @@
+
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,23 +52,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.CustomTextButton
-import components.CustomTextField
+import components.foundation.AnimatedCommonButton
+import components.foundation.CTextButton
+import components.foundation.CTextField
 import components.GetAsyncIcon
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
 import kotlinx.coroutines.launch
-import kotlinx.datetime.*
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
 import qr.QRComponent
 import qr.QRStore
-import qr.isCameraAvailable
 import resources.RIcons
 import server.twoNums
+import utils.isCameraAvailable
 import view.LocalViewManager
-import view.esp
 
 @Composable
 expect fun QRContent(component: QRComponent, snackBarHostState: SnackbarHostState)
@@ -85,7 +116,7 @@ fun QRContentActual(component: QRComponent) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Нет доступа к камере")
                         Spacer(Modifier.height(15.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.code,
                             onValueChange = {
                                 component.onEvent(
@@ -123,7 +154,7 @@ fun QRContentActual(component: QRComponent) {
         component.onOutput(QRComponent.Output.Back)
     }, modifier = Modifier.padding(top = viewManager.topPadding, start = 20.dp)) {
         GetAsyncIcon(
-            path = RIcons.ChevronLeft
+            path = RIcons.CHEVRON_LEFT
         )
     }
     CBottomSheetContent(
@@ -151,7 +182,7 @@ fun QRContentActual(component: QRComponent) {
                 GetAsyncIcon(
                     path = getDeviceIcon(
                         deviceType = model.deviceType,
-                        deviceName = model.deviceName ?: ""
+                        deviceName = model.deviceName
                     ),
                     contentDescription = "PlatformIcon",
                     size = 40.dp
@@ -193,7 +224,7 @@ private fun createUserSheet(
         customMaxHeight = 0.dp
     ) {
         val focusManager = LocalFocusManager.current
-        var num = 0
+        var num: Int
         if (model.cLogin.isBlank() && cNModel.value.state != NetworkState.Error) {
             Column(
                 Modifier.fillMaxWidth(),
@@ -240,7 +271,7 @@ private fun createUserSheet(
 
 
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cSurname,
                             onValueChange = {
                                 component.onEvent(QRStore.Intent.ChangeCSurname(it))
@@ -256,7 +287,7 @@ private fun createUserSheet(
                             keyboardType = KeyboardType.Password
                         )
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cName,
                             onValueChange = {
                                 component.onEvent(QRStore.Intent.ChangeCName(it))
@@ -272,7 +303,7 @@ private fun createUserSheet(
                             keyboardType = KeyboardType.Password
                         )
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cPraname ?: "",
                             onValueChange = {
                                 component.onEvent(QRStore.Intent.ChangeCPraname(it))
@@ -288,7 +319,7 @@ private fun createUserSheet(
                             keyboardType = KeyboardType.Password
                         )
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cBirthday,
                             onValueChange = {
                                 if (it.length <= 8 && (it.matches("\\d{1,8}".toRegex()) || it.isEmpty())) {
@@ -317,7 +348,7 @@ private fun createUserSheet(
                                     },
                                     enabled = !isCreatingInProcess
                                 ) {
-                                    GetAsyncIcon(RIcons.Calendar)
+                                    GetAsyncIcon(RIcons.CALENDAR)
                                 }
                             }
                         )
@@ -347,7 +378,7 @@ private fun createUserSheet(
                                     )
                                 },
                                 confirmButton = {
-                                    CustomTextButton(
+                                    CTextButton(
                                         "Ок",
                                         modifier = Modifier.padding(
                                             end = 30.dp,
@@ -363,7 +394,7 @@ private fun createUserSheet(
                                                 Instant.fromEpochMilliseconds(
                                                     datePickerState.selectedDateMillis!!
                                                 )
-                                                    .toLocalDateTime(TimeZone.of("UTC+3"))
+                                                    .toLocalDateTime(applicationTimeZone)
                                             component.onEvent(
                                                 QRStore.Intent.ChangeCBirthday(
                                                     "${date.dayOfMonth.twoNums()}${date.monthNumber.twoNums()}${date.year}"
@@ -378,7 +409,7 @@ private fun createUserSheet(
                                     }
                                 },
                                 dismissButton = {
-                                    CustomTextButton(
+                                    CTextButton(
                                         "Отмена",
                                         modifier = Modifier.padding(bottom = 10.dp)
                                     ) {
@@ -407,7 +438,7 @@ private fun createUserSheet(
                         }
 
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cParentFirstFIO,
                             onValueChange = {
                                 component.onEvent(QRStore.Intent.ChangeCParentFirstFIO(it))
@@ -424,7 +455,7 @@ private fun createUserSheet(
                             supText = "Фамилия Имя Отчество"
                         )
                         Spacer(Modifier.height(7.dp))
-                        CustomTextField(
+                        CTextField(
                             value = model.cParentSecondFIO,
                             onValueChange = {
                                 component.onEvent(QRStore.Intent.ChangeCParentSecondFIO(it))
@@ -464,7 +495,7 @@ private fun createUserSheet(
 //                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //                                Text(cNModel.value.error)
 //                                Spacer(Modifier.height(7.dp))
-//                                CustomTextButton("Попробовать ещё раз") {
+//                                CTextButton("Попробовать ещё раз") {
 //                                    component.cUserBottomSheet.nInterface.fixError()
 //                                }
 //                            }

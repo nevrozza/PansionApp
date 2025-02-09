@@ -1,8 +1,8 @@
 package qr
 
+import applicationTimeZone
 import com.arkivanov.mvikotlin.core.store.Store
 import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import qr.QRStore.Intent
 import qr.QRStore.Label
@@ -19,7 +19,7 @@ interface QRStore : Store<Intent, State, Label> {
 
         val isDateDialogShowing: Boolean = false,
         val currentYear: Int = Clock.System.now()
-            .toLocalDateTime(TimeZone.of("UTC+3")).year,
+            .toLocalDateTime(applicationTimeZone).year,
         val currentMillis: Long = Clock.System.now().toEpochMilliseconds(),
         val cLogin: String = "",
         val cName: String = "",

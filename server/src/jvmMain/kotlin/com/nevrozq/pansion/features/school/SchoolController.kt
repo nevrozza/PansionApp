@@ -1,8 +1,6 @@
 package com.nevrozq.pansion.features.school
 
 import FIO
-import ForAvg
-import PersonPlus
 import admin.groups.forms.CutedForm
 import admin.groups.forms.Form
 import admin.groups.forms.FormInit
@@ -14,7 +12,6 @@ import com.nevrozq.pansion.database.duty.DutySettingsDTO
 import com.nevrozq.pansion.database.forms.FormDTO
 import com.nevrozq.pansion.database.forms.Forms
 import com.nevrozq.pansion.database.holidays.Holidays
-import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
 import com.nevrozq.pansion.database.ratingTable.RatingCommonSchoolTable
 import com.nevrozq.pansion.database.ratingTable.RatingHighSchoolTable
@@ -26,7 +23,18 @@ import com.nevrozq.pansion.database.studentsInForm.StudentsInForm
 import com.nevrozq.pansion.database.subjects.Subjects
 import com.nevrozq.pansion.database.users.UserDTO
 import com.nevrozq.pansion.database.users.Users
-import com.nevrozq.pansion.utils.*
+import com.nevrozq.pansion.utils.dRes
+import com.nevrozq.pansion.utils.done
+import com.nevrozq.pansion.utils.getCurrentWeek
+import com.nevrozq.pansion.utils.getModuleByDate
+import com.nevrozq.pansion.utils.isMember
+import com.nevrozq.pansion.utils.isMentor
+import com.nevrozq.pansion.utils.isModer
+import com.nevrozq.pansion.utils.isOnlyMentor
+import com.nevrozq.pansion.utils.isStudent
+import com.nevrozq.pansion.utils.isTeacher
+import com.nevrozq.pansion.utils.login
+import com.nevrozq.pansion.utils.moderation
 import getWeeks
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -34,10 +42,37 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import main.RFetchSchoolDataReceive
 import main.RFetchSchoolDataResponse
-import main.school.*
+import main.school.DutyKid
+import main.school.MinistryKid
+import main.school.MinistryLesson
+import main.school.MinistrySettingsReason
+import main.school.MinistryStudent
+import main.school.MinistryStup
+import main.school.RCreateMinistryStudentReceive
+import main.school.RFetchDutyReceive
+import main.school.RFetchDutyResponse
+import main.school.RFetchMinistryHeaderInitResponse
+import main.school.RFetchMinistrySettingsResponse
+import main.school.RFetchMinistryStudentsReceive
+import main.school.RMinistryListReceive
+import main.school.RMinistryListResponse
+import main.school.RStartNewDayDuty
+import main.school.RUpdateTodayDuty
+import main.school.RUploadMinistryStup
 import mentoring.MentorForms
-import rating.*
-import server.*
+import rating.FormRatingStudent
+import rating.FormRatingStup
+import rating.PansionPeriod
+import rating.RFetchFormRatingReceive
+import rating.RFetchFormRatingResponse
+import rating.RFetchFormsForFormResponse
+import server.ExtraSubjectsId
+import server.Ministries
+import server.Moderation
+import server.Roles
+import server.getCurrentDate
+import server.getCurrentEdYear
+import server.getWeekDays
 
 class SchoolController {
 
@@ -104,10 +139,10 @@ class SchoolController {
         call.dRes(perm, "Can't fetch duty") {
             val r = this.receive<RFetchDutyReceive>()
             val user = Users.fetchUser(r.login)
-            val mentorLogin = if (user?.role == Roles.student) {
-                val formId = StudentsInForm.fetchFormIdOfLogin(user?.login!!)
+            val mentorLogin = if (user?.role == Roles.STUDENT) {
+                val formId = StudentsInForm.fetchFormIdOfLogin(user.login)
                 Forms.fetchById(formId).mentorLogin
-            } else if (user?.moderation in listOf(Moderation.both, Moderation.mentor)) {
+            } else if (user?.moderation in listOf(Moderation.BOTH, Moderation.MENTOR)) {
                 user?.login!!
             } else null!!
 
@@ -165,7 +200,7 @@ class SchoolController {
     suspend fun uploadMinistryStups(call: ApplicationCall) {
         val login = call.login
         val perm = call.isMember && (StudentMinistry.fetchMinistryWithLogin(login)?.ministry in listOf(
-            Ministries.DressCode,
+            Ministries.DRESS_CODE,
             Ministries.MVD
         ) || call.isMentor)
         call.dRes(perm, "Can't upload min stups") {
@@ -183,7 +218,7 @@ class SchoolController {
         call.dRes(perm, "Can't fetch ministry list") {
             val r = call.receive<RMinistryListReceive>()
             val ministry = StudentMinistry.fetchMinistryWithLogin(call.login)
-            val isShowFull = call.isModer || (ministry?.ministry == r.ministryId && ministry?.lvl == "1")
+            val isShowFull = call.isModer || (ministry?.ministry == r.ministryId && ministry.lvl == "1")
             val availableKids: MutableList<UserDTO>? = if (r.login != null) {
                 val user = Users.fetchUser(r.login!!)
                 if (user != null) {
@@ -267,7 +302,7 @@ class SchoolController {
 
                 val stups = Stups.fetchForUser(login = it.login, edYear = edYear).filter {
                     if (r.ministryId == Ministries.MVD) it.reason.subSequence(0, 3) == "!ds"
-                    else if (r.ministryId == Ministries.DressCode) it.reason.subSequence(0, 3) == "!zd"
+                    else if (r.ministryId == Ministries.DRESS_CODE) it.reason.subSequence(0, 3) == "!zd"
                     else false
                 }
 
@@ -333,7 +368,7 @@ class SchoolController {
             val pickedMinistry = StudentMinistry.fetchMinistryWithLogin(this.login)?.ministry ?: "0"
             this.respond(
                 RFetchMinistryHeaderInitResponse(
-                    isMultiMinistry = this.moderation != Moderation.nothing,
+                    isMultiMinistry = this.moderation != Moderation.NOTHING,
                     pickedMinistry = pickedMinistry
                 )
             ).done
@@ -341,7 +376,7 @@ class SchoolController {
     }
 
     suspend fun createMinistryStudent(call: ApplicationCall) {
-        val perm = call.moderation in listOf(Moderation.mentor, Moderation.both, Moderation.moderator)
+        val perm = call.moderation in listOf(Moderation.MENTOR, Moderation.BOTH, Moderation.MODERATOR)
         call.dRes(perm, "Can't create min student") {
             val r = this.receive<RCreateMinistryStudentReceive>()
             val fioParts = r.studentFIO.split(" ")
@@ -510,7 +545,7 @@ class SchoolController {
                         //                            val achievements = Achievements.fetchAllByLogin()
                         val rating = RatingCommonSchoolTable.fetchRatingOf(
                             login = login,
-                            subjectId = ExtraSubjectsId.common,
+                            subjectId = ExtraSubjectsId.COMMON,
                             edYear = edYear,
                             period = r.period ?: PansionPeriod.Week(weeks.last().num)
                         )
@@ -591,7 +626,7 @@ class SchoolController {
             var formNum: Int? = null
             var formId: Int? = null
             var top: Int? = null
-            if (role == Roles.student) {
+            if (role == Roles.STUDENT) {
                 formId =
                     StudentsInForm.fetchFormIdOfLogin(r.login)
                 val form = Forms.fetchById(formId)
@@ -608,11 +643,11 @@ class SchoolController {
                 }
                 top = table.fetchRatingOf(
                     r.login,
-                    ExtraSubjectsId.common,
+                    ExtraSubjectsId.COMMON,
                     edYear = getCurrentEdYear(),
-                    period = rating.PansionPeriod.Week(getCurrentWeek().num)
+                    period = PansionPeriod.Week(getCurrentWeek().num)
                 )?.top
-            } else if (role != Moderation.nothing) {
+            } else if (role != Moderation.NOTHING) {
                 val form = Forms.fetchMentorForms(r.login).firstOrNull()
                 if (form != null) {
                     formName = form.num.toString()

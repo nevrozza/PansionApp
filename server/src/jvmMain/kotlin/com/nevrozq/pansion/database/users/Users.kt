@@ -4,7 +4,6 @@ import FIO
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
@@ -54,9 +53,9 @@ object Users : Table() {
     fun getLoginWithFIO(fio: FIO, itShouldBeStudent: Boolean): String? {
         return transaction {
             val u =
-                Users.select((Users.surname eq fio.surname) and (Users.name eq fio.name) and (Users.praname eq fio.praname))
+                Users.select((surname eq fio.surname) and (name eq fio.name) and (praname eq fio.praname))
                     .firstOrNull {
-                        ((itShouldBeStudent && it[Users.role] == Roles.student)) || (!itShouldBeStudent)
+                        ((itShouldBeStudent && it[role] == Roles.STUDENT)) || (!itShouldBeStudent)
                     }
             u?.get(login)
         }
@@ -85,7 +84,7 @@ object Users : Table() {
         try {
             transaction {
                 Users.update({ Users.login eq login }) {
-                    it[Users.password] = BCrypt.hashpw(password.cut(DataLength.passwordLength), BCrypt.gensalt())
+                    it[Users.password] = BCrypt.hashpw(password.cut(DataLength.PASSWORD_LENGTH), BCrypt.gensalt())
                 }
             }
         } catch (e: Throwable) {
@@ -125,7 +124,7 @@ object Users : Table() {
             }
         } catch (e: Throwable) {
             println(e)
-            Roles.nothing
+            Roles.NOTHING
         }
     }
 
@@ -137,7 +136,7 @@ object Users : Table() {
             }
         } catch (e: Throwable) {
             println(e)
-            Moderation.nothing
+            Moderation.NOTHING
         }
     }
 
@@ -153,17 +152,17 @@ object Users : Table() {
         }
     }
 
-    fun getIsMember(login: String): Boolean {
-        return try {
-            transaction {
-                Users.select { (Users.login eq login) }.first()
-                true
-            }
-        } catch (e: Throwable) {
-            println(e)
-            false
-        }
-    }
+//    fun getIsMember(login: String): Boolean {
+//        return try {
+//            transaction {
+//                Users.select { (Users.login eq login) }.first()
+//                true
+//            }
+//        } catch (e: Throwable) {
+//            println(e)
+//            false
+//        }
+//    }
 
     fun update(
         login: String,
@@ -250,7 +249,7 @@ object Users : Table() {
 
     fun fetchByLoginsActivated(logins: List<String>) : List<UserDTO> {
         return transaction {
-            Users.select { Users.login inList logins }.mapNotNull {
+            Users.select { login inList logins }.mapNotNull {
                 if (it[isActive]) UserDTO(
                     login = it[login],
                     password = it[password],
@@ -333,7 +332,7 @@ object Users : Table() {
     fun fetchAllTeachers(): List<UserDTO> {
         return try {
             transaction {
-                val teachersQuery = Users.select { Users.role eq Roles.teacher }
+                val teachersQuery = Users.select { role eq Roles.TEACHER }
 
                 teachersQuery.map {
 
@@ -363,10 +362,10 @@ object Users : Table() {
         return try {
             transaction {
                 val mentorsQuery = Users.select {
-                    Users.moderation.inList(
+                    moderation.inList(
                         listOf(
-                            Moderation.mentor,
-                            Moderation.both,
+                            Moderation.MENTOR,
+                            Moderation.BOTH,
                             //Moderation.superBoth
                         )
                     )
@@ -398,7 +397,7 @@ object Users : Table() {
     fun fetchAllStudents(): List<UserDTO> {
         return try {
             transaction {
-                val studentQuery = Users.select { Users.role eq Roles.student }
+                val studentQuery = Users.select { role eq Roles.STUDENT }
 
                 studentQuery.map {
 
@@ -424,13 +423,13 @@ object Users : Table() {
         }
     }
 
-    fun deleteUserByLogin(login: String) {
-        try {
-            transaction {
-                Users.deleteWhere { Users.login eq login }
-            }
-        } catch (e: Throwable) {
-            println(e)
-        }
-    }
+//    fun deleteUserByLogin(login: String) {
+//        try {
+//            transaction {
+//                Users.deleteWhere { Users.login eq login }
+//            }
+//        } catch (e: Throwable) {
+//            println(e)
+//        }
+//    }
 }

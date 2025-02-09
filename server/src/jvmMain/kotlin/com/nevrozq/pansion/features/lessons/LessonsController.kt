@@ -63,7 +63,10 @@ import com.nevrozq.pansion.database.holidays.Holidays
 import com.nevrozq.pansion.database.parents.Parents
 import com.nevrozq.pansion.database.ratingEntities.Marks
 import com.nevrozq.pansion.database.ratingEntities.Stups
-import com.nevrozq.pansion.database.ratingTable.*
+import com.nevrozq.pansion.database.ratingTable.RatingCommonSchoolTable
+import com.nevrozq.pansion.database.ratingTable.RatingHighSchoolTable
+import com.nevrozq.pansion.database.ratingTable.RatingLowSchoolTable
+import com.nevrozq.pansion.database.ratingTable.toRatingItem
 import com.nevrozq.pansion.database.reportHeaders.ReportHeaders
 import com.nevrozq.pansion.database.reportHeaders.ReportHeadersDTO
 import com.nevrozq.pansion.database.schedule.Schedule
@@ -81,7 +84,16 @@ import com.nevrozq.pansion.database.subjects.mapToSubject
 import com.nevrozq.pansion.database.users.Users
 import com.nevrozq.pansion.lastTimeRatingUpdate
 import com.nevrozq.pansion.lastTimeScheduleUpdate
-import com.nevrozq.pansion.utils.*
+import com.nevrozq.pansion.utils.dRes
+import com.nevrozq.pansion.utils.done
+import com.nevrozq.pansion.utils.getCurrentWeek
+import com.nevrozq.pansion.utils.getModuleByDate
+import com.nevrozq.pansion.utils.isMember
+import com.nevrozq.pansion.utils.isMentor
+import com.nevrozq.pansion.utils.isModer
+import com.nevrozq.pansion.utils.isParent
+import com.nevrozq.pansion.utils.isTeacher
+import com.nevrozq.pansion.utils.login
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
@@ -95,20 +107,33 @@ import main.RDeleteMainNotificationsReceive
 import main.RFetchChildrenMainNotificationsResponse
 import main.RFetchMainNotificationsReceive
 import main.RFetchMainNotificationsResponse
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
-import rating.*
-import rating.RatingItem
+import rating.RFetchScheduleSubjectsResponse
+import rating.RFetchSubjectRatingReceive
+import rating.RFetchSubjectRatingResponse
+import rating.toStr
 import report.RMarkLessonReceive
 import report.UserMark
-import schedule.*
-import server.*
+import schedule.PersonScheduleItem
+import schedule.RFetchPersonScheduleReceive
+import schedule.RFetchScheduleDateReceive
+import schedule.RPersonScheduleList
+import schedule.RScheduleList
+import schedule.ScheduleItem
+import server.ExtraSubjectsId
+import server.Roles
+import server.ScheduleIds
+import server.getCurrentDate
+import server.getCurrentEdYear
+import server.getLocalDate
+import server.getStringDayTime
+import server.toMinutes
 
-class LessonsController() {
+class LessonsController {
 
 
     suspend fun fetchGroupData(call: ApplicationCall) {
@@ -201,7 +226,6 @@ class LessonsController() {
 //                        date = header.date,
 //                        login = studentLogin
 //                    )
-                    val time = header.time.toMinutes()
 //                    val is2NKA =
 //                        if (pa != null && !isNka) pa.start.toMinutes() <= time && pa.end.toMinutes() > time else false
                     val isLate = (x.lateTime.isNotEmpty() && x.lateTime != "0")
@@ -212,8 +236,8 @@ class LessonsController() {
                             key = if (/*is2NKA ||*/ isNka) "N.${x.login}.${x.reportId}" else if (isLate) "Op.${x.login}.${x.reportId}" else "L.${x.login}.${x.reportId}",
                             subjectName = subject,
                             reason = /*if (is2NKA) "N.${if (pa!!.isGood) "2" else "1"}" else */if (isNka) "N.${x.attended}" else if (isLate) "Op.${x.lateTime}" else "L.${if (x.isLiked == "t") "T" else "F"}",
-                            date = header.date.toString(),
-                            reportTime = header.time.toString(),
+                            date = header.date,
+                            reportTime = header.time,
                             groupName = group?.name.toString(),
                             reportId = x.reportId
                         )
@@ -238,9 +262,9 @@ class LessonsController() {
             val groups: List<GroupDTO> = Groups.getAllGroups()
             val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
             val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
-                ExtraSubjectsId.mvd to "Дисциплина",
-                ExtraSubjectsId.social to "Общественная работа",
-                ExtraSubjectsId.creative to "Творчество"
+                ExtraSubjectsId.MVD to "Дисциплина",
+                ExtraSubjectsId.SOCIAL to "Общественная работа",
+                ExtraSubjectsId.CREATIVE to "Творчество"
             )
 
             val logins: MutableList<Person> = mutableListOf()
@@ -307,9 +331,9 @@ class LessonsController() {
             val groups: List<GroupDTO> = Groups.getAllGroups()
             val reports: List<ReportHeadersDTO> = ReportHeaders.fetchReportHeaders()
             val subjects = Subjects.fetchAllSubjectsAsMap() + mapOf(
-                ExtraSubjectsId.mvd to "Дисциплина",
-                ExtraSubjectsId.social to "Общественная работа",
-                ExtraSubjectsId.creative to "Творчество"
+                ExtraSubjectsId.MVD to "Дисциплина",
+                ExtraSubjectsId.SOCIAL to "Общественная работа",
+                ExtraSubjectsId.CREATIVE to "Творчество"
             )
 
             val filtered = fetchMainNotificationsServer(
@@ -416,7 +440,7 @@ class LessonsController() {
             val module = getModuleByDate(getCurrentDate().second)
             this.respond(
                 RFetchScheduleSubjectsResponse(
-                    subjects.mapNotNull {
+                    subjects.map {
                         ScheduleSubject(
                             id = it.id,
                             name = it.name,
@@ -465,8 +489,8 @@ class LessonsController() {
         call.dRes(perm, "Can't fetch personal Schedule") {
             val r = call.receive<RFetchPersonScheduleReceive>()
             val alreadyGroups = mutableListOf<Int>()
-            val isTeacher = Users.getRole(r.login) != Roles.student
-            val items = com.nevrozq.pansion.features.lessons.fetchSchedule(
+            val isTeacher = Users.getRole(r.login) != Roles.STUDENT
+            val items = fetchSchedule(
                 isTeacher = isTeacher,
                 day = r.day,
                 dayOfWeek = r.dayOfWeek,
@@ -529,7 +553,7 @@ class LessonsController() {
                         null
                     }
                 } else {
-                    if (it.groupId == ScheduleIds.extra) {
+                    if (it.groupId == ScheduleIds.EXTRA) {
                         val dopFio = if (!isTeacher) fio
                         else {
                             val users = students.filter { x -> it.custom.contains(x.login) }
@@ -554,7 +578,7 @@ class LessonsController() {
                             lessonIndex = it.index,
                             isMarked = it.isMarked
                         )
-                    } else if (it.groupId == ScheduleIds.food) {
+                    } else if (it.groupId == ScheduleIds.FOOD) {
                         PersonScheduleItem(
                             groupId = it.groupId,
                             cabinet = it.cabinet,

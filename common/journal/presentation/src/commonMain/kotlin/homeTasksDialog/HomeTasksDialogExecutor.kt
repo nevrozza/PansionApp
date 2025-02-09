@@ -1,15 +1,15 @@
 package homeTasksDialog
 
-import CDispatcher
 import JournalRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import homeTasksDialog.HomeTasksDialogStore.Intent
 import homeTasksDialog.HomeTasksDialogStore.Label
-import homeTasksDialog.HomeTasksDialogStore.State
 import homeTasksDialog.HomeTasksDialogStore.Message
+import homeTasksDialog.HomeTasksDialogStore.State
 import homework.RFetchGroupHomeTasksReceive
-import kotlinx.coroutines.launch
 
 class HomeTasksDialogExecutor(
     private val journalRepository: JournalRepository,
@@ -22,11 +22,11 @@ class HomeTasksDialogExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nInterface.nStartLoading()
                 val tasks = journalRepository.fetchGroupHomeTasks(RFetchGroupHomeTasksReceive(state().groupId)).tasks
-                scope.launch {
+                withMain {
                     dispatch(Message.HomeTasksUpdated(tasks.reversed()))
                 }
                 nInterface.nSuccess()

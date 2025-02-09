@@ -86,7 +86,6 @@ class SettingsComponent(
                 storeFactory = storeFactory,
                 settingsRepository = settingsRepository,
                 authRepository = authRepository,
-                colorModeListComponent = colorModeListComponent,
                 nDevicesInterface = nDevicesInterface,
                 changeLoginDialog = changeLoginDialog
             ).create()

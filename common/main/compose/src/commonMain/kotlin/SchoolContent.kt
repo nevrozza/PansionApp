@@ -38,9 +38,9 @@ import decomposeComponents.CBottomSheetContent
 import main.school.DutyKid
 import main.school.MinistrySettingsReason
 import main.school.MinistryStudent
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.rememberPullRefreshState
+import components.refresh.PullRefreshIndicator
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import resources.RIcons
 import school.SchoolComponent
 import school.SchoolStore
@@ -48,7 +48,18 @@ import server.Ministries
 import server.Moderation
 import server.Roles
 import server.headerTitlesForMinistry
+import utils.toColor
 import view.*
+import utils.cursor.handy
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.CTextField
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.LoadingAnimation
+import components.journal.Stepper
 import kotlin.math.ceil
 
 
@@ -69,7 +80,6 @@ fun SchoolContent(
     val lazyListState = rememberLazyListState()
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
-
 
 
     val refreshing = (nModel.isLoading || nDutyModel.isLoading)
@@ -98,7 +108,7 @@ fun SchoolContent(
                                 component.onOutput(SchoolComponent.Output.NavigateBack)
                             }
                         ) {
-                            GetAsyncIcon(RIcons.Home)
+                            GetAsyncIcon(RIcons.HOME)
                         }
                     }
                     RefreshWithoutPullCircle(refreshing, refreshState.position)
@@ -127,7 +137,7 @@ fun SchoolContent(
                     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
                         FeatureButton(
                             text = if (model.formName != null) "${model.formName} класс" else "Классы",
-                            decoration = RIcons.SmallGroup,
+                            decoration = RIcons.SMALL_GROUP,
                             isActive = currentRouting == SchoolRoutings.FormRating
                         ) {
                             component.onOutput(
@@ -171,7 +181,7 @@ fun SchoolContent(
                                                 Box(contentAlignment = Alignment.Center) {
                                                     if (model.top != null && model.top!! <= 3) {
                                                         GetAsyncIcon(
-                                                            RIcons.Trophy,
+                                                            RIcons.TROPHY,
                                                             tint = when (model.top) {
                                                                 1 -> "#ffd700".toColor()
                                                                 2 -> "#c0c0c0".toColor()
@@ -193,7 +203,7 @@ fun SchoolContent(
 
                                             2 ->
                                                 GetAsyncIcon(
-                                                    RIcons.Trophy,
+                                                    RIcons.TROPHY,
                                                     tint = MaterialTheme.colorScheme.secondary,
                                                     size = 23.dp
                                                 )
@@ -222,9 +232,9 @@ fun SchoolContent(
                         )
                     }
                 }
-                if (model.role in listOf(Roles.student) || model.moderation in listOf(
-                        Moderation.both,
-                        Moderation.mentor
+                if (model.role in listOf(Roles.STUDENT) || model.moderation in listOf(
+                        Moderation.BOTH,
+                        Moderation.MENTOR
                     )
                 ) {
                     item {
@@ -266,7 +276,8 @@ fun SchoolContent(
                                                             if (model.dutyKids.isNotEmpty()) {
                                                                 val sliceNum =
                                                                     if (model.dutyKids.size >= model.dutyPeopleCount) model.dutyPeopleCount else model.dutyKids.size
-                                                                val todayKids = model.dutyKids.slice(0..<sliceNum)
+                                                                val todayKids =
+                                                                    model.dutyKids.slice(0..<sliceNum)
                                                                 Column {
                                                                     Row(
                                                                         verticalAlignment = Alignment.CenterVertically,
@@ -279,7 +290,7 @@ fun SchoolContent(
                                                                             fontSize = 19.esp,
                                                                             fontWeight = FontWeight.Bold
                                                                         )
-                                                                        if (model.role == Roles.student && todayKids.none { it.login == model.login }) {
+                                                                        if (model.role == Roles.STUDENT && todayKids.none { it.login == model.login }) {
                                                                             val daysFor =
                                                                                 (ceil(((model.dutyKids.indexOfFirst { it.login == model.login } + 1) / model.dutyPeopleCount.toFloat()))).toInt() - 1
                                                                             Text(
@@ -291,8 +302,8 @@ fun SchoolContent(
                                                                                 //                                                fontSize = 12.sp
                                                                             )
                                                                         } else if (model.moderation in listOf(
-                                                                                Moderation.both,
-                                                                                Moderation.mentor
+                                                                                Moderation.BOTH,
+                                                                                Moderation.MENTOR
                                                                             )
                                                                         ) {
                                                                             IconButton(
@@ -300,10 +311,12 @@ fun SchoolContent(
                                                                                     isEditDutyView.value =
                                                                                         !isEditDutyView.value
                                                                                 },
-                                                                                modifier = Modifier.size(30.dp)
+                                                                                modifier = Modifier.size(
+                                                                                    30.dp
+                                                                                )
                                                                             ) {
                                                                                 GetAsyncIcon(
-                                                                                    RIcons.Edit,
+                                                                                    RIcons.EDIT,
                                                                                     size = 19.dp
                                                                                 )
                                                                             }
@@ -328,7 +341,9 @@ fun SchoolContent(
                                                                     "В другой раз",
                                                                     fontSize = 19.esp,
                                                                     fontWeight = FontWeight.Bold,
-                                                                    modifier = Modifier.padding(horizontal = 15.dp)
+                                                                    modifier = Modifier.padding(
+                                                                        horizontal = 15.dp
+                                                                    )
                                                                 )
                                                                 Spacer(Modifier.height(10.dp))
                                                                 if (model.dutyKids.size - model.dutyPeopleCount > 0) {
@@ -349,7 +364,11 @@ fun SchoolContent(
                                                 } else {
                                                     val itemHeight = 50.dp
                                                     var items by remember { mutableStateOf(model.dutyKids) }
-                                                    var countOfDuties by remember { mutableStateOf(model.dutyPeopleCount) }
+                                                    var countOfDuties by remember {
+                                                        mutableStateOf(
+                                                            model.dutyPeopleCount
+                                                        )
+                                                    }
                                                     Column(Modifier.fillMaxWidth()) {
                                                         Row(
                                                             verticalAlignment = Alignment.CenterVertically,
@@ -367,13 +386,14 @@ fun SchoolContent(
                                                                     items == model.dutyKids
                                                                 ) {
                                                                     Row {
-                                                                        CustomTextButton("Новый день") {
+                                                                        CTextButton("Новый день") {
                                                                             component.onEvent(
                                                                                 SchoolStore.Intent.StartNewDayDuty(
                                                                                     newDutyPeopleCount = countOfDuties
                                                                                 )
                                                                             )
-                                                                            isEditDutyView.value = !isEditDutyView.value
+                                                                            isEditDutyView.value =
+                                                                                !isEditDutyView.value
                                                                         }
                                                                         Spacer(Modifier.width(10.dp))
                                                                     }
@@ -388,12 +408,13 @@ fun SchoolContent(
                                                                                 )
                                                                             )
                                                                         }
-                                                                        isEditDutyView.value = !isEditDutyView.value
+                                                                        isEditDutyView.value =
+                                                                            !isEditDutyView.value
                                                                     },
                                                                     modifier = Modifier.size(30.dp)
                                                                 ) {
                                                                     GetAsyncIcon(
-                                                                        RIcons.Check
+                                                                        RIcons.CHECK
                                                                     )
                                                                 }
                                                             }
@@ -420,7 +441,8 @@ fun SchoolContent(
                                                         Spacer(Modifier.height(6.dp))
                                                         Text(
                                                             text = "Зажмите и перетягивайте, чтобы измените очередь",
-                                                            modifier = Modifier.fillMaxWidth().alpha(.5f),
+                                                            modifier = Modifier.fillMaxWidth()
+                                                                .alpha(.5f),
                                                             textAlign = TextAlign.Center,
                                                             fontSize = 10.esp,
                                                             lineHeight = 10.esp
@@ -431,7 +453,8 @@ fun SchoolContent(
                                                                 onMove = { from, to ->
                                                                     val fromItem = items[from]
                                                                     val toItem = items[to]
-                                                                    val newList = items.toMutableList()
+                                                                    val newList =
+                                                                        items.toMutableList()
                                                                     newList[from] = toItem
                                                                     newList[to] = fromItem
                                                                     items = newList
@@ -452,7 +475,8 @@ fun SchoolContent(
                                                                     isEditMode = true,
                                                                     modifier = Modifier.background(
                                                                         color
-                                                                    ).height(itemHeight)//.animateItem()
+                                                                    )
+                                                                        .height(itemHeight)//.animateItem()
                                                                         .padding(horizontal = 15.dp),
                                                                     myLogin = model.login
                                                                 )
@@ -472,14 +496,14 @@ fun SchoolContent(
                 }
                 item {
                     Spacer(Modifier.height(7.dp))
-                    //                CustomTextButton()
+                    //                CTextButton()
                     Box(
                         Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape).clickable {
                             component.onOutput(
                                 SchoolComponent.Output.NavigateToSchedule(
                                     isModer = model.moderation in listOf(
-                                        Moderation.moderator,
-                                        Moderation.both
+                                        Moderation.MODERATOR,
+                                        Moderation.BOTH
                                     )
                                 )
                             )
@@ -499,7 +523,7 @@ fun SchoolContent(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft,
+                                path = RIcons.CHEVRON_LEFT,
                                 modifier = Modifier.rotate(180f),
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -520,7 +544,7 @@ fun SchoolContent(
                                 fontWeight = FontWeight.Black,
                                 modifier = Modifier.padding(start = 10.dp)
                             )
-                            if (model.moderation in listOf(Moderation.moderator, Moderation.both)) {
+                            if (model.moderation in listOf(Moderation.MODERATOR, Moderation.BOTH)) {
                                 IconButton(
                                     onClick = {
                                         component.onEvent(
@@ -532,13 +556,13 @@ fun SchoolContent(
                                     modifier = Modifier.size(30.dp)
                                 ) {
                                     GetAsyncIcon(
-                                        RIcons.Rocket
+                                        RIcons.ROCKET
                                     )
                                 }
                             }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (model.moderation in listOf(Moderation.mentor, Moderation.both)) {
+                            if (model.moderation in listOf(Moderation.MENTOR, Moderation.BOTH)) {
                                 IconButton(
                                     onClick = {
                                         component.onEvent(
@@ -550,7 +574,7 @@ fun SchoolContent(
                                     modifier = Modifier.padding(end = 7.dp).size(30.dp)
                                 ) {
                                     GetAsyncIcon(
-                                        RIcons.Settings
+                                        RIcons.SETTINGS
                                     )
                                 }
                             }
@@ -565,32 +589,33 @@ fun SchoolContent(
                                 modifier = Modifier.padding(end = 7.dp).size(30.dp)
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.Menu
+                                    RIcons.MENU
                                 )
                             }
                         }
                     }
                 }
                 if (model.ministryId in listOf(
-                        Ministries.DressCode,
+                        Ministries.DRESS_CODE,
                         Ministries.MVD,
-                        Ministries.Culture
-                    ) || model.moderation != Moderation.nothing
+                        Ministries.CULTURE
+                    ) || model.moderation != Moderation.NOTHING
                 ) {
                     item {
                         Spacer(Modifier.height(7.dp))
-                        //                CustomTextButton()
+                        //                CTextButton()
                         Box(
                             Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape).clickable {
-                                if (model.ministryId !in listOf(Ministries.Culture) || model.role != Roles.student) {
+                                if (model.ministryId !in listOf(Ministries.CULTURE) || model.role != Roles.STUDENT) {
                                     component.onOutput(SchoolComponent.Output.NavigateToMinistry)
-                                } else if (model.ministryId == Ministries.Culture) {
+                                } else if (model.ministryId == Ministries.CULTURE) {
                                     component.onOutput(SchoolComponent.Output.NavigateToAchievements)
                                 }
                             }
                         ) {
                             Row(
-                                Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 10.dp),
+                                Modifier.fillMaxWidth()
+                                    .padding(vertical = 10.dp, horizontal = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
@@ -603,7 +628,7 @@ fun SchoolContent(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 GetAsyncIcon(
-                                    path = RIcons.ChevronLeft,
+                                    path = RIcons.CHEVRON_LEFT,
                                     modifier = Modifier.rotate(180f),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
@@ -611,13 +636,13 @@ fun SchoolContent(
                         }
                     }
                 }
-                if (model.role == Roles.student) {
+                if (model.role == Roles.STUDENT) {
                     item {
                         Spacer(Modifier.height(7.dp))
                         Row(Modifier.height(IntrinsicSize.Max)) {
                             MinistryCard(
                                 ministry = "МВД",
-                                nullIconPath = RIcons.Shield,
+                                nullIconPath = RIcons.SHIELD,
                                 stupsCount = model.mvdStupsCount
                             ) {
                                 component.onEvent(SchoolStore.Intent.OpenMinistryOverview(Ministries.MVD))
@@ -625,10 +650,10 @@ fun SchoolContent(
                             Spacer(Modifier.width(15.dp))
                             MinistryCard(
                                 ministry = "Здраво-\nохранение",
-                                nullIconPath = RIcons.Styler,
+                                nullIconPath = RIcons.STYLER,
                                 stupsCount = model.zdStupsCount
                             ) {
-                                component.onEvent(SchoolStore.Intent.OpenMinistryOverview(Ministries.DressCode))
+                                component.onEvent(SchoolStore.Intent.OpenMinistryOverview(Ministries.DRESS_CODE))
                             }
                         }
                         Spacer(Modifier.height(1.dp))
@@ -656,12 +681,12 @@ fun SchoolContent(
         val nMinistrySettingsModel by component.ministrySettingsCBottomSheetComponent.nModel.subscribeAsState()
         val ministryList = listOf<Pair<String, String>>(
             Ministries.MVD to "МВД",
-            Ministries.DressCode to "Здравоохранение",
-            Ministries.Education to "Образование",
-            Ministries.Culture to "Культура",
-            Ministries.Social to "Соц вопросы",
-            Ministries.Print to "Печать",
-            Ministries.Sport to "Спорт"
+            Ministries.DRESS_CODE to "Здравоохранение",
+            Ministries.EDUCATION to "Образование",
+            Ministries.CULTURE to "Культура",
+            Ministries.SOCIAL to "Соц вопросы",
+            Ministries.PRINT to "Печать",
+            Ministries.SPORT to "Спорт"
         )
         LazyColumn(
             Modifier.padding(horizontal = 15.dp)
@@ -697,7 +722,10 @@ fun SchoolContent(
                         isAdding.value = false
                     }
                 }
-                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Spacer(Modifier.height(5.dp))
                     Text(
                         text = s.second,
@@ -734,14 +762,14 @@ fun SchoolContent(
                                 modifier = Modifier.size(30.dp)
                             ) {
                                 GetAsyncIcon(
-                                    path = RIcons.Add,
+                                    path = RIcons.ADD,
                                     size = 20.dp
                                 )
                             }
 
                             AnimatedVisibility(isAdding.value) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    CustomTextField(
+                                    CTextField(
                                         value = addingField.value,
                                         onValueChange = {
                                             addingField.value = it
@@ -757,7 +785,7 @@ fun SchoolContent(
                                     )
                                     IconButton(onClick = { onEnterClick() }) {
                                         GetAsyncIcon(
-                                            RIcons.Check
+                                            RIcons.CHECK
                                         )
                                     }
                                 }
@@ -848,7 +876,10 @@ private fun DutyCard(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier.clip(RoundedCornerShape(15.dp)).then(modifier.fillMaxWidth())
     ) {
-        Box(Modifier.size(40.dp).align(Alignment.CenterVertically), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier.size(40.dp).align(Alignment.CenterVertically),
+            contentAlignment = Alignment.Center
+        ) {
             if (!isEditMode) {
                 GetAsyncAvatar(
                     avatarId = kid.avatarId,
@@ -858,12 +889,12 @@ private fun DutyCard(
                 )
             } else {
                 GetAsyncIcon(
-                    RIcons.Menu
+                    RIcons.MENU
                 )
             }
             if (isHisTurn) {
                 GetAsyncIcon(
-                    RIcons.Dining,
+                    RIcons.DINING,
                     size = 20.dp,
                     modifier = Modifier.align(Alignment.BottomEnd).offset(x = 4.dp),
                     tint = Color.White
@@ -955,7 +986,7 @@ private fun MinistrySettingsItem(
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (ministryStudent.lvl == "1") {
             GetAsyncIcon(
-                RIcons.Rocket,
+                RIcons.ROCKET,
                 size = 25.dp
             )
         }
@@ -966,7 +997,7 @@ private fun MinistrySettingsItem(
                 modifier = Modifier.size(30.dp)
             ) {
                 GetAsyncIcon(
-                    path = RIcons.TrashCanRegular,
+                    path = RIcons.TRASH_CAN_REGULAR,
                     size = 19.dp
                 )
             }

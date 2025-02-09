@@ -4,10 +4,24 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -20,7 +34,6 @@ import forks.colorPicker.ColorSlider
 import resources.RIcons
 import view.ThemeTint
 import view.ViewManager
-import view.esp
 
 @Composable
 fun BottomThemePanel(
@@ -32,9 +45,9 @@ fun BottomThemePanel(
     changeColor: (Color) -> Unit
 ) {
     val tints = listOf(
-        Pair(ThemeTint.Dark, RIcons.DarkMode),
-        Pair(ThemeTint.Auto, RIcons.AutoMode),
-        Pair(ThemeTint.Light, RIcons.LightMode)
+        Pair(ThemeTint.Dark, RIcons.DARK_MODE),
+        Pair(ThemeTint.Auto, RIcons.AUTO_MODE),
+        Pair(ThemeTint.Light, RIcons.LIGHT_MODE)
     )
     Box(
         Modifier.fillMaxSize()
@@ -64,7 +77,7 @@ fun BottomThemePanel(
                         }
                     ) {
                         GetAsyncIcon(
-                            RIcons.BigBrush
+                            RIcons.BIG_BRUSH
                         )
                     }
 
@@ -73,7 +86,7 @@ fun BottomThemePanel(
 
                 Row() {
                     GetAsyncIcon(
-                        RIcons.Telegram
+                        RIcons.TELEGRAM
                     )
                     Spacer(Modifier.width(5.dp))
                     Text(
@@ -88,7 +101,7 @@ fun BottomThemePanel(
                     }
                 ) {
                     GetAsyncIcon(
-                        RIcons.Translate,
+                        RIcons.TRANSLATE,
                         size = 27.dp
                     )
                 }

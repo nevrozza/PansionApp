@@ -5,19 +5,68 @@
 
 import admin.groups.Group
 import admin.groups.Subject
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.*
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -32,8 +81,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.GetAsyncAvatar
+import components.GetAsyncIcon
 import components.cBottomSheet.CBottomSheetStore
+import components.foundation.AppBar
+import components.foundation.CCheckbox
+import components.foundation.CLazyColumn
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.cClickable
+import components.foundation.hazeHeader
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import profile.ProfileComponent
@@ -42,8 +99,8 @@ import resources.Images
 import resources.PricedAvatar
 import resources.RIcons
 import server.Ministries
+import utils.hv
 import view.LocalViewManager
-import view.esp
 import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
@@ -80,7 +137,7 @@ fun SharedTransitionScope.ProfileContent(
                 )
             }
                 .sortedBy { it.second.price }
-                .filter { it.first != Images.Avatars.Symbols.pansionPrint.first || model.ministryId == Ministries.Print } + (0 to PricedAvatar(
+                .filter { it.first != Images.Avatars.Symbols.pansionPrint.first || model.ministryId == Ministries.PRINT } + (0 to PricedAvatar(
                 path = null,
                 price = 0
             )),
@@ -206,7 +263,7 @@ fun SharedTransitionScope.ProfileContent(
                             onClick = { component.onOutput(ProfileComponent.Output.Back) }
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft
+                                path = RIcons.CHEVRON_LEFT
                             )
                         }
                     },
@@ -218,10 +275,14 @@ fun SharedTransitionScope.ProfileContent(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 GetAsyncIcon(
-                                    RIcons.Coins
+                                    RIcons.COINS
                                 )
                                 Spacer(Modifier.width(8.dp))
-                                Text("${model.pansCoins.toString()}", fontSize = 17.esp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    model.pansCoins.toString(),
+                                    fontSize = 17.esp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     },
@@ -245,8 +306,7 @@ fun SharedTransitionScope.ProfileContent(
                                 modifier = Modifier.sharedElementWithCallerManagedVisibility(
                                     sharedContentState = rememberSharedContentState(key = model.studentLogin + "avatar"),
                                     visible = isSharedVisible
-                                ),
-                                isCrossfade = false
+                                )
                             )
                             val delay = 300
                             this@Column.AnimatedVisibility(
@@ -259,7 +319,7 @@ fun SharedTransitionScope.ProfileContent(
                                 modifier = Modifier.offset(x = -5.dp, y = -5.dp)
                             ) {
                                 GetAsyncIcon(
-                                    path = RIcons.RocketLaunch,
+                                    path = RIcons.ROCKET_LAUNCH,
                                     size = 50.dp,
                                     tint = MaterialTheme.colorScheme.inversePrimary.hv()
                                 )
@@ -277,35 +337,35 @@ fun SharedTransitionScope.ProfileContent(
                                 GetAsyncIcon(
                                     path = when (model.ministryId) {
                                         Ministries.MVD -> {
-                                            RIcons.Shield
+                                            RIcons.SHIELD
                                         }
 
-                                        Ministries.Culture -> {
-                                            RIcons.Celebration
+                                        Ministries.CULTURE -> {
+                                            RIcons.CELEBRATION
                                         }
 
-                                        Ministries.DressCode -> {
-                                            RIcons.Styler
+                                        Ministries.DRESS_CODE -> {
+                                            RIcons.STYLER
                                         }
 
-                                        Ministries.Education -> {
-                                            RIcons.SchoolCap
+                                        Ministries.EDUCATION -> {
+                                            RIcons.SCHOOL_CAP
                                         }
 
-                                        Ministries.Print -> {
-                                            RIcons.Newspaper
+                                        Ministries.PRINT -> {
+                                            RIcons.NEWSPAPER
                                         }
 
-                                        Ministries.Social -> {
-                                            RIcons.Comment
+                                        Ministries.SOCIAL -> {
+                                            RIcons.COMMENT
                                         }
 
-                                        Ministries.Sport -> {
-                                            RIcons.Ball
+                                        Ministries.SPORT -> {
+                                            RIcons.BALL
                                         }
 
                                         else -> {
-                                            RIcons.QuestionCircle
+                                            RIcons.QUESTION_CIRCLE
                                         }
                                     },
                                     size = 50.dp,
@@ -370,7 +430,7 @@ fun SharedTransitionScope.ProfileContent(
                                                             ) {
                                                                 Text("Сохранить  ")
                                                                 GetAsyncIcon(
-                                                                    path = RIcons.Save
+                                                                    path = RIcons.SAVE
                                                                 )
                                                             } else {
 
@@ -382,7 +442,7 @@ fun SharedTransitionScope.ProfileContent(
                                                                 )
 
                                                                 GetAsyncIcon(
-                                                                    path = RIcons.Coins
+                                                                    path = RIcons.COINS
                                                                 )
                                                             }
                                                         }
@@ -533,7 +593,7 @@ fun SharedTransitionScope.ProfileContent(
                                                             }
                                                         }
                                                         GetAsyncIcon(
-                                                            path = RIcons.SchoolCapOutlined,
+                                                            path = RIcons.SCHOOL_CAP_OUTLINE,
                                                             modifier = Modifier.align(Alignment.TopEnd)
                                                         )
                                                     }
@@ -584,7 +644,7 @@ fun SharedTransitionScope.ProfileContent(
                                                         contentAlignment = Alignment.CenterEnd
                                                     ) {
                                                         GetAsyncIcon(
-                                                            RIcons.CuteCheck,
+                                                            RIcons.CUTE_CHECK,
                                                             tint = MaterialTheme.colorScheme.secondary,
                                                             size = 26.dp
                                                         )
@@ -658,7 +718,7 @@ fun SharedTransitionScope.ProfileContent(
 
                                                 Spacer(Modifier.width(5.dp))
                                                 GetAsyncIcon(
-                                                    path = if (opened) RIcons.Visibility else RIcons.VisibilityOff,
+                                                    path = if (opened) RIcons.VISIBILITY else RIcons.VISIBILITY_OFF,
                                                     size = 25.dp
                                                 )
                                             }
@@ -668,7 +728,7 @@ fun SharedTransitionScope.ProfileContent(
                                 } else if (!model.isOwner) {
                                     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                                         GetAsyncIcon(
-                                            path = RIcons.VisibilityOff,
+                                            path = RIcons.VISIBILITY_OFF,
                                             size = 50.dp
                                         )
                                         Spacer(Modifier.height(10.dp))
@@ -707,7 +767,7 @@ fun SharedTransitionScope.ProfileContent(
                 ?: 0) > 9
         ) egeNecessarySubjects else ogeNecessarySubjects
         val subjects = if ((model.form?.form?.classNum ?: 0) > 9) egeSubjects else ogeSubjects
-        var finalSubjects = subjects.sortedByDescending { it.first in model.giaSubjects }
+        val finalSubjects = subjects.sortedByDescending { it.first in model.giaSubjects }
 
         LazyColumn(
             Modifier.padding(horizontal = 15.dp)
@@ -795,7 +855,7 @@ private fun SubjectItem(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(title)
-        CustomCheckbox(
+        CCheckbox(
             checked = isChecked,
             modifier = Modifier.size(25.dp)
         )
@@ -866,7 +926,7 @@ private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String
 
                 Spacer(Modifier.width(4.dp))
                 GetAsyncIcon(
-                    path = RIcons.User,
+                    path = RIcons.USER,
                     size = 15.dp
                 )
                 Spacer(Modifier.width(4.dp))
@@ -875,7 +935,7 @@ private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(.5f, false)) {
             GetAsyncIcon(
-                path = RIcons.Fire,
+                path = RIcons.FIRE,
                 size = 22.dp
             )
             Spacer(Modifier.width(4.dp))
@@ -921,7 +981,7 @@ private fun AvatarButton(
             }
         } else if (currentAvatar == i) {
             GetAsyncIcon(
-                RIcons.CheckCircleOutline,
+                RIcons.CHECK_CIRCLE_OUTLINE,
                 modifier = Modifier.align(Alignment.BottomEnd)
                     .background(
                         MaterialTheme.colorScheme.primary,

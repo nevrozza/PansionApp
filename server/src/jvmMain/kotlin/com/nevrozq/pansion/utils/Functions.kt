@@ -7,20 +7,21 @@ import com.nevrozq.pansion.database.holidays.Holidays
 import com.nevrozq.pansion.database.tokens.Tokens
 import com.nevrozq.pansion.database.users.Users
 import getWeeks
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.response.*
+import io.ktor.server.response.respond
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import server.*
+import server.Moderation
+import server.Roles
+import server.cut
+import server.getCurrentEdYear
+import server.getLocalDate
+import server.latin
 import java.util.UUID
-
-
-
-
 
 
 fun getCurrentWeek(): Week {
@@ -35,7 +36,7 @@ fun getCurrentWeek(): Week {
 
 
 
-val Unit.done: Boolean
+val Unit.done
     get() = true
 
 suspend fun ApplicationCall.dRes(
@@ -118,22 +119,22 @@ val ApplicationCall.isMember: Boolean get() {
 }
 val ApplicationCall.isModer: Boolean get() {
     val moderation = Users.getModeration(this.login)
-    return moderation != Moderation.mentor && moderation != Moderation.nothing
+    return moderation != Moderation.MENTOR && moderation != Moderation.NOTHING
 }
 val ApplicationCall.isTeacher: Boolean get() {
-    return Users.getRole(this.login) == Roles.teacher
+    return Users.getRole(this.login) == Roles.TEACHER
 }
 val ApplicationCall.isStudent: Boolean get() {
-    return Users.getRole(this.login) == Roles.student
+    return Users.getRole(this.login) == Roles.STUDENT
 }
 val ApplicationCall.isParent: Boolean get() {
     return Users.getIsParentStatus(this.login)
 }
 val ApplicationCall.isMentor: Boolean get() {
-    return Users.getModeration(this.login) != Moderation.nothing//in listOf(Moderation.both, Moderation.mentor)
+    return Users.getModeration(this.login) != Moderation.NOTHING//in listOf(Moderation.both, Moderation.mentor)
 }
 val ApplicationCall.isOnlyMentor: Boolean get() {
-    return Users.getModeration(this.login) == Moderation.mentor//in listOf(Moderation.both, Moderation.mentor)
+    return Users.getModeration(this.login) == Moderation.MENTOR//in listOf(Moderation.both, Moderation.mentor)
 }
 
 val ApplicationCall.moderation: String get() {

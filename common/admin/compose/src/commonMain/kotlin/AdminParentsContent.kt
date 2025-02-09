@@ -28,12 +28,17 @@ import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import parents.AdminParentsComponent
 import parents.AdminParentsStore
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.rememberPullRefreshState
+import components.refresh.PullRefreshIndicator
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import resources.RIcons
 import view.LocalViewManager
-import view.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.cClickable
 
 @OptIn(
     ExperimentalLayoutApi::class, ExperimentalFoundationApi::class,
@@ -82,7 +87,7 @@ fun AdminParentsContent(
                         onClick = { component.onOutput(AdminParentsComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 },
@@ -96,7 +101,7 @@ fun AdminParentsContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Add
+                                RIcons.ADD
                             )
                         }
                         ListDialogDesktopContent(
@@ -214,7 +219,7 @@ fun AdminParentsContent(
                                                             modifier = Modifier.size(20.dp)
                                                         ) {
                                                             GetAsyncIcon(
-                                                                RIcons.Add
+                                                                RIcons.ADD
                                                             )
                                                         }
                                                         if (model.addToStudent == p.login) {
@@ -243,7 +248,7 @@ fun AdminParentsContent(
                                                                 modifier = Modifier.size(20.dp)
                                                             ) {
                                                                 GetAsyncIcon(
-                                                                    RIcons.Edit,
+                                                                    RIcons.EDIT,
                                                                     size = 17.dp
                                                                 )
                                                             }

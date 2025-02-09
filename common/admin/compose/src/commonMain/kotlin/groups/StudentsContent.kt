@@ -41,12 +41,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CLazyColumn
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.CLazyColumn
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
 import components.GroupPicker
-import components.LoadingAnimation
+import components.foundation.LoadingAnimation
 import components.NSCutedGroup
 import components.NSSubject
 import components.listDialog.ListDialogStore
@@ -154,14 +154,14 @@ fun StudentsContent(
                                                                     )
                                                                 } else {
                                                                     GetAsyncIcon(
-                                                                        path = RIcons.ChevronLeft,
+                                                                        path = RIcons.CHEVRON_LEFT,
                                                                         modifier = Modifier.rotate(180f)
                                                                     )
                                                                 }
                                                             }
                                                             else {
                                                                 GetAsyncIcon(
-                                                                    RIcons.Add
+                                                                    RIcons.ADD
                                                                 )
                                                             }
                                                         }
@@ -221,7 +221,7 @@ fun StudentsContent(
                                                                         modifier = Modifier.size(25.dp)
                                                                     ) {
                                                                         GetAsyncIcon(
-                                                                            RIcons.Close
+                                                                            RIcons.CLOSE
                                                                         )
                                                                     }
                                                                 }
@@ -235,7 +235,7 @@ fun StudentsContent(
                                                                     }
                                                                 ) {
                                                                     GetAsyncIcon(
-                                                                        RIcons.Add
+                                                                        RIcons.ADD
                                                                     )
                                                                 }
                                                             } else {

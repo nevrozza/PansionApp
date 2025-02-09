@@ -1,18 +1,19 @@
 package home
 
-import AuthRepository
-import CDispatcher
 import JournalRepository
 import MainRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import home.HomeStore.Intent
 import home.HomeStore.Label
 import home.HomeStore.Message
 import home.HomeStore.State
 import journal.JournalComponent
 import journal.JournalStore
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import main.Period
 import main.RChangeToUv
 import main.RDeleteMainNotificationsReceive
@@ -24,7 +25,6 @@ import server.Roles
 import server.toMinutes
 
 class HomeExecutor(
-    private val authRepository: AuthRepository,
     private val mainRepository: MainRepository,
     private val journalRepository: JournalRepository,
     private val quickTabNInterface: NetworkInterface,
@@ -37,7 +37,7 @@ class HomeExecutor(
         when (intent) {
             is Intent.Init -> init()
             Intent.ChangeIsDatesShown -> dispatch(Message.IsDatesShownChanged)
-            is Intent.ChangeDate -> scope.launch {
+            is Intent.ChangeDate -> {
                 dispatch(Message.DateChanged(intent.date))
                 fetchSchedule(dayOfWeek = intent.date.first.toString(), date = intent.date.second)
             }
@@ -59,7 +59,7 @@ class HomeExecutor(
                 )
             }
 
-            is Intent.CheckNotification -> scope.launch(CDispatcher) {
+            is Intent.CheckNotification -> scope.launchIO {
                 try {
                     mainRepository.deleteMainNotification(
                         RDeleteMainNotificationsReceive(
@@ -72,7 +72,7 @@ class HomeExecutor(
                         val newNotifications = newChildNotifications[intent.login]?.toMutableList() ?: mutableListOf()
                         newNotifications.removeAll { it.key == intent.key }
                         newChildNotifications[intent.login] = newNotifications
-                        scope.launch {
+                        withMain {
                             dispatch(Message.ChildrenNotificationsInited(
                                 notChildren = state().notChildren,
                                 childrenNotifications = newChildNotifications
@@ -81,7 +81,7 @@ class HomeExecutor(
                     } else {
                         val newNotifications = state().notifications.toMutableList()
                         newNotifications.removeAll { it.key == intent.key }
-                        scope.launch {
+                        withMain {
                             dispatch(
                                 Message.NotificationsUpdated(newNotifications)
                             )
@@ -102,7 +102,7 @@ class HomeExecutor(
 
 
     private fun markLesson(lessonId: Int) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
 
                 journalRepository.toMarkLesson(
@@ -117,7 +117,7 @@ class HomeExecutor(
                         it.copy(isMarked = true)
                     } else it
                 } ?: listOf()
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.ItemsUpdated(newSchedule.toMap(HashMap()), lastUpdate = state().lastUpdate)
                     )
@@ -129,7 +129,7 @@ class HomeExecutor(
     }
 
     private fun changeToUv(reportId: Int, login: String, isDeep: Boolean) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
 
                 mainRepository.changeToUv(
@@ -153,7 +153,7 @@ class HomeExecutor(
                             it
                         }
                     } ?: listOf()
-                    scope.launch {
+                    withMain {
                         dispatch(
                             Message.ChildrenNotificationsInited(
                                 notChildren = state().notChildren,
@@ -170,12 +170,12 @@ class HomeExecutor(
     }
 
     private fun fetchChildrenNotifications() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 quickTabNInterface.nStartLoading()
                 val r =
                     mainRepository.fetchChildrenMainNotifications()
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.ChildrenNotificationsInited(
                             notChildren = r.students,
@@ -198,8 +198,8 @@ class HomeExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
-            if (state().role == Roles.student) {
+        scope.launchIO {
+            if (state().role == Roles.STUDENT) {
                 fetchQuickTab(period = state().period, isFirst = true)
                 fetchGrades()
                 fetchHomeTasksCount()
@@ -208,7 +208,7 @@ class HomeExecutor(
                     dayOfWeek = state().currentDate.first.toString(),
                     date = state().currentDate.second
                 )
-            } else if (state().role == Roles.teacher) {
+            } else if (state().role == Roles.TEACHER) {
                 fetchTeacherGroups()
                 fetchSchedule(
                     dayOfWeek = state().currentDate.first.toString(),
@@ -221,7 +221,7 @@ class HomeExecutor(
             if (state().isParent || state().isMentor) {
                 fetchChildrenNotifications()
             }
-            if ((state().isMentor || state().isModer) && state().role != Roles.teacher) {
+            if ((state().isMentor || state().isModer) && state().role != Roles.TEACHER) {
                 fetchTeacherGroups()
             }
         }
@@ -229,13 +229,13 @@ class HomeExecutor(
     }
 
     private fun fetchChildren() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 gradesNInterface.nStartLoading()
                 val r =
                     mainRepository.fetchChildren()
 
-                scope.launch {
+                withMain {
                     dispatch(Message.ChildrenUpdated(r.children))
                     gradesNInterface.nSuccess()
                 }
@@ -248,7 +248,7 @@ class HomeExecutor(
     }
 
     private fun fetchHomeTasksCount() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             teacherNInterface.nStartLoading()
             try {
                 val count = mainRepository.fetchMainHomeTasksCount(
@@ -256,7 +256,7 @@ class HomeExecutor(
                         studentLogin = state().login
                     )
                 ).count
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.UpdateHomeWorkEmoji(
                             count
@@ -271,26 +271,26 @@ class HomeExecutor(
     }
 
     private fun fetchNotifications() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 val notifications = mainRepository.fetchMainNotifications(
                     RFetchMainNotificationsReceive(studentLogin = state().login)
                 ).notifications
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.NotificationsUpdated(
                             notifications = notifications
                         )
                     )
                 }
-            } catch (e: Throwable) {
+            } catch (_: Throwable) {
 
             }
         }
     }
 
     private fun fetchSchedule(dayOfWeek: String, date: String) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
 //            if ((state().items[date] ?: listOf()).isEmpty()) {
             try {
                 scheduleNInterface.nStartLoading()
@@ -323,7 +323,9 @@ class HomeExecutor(
                     }
                     newList[it.key] = items
                 }
-                scope.launch {
+                withContext(Dispatchers.Main) {
+
+                    println("CHECK: ${this.coroutineContext}")
                     dispatch(Message.ItemsUpdated(newList.toMap(HashMap()), lastUpdate = response.lastUpdate))
                     scheduleNInterface.nSuccess()
                 }
@@ -339,12 +341,12 @@ class HomeExecutor(
     }
 
     private fun fetchGrades() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 gradesNInterface.nStartLoading()
                 val r = mainRepository.fetchRecentGrades(state().login)
                 val grades = r.grades
-                scope.launch {
+                withMain {
                     dispatch(Message.GradesUpdated(grades, r.isAnyDepts))
                     gradesNInterface.nSuccess()
                 }
@@ -359,12 +361,12 @@ class HomeExecutor(
     }
 
     private fun fetchTeacherGroups() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 teacherNInterface.nStartLoading()
                 val groups = mainRepository.fetchTeacherGroups().groups.sortedBy { it.subjectId }
                     .sortedBy { it.teacherLogin != state().login }
-                scope.launch {
+                withMain {
                     dispatch(Message.TeacherGroupUpdated(groups))
 
                     teacherNInterface.nSuccess()
@@ -380,7 +382,7 @@ class HomeExecutor(
     }
 
     private fun fetchQuickTab(period: Period, isFirst: Boolean) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             quickTabNInterface.nStartLoading()
             try {
                 val avg =
@@ -393,7 +395,7 @@ class HomeExecutor(
                 val stupsMap = state().ladderOfSuccess.toMutableMap()
                 avgMap[period] = avg.avg
                 stupsMap[period] = avg.stups
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.QuickTabUpdated(
                             avg = avgMap.toMap(HashMap()),

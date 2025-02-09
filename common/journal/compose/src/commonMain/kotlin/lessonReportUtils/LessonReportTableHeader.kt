@@ -27,7 +27,7 @@ fun LessonReportTableHeader(
     firstColumnPadding: Dp
 ) {
     Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-        if (column.type == ColumnTypes.prisut) {
+        if (column.type == ColumnTypes.PRISUT) {
             Spacer(Modifier.width(firstColumnPadding))
         }
         Row(
@@ -37,10 +37,10 @@ fun LessonReportTableHeader(
             if (column.type.st in listOf("!dz", "!st", "!ds")) {
                 GetAsyncIcon(
                     path = when(column.type.st) {
-                        "!dz" -> RIcons.Home
-                        "!st" -> RIcons.Star
-                        "!ds" -> RIcons.Shield
-                        else -> RIcons.QuestionCircle
+                        "!dz" -> RIcons.HOME
+                        "!st" -> RIcons.STAR
+                        "!ds" -> RIcons.SHIELD
+                        else -> RIcons.QUESTION_CIRCLE
                     },
                     size = 14.dp,
                     modifier = Modifier.offset(

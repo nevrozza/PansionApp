@@ -53,15 +53,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.CLazyColumn
-import components.CustomCheckbox
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.CCheckbox
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncAvatar
 import components.GetAsyncIcon
 import components.PeriodButton
-import components.cClickable
+import components.foundation.cClickable
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
@@ -70,9 +70,9 @@ import components.refresh.RefreshWithoutPullCircle
 import components.refresh.keyRefresh
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.rememberPullRefreshState
+import components.refresh.PullRefreshIndicator
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import rating.PansionPeriod
 import rating.RatingComponent
 import rating.RatingItem
@@ -82,8 +82,8 @@ import resources.RIcons
 import server.roundTo
 import view.LocalViewManager
 import view.WindowScreen
-import view.esp
-import view.toColor
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import utils.toColor
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
@@ -141,7 +141,11 @@ fun SharedTransitionScope.RatingContent(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.alpha(.5f).padding(top = 3.5.dp)
                         )
-                        RefreshWithoutPullCircle(refreshing, refreshState.position, !rawItems.isNullOrEmpty())
+                        RefreshWithoutPullCircle(
+                            refreshing,
+                            refreshState.position,
+                            !rawItems.isNullOrEmpty()
+                        )
 
                     }
 
@@ -152,7 +156,7 @@ fun SharedTransitionScope.RatingContent(
                             onClick = { component.onOutput(RatingComponent.Output.Back) }
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft
+                                path = RIcons.CHEVRON_LEFT
                             )
                         }
                     }
@@ -168,7 +172,7 @@ fun SharedTransitionScope.RatingContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Settings
+                                RIcons.SETTINGS
                             )
                         }
                     }
@@ -300,7 +304,7 @@ fun SharedTransitionScope.RatingContent(
                                 modifier = Modifier.cClickable {
                                     component.onEvent(RatingStore.Intent.ChangeIsDetailed)
                                 }) {
-                                CustomCheckbox(
+                                CCheckbox(
                                     checked = model.isDetailed
                                 )
                                 Text("Отображать детально")
@@ -411,7 +415,7 @@ private fun SharedTransitionScope.RatingCard(
                 if (item.top <= 3) {
                     // Show trophy icon for top 3 positions
                     GetAsyncIcon(
-                        path = RIcons.Trophy,
+                        path = RIcons.TROPHY,
                         tint = when (item.top) {
                             1 -> "#ffd700".toColor()
                             2 -> "#c0c0c0".toColor()
@@ -455,7 +459,7 @@ private fun SharedTransitionScope.RatingCard(
                     if (item.difficulty > 0 && isMe) {
                         Spacer(Modifier.width(10.dp))
                         GetAsyncIcon(
-                            path = RIcons.Fire,
+                            path = RIcons.FIRE,
                             size = 18.dp
                         )
                         Spacer(Modifier.width(4.dp))
@@ -490,7 +494,7 @@ private fun SharedTransitionScope.RatingCard(
                         if (item.difficulty > 0) {
                             Spacer(Modifier.width(5.dp))
                             GetAsyncIcon(
-                                path = RIcons.Fire,
+                                path = RIcons.FIRE,
                                 size = 12.dp,
                                 tint = Color.Gray
                             )

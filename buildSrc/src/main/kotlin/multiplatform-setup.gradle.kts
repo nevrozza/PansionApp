@@ -9,6 +9,9 @@ plugins {
 android {
     namespace = "com.nevrozq.pansion.android"
     compileSdk = 34
+    defaultConfig {
+        minSdk = 26
+    }
 }
 
 kotlin {
@@ -18,6 +21,21 @@ kotlin {
 
     applyDefaultHierarchyTemplate {
         common {
+            group("notJvm") {
+                withJs()
+                withWasmJs()
+                withIos()
+                withAndroidTarget()
+            }
+            group("mobile") {
+                withIos()
+                withAndroidTarget()
+            }
+            group("notMobile") {
+                withJvm()
+                withWasmJs()
+                withJs()
+            }
             group("web") {
                 withJs()
                 withWasmJs()
@@ -26,6 +44,12 @@ kotlin {
                 withJvm()
                 withApple()
                 withAndroidTarget()
+            }
+            group("skiko") {
+                withJvm()
+                withApple()
+                withJs()
+                withWasmJs()
             }
         }
     }
@@ -55,6 +79,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            //noinspection UseTomlInstead
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
         }
         jsMain.dependencies {

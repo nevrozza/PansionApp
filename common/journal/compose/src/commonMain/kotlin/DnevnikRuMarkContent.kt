@@ -9,9 +9,23 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
+import androidx.compose.desktop.ui.tooling.preview.utils.hazeMask
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -42,17 +56,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.BorderStup
-import components.CFilterChip
-import components.CLazyColumn
-import components.CustomTextButton
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AppBar
+import components.journal.BorderStup
+import components.foundation.CFilterChip
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
-import components.MarkTable
-import components.StupsButton
-import components.cMark
+import components.journal.MarkTable
+import components.journal.StupsButton
+import components.journal.cMark
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
@@ -69,7 +83,6 @@ import server.fetchReason
 import server.getLocalDate
 import server.roundTo
 import studentReportDialog.StudentReportDialogStore
-import view.GlobalHazeState
 import view.LocalViewManager
 
 
@@ -106,7 +119,7 @@ fun DnevnikRuMarkContent(
                         style = LocalHazeStyle.current
                     ) {
                         inputScale = HazeInputScale.Fixed(0.7f)
-                        mask = view.hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
+                        mask = hazeMask//Brush.verticalGradient(colors = listOf(Color.Magenta, Color.Transparent))
 //                        progressive = hazeProgressive
                     }
                     else Modifier
@@ -130,7 +143,7 @@ fun DnevnikRuMarkContent(
                             onClick = { component.onOutput(DnevnikRuMarksComponent.Output.Back) }
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft
+                                path = RIcons.CHEVRON_LEFT
                             )
                         }
                     },
@@ -145,11 +158,10 @@ fun DnevnikRuMarkContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                path = if (!model.isTableView) RIcons.Table else RIcons.ContactBook
+                                path = if (!model.isTableView) RIcons.TABLE else RIcons.CONTACT_BOOK
                             )
                         }
                     },
-                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
                     isTransparentHaze = isHaze
                 )
                 AnimatedVisibility(
@@ -421,7 +433,7 @@ private fun SubjectMarksItem(
                     modifier = Modifier.weight(.4f, false)
                 )
             }
-            //Pansion – StudentLinesContent.kt [Pansion.common.journal.compose.commonMain]
+            //Pansion – StudentLinesContent.kt [Pansion.COMMON.journal.compose.commonMain]
             if (marks.isNotEmpty()) {
                 if (!isFullView.value) {
                     LazyRow(rowModifier, userScrollEnabled = false) {
@@ -484,7 +496,7 @@ private fun SubjectMarksItem(
                         if (isFullView.value) "Закрыть" else "Открыть все оценки",
                         transitionSpec = { fadeIn().togetherWith(fadeOut()) }
                     ) {
-                        CustomTextButton(text = it) {
+                        CTextButton(text = it) {
                             isFullView.value = !isFullView.value
                         }
                     }

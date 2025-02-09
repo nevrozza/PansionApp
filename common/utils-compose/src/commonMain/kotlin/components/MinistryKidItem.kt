@@ -4,7 +4,14 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +29,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import components.foundation.CTextButton
+import components.foundation.cClickable
+import components.journal.Stepper
+import components.journal.getStupString
 import components.listDialog.ListComponent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import main.school.MinistryKid
@@ -126,7 +137,7 @@ fun MinistryKidItem(
                 )
                 if (isCanBeEdited) {
                     Row {
-                        if (item.lessons.isNotEmpty() || pickedMinistry == Ministries.DressCode) {
+                        if (item.lessons.isNotEmpty() || pickedMinistry == Ministries.DRESS_CODE) {
                             IconButton(
                                 onClick = {
                                     isFullOpened.value = !isFullOpened.value
@@ -134,7 +145,7 @@ fun MinistryKidItem(
                             ) {
                                 val chevronRotation = animateFloatAsState(if (isFullOpened.value) 90f else -90f)
                                 GetAsyncIcon(
-                                    path = RIcons.ChevronLeft,
+                                    path = RIcons.CHEVRON_LEFT,
                                     modifier = Modifier.rotate(chevronRotation.value),
                                     size = 15.dp
                                 )
@@ -155,7 +166,7 @@ fun MinistryKidItem(
                                     }
                                 ) {
                                     GetAsyncIcon(
-                                        RIcons.Add
+                                        RIcons.ADD
                                     )
                                 }
                             } else {
@@ -171,7 +182,7 @@ fun MinistryKidItem(
                                     }
                                 ) {
                                     GetAsyncIcon(
-                                        path =  RIcons.Edit,
+                                        path =  RIcons.EDIT,
                                         size = 20.dp
                                     )
                                 }
@@ -230,7 +241,7 @@ fun MinistryKidItem(
                                             AnimatedContent(
                                                 "${textik} ($reason)"
                                             ) { text ->
-                                                CustomTextButton(
+                                                CTextButton(
                                                     text,
                                                     color = color
                                                 ) {
@@ -260,7 +271,7 @@ fun MinistryKidItem(
                                 if (stups.none { it.reason == "!ds1" && it.content != "0" }) {
                                     Spacer(Modifier.width(5.dp))
                                     Box() {
-                                        CustomTextButton("готовность?") {
+                                        CTextButton("готовность?") {
                                             openMVDEvent(
                                                 item.login,
                                                 "!ds1",
@@ -280,7 +291,7 @@ fun MinistryKidItem(
                                 if (stups.none { it.reason == "!ds2" && it.content != "0" }) {
                                     Spacer(Modifier.width(5.dp))
                                     Box() {
-                                        CustomTextButton("поведение?") {
+                                        CTextButton("поведение?") {
                                             openMVDEvent(
                                                 item.login,
                                                 "!ds2",
@@ -299,7 +310,7 @@ fun MinistryKidItem(
                                 }
                                 if (stups.none { it.reason == "!ds3" && it.content != "0" }) {
                                     Spacer(Modifier.width(5.dp))
-                                    CustomTextButton("нарушение?") {
+                                    CTextButton("нарушение?") {
                                         openMVDEvent(
                                             item.login,
                                             "!ds3",
@@ -323,7 +334,7 @@ fun MinistryKidItem(
                 }
             }
 
-            AnimatedVisibility(isFullOpened.value && pickedMinistry == Ministries.DressCode) {
+            AnimatedVisibility(isFullOpened.value && pickedMinistry == Ministries.DRESS_CODE) {
                 Column {
                     DressCodeBlock(
                         title = "Одежда",

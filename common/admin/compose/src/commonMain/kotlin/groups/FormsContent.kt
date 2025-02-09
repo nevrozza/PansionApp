@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -59,12 +60,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.CLazyColumn
-import components.CustomTextButton
-import components.CustomTextField
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AnimatedCommonButton
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.CTextField
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
 import components.GroupPicker
 import components.NSCutedGroup
@@ -76,7 +77,6 @@ import excel.exportForms
 import groups.forms.FormsComponent
 import groups.forms.FormsStore
 import resources.RIcons
-import view.esp
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -166,7 +166,7 @@ fun FormsContent(
                                             }
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 GetAsyncIcon(
-                                                    RIcons.User,
+                                                    RIcons.USER,
                                                     size = 14.dp,
                                                     modifier = Modifier.offset(x = (-4).dp)
                                                 )
@@ -189,7 +189,7 @@ fun FormsContent(
                                                 }
                                             ) {
                                                 GetAsyncIcon(
-                                                    RIcons.Edit
+                                                    RIcons.EDIT
                                                 )
                                             }
                                             Crossfade(nFGModel.state == NetworkState.Loading) {
@@ -207,7 +207,7 @@ fun FormsContent(
                                                         val chevronRotation =
                                                             animateFloatAsState(if (form.id == model.chosenFormId) 90f else -90f)
                                                         GetAsyncIcon(
-                                                            path = RIcons.ChevronLeft,
+                                                            path = RIcons.CHEVRON_LEFT,
                                                             modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                                                             size = 15.dp
                                                         )
@@ -261,7 +261,7 @@ fun FormsContent(
                                                                     modifier = Modifier.size(25.dp)
                                                                 ) {
                                                                     GetAsyncIcon(
-                                                                        RIcons.Close
+                                                                        RIcons.CLOSE
                                                                     )
                                                                 }
                                                             }
@@ -273,7 +273,7 @@ fun FormsContent(
                                                                 }
                                                             ) {
                                                                 GetAsyncIcon(
-                                                                    RIcons.Add
+                                                                    RIcons.ADD
                                                                 )
                                                             }
                                                         } else {
@@ -337,7 +337,7 @@ fun FormsContent(
                             Spacer(Modifier.height(16.dp))
                             val exported = remember { mutableStateOf(false) }
                             AnimatedContent(if (exported.value) "Успешно экспортировано!" else "Экспортировать в excel") {
-                                CustomTextButton(it, modifier = Modifier.fillMaxWidth()) {
+                                CTextButton(it, modifier = Modifier.fillMaxWidth()) {
                                     exportForms(gModel.forms)
                                     exported.value = true
                                 }
@@ -423,7 +423,7 @@ fun EditFormBottomSheet(
                     .verticalScroll(rememberScrollState())
             ) {
                 Spacer(Modifier.height(5.dp))
-                CustomTextField(
+                CTextField(
                     value = model.eFormClassNum,
                     onValueChange = {
                         if (it.length < 3) {
@@ -446,7 +446,7 @@ fun EditFormBottomSheet(
                     supText = "Число [1-11]"
                 )
                 Spacer(Modifier.height(7.dp))
-                CustomTextField(
+                CTextField(
                     value = model.eFormTitle,
                     onValueChange = {
                         component.onEvent(
@@ -469,7 +469,7 @@ fun EditFormBottomSheet(
                 Spacer(Modifier.height(7.dp))
 
 
-                CustomTextField(
+                CTextField(
                     value = model.eFormShortTitle,
                     onValueChange = {
                         component.onEvent(
@@ -521,7 +521,7 @@ fun EditFormBottomSheet(
                         trailingIcon = {
                             val chevronRotation = animateFloatAsState(if (expandedMentors) 90f else -90f)
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft,
+                                path = RIcons.CHEVRON_LEFT,
                                 modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                                 size = 15.dp
                             )

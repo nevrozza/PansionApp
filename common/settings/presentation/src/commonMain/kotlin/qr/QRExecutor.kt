@@ -1,21 +1,20 @@
 package qr
 
 import AuthRepository
-import CDispatcher
 import CommonPlatformConfiguration
-import PlatformConfiguration
 import SettingsRepository
 import auth.RFetchQrTokenResponse
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import di.Inject
-import kotlinx.coroutines.launch
 import qr.QRStore.Intent
 import qr.QRStore.Label
-import qr.QRStore.State
 import qr.QRStore.Message
+import qr.QRStore.State
 import registration.RegistrationRequest
 import registration.SendRegistrationRequestReceive
 
@@ -47,7 +46,7 @@ class QRExecutor(
     }
 
     private fun sendToServer() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
 
@@ -58,7 +57,7 @@ class QRExecutor(
                             token = "AUTH$auth"
                         )
                     )
-                    scope.launch {
+                    withMain {
                         nInterface.nSuccess()
                         dispatch(
                             Message.AuthReceived(
@@ -75,7 +74,7 @@ class QRExecutor(
                 if (form != state().code && state().isRegistration) {
                     if (form?.toIntOrNull() != null) {
                         val r = settingsRepository.scanRegistrationQR(form.toInt())
-                        scope.launch {
+                        withMain {
                             nInterface.nSuccess()
                             dispatch(
                                 Message.FormReceived(
@@ -86,7 +85,7 @@ class QRExecutor(
                         }
                     }
                 }
-                scope.launch {
+                withMain {
                     nInterface.nSuccess()
                 }
             } catch (e: Throwable) {
@@ -98,7 +97,7 @@ class QRExecutor(
     }
 
     private fun sendToServerAtAll() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 if (state().isRegistration) {
@@ -119,7 +118,7 @@ class QRExecutor(
                         )
                     )
 
-                    scope.launch {
+                    withMain {
                         dispatch(Message.LoginChanged(
                             "Готово!\nВы увидите свой логин при запуске приложения, когда Вашу заявку одобрят"
                         ))
@@ -136,7 +135,7 @@ class QRExecutor(
                         )
                     )
                 }
-                scope.launch {
+                withMain {
                     nInterface.nSuccess()
                     authBottomSheet.onEvent(CBottomSheetStore.Intent.HideSheet)
                     dispatch(Message.CodeChanged(""))

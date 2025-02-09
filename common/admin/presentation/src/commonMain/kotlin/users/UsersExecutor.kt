@@ -11,7 +11,8 @@ import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.launch
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import server.Moderation
 import users.UsersStore.Intent
 import users.UsersStore.Label
@@ -61,7 +62,7 @@ class UsersExecutor(
             is Intent.ChangeCParentFirstFIO -> dispatch(Message.CParentFirstFIOChanged(intent.fio))
             is Intent.ChangeCParentSecondFIO -> dispatch(Message.CParentSecondFIOChanged(intent.fio))
             is Intent.DeleteAccount -> deleteAccount()
-            is Intent.DeleteAccountInit -> scope.launch {
+            is Intent.DeleteAccountInit -> {
                 eDeleteDialog.onEvent(if (intent.login != null) CAlertDialogStore.Intent.ShowDialog else CAlertDialogStore.Intent.HideDialog)
                 dispatch(Message.DeletingAccountInit(intent.login))
             }
@@ -81,10 +82,10 @@ class UsersExecutor(
     }
 
     private fun createUsersFromExcel(students: List<ToBeCreatedStudent>) {
-        scope.launch {
+        scope.launchIO {
             cUserBottomSheet.nInterface.nStartLoading()
             try {
-                val r = adminRepository.registerExcelStudents(students)
+                adminRepository.registerExcelStudents(students)
                 cUserBottomSheet.nInterface.nSuccess()
             } catch (e: Throwable) {
                 with(cUserBottomSheet.nInterface) {
@@ -99,7 +100,7 @@ class UsersExecutor(
     }
 
     private fun deleteAccount() {
-        scope.launch {
+        scope.launchIO {
             eDeleteDialog.nInterface.nStartLoading()
             try {
                 adminRepository.deleteUser(
@@ -111,15 +112,17 @@ class UsersExecutor(
                         ),
                         birthday = state().eBirthday,
                         role = state().eRole,
-                        moderation = if (state().eIsModerator && state().eIsMentor) Moderation.both
-                        else if (state().eIsMentor) Moderation.mentor
-                        else if (state().eIsModerator) Moderation.moderator
-                        else Moderation.nothing,
+                        moderation = if (state().eIsModerator && state().eIsMentor) Moderation.BOTH
+                        else if (state().eIsMentor) Moderation.MENTOR
+                        else if (state().eIsModerator) Moderation.MODERATOR
+                        else Moderation.NOTHING,
                         isParent = state().eIsParent
                     )
                 )
-                eDeleteDialog.fullySuccess()
-                eUserBottomSheet.fullySuccess()
+                withMain {
+                    eDeleteDialog.fullySuccess()
+                    eUserBottomSheet.fullySuccess()
+                }
             } catch (e: Throwable) {
                 with(eDeleteDialog.nInterface) {
                     nError("Что-то пошло не так =/", e, onFixErrorClick = {
@@ -133,7 +136,7 @@ class UsersExecutor(
     }
 
     private fun clearPassword(state: State) {
-        scope.launch {
+        scope.launchIO {
             eUserBottomSheet.nInterface.nStartLoading()
             try {
                 adminRepository.clearUserPassword(state.eLogin)
@@ -152,7 +155,7 @@ class UsersExecutor(
     }
 
     private fun editUser(state: State) {
-        scope.launch {
+        scope.launchIO {
             eUserBottomSheet.nInterface.nStartLoading()
             try {
                 adminRepository.editUser(
@@ -164,10 +167,10 @@ class UsersExecutor(
                         ),
                         birthday = state.eBirthday,
                         role = state.eRole,
-                        moderation = if (state.eIsModerator && state.eIsMentor) Moderation.both
-                        else if (state.eIsMentor) Moderation.mentor
-                        else if (state.eIsModerator) Moderation.moderator
-                        else Moderation.nothing,
+                        moderation = if (state.eIsModerator && state.eIsMentor) Moderation.BOTH
+                        else if (state.eIsMentor) Moderation.MENTOR
+                        else if (state.eIsModerator) Moderation.MODERATOR
+                        else Moderation.NOTHING,
                         isParent = state.eIsParent
                     ),
                     subjectId = state.eSubjectId
@@ -196,12 +199,12 @@ class UsersExecutor(
                 birthday = user.user.birthday,
                 role = user.user.role,
                 isMentor = user.user.moderation in listOf(
-                    Moderation.mentor,
-                    Moderation.both
+                    Moderation.MENTOR,
+                    Moderation.BOTH
                 ),
                 isModerator = user.user.moderation in listOf(
-                    Moderation.moderator,
-                    Moderation.both
+                    Moderation.MODERATOR,
+                    Moderation.BOTH
                 ),
                 isParent = user.user.isParent,
                 subjectId = user.subjectId
@@ -211,7 +214,7 @@ class UsersExecutor(
     }
 
     private fun createUser(state: State) {
-        scope.launch {
+        scope.launchIO {
             cUserBottomSheet.nInterface.nStartLoading()
             try {
                 val user = UserInit(
@@ -222,10 +225,10 @@ class UsersExecutor(
                     ),
                     birthday = state.cBirthday,
                     role = state.cRole,
-                    moderation = if (state.cIsModerator && state.cIsMentor) Moderation.both
-                    else if (state.cIsMentor) Moderation.mentor
-                    else if (state.cIsModerator) Moderation.moderator
-                    else Moderation.nothing,
+                    moderation = if (state.cIsModerator && state.cIsMentor) Moderation.BOTH
+                    else if (state.cIsMentor) Moderation.MENTOR
+                    else if (state.cIsModerator) Moderation.MODERATOR
+                    else Moderation.NOTHING,
                     isParent = state.cIsParent
                 )
                 val parents = listOf(
@@ -238,7 +241,9 @@ class UsersExecutor(
                     formId = state.cFormId,
                     subjectId = state.cSubjectId
                     )
-                dispatch(Message.UserCreated(r.login, r.parents))
+                withMain {
+                    dispatch(Message.UserCreated(r.login, r.parents))
+                }
             } catch (e: Throwable) {
                 with(cUserBottomSheet.nInterface) {
                     nError("Что-то пошло не так =/", e, onFixErrorClick = {
@@ -252,12 +257,14 @@ class UsersExecutor(
     }
 
     private fun fetchUsers(isInit: Boolean = false) {
-        scope.launch {
+        scope.launchIO {
             nUsersInterface.nStartLoading()
             try {
                 val r = adminRepository.fetchAllUsers()
-                dispatch(Message.UsersChanged(r.users, r.forms, r.subjects))
-                nUsersInterface.nSuccess()
+                withMain {
+                    dispatch(Message.UsersChanged(r.users, r.forms, r.subjects))
+                    nUsersInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 if (isInit) {
 
@@ -270,8 +277,9 @@ class UsersExecutor(
                             { fetchUsers(true) }
                         }
                     )
-
-                    dispatch(Message.UsersChanged(null, emptyList(), emptyMap()))
+                    withMain {
+                        dispatch(Message.UsersChanged(null, emptyList(), emptyMap()))
+                    }
                 }
             }
         }

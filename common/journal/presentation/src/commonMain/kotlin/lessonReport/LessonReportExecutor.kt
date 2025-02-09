@@ -1,7 +1,6 @@
 package lessonReport
 
 import AuthRepository
-import CDispatcher
 import JournalRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
@@ -9,10 +8,13 @@ import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import homework.CreateReportHomeworkItem
 import homework.RFetchReportHomeTasksReceive
 import homework.RSaveReportHomeTasksReceive
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -600,7 +602,7 @@ class LessonReportExecutor(
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun saveHomeTasks() {
-        GlobalScope.launch(CDispatcher) {
+        GlobalScope.launchIO {
             nHomeTasksInterface.nStartLoading()
             try {
                 val r = journalRepository.saveReportHomeTasks(
@@ -611,14 +613,14 @@ class LessonReportExecutor(
                         tasks = state().hometasks.filter { (it.isNew && it.type.isNotBlank() && it.text.isNotBlank()) || (!it.isNew && it.id in state().homeTasksToEditIds) }
                     )
                 )
-                scope.launch {
+                withMain {
                     dispatch(LessonReportStore.Message.HomeTasksToEditIdsUpdated(emptySet()))
                     dispatch(LessonReportStore.Message.HomeTasksUpdated(r.tasks))
                     dispatch(LessonReportStore.Message.IsHomeTasksSavedAnimation(true))
                     nHomeTasksInterface.nSuccess()
                 }
             } catch (e: Throwable) {
-                scope.launch {
+                withMain {
                     dispatch(LessonReportStore.Message.IsHomeTasksErrorAnimation(true))
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
                     nHomeTasksInterface.nError("Не удалось загрузить задания на сервер", e) {
@@ -631,7 +633,7 @@ class LessonReportExecutor(
     }
 
     private fun fetchHomeTasks() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nHomeTasksInterface.nStartLoading()
             try {
                 val tasks = journalRepository.fetchReportHomeTasks(
@@ -639,12 +641,12 @@ class LessonReportExecutor(
                         reportId = state().lessonReportId
                     )
                 )
-                scope.launch {
+                withMain {
                     nHomeTasksInterface.nSuccess()
                     dispatch(LessonReportStore.Message.HomeTasksUpdated(tasks.tasks))
                 }
             } catch (e: Throwable) {
-                scope.launch {
+                withMain {
                     nHomeTasksInterface.nError("Не удалось загрузить данные с сервера", e) {
                         fetchHomeTasks()
                     }
@@ -655,7 +657,7 @@ class LessonReportExecutor(
     }
 
     private fun init() {
-        scope.launch {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val studentsData = journalRepository.fetchReportStudents(
@@ -673,7 +675,7 @@ class LessonReportExecutor(
 
 
                 studentsData.students.forEach { student ->
-                    student.serverStudentLine
+//                    student.serverStudentLine
                     students.add(
                         StudentLine(
                             shortFio = student.shortFio,
@@ -715,17 +717,18 @@ class LessonReportExecutor(
                         "f" -> dislikedList.add(student.serverStudentLine.login)
                     }
                 }
-
-                dispatch(
-                    LessonReportStore.Message.Inited(
-                        students = students,
-                        likedList = likedList,
-                        dislikedList = dislikedList,
-                        newStatus = studentsData.newStatus,
-                        newTopic = studentsData.newTopic
+                withMain {
+                    dispatch(
+                        LessonReportStore.Message.Inited(
+                            students = students,
+                            likedList = likedList,
+                            dislikedList = dislikedList,
+                            newStatus = studentsData.newStatus,
+                            newTopic = studentsData.newTopic
+                        )
                     )
-                )
-                nInterface.nSuccess()
+                    nInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 nInterface.nError("Что-то пошло не так", e) {
                     init()
@@ -733,7 +736,7 @@ class LessonReportExecutor(
             }
         }
 
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             while (true) {
                 delay(1000 * 60 * 3)
                 if (state().isUpdateNeeded && state().isEditable) {
@@ -743,7 +746,7 @@ class LessonReportExecutor(
         }
     }
 
-    private fun getInitedStups(
+    private suspend fun getInitedStups(
         studentsData: RFetchReportStudentsResponse,
         student: AddStudentLine,
         authRepository: AuthRepository
@@ -782,7 +785,9 @@ class LessonReportExecutor(
                         custom = null
                     )
                 )
-                dispatch(LessonReportStore.Message.InvisibleStupAdd)
+                withMain {
+                    dispatch(LessonReportStore.Message.InvisibleStupAdd)
+                }
             }
         }
 
@@ -791,7 +796,7 @@ class LessonReportExecutor(
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun updateWholeReport() { //isReportsListShowing: Boolean
-        GlobalScope.launch(CDispatcher) {
+        GlobalScope.launchIO {
             nInterface.nStartLoading()
             try {
 //                        dispatch(LessonReportStore.Message.isFABShowing(false))
@@ -847,7 +852,7 @@ class LessonReportExecutor(
                             attended = it.attended
                         )
                     },
-                    columnNames = state().columnNames.filter { it.type != ColumnTypes.prisut && it.type != ColumnTypes.opozdanie && it.type != ColumnTypes.srBall }
+                    columnNames = state().columnNames.filter { it.type != ColumnTypes.PRISUT && it.type != ColumnTypes.OPOZDANIE && it.type != ColumnTypes.SR_BALL }
                         .map { it.type },
                     status = state().status,
                     ids = state().ids,
@@ -859,7 +864,7 @@ class LessonReportExecutor(
                 )
 
                 journalRepository.updateWholeReport(r)
-                scope.launch {
+                this.launch(Dispatchers.Main) {
                     dispatch(LessonReportStore.Message.IsSavedAnimation(true))
                     nInterface.nSuccess()
                 }.invokeOnCompletion {
@@ -869,7 +874,7 @@ class LessonReportExecutor(
                     dispatch(LessonReportStore.Message.EditTimeChanged(editTime))
                 }
             } catch (e: Throwable) {
-                scope.launch {
+                withMain {
                     dispatch(LessonReportStore.Message.IsErrorAnimation(true))
 //                        dispatch(LessonReportStore.Message.isFABShowing(true))
                     nInterface.nError("Что-то пошло не так", e) {
@@ -911,7 +916,7 @@ class LessonReportExecutor(
 
 
 val customOrder = mapOf(
-    ColumnTypes.prisut to 0,
+    ColumnTypes.PRISUT to 0,
     "!dz1" to 1,
     "!dz2" to 2,
     "!dz3" to 3,
@@ -921,13 +926,13 @@ val customOrder = mapOf(
     "!cl3" to 7,
     "!cl4" to 8,
     "!cl5" to 9,
-    ColumnTypes.srBall to 10,
+    ColumnTypes.SR_BALL to 10,
     "!st1" to 11,
     "!st2" to 12,
     "!st3" to 13,
     "!st4" to 14,
     "!st5" to 15,
-    ColumnTypes.opozdanie to 16,
+    ColumnTypes.OPOZDANIE to 16,
     "!ds1" to 17,
     "!ds2" to 18,
     "!ds3" to 19

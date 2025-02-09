@@ -5,10 +5,10 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsStore.Intent
 import detailedStups.DetailedStupsStore.Label
-import detailedStups.DetailedStupsStore.State
 import detailedStups.DetailedStupsStore.Message
-import dnevnikRuMarks.DnevnikRuMarkStore
-import kotlinx.coroutines.launch
+import detailedStups.DetailedStupsStore.State
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import report.RFetchDetailedStupsReceive
 
 class DetailedStupsExecutor(
@@ -22,7 +22,7 @@ class DetailedStupsExecutor(
         }
     }
     private fun init() {
-        scope.launch {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
 //                val subjects = journalRepository.fetchDnevnikRuMarks(state().studentLogin, getQuartersNum()).subjects
@@ -34,9 +34,10 @@ class DetailedStupsExecutor(
                         edYear = state().edYear
                     )
                 ).stups
-            
-                dispatch(Message.SubjectsUpdated(subjects))
-                nInterface.nSuccess()
+                withMain {
+                    dispatch(Message.SubjectsUpdated(subjects))
+                    nInterface.nSuccess()
+                }
             } catch (x: Throwable) {
                 nInterface.nError("Не удалось загрузить список ступеней", x) {
                     init()

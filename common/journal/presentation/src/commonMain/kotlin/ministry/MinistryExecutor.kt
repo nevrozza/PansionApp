@@ -1,6 +1,5 @@
 package ministry
 
-import CDispatcher
 import JournalRepository
 import admin.groups.forms.formSort
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
@@ -9,7 +8,8 @@ import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.launch
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import main.school.MinistryListItem
 import main.school.MinistryStup
 import main.school.RMinistryListReceive
@@ -97,7 +97,7 @@ class MinistryExecutor(
         reportId: Int?,
         custom: String?
     ) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nUploadInterface.nStartLoading()
                 val newStup = MinistryStup(
@@ -157,7 +157,7 @@ class MinistryExecutor(
                         newItem
                     )
 
-                    scope.launch {
+                    withMain {
                         dispatch(Message.ListUpdated(newList))
                     }
                 }
@@ -180,7 +180,7 @@ class MinistryExecutor(
 
     private fun updateList(ministryId: String, date: String) {
         if (ministryId != "0") {
-            scope.launch(CDispatcher) {
+            scope.launchIO {
                 try {
                     nInterface.nStartLoading()
                     val r = journalRepository.fetchMinistryList(
@@ -228,7 +228,7 @@ class MinistryExecutor(
 //                            kids = r.kids
 //                        )
 //                    )
-                    scope.launch {
+                    withMain {
                         dispatch(Message.ListUpdated(newList))
                         if (r.forms != null) {
                             dispatch(Message.FormFetched(r.forms!!.formSort()))
@@ -246,11 +246,11 @@ class MinistryExecutor(
     }
 
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nInterface.nStartLoading()
                 val r = journalRepository.fetchMinistryHeaderInit()
-                scope.launch {
+                withMain{
                     dispatch(
                         Message.MinistryHeaderInited(
                             isMultiMinistry = r.isMultiMinistry,

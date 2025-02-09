@@ -1,17 +1,16 @@
 package cabinets
 
 import AdminRepository
-import CDispatcher
 import admin.cabinets.CabinetItem
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import cabinets.CabinetsStore.Intent
 import cabinets.CabinetsStore.Label
-import cabinets.CabinetsStore.State
 import cabinets.CabinetsStore.Message
+import cabinets.CabinetsStore.State
+import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.Dispatchers
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 
 class CabinetsExecutor(
     private val adminRepository: AdminRepository,
@@ -26,11 +25,13 @@ class CabinetsExecutor(
     }
 
     private fun sendIt() {
-        scope.launch() {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 adminRepository.updateCabinets(state().cabinets)
-                nInterface.nSuccess()
+                withMain {
+                    nInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 nInterface.nError(
                     "Не удалось отправить на сервер", e
@@ -41,12 +42,12 @@ class CabinetsExecutor(
     }
 
     private fun updateCabinet(login: String, cabinet: Int) {
-        scope.launch {
+        scope.launchIO {
             try {
                 val newList = state().cabinets.toMutableList()
                 val oldCabinet = newList.firstOrNull { it.login == login }
 
-                if(cabinet != 0) {
+                if (cabinet != 0) {
                     if (oldCabinet == null) {
                         newList.add(CabinetItem(login = login, cabinet = cabinet))
                     } else {
@@ -56,17 +57,21 @@ class CabinetsExecutor(
                 } else {
                     newList.remove(oldCabinet)
                 }
-                dispatch(Message.ListUpdated(newList))
-            } catch (_: Throwable) {}
+                withMain {
+                    dispatch(Message.ListUpdated(newList))
+                }
+            } catch (_: Throwable) {
+            }
         }
     }
+
     private fun init() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val r = adminRepository.fetchCabinets()
                 val tR = adminRepository.fetchAllTeachers().teachers.filter { isActive }
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.TeachersInited(tR)
                     )
@@ -79,6 +84,7 @@ class CabinetsExecutor(
                 nInterface.nError(
                     "Что-то пошло не так", e
                 ) { init() }
+
             }
 
         }

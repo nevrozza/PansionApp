@@ -1,17 +1,16 @@
 package allGroupMarks
 
 import JournalRepository
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import allGroupMarks.AllGroupMarksStore.Intent
 import allGroupMarks.AllGroupMarksStore.Label
-import allGroupMarks.AllGroupMarksStore.State
 import allGroupMarks.AllGroupMarksStore.Message
+import allGroupMarks.AllGroupMarksStore.State
+import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
-import components.networkInterface.NetworkState
-import kotlinx.coroutines.launch
-import lessonReport.LessonReportStore
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import report.RFetchAllGroupMarksReceive
 
 class AllGroupMarksExecutor(
@@ -23,7 +22,7 @@ class AllGroupMarksExecutor(
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> fetchMarks()
-            is Intent.OpenDetailedStups -> scope.launch {
+            is Intent.OpenDetailedStups -> {
                 stupsDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
                 dispatch(
                     Message.DetailedStupsOpened(intent.studentLogin)
@@ -47,12 +46,14 @@ class AllGroupMarksExecutor(
     }
 
     private fun openFullReport(reportId: Int) {
-        scope.launch {
+        scope.launchIO {
             nOpenReportInterface.nStartLoading()
             try {
                 val reportData = journalRepository.fetchFullReportData(reportId)
-                nOpenReportInterface.nSuccess()
-                dispatch(Message.FullReportOpened(reportData))
+                withMain {
+                    nOpenReportInterface.nSuccess()
+                    dispatch(Message.FullReportOpened(reportData))
+                }
             } catch (e: Throwable) {
                 nOpenReportInterface.nError("Что-то пошло не так =/", e) {
                     nOpenReportInterface.nSuccess()
@@ -62,7 +63,7 @@ class AllGroupMarksExecutor(
     }
 
     private fun fetchMarks() {
-        scope.launch {
+        scope.launchIO {
             nInterface.nStartLoading()
             try {
                 val r = journalRepository.fetchAllGroupMarks(
@@ -78,9 +79,17 @@ class AllGroupMarksExecutor(
                                 + it.marks.map { DateModule(it.mark.date, it.mark.module) }
                             + it.nki.map { DateModule(it.date, it.module) }
                         ).toSet() })
-
-                dispatch(Message.StudentsUpdated(r.students, r.firstHalfNums, dates, modules = dates.map { it.module }.toSet().toList()))
-                nInterface.nSuccess()
+                withMain {
+                    dispatch(
+                        Message.StudentsUpdated(
+                            r.students,
+                            r.firstHalfNums,
+                            dates,
+                            modules = dates.map { it.module }.toSet().toList()
+                        )
+                    )
+                    nInterface.nSuccess()
+                }
             } catch (e: Throwable) {
                 nInterface.nError("Что-то пошло не так =/", e) {
                     fetchMarks()

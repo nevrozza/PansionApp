@@ -9,6 +9,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -53,22 +54,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AnimatedCommonButton
-import components.AnimatedElevatedButton
-import components.AppBar
-import components.CFilterChip
-import components.CLazyColumn
-import components.CustomCheckbox
-import components.CustomTextButton
-import components.CustomTextField
+import components.foundation.AnimatedCommonButton
+import components.foundation.AnimatedElevatedButton
+import components.foundation.AppBar
+import components.foundation.CFilterChip
+import components.foundation.CLazyColumn
+import components.foundation.CCheckbox
+import components.foundation.CTextButton
+import components.foundation.CTextField
 import components.DatesLine
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncAvatar
 import components.GetAsyncIcon
-import components.LoadingAnimation
-import components.MarkTable
-import components.cClickable
+import components.foundation.LoadingAnimation
+import components.journal.MarkTable
+import components.foundation.cClickable
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import components.refresh.RefreshButton
@@ -81,16 +82,15 @@ import io.github.alexzhirkevich.qrose.options.QrPixelShape
 import io.github.alexzhirkevich.qrose.options.QrShapes
 import io.github.alexzhirkevich.qrose.options.roundCorners
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.pullRefreshContentTransform
-import pullRefresh.rememberPullRefreshState
+import components.refresh.PullRefreshIndicator
+import components.refresh.pullRefresh
+import components.refresh.pullRefreshContentTransform
+import components.refresh.rememberPullRefreshState
 import registration.RegistrationRequest
 import resources.RIcons
 import root.RootComponent.Config
 import view.LocalViewManager
 import view.WindowScreen
-import view.esp
 
 @ExperimentalLayoutApi
 @Composable
@@ -133,7 +133,7 @@ fun MentoringContent(
                         }
                     ) {
                         GetAsyncIcon(
-                            RIcons.CuteCheck
+                            RIcons.CUTE_CHECK
                         )
                     }
                     RefreshWithoutPullCircle(refreshing, refreshState.position, model.forms.isNotEmpty())
@@ -151,7 +151,7 @@ fun MentoringContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                if (model.isTableView) RIcons.ContactBook else RIcons.Table
+                                if (model.isTableView) RIcons.CONTACT_BOOK else RIcons.TABLE
                             )
                         }
                     }
@@ -350,7 +350,7 @@ private fun FormsItem(
                 ) {
                     val chevronRotation = animateFloatAsState(if (isExpanded.value) 90f else -90f)
                     GetAsyncIcon(
-                        path = RIcons.ChevronLeft,
+                        path = RIcons.CHEVRON_LEFT,
                         modifier = Modifier.rotate(chevronRotation.value),
                         size = 15.dp
                     )
@@ -368,7 +368,7 @@ private fun FormsItem(
                 ) {
                     val addRotation = animateFloatAsState(if (form.isQrActive) 90f + 45f else 0f)
                     GetAsyncIcon(
-                        path = RIcons.Add,
+                        path = RIcons.ADD,
                         modifier = Modifier.rotate(addRotation.value),
 //                        size = 15.dp
                     )
@@ -471,7 +471,7 @@ private fun FormsItem(
                                         }
                                     ) {
                                         GetAsyncIcon(
-                                            RIcons.Check
+                                            RIcons.CHECK
                                         )
                                     }
                                     Spacer(Modifier.width(7.dp))
@@ -487,7 +487,7 @@ private fun FormsItem(
                                         }
                                     ) {
                                         GetAsyncIcon(
-                                            RIcons.Close
+                                            RIcons.CLOSE
                                         )
                                     }
                                 }
@@ -567,7 +567,7 @@ private fun FormsItem(
                                         }
                                     ) {
                                         GetAsyncIcon(
-                                            RIcons.Receipt,
+                                            RIcons.RECEIPT,
                                             tint = if (isChosenPA) MaterialTheme.colorScheme.primary else LocalContentColor.current
                                         )
                                     }
@@ -596,7 +596,7 @@ private fun FormsItem(
                                         modifier = Modifier.size(30.dp)
                                     ) {
                                         GetAsyncIcon(
-                                            RIcons.Home
+                                            RIcons.HOME
                                         )
                                     }
                                 }
@@ -676,7 +676,7 @@ private fun FormsItem(
                                                     if (model.cStart != null) {
                                                         Column {
                                                             Row {
-                                                                CustomTextField(
+                                                                CTextField(
                                                                     value = model.cStart ?: "",
                                                                     onValueChange = {
                                                                         if (it.length < 6) {
@@ -698,7 +698,7 @@ private fun FormsItem(
                                                                     supText = "чч:мм"
                                                                 )
                                                                 Spacer(Modifier.width(5.dp))
-                                                                CustomTextField(
+                                                                CTextField(
                                                                     value = model.cEnd ?: "",
                                                                     onValueChange = {
                                                                         if (it.length < 6) {
@@ -718,7 +718,7 @@ private fun FormsItem(
                                                                     supText = "чч:мм"
                                                                 )
                                                             }
-                                                            CustomTextField(
+                                                            CTextField(
                                                                 value = model.cReason ?: "",
                                                                 onValueChange = {
                                                                     component.onEvent(
@@ -745,7 +745,7 @@ private fun FormsItem(
                                                                         )
                                                                     )
                                                                 }) {
-                                                                CustomCheckbox(
+                                                                CCheckbox(
                                                                     checked = model.cIsGood
                                                                         ?: false
                                                                 )
@@ -767,7 +767,7 @@ private fun FormsItem(
                                                                     }
                                                                 ) {
                                                                     GetAsyncIcon(
-                                                                        RIcons.Close
+                                                                        RIcons.CLOSE
                                                                     )
                                                                 }
 
@@ -787,7 +787,7 @@ private fun FormsItem(
                                                         }
                                                     } else {
                                                         if (preAttendance == null) {
-                                                            CustomTextButton(text = "Добавить дневное\nотсутствие") {
+                                                            CTextButton(text = "Добавить дневное\nотсутствие") {
                                                                 component.onEvent(
                                                                     MentoringStore.Intent.StartEditPreAttendance(
                                                                         "", "", "", false

@@ -1,10 +1,44 @@
-import androidx.compose.animation.*
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,9 +50,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.GetAsyncAvatar
+import components.GetAsyncIcon
+import components.PeriodButton
+import components.foundation.AppBar
+import components.foundation.CCheckbox
+import components.foundation.CLazyColumn
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.cClickable
+import components.journal.BorderStup
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
+import components.refresh.PullRefreshIndicator
+import components.refresh.RefreshButton
+import components.refresh.RefreshWithoutPullCircle
+import components.refresh.keyRefresh
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
@@ -32,20 +82,9 @@ import server.Roles
 import server.fetchReason
 import server.getLocalDate
 import server.roundTo
+import utils.toColor
 import view.LocalViewManager
 import view.WindowScreen
-import view.esp
-import view.toColor
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.runtime.*
-import components.networkInterface.isLoading
-import components.refresh.RefreshButton
-import components.refresh.RefreshWithoutPullCircle
-import components.refresh.keyRefresh
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.rememberPullRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -63,7 +102,6 @@ fun SharedTransitionScope.FormRatingContent(
     val nFormPickerModel by component.formPickerDialog.nInterface.networkModel.subscribeAsState()
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
-    val coroutineScope = rememberCoroutineScope()
 
     val rawPage =
         model.formRatingPages.firstOrNull { it.formId == model.formId && it.period == model.period }
@@ -111,14 +149,14 @@ fun SharedTransitionScope.FormRatingContent(
                             onClick = { component.onOutput(FormRatingComponent.Output.Back) }
                         ) {
                             GetAsyncIcon(
-                                path = RIcons.ChevronLeft
+                                path = RIcons.CHEVRON_LEFT
                             )
                         }
                     }
                 },
                 actionRow = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (model.role != Roles.student) {
+                        if (model.role != Roles.STUDENT) {
                             Box(contentAlignment = Alignment.Center) {
                                 Crossfade(nFormPickerModel.state) { cf ->
                                     Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
@@ -127,7 +165,7 @@ fun SharedTransitionScope.FormRatingContent(
                                                 nFormPickerModel.onFixErrorClick()
                                             }) {
                                                 GetAsyncIcon(
-                                                    RIcons.ErrorOutline
+                                                    RIcons.ERROR_OUTLINE
                                                 )
                                             }
 
@@ -147,7 +185,7 @@ fun SharedTransitionScope.FormRatingContent(
                                                         )
                                                     }) {
                                                         GetAsyncIcon(
-                                                            RIcons.ChevronLeft,
+                                                            RIcons.CHEVRON_LEFT,
                                                             modifier = Modifier.rotate(chevronRotation.value)
                                                         )
                                                     }
@@ -217,7 +255,7 @@ fun SharedTransitionScope.FormRatingContent(
                                             modifier = Modifier.cClickable {
                                                 component.onEvent(FormRatingStore.Intent.ChangeIsDetailed)
                                             }) {
-                                            CustomCheckbox(
+                                            CCheckbox(
                                                 checked = model.isDetailed
                                             )
                                             Text("Отображать детально")
@@ -371,7 +409,7 @@ private fun SharedTransitionScope.FormRatingCard(
                 Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                     if (item.top <= 3) {
                         GetAsyncIcon(
-                            path = RIcons.Trophy,
+                            path = RIcons.TROPHY,
                             tint = when (item.top) {
                                 1 -> "#ffd700".toColor()
                                 2 -> "#c0c0c0".toColor()

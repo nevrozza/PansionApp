@@ -77,20 +77,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AppBar
-import components.BorderStup
-import components.CLazyColumn
+import components.foundation.AppBar
+import components.journal.BorderStup
+import components.foundation.CLazyColumn
 import components.DatesLine
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetStore
-import components.cMark
-import components.dashedBorder
-import components.getMarkColor
-import components.markColorsColored
-import components.markColorsMono
+import components.journal.cMark
+import components.journal.dashedBorder
+import components.journal.getMarkColor
+import components.journal.markColorsColored
+import components.journal.markColorsMono
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
@@ -116,9 +116,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.rememberPullRefreshState
+import components.refresh.PullRefreshIndicator
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import report.Grade
 import report.UserMark
 import resources.RIcons
@@ -127,14 +127,14 @@ import server.fetchReason
 import server.getCurrentDayTime
 import server.toMinutes
 import server.weekPairs
-import view.GlobalHazeState
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
 import view.LocalViewManager
 import view.WindowScreen
 import view.blend
-import view.esp
-import view.handy
-import view.hazeMask
-import view.popupPositionProvider
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import utils.cursor.handy
+import androidx.compose.desktop.ui.tooling.preview.utils.hazeMask
+import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
 
 
 enum class HomeRoutings {
@@ -155,7 +155,7 @@ fun HomeContent(
     val model by component.model.subscribeAsState()
     val coroutineScope = rememberCoroutineScope()
     when (model.role) {
-        Roles.student -> {
+        Roles.STUDENT -> {
             StudentHomeContent(
                 component = component,
                 sharedTransitionScope = sharedTransitionScope,
@@ -165,7 +165,7 @@ fun HomeContent(
             )
         }
 
-        Roles.teacher -> {
+        Roles.TEACHER -> {
             TeacherHomeContent(
                 component, pickedLogin
             )
@@ -265,7 +265,7 @@ fun OtherHomeContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Settings
+                                RIcons.SETTINGS
                             )
                         }
                     }
@@ -382,7 +382,6 @@ fun TeacherHomeContent(
                     )
                 ) {
                     AppBar(
-                        containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
                         title = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 AnimatedContent(
@@ -423,7 +422,7 @@ fun TeacherHomeContent(
                                     }
                                 ) {
                                     GetAsyncIcon(
-                                        RIcons.Settings
+                                        RIcons.SETTINGS
                                     )
                                 }
                             }
@@ -766,23 +765,6 @@ fun StudentHomeContent(
                 )
             ) {
                 AppBar(
-                    containerColor = if (isHaze) Color.Transparent else MaterialTheme.colorScheme.surface,
-                    navigationRow = {
-                        if (component.onBackButtonPress != null) {
-                            IconButton(
-                                onClick = {
-
-                                    GlobalScope.launch(Dispatchers.Main) {
-                                        component.onBackButtonPress?.invoke()
-                                    }
-                                }
-                            ) {
-                                GetAsyncIcon(
-                                    path = RIcons.ChevronLeft
-                                )
-                            }
-                        }
-                    },
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             AnimatedContent(
@@ -809,9 +791,25 @@ fun StudentHomeContent(
                                     component.onOutput(HomeComponent.Output.NavigateToSchool)
                                 }) {
                                     GetAsyncIcon(
-                                        path = RIcons.School
+                                        path = RIcons.SCHOOL
                                     )
                                 }
+                            }
+                        }
+                    },
+                    navigationRow = {
+                        if (component.onBackButtonPress != null) {
+                            IconButton(
+                                onClick = {
+
+                                    GlobalScope.launch(Dispatchers.Main) {
+                                        component.onBackButtonPress?.invoke()
+                                    }
+                                }
+                            ) {
+                                GetAsyncIcon(
+                                    path = RIcons.CHEVRON_LEFT
+                                )
                             }
                         }
                     },
@@ -832,7 +830,7 @@ fun StudentHomeContent(
                                 }
                             ) {
                                 GetAsyncIcon(
-                                    path = RIcons.Settings
+                                    path = RIcons.SETTINGS
                                 )
                             }
                         }
@@ -1061,11 +1059,11 @@ fun Lesson(
                     )
                 } else {
                     GetAsyncIcon(
-                        path = RIcons.Restaraunt,
+                        path = RIcons.RESTARAUNT,
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f)
                     )
                 }
-                if (role == Roles.teacher) {
+                if (role == Roles.TEACHER) {
                     val headers = journalModel!!.headers.filter {
                         it.date == model.currentDate.second &&
                                 it.groupId == groupId &&
@@ -1157,7 +1155,7 @@ fun Lesson(
                 }
 
 
-                if (role == Roles.student) {
+                if (role == Roles.STUDENT) {
                     if (
                         isEnded || today == date
                     ) {
@@ -1166,7 +1164,7 @@ fun Lesson(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (notNow) {
                                     GetAsyncIcon(
-                                        path = RIcons.Schedule,
+                                        path = RIcons.SCHEDULE,
                                         size = 20.dp
                                     )
                                     Spacer(Modifier.width(5.dp))
@@ -1262,7 +1260,7 @@ fun Lesson(
             Modifier.fillMaxWidth(),
         ) {
             GetAsyncIcon(
-                path = RIcons.Restaraunt,
+                path = RIcons.RESTARAUNT,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (!isEnded) 1f else 0.5f),
                 modifier = Modifier.align(Alignment.CenterStart)
             )
@@ -1334,7 +1332,7 @@ fun CalendarButton(component: HomeComponent) {
         onClick = { component.onEvent(HomeStore.Intent.ChangeIsDatesShown) }
     ) {
         GetAsyncIcon(
-            RIcons.Calendar
+            RIcons.CALENDAR
         )
     }
 }
@@ -1384,7 +1382,7 @@ fun TeacherGroupButton(component: HomeComponent, it: TeacherGroup, modifier: Mod
                 }
             )
             GetAsyncIcon(
-                path = RIcons.ChevronLeft,
+                path = RIcons.CHEVRON_LEFT,
                 modifier = Modifier.rotate(180f)
             )
         }

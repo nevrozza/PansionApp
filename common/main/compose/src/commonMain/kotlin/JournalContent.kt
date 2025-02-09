@@ -54,15 +54,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.AlphaTestZatichka
-import components.AppBar
-import components.CLazyColumn
-import components.CustomCheckbox
-import components.DefaultErrorView
-import components.DefaultErrorViewPos
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.CCheckbox
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
-import components.TeacherTime
-import components.cClickable
+import components.journal.TeacherTime
+import components.foundation.cClickable
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
@@ -75,15 +74,15 @@ import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import journal.JournalComponent
 import journal.JournalStore
-import pullRefresh.PullRefreshIndicator
-import pullRefresh.pullRefresh
-import pullRefresh.rememberPullRefreshState
+import components.refresh.PullRefreshIndicator
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import resources.RIcons
 import server.Moderation
 import server.Roles
 import view.LocalViewManager
 import view.WindowScreen
-import view.handy
+import utils.cursor.handy
 
 @ExperimentalMaterial3Api
 @ExperimentalLayoutApi
@@ -95,14 +94,10 @@ fun JournalContent(
     isNotMinimized: Boolean = true,
     onRefresh: () -> Unit
 ) {
-    if (moderation != Moderation.nothing || role == Roles.teacher) {
+    if (moderation != Moderation.NOTHING || role == Roles.TEACHER) {
         TrueJournalContent(component, isNotMinimized, onRefresh)
     } else {
-        AlphaTestZatichka(
-            onSettingsClick = {
-                component.onOutput(JournalComponent.Output.NavigateToSettings)
-            }
-        ) { }
+        Text("0_0")
     }
 }
 
@@ -165,7 +160,7 @@ private fun TrueJournalContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Add
+                                RIcons.ADD
                             )
                         }
                         ListDialogDesktopContent(
@@ -180,7 +175,7 @@ private fun TrueJournalContent(
                             }
                         ) {
                             GetAsyncIcon(
-                                RIcons.Settings
+                                RIcons.SETTINGS
                             )
                         }
                     }
@@ -331,7 +326,7 @@ private fun TrueJournalContent(
                                                         )
                                                     )
                                                 }) {
-                                                CustomCheckbox(
+                                                CCheckbox(
                                                     checked = model.filterMyChildren
                                                 )
                                                 Text("Только мои классы")
@@ -477,7 +472,7 @@ private fun CloseButton(isShown: Boolean, onClick: () -> Unit) {
             modifier = Modifier.size(20.dp),
         ) {
             GetAsyncIcon(
-                RIcons.Close
+                RIcons.CLOSE
             )
         }
     }

@@ -7,7 +7,6 @@ import SettingsRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
@@ -69,7 +68,7 @@ class AllGroupMarksComponent(
                 stupsDialogComponent = stupsDialogComponent,
                 nOpenReportInterface = nOpenReportInterface,
                 login = login,
-                isModer = authRepository.fetchModeration() in listOf(Moderation.both, Moderation.moderator),
+                isModer = authRepository.fetchModeration() in listOf(Moderation.BOTH, Moderation.MODERATOR),
                 settingsRepository = Inject.instance()
             ).create()
         }

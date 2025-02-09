@@ -24,15 +24,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import components.CustomTextButton
-import components.DefaultErrorView
+import components.foundation.DefaultErrorView
 import components.GetAsyncAvatar
-import components.LoadingAnimation
+import components.foundation.LoadingAnimation
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import home.HomeComponent
 import home.HomeStore
-import view.handy
+import utils.cursor.handy
 
 @OptIn(ExperimentalLayoutApi::class)
 //@Composable

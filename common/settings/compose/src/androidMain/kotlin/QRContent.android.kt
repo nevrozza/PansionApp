@@ -1,3 +1,4 @@
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,7 +12,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,14 +29,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.CustomTextField
 import components.GetAsyncIcon
+import components.foundation.CTextField
 import kotlinx.coroutines.launch
 import qr.QRComponent
 import qr.QRStore
-import qr.isCameraAvailable
 import qrscanner.QrScanner
 import resources.RIcons
+import utils.isCameraAvailable
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -38,7 +44,6 @@ actual fun QRContent(component: QRComponent, snackBarHostState: SnackbarHostStat
 
 
     val model by component.model.subscribeAsState()
-    val nModel by component.nInterface.networkModel.subscribeAsState()
 
     var flashlightOn by remember { mutableStateOf(false) }
     var openImagePicker by remember { mutableStateOf(value = false) }
@@ -110,7 +115,7 @@ actual fun QRContent(component: QRComponent, snackBarHostState: SnackbarHostStat
                         .background(Color.Black.copy(alpha = .5f))
                 ) {
                     GetAsyncIcon(
-                        path = if (flashlightOn) RIcons.FlashlightOn else RIcons.FlashlightOff,
+                        path = if (flashlightOn) RIcons.FLASHLIGHT_ON else RIcons.FLASHLIGHT_OFF,
                         contentDescription = "flash",
                         size = 30.dp
                     )
@@ -119,7 +124,7 @@ actual fun QRContent(component: QRComponent, snackBarHostState: SnackbarHostStat
             Spacer(Modifier.height(50.dp))
             Box(modifier = Modifier.clip(
                 RoundedCornerShape(16.dp)).background(Color.Black.copy(alpha = .5f))) {
-                    CustomTextField(
+                    CTextField(
                         value = model.code,
                         onValueChange = {
                             component.onEvent(
@@ -199,40 +204,3 @@ fun Modifier.drawRoundedCornerBorders(
     }
 )
 
-
-fun Modifier.drawCornerBorders(
-    color: Color,
-    strokeWidth1: Dp,
-    cornerSize1: Dp
-) = this.then(
-    Modifier.drawWithContent {
-
-        val strokeWidth = strokeWidth1.toPx()
-        val cornerSize = cornerSize1.toPx()
-        drawContent()
-        val pathEffect = androidx.compose.ui.graphics.PathEffect.cornerPathEffect(cornerSize)
-        drawPath(
-            path = androidx.compose.ui.graphics.Path().apply {
-                moveTo(0f, 0f)
-                lineTo(cornerSize, 0f)
-                moveTo(0f, 0f)
-                lineTo(0f, cornerSize)
-                moveTo(size.width, 0f)
-                lineTo(size.width - cornerSize, 0f)
-                moveTo(size.width, 0f)
-                lineTo(size.width, cornerSize)
-                moveTo(0f, size.height)
-                lineTo(cornerSize, size.height)
-                moveTo(0f, size.height)
-                lineTo(0f, size.height - cornerSize)
-                moveTo(size.width, size.height)
-                lineTo(size.width - cornerSize, size.height)
-                moveTo(size.width, size.height)
-                lineTo(size.width, size.height - cornerSize)
-            },
-            color = color,
-            style = Stroke(width = strokeWidth),
-
-            )
-    }
-)

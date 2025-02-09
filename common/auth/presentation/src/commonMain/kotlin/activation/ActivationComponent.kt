@@ -17,14 +17,12 @@ class ActivationComponent(
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
-    private val settingsRepository: SettingsRepository = Inject.instance()
     private val authRepository: AuthRepository = Inject.instance()
 
     private val activationStore =
         instanceKeeper.getStore {
             ActivationStoreFactory(
                 storeFactory = storeFactory,
-                settingsRepository = settingsRepository,
                 authRepository = authRepository
             ).create()
         }

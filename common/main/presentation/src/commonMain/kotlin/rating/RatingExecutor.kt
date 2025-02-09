@@ -1,18 +1,18 @@
 package rating
 
-import CDispatcher
 import MainRepository
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
+import deviceSupport.launchIO
+import deviceSupport.withMain
 import getWeeks
-import kotlinx.coroutines.launch
 import rating.RatingStore.Intent
 import rating.RatingStore.Label
-import rating.RatingStore.State
 import rating.RatingStore.Message
+import rating.RatingStore.State
 
 class RatingExecutor(
     private val mainRepository: MainRepository,
@@ -49,7 +49,7 @@ class RatingExecutor(
     }
 
     private fun fetchRating(subjectId: Int, period: PansionPeriod?, forms: Int) {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 nInterface.nStartLoading()
                 val r = mainRepository.fetchSubjectRating(
@@ -62,7 +62,7 @@ class RatingExecutor(
 
                 )
 
-                scope.launch {
+                withMain {
                     dispatch(
                         Message.RatingUpdated(
                             items = state().items + r.hash,
@@ -83,7 +83,7 @@ class RatingExecutor(
     }
 
     private fun fetchSubjects() {
-        scope.launch(CDispatcher) {
+        scope.launchIO {
             try {
                 subjectsListComponent.nInterface.nStartLoading()
                 val r = mainRepository.fetchScheduleSubjects()
@@ -99,8 +99,8 @@ class RatingExecutor(
                 subjects.add(2, zdravoohrSubject)
                 subjects.add(3, socialWorkSubject)
                 subjects.add(4, creativeSubject)
-                scope.launch {
-                    dispatch(Message.SubjectsUpdated(subjects, rating.PansionPeriod.Week(weeks.last().num)))
+                withMain {
+                    dispatch(Message.SubjectsUpdated(subjects, PansionPeriod.Week(weeks.last().num)))
                     subjectsListComponent.onEvent(
                         ListDialogStore.Intent.InitList(
                             subjects.mapNotNull {

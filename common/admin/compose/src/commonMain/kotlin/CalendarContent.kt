@@ -21,10 +21,17 @@ import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import kotlinx.datetime.*
 import resources.RIcons
-import server.appTimeZone
 import server.getEdYear
 import server.to10
-import view.esp
+import utils.getCalendarLocale
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.CCheckbox
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.cClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +71,7 @@ fun CalendarContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    CustomTextButton(
+                    CTextButton(
                         text = " ${edYearNum}/${edYearNum + 1}",
                         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         fontWeight = FontWeight.Black,
@@ -75,7 +82,7 @@ fun CalendarContent(
                         onClick = { component.onOutput(CalendarComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 }
@@ -93,7 +100,7 @@ fun CalendarContent(
                     when (it) {
                         NetworkState.None -> {
                             GetAsyncIcon(
-                                RIcons.Save
+                                RIcons.SAVE
                             )
                         }
 
@@ -314,7 +321,7 @@ fun CalendarContent(
                     )
                 },
                 confirmButton = {
-                    CustomTextButton(
+                    CTextButton(
                         "Ок",
                         modifier = Modifier.padding(
                             end = 30.dp,
@@ -330,7 +337,7 @@ fun CalendarContent(
                                 val date =
                                     Instant.fromEpochMilliseconds(
                                         datePickerState.selectedDateMillis!!
-                                    ).toLocalDateTime(appTimeZone)
+                                    ).toLocalDateTime(applicationTimeZone)
                                 component.onEvent(
                                     CalendarStore.Intent.CreateModule(
                                         date.to10()
@@ -342,10 +349,10 @@ fun CalendarContent(
                             } else {
                                 val startDate = Instant.fromEpochMilliseconds(
                                     dateRangePickerState.selectedStartDateMillis!!
-                                ).toLocalDateTime(appTimeZone)
+                                ).toLocalDateTime(applicationTimeZone)
                                 val endDate = Instant.fromEpochMilliseconds(
                                     dateRangePickerState.selectedEndDateMillis!!
-                                ).toLocalDateTime(appTimeZone)
+                                ).toLocalDateTime(applicationTimeZone)
                                 println("wtf")
                                 component.onEvent(
                                     CalendarStore.Intent.CreateHoliday(
@@ -366,13 +373,13 @@ fun CalendarContent(
                         Row(
                             Modifier.padding(bottom = 10.dp, end = 5.dp)
                                 .cClickable { isForAll.value = !isForAll.value }) {
-                            CustomCheckbox(
+                            CCheckbox(
                                 checked = isForAll.value
                             )
                             Text("Для всех?")
                         }
                     }
-                    CustomTextButton(
+                    CTextButton(
                         "Отмена",
                         modifier = Modifier.padding(bottom = 10.dp)
                     ) {
@@ -399,13 +406,13 @@ fun CalendarContent(
                                 if (dateRangePickerState.selectedStartDateMillis != null) Instant.fromEpochMilliseconds(
                                     dateRangePickerState.selectedStartDateMillis!!
                                 ).toLocalDateTime(
-                                    appTimeZone
+                                    applicationTimeZone
                                 ).to10() else "?"
                             val end =
                                 if (dateRangePickerState.selectedEndDateMillis != null) Instant.fromEpochMilliseconds(
                                     dateRangePickerState.selectedEndDateMillis!!
                                 ).toLocalDateTime(
-                                    appTimeZone
+                                    applicationTimeZone
                                 ).to10() else "?"
                             Text("$start-$end")
                         }
@@ -490,7 +497,7 @@ private fun RangeButton(
 //            containerColor = MaterialTheme.colorScheme.secondaryContainer
 //        )
         onClick = {
-            val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
+            val today = Clock.System.now().toLocalDateTime(applicationTimeZone)
             if (!isGoToDelete.value && (isCreatingButton || h.edYear == getEdYear(today.date))) {
                 val dateRangePickerState = DateRangePickerState(
                     initialSelectedStartDateMillis =
@@ -538,7 +545,7 @@ private fun RangeButton(
         if (isCreatingButton) {
             Box(Modifier.fillMaxSize()) {
                 GetAsyncIcon(
-                    path = RIcons.Add,
+                    path = RIcons.ADD,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -552,13 +559,13 @@ private fun RangeButton(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = h.start.toString(),
+                                text = h.start,
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 lineHeight = MaterialTheme.typography.titleMedium.fontSize,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = h.end.toString(),
+                                text = h.end,
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 lineHeight = MaterialTheme.typography.titleMedium.fontSize,
                                 fontWeight = FontWeight.Bold
@@ -576,7 +583,7 @@ private fun RangeButton(
                                     .size(35.dp)
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.TrashCanRegular,
+                                    RIcons.TRASH_CAN_REGULAR,
                                     size = 20.dp,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
@@ -598,13 +605,13 @@ private fun RangeButton(
                                 onClick = { isGoToDelete.value = false }
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.Close
+                                    RIcons.CLOSE
                                 )
                             }
                             IconButton(
                                 onClick = { component.onEvent(CalendarStore.Intent.DeleteHoliday(h.id)) }
                             ) {
-                                GetAsyncIcon(RIcons.Check)
+                                GetAsyncIcon(RIcons.CHECK)
                             }
                         }
                     }
@@ -631,7 +638,7 @@ private fun ModuleButton(
 //            containerColor = MaterialTheme.colorScheme.secondaryContainer
 //        )
         onClick = {
-            val today = Clock.System.now().toLocalDateTime(TimeZone.of("UTC+3"))
+            val today = Clock.System.now().toLocalDateTime(applicationTimeZone)
             if (!isGoToDelete.value && edYear == getEdYear(today.date)) {
                 val datePickerState = DatePickerState(
                     initialSelectedDateMillis =
@@ -669,7 +676,7 @@ private fun ModuleButton(
         if (startDate == null || num == null) {
             Box(Modifier.fillMaxSize()) {
                 GetAsyncIcon(
-                    path = RIcons.Add,
+                    path = RIcons.ADD,
                     modifier = Modifier.align(Alignment.Center)
                 )
 //                Text(
@@ -716,7 +723,7 @@ private fun ModuleButton(
                                     .size(35.dp)
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.TrashCanRegular,
+                                    RIcons.TRASH_CAN_REGULAR,
                                     size = 20.dp,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
@@ -738,13 +745,13 @@ private fun ModuleButton(
                                 onClick = { isGoToDelete.value = false }
                             ) {
                                 GetAsyncIcon(
-                                    RIcons.Close
+                                    RIcons.CLOSE
                                 )
                             }
                             IconButton(
                                 onClick = { component.onEvent(CalendarStore.Intent.DeleteModule) }
                             ) {
-                                GetAsyncIcon(RIcons.Check)
+                                GetAsyncIcon(RIcons.CHECK)
                             }
                         }
                     }

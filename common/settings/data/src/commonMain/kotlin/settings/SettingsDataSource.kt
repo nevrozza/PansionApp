@@ -3,135 +3,135 @@ package settings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.get
 import com.russhwolf.settings.set
+import deviceSupport.isCanInDynamic
 import view.Language
 import view.ThemeTint
-import view.isCanInDynamic
 
 class SettingsDataSource(
     private val settings: Settings
 ) {
 
     fun saveLanguage(language: String) {
-        settings[languageKey] = language
+        settings[LANGUAGE_KEY] = language
     }
 
     fun fetchLanguage(): String {
-        return settings[languageKey, Language.Russian.name]
+        return settings[LANGUAGE_KEY, Language.Russian.name]
     }
 
     fun saveTint(tint: String) {
-        settings[tintKey] = tint
+        settings[TINT_KEY] = tint
     }
 
     fun fetchTint(): String {
-        return settings[tintKey, ThemeTint.Auto.name]
+        return settings[TINT_KEY, ThemeTint.Auto.name]
     }
 
     fun saveSeedColor(color: String) {
-        settings[seedColorKey] = color
+        settings[SEED_COLOR_KEY] = color
     }
 
     fun fetchSeedColor(): String {
-        return settings[seedColorKey, "6E007F"]
+        return settings[SEED_COLOR_KEY, "6E007F"]
     }
 
     fun saveIsDynamic(isDynamic: Boolean) {
-        settings[isDynamicKey] = isDynamic
+        settings[IS_DYNAMIC_KEY] = isDynamic
     }
 
     fun fetchIsDynamic(): Boolean {
-        return settings[isDynamicKey, isCanInDynamic()]
+        return settings[IS_DYNAMIC_KEY, isCanInDynamic()]
     }
 
     fun saveColorMode(colorMode: String) {
-        settings[colorModeKey] = colorMode
+        settings[COLOR_MODE_KEY] = colorMode
     }
 
     fun fetchColorMode(): String {
-        return settings[colorModeKey, "0"]
+        return settings[COLOR_MODE_KEY, "0"]
     }
 
     fun saveIsHaze(isHaze: Boolean) {
-        settings[isHazeKey] = isHaze
+        settings[IS_HAZE_KEY] = isHaze
     }
 
-    fun fetchIsHaze(): Boolean = settings[isHazeKey, true]
+    fun fetchIsHaze(): Boolean = settings[IS_HAZE_KEY, true]
 
     fun saveIsMarkTable(isMarkTable: Boolean) {
-        settings[isMarkTableKey] = isMarkTable
+        settings[IS_MARK_TABLE_KEY] = isMarkTable
     }
 
-    fun fetchIsMarkTable() : Boolean =  settings[isMarkTableKey, true]
+    fun fetchIsMarkTable() : Boolean =  settings[IS_MARK_TABLE_KEY, true]
 
 
     fun saveIsShowingPlusDs(isShowing: Boolean) {
-        settings[isShowingPlusDSKey] = isShowing
+        settings[IS_SHOWING_PLUS_DS_KEY] = isShowing
     }
 
-    fun fetchIsShowingPlusDs() : Boolean = settings[isShowingPlusDSKey, false]
+    fun fetchIsShowingPlusDs() : Boolean = settings[IS_SHOWING_PLUS_DS_KEY, false]
 
     fun saveIsTransitionsEnabled(isEnabled: Boolean) {
-        settings[isTransitionsEnabledKey] = isEnabled
+        settings[IS_TRANSITIONS_ENABLED_KEY] = isEnabled
     }
-    fun fetchIsTransitionsEnabled() = settings[isTransitionsEnabledKey, true]
+    fun fetchIsTransitionsEnabled() = settings[IS_TRANSITIONS_ENABLED_KEY, true]
 
     fun saveFontSize(fontSize: Float) {
-        settings[fontSizeKey] = fontSize.coerceAtLeast(0.2f)
+        settings[FONT_SIZE_KEY] = fontSize.coerceAtLeast(0.2f)
     }
 
-    fun fetchFontSize() = settings[fontSizeKey, 1f].coerceAtLeast(0.2f)
+    fun fetchFontSize() = settings[FONT_SIZE_KEY, 1f].coerceAtLeast(0.2f)
 
-    fun fetchFontType() = settings[fontTypeKey, 5]//.coerceAtLeast(0.2f)
+    fun fetchFontType() = settings[FONT_TYPE_KEY, 5]//.coerceAtLeast(0.2f)
 
     fun saveFontType(fontType: Int) {
-        settings[fontTypeKey] = fontType// fontSize.coerceAtLeast(0.2f)
+        settings[FONT_TYPE_KEY] = fontType// fontSize.coerceAtLeast(0.2f)
     }
 
 
     fun saveIsAmoledEnabled(isEnabled: Boolean) {
-        settings[isAmoledEnabledKey] = isEnabled
+        settings[IS_AMOLED_ENABLED_KEY] = isEnabled
     }
-    fun fetchIsAmoledEnabled() = settings[isAmoledEnabledKey, false]
+    fun fetchIsAmoledEnabled() = settings[IS_AMOLED_ENABLED_KEY, false]
 
     fun saveIsAvatarsEnabled(isEnabled: Boolean) {
-        settings[isAvatarsEnabledKey] = isEnabled
+        settings[IS_AVATARS_ENABLED_KEY] = isEnabled
     }
-    fun fetchIsAvatarsEnabled() = settings[isAvatarsEnabledKey, true]
+    fun fetchIsAvatarsEnabled() = settings[IS_AVATARS_ENABLED_KEY, true]
 
     fun saveIsRefreshButtonsEnabled(isEnabled: Boolean) {
-        settings[isRefreshButtonsEnabledKey] = isEnabled
+        settings[IS_REFRESH_BUTTONS_ENABLED_KEY] = isEnabled
     }
-    fun fetchIsRefreshButtonsEnabled() = settings[isRefreshButtonsEnabledKey, true]
+    fun fetchIsRefreshButtonsEnabled() = settings[IS_REFRESH_BUTTONS_ENABLED_KEY, true]
 
     fun saveHardwareStatus(status: String) {
-        settings[hardwareStatusKey] = status
+        settings[HARDWARE_STATUS_KEY] = status
     }
-    fun fetchHardwareStatus() = settings[hardwareStatusKey, ""]
+    fun fetchHardwareStatus() = settings[HARDWARE_STATUS_KEY, ""]
 
     fun saveIsLockedVerticalView(isLocked: Boolean) {
         println("SAVED!: !")
-        settings[isLockedVerticalViewKey] = isLocked
+        settings[IS_LOCKED_VERTICAL_VIEW_KEY] = isLocked
     }
-    fun fetchIsLockedVerticalView() : Boolean? = settings.getBooleanOrNull(isLockedVerticalViewKey)
+    fun fetchIsLockedVerticalView() : Boolean? = settings.getBooleanOrNull(IS_LOCKED_VERTICAL_VIEW_KEY)
 
     companion object {
-        const val languageKey = "languageKey"
-        const val tintKey = "tintKey"
-        const val seedColorKey = "seedColorKey"
-        const val isDynamicKey = "isDynamicKey"
-        const val colorModeKey = "colorModeKey"
-        const val isHazeKey = "isHazeKey"
-        const val fontSizeKey = "fontSizeKey"
-        const val fontTypeKey = "fontTypeKey"
-        const val isMarkTableKey = "isMarkTableKey"
-        const val isShowingPlusDSKey = "isShowingPlusDSKey"
-        const val isTransitionsEnabledKey = "isTransitionsEnabledKey"
+        const val LANGUAGE_KEY = "languageKey"
+        const val TINT_KEY = "tintKey"
+        const val SEED_COLOR_KEY = "seedColorKey"
+        const val IS_DYNAMIC_KEY = "isDynamicKey"
+        const val COLOR_MODE_KEY = "colorModeKey"
+        const val IS_HAZE_KEY = "isHazeKey"
+        const val FONT_SIZE_KEY = "fontSizeKey"
+        const val FONT_TYPE_KEY = "fontTypeKey"
+        const val IS_MARK_TABLE_KEY = "isMarkTableKey"
+        const val IS_SHOWING_PLUS_DS_KEY = "isShowingPlusDSKey"
+        const val IS_TRANSITIONS_ENABLED_KEY = "isTransitionsEnabledKey"
 
-        const val isAmoledEnabledKey = "isAmoledEnabledKey"
-        const val isRefreshButtonsEnabledKey = "isRefreshButtonsEnabledKey"
-        const val isAvatarsEnabledKey = "isAvatarsEnabledKey"
-        const val hardwareStatusKey = "hardwareStatusKey"
-        const val isLockedVerticalViewKey = "isLockedVerticalViewKey"
+        const val IS_AMOLED_ENABLED_KEY = "isAmoledEnabledKey"
+        const val IS_REFRESH_BUTTONS_ENABLED_KEY = "isRefreshButtonsEnabledKey"
+        const val IS_AVATARS_ENABLED_KEY = "isAvatarsEnabledKey"
+        const val HARDWARE_STATUS_KEY = "hardwareStatusKey"
+        const val IS_LOCKED_VERTICAL_VIEW_KEY = "isLockedVerticalViewKey"
     }
 
 }

@@ -1,17 +1,40 @@
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -25,17 +48,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.GetAsyncAvatar
+import components.GetAsyncIcon
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
+import components.foundation.cClickable
+import components.journal.dashedBorder
 import components.networkInterface.NetworkState
 import homeTasks.HomeTasksComponent
 import homeTasks.HomeTasksStore
 import homework.ClientHomeworkItem
 import homework.CutedDateTimeGroup
 import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import resources.RIcons
-import view.esp
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -43,7 +71,6 @@ import view.esp
 @Composable
 fun HomeTasksContent(
     component: HomeTasksComponent,
-    isVisible: Boolean,
     onWholeDateCompleted: () -> Unit
 ) {
 
@@ -82,7 +109,7 @@ fun HomeTasksContent(
                         onClick = { component.onOutput(HomeTasksComponent.Output.Back) }
                     ) {
                         GetAsyncIcon(
-                            path = RIcons.ChevronLeft
+                            path = RIcons.CHEVRON_LEFT
                         )
                     }
                 },
@@ -179,14 +206,14 @@ private fun DateTasksItem(
                     )
                     AnimatedVisibility(isCompleted) {
                         GetAsyncIcon(
-                            path = RIcons.Check,
+                            path = RIcons.CHECK,
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
                 val chevronRotation = animateFloatAsState(if (isOpened.value) 90f else -90f)
                 GetAsyncIcon(
-                    path = RIcons.ChevronLeft,
+                    path = RIcons.CHEVRON_LEFT,
                     modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
                     size = 15.dp
                 )
@@ -201,7 +228,6 @@ private fun DateTasksItem(
                                     groups.filter { it.id in subjectTasks.map { it.groupId } }
                                 if (subjectTasks.isNotEmpty()) {
                                     SubjectTaskItem(
-                                        subjectId = s.key,
                                         subjectName = s.value,
                                         subjectGroups = subjectGroups,
                                         subjectTasks = subjectTasks,
@@ -240,7 +266,6 @@ private fun DateTasksItem(
 
 @Composable
 private fun SubjectTaskItem(
-    subjectId: Int,
     subjectName: String,
     subjectGroups: List<CutedDateTimeGroup>,
     subjectTasks: List<ClientHomeworkItem>,
@@ -280,7 +305,7 @@ private fun SubjectTaskItem(
             GroupTaskItems(
                 groupName = g.name,
                 groupTasks = groupTasks,
-                groupTime = g.localDateTime?.toInstant(TimeZone.of("UTC+3"))?.toEpochMilliseconds(),
+                groupTime = g.localDateTime?.toInstant(applicationTimeZone)?.toEpochMilliseconds(),
                 component = component,
                 onCompleteClicked = onCompleteClicked
             )
@@ -406,7 +431,7 @@ private fun CustomCheckBox(
             exit = fadeOut()
         ) {
             GetAsyncIcon(
-                path = RIcons.Check,
+                path = RIcons.CHECK,
                 tint = MaterialTheme.colorScheme.primary
             )
         }
