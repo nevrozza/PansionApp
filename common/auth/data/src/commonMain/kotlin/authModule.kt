@@ -1,9 +1,10 @@
+
 import ktor.KtorAuthRemoteDataSource
 import org.kodein.di.DI
 import org.kodein.di.bind
+import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.provider
-import org.kodein.di.singleton
 import settings.SettingsAuthDataSource
 
 val authModule = DI.Module("authModule") {
@@ -15,7 +16,7 @@ val authModule = DI.Module("authModule") {
         KtorAuthRemoteDataSource(instance())
     }
 
-    bind<AuthRepository>() with singleton {
+    bind<AuthRepository>() with factory {
         AuthRepositoryImpl(instance(), instance())
     }
 }

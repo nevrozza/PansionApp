@@ -14,7 +14,6 @@ import cabinets.CabinetsComponent
 import calendar.CalendarComponent
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import components.networkInterface.NetworkInterface
 import detailedStups.DetailedStupsComponent

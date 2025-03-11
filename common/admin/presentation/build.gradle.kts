@@ -27,6 +27,8 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation(libs.excelkt)
+                // PROGUARD FIX
+                implementation("org.ow2.asm:asm:9.2")
             }
         }
     }

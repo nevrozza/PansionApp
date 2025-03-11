@@ -4,12 +4,11 @@ import AdminRepository
 import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.instancekeeper.getOrCreate
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cAlertDialog.CAlertDialogComponent
-import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
+import components.networkInterface.NetworkInterface
 import di.Inject
 import users.UsersStore.State
 
@@ -18,9 +17,6 @@ class UsersComponent(
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
 ) : ComponentContext by componentContext {
-
-
-
 
 
     private val nUsersInterface = NetworkInterface(
@@ -49,7 +45,7 @@ class UsersComponent(
         childContext(eDeleteDialogName + "CONTEXT"),
         storeFactory = storeFactory,
         name = eDeleteDialogName,
-        onAcceptClick = {onEvent(UsersStore.Intent.DeleteAccount)},
+        onAcceptClick = { onEvent(UsersStore.Intent.DeleteAccount) },
         onDeclineClick = { onEvent(UsersStore.Intent.DeleteAccountInit(null)) }
     )
 
@@ -64,10 +60,13 @@ class UsersComponent(
                 eUserBottomSheet = eUserBottomSheet,
                 cUserBottomSheet = cUserBottomSheet,
                 eDeleteDialog = eDeleteDialog
-            ).create(stateKeeper.consume(
-                key = "USERS_STORE_STATE",
-                strategy = State.serializer()
-            ) , stateKeeper)
+            ).create(
+                stateKeeper.consume(
+                    key = "USERS_STORE_STATE",
+                    strategy = State.serializer()
+                ),
+                stateKeeper
+            )
         }
 
     val model = usersStore.asValue()

@@ -198,7 +198,6 @@ fun RootContent(
                 //sber
                 Box(Modifier.animateContentSize().fillMaxWidth()) {
                     AnimatedVisibility(
-
                         visible = isBottomBarShowing(childStack.active.configuration as Config) &&
                                 ((isVertical && (component.secondLogin == null))), //was ((isVertical && (component.secondLogin == null)) || component.isMentoring == false)
                         enter = fadeIn(animationSpec = tween(300)) +

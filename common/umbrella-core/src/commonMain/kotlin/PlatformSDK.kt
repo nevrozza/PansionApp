@@ -4,8 +4,8 @@ import org.kodein.di.bind
 import org.kodein.di.direct
 import org.kodein.di.singleton
 
-object PlatformSDK {
 
+object PlatformSDK {
     fun init(
         configuration: PlatformConfiguration,
         cConfiguration: CommonPlatformConfiguration

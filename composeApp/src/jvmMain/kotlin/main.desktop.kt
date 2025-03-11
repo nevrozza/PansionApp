@@ -100,7 +100,7 @@ fun main() {
 //
 
     GlobalScope.launchIO {
-        com.nevrozq.pansion.main()
+//        com.nevrozq.pansion.main()
     }
 
     PlatformSDK.init(

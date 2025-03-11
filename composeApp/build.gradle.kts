@@ -105,7 +105,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
-            implementation("io.github.alexzhirkevich:compottie:2.0.0-rc02")
+            implementation("io.github.alexzhirkevich:compottie:2.0.0-rc04")
             implementation("io.github.alexzhirkevich:qrose:1.0.1")
 
 
@@ -155,16 +155,14 @@ kotlin {
             implementation(libs.androidx.appcompat)
             implementation(libs.androidx.activity)
             implementation(libs.androidx.compose.runtime)
-            implementation("androidx.fragment:fragment:1.7.0-alpha10")
-            implementation("androidx.fragment:fragment-ktx:1.7.0-alpha10")
-            implementation("androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.0-alpha02")
+            implementation("androidx.fragment:fragment-ktx:1.8.6")
         }
 
         jvmMain.dependencies {
-            implementation(project(":server"))
+//            implementation(project(":server"))
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)
-            implementation("org.jetbrains.jewel:jewel-int-ui-decorated-window:0.12.0")
+            implementation("org.jetbrains.jewel:jewel-int-ui-decorated-window-243:0.27.0")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
         }
 
@@ -246,13 +244,16 @@ android {
 
     buildTypes {
         release {
-            // blah blah
+            this.isMinifyEnabled = true
             this.matchingFallbacks.add("release")
+
+            proguardFile("proguard-rules.pro")
         }
         debug {
-            // blah blah
+            this.isMinifyEnabled = true
             this.matchingFallbacks.add("debug")
 
+            proguardFile("proguard-rules.pro")
         }
     }
 
@@ -266,14 +267,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
-
 compose.desktop {
     application {
         mainClass = "Main_desktopKt"
         nativeDistributions {
-            modules("java.base")
-            modules("java.sql")
-
 
             targetFormats(
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
@@ -291,12 +288,22 @@ compose.desktop {
                 this.iconFile.set(File("src/jvmMain/resources/favicon.ico"))
             }
 
+            macOS {
+                this.dockName = "PansionApp"
+            }
+
             buildTypes.release.proguard {
                 version.set("7.6.1")
-                obfuscate.set(false)
+                obfuscate.set(true)
+                optimize.set(true)
                 isEnabled.set(true)
 
-                configurationFiles.from("src/jvmMain/compose-desktop.pro")
+                configurationFiles.from(
+                    "proguard-rules.pro",
+                    "src/jvmMain/proguard-excelkt.pro",
+                    "src/jvmMain/proguard-jvm.pro"
+//                    "src/jvmMain/compose-desktop.pro"
+                )
             }
 
 //            buildTypes.release.proguard {

@@ -2,6 +2,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import components.cAlertDialog.CAlertDialogComponent
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
@@ -92,6 +93,7 @@ class SettingsComponent(
         }
 
     val model = settingsStore.asValue()
+    val labels = settingsStore.labels
 
 //    @OptIn(ExperimentalCoroutinesApi::class)
 //    val state: StateFlow<UsersStore.State> = usersStore.stateFlow

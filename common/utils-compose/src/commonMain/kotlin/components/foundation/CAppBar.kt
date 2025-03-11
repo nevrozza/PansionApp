@@ -28,6 +28,7 @@ fun AppBar(
     isTopPadding: Boolean = true,
 //    isHazeActivated: Boolean
 ) {
+
     val viewManager = LocalViewManager.current
     Box(
         Modifier.fillMaxWidth().height(60.dp + if (isTopPadding) viewManager.topPadding else 0.dp).hazeHeader(

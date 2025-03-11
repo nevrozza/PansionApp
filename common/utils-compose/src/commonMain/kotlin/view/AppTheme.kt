@@ -3,6 +3,7 @@ package view
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
@@ -41,6 +42,7 @@ fun AppTheme(content: @Composable () -> Unit) {
         seedColor = viewManager.seedColor.value,
         useDarkTheme = viewManager.isDark.value,
         style = PaletteStyle.Rainbow,
+        shapes = Shapes(),
         typography = MaterialTheme.typography.copy(
             displayLarge = MaterialTheme.typography.displayLarge.copy(
                 fontFamily = font,
