@@ -25,7 +25,6 @@ actual fun ScrollBaredBox(
     width: MutableState<Dp>,
     content: @Composable () -> Unit,
 ) {
-
     Box(modifier) {
         Box(
             Modifier.clip(RoundedCornerShape(15.dp)).border(

@@ -1,7 +1,10 @@
+
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -12,7 +15,11 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import root.RootComponent
 import utils.StatusBarColorFix
-import view.*
+import view.LocalViewManager
+import view.WindowCalculator
+import view.WindowScreen
+import view.WindowType
+import view.webPadding
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @ExperimentalAnimationApi
@@ -25,10 +32,14 @@ fun Root(
 ) {
     val viewManager = LocalViewManager.current
 
+
+
+
     setViewManager(viewManager)
 
 
-    BoxWithConstraints() {
+    BoxWithConstraints(
+    ) {
         viewManager.size = this
         viewManager.orientation.value =
             if (viewManager.isLockedVerticalView.value == true) WindowScreen.Vertical
@@ -40,7 +51,8 @@ fun Root(
             LocalHazeStyle provides HazeMaterials.regular(),
         ) {
 //            AppTheme() {
-            Surface(Modifier.fillMaxSize()) {
+            Surface(Modifier.fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface).webPadding()) {
                 StatusBarColorFix()
                 RootContent(root)
             }

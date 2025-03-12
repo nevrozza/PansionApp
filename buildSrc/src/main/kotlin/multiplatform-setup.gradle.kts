@@ -58,42 +58,20 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
-
     js(IR) {
+        this.binaries.library()
         browser()
-//        useEsModules()
-        useCommonJs()
-        binaries.executable()
     }
-    wasmJs {
+    wasmJs() {
+        this.binaries.library()
         browser()
-        useCommonJs()
-        binaries.executable()
     }
-
-//        js(IR) {
-//        browser()
-//        binaries.executable()
-//    }
-//RIP
 
     sourceSets {
         commonMain.dependencies {
             //noinspection UseTomlInstead
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
         }
-        jsMain.dependencies {
-
-            implementation(npm("copy-webpack-plugin", "9.1.0"))
-//            implementation(devNpm("node-polyfill-webpack-plugin", "^2.0.1"))
-//            implementation(devNpm("path-browserify", "^1.0.1"))
-//            implementation(npm("os-browserify", "^0.3.0"))
-        }
-//        wasmJsMain.dependencies {
-//            implementation(devNpm("node-polyfill-webpack-plugin", "^2.0.1"))
-//            implementation(devNpm("path-browserify", "^1.0.1"))
-//            implementation(npm("os-browserify", "^0.3.0"))
-//        }
     }
 
     //JVM

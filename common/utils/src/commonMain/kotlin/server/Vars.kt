@@ -1,7 +1,7 @@
 package server
 
 
-const val delayForNewQRToken : Long = 1000 * 60 * 5
+const val delayForNewQRToken : Long = 1000L * 60 * 5
 
 object ExtraSubjectsId {
     const val COMMON = -1

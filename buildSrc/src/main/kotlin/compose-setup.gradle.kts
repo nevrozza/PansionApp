@@ -6,9 +6,10 @@ plugins {
 }
 
 kotlin {
+
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
+            runtimeOnly(compose.runtime)
             implementation(compose.ui)
             implementation(compose.foundation)
             implementation(compose.material3)
@@ -17,9 +18,9 @@ kotlin {
             implementation("dev.chrisbanes.haze:haze-materials:1.2.2")
         }
         jvmMain.dependencies {
-            implementation(compose.desktop.common)
-            implementation(compose.desktop.currentOs)
+            implementation(compose.desktop.currentOs) {
+                exclude(group = "org.jetbrains.compose.material", module = "material")
+            }
         }
     }
 }
-

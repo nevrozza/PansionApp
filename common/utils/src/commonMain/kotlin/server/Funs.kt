@@ -250,7 +250,7 @@ fun Float.roundTo(numFractionDigits: Int): String {
 
 fun Int.toSixTime(): String {
     val hour = this / 60
-    val minutes = this - 60 * hour
+    val minutes: Int  = this % 60
 
     return "${hour.twoNums()}:" +
             minutes.twoNums()
