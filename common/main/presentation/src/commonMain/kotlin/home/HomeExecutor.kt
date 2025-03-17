@@ -6,6 +6,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import home.HomeStore.Intent
 import home.HomeStore.Label
 import home.HomeStore.Message
@@ -25,14 +26,19 @@ import server.Roles
 import server.toMinutes
 
 class HomeExecutor(
-    private val mainRepository: MainRepository,
-    private val journalRepository: JournalRepository,
+    private val mainRepository: MainRepository = Inject.instance(),
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val quickTabNInterface: NetworkInterface,
     private val teacherNInterface: NetworkInterface,
     private val gradesNInterface: NetworkInterface,
     private val scheduleNInterface: NetworkInterface,
     private val journalComponent: JournalComponent?
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        executeIntent(Intent.Init)
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.Init -> init()

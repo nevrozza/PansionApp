@@ -8,6 +8,7 @@ import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import dnevnikRuMarks.DnevnikRuMarkStore.Intent
 import dnevnikRuMarks.DnevnikRuMarkStore.Label
 import dnevnikRuMarks.DnevnikRuMarkStore.Message
@@ -19,11 +20,15 @@ import studentReportDialog.StudentReportComponent
 import studentReportDialog.StudentReportDialogStore
 
 class DnevnikRuMarkExecutor(
-    private val journalRepository: JournalRepository,
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val nInterface: NetworkInterface,
     private val stupsDialogComponent: CAlertDialogComponent,
     private val studentReportDialog: StudentReportComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> {

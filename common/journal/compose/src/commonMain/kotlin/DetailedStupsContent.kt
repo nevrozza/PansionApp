@@ -7,24 +7,41 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
+import components.GetAsyncIcon
 import components.foundation.AppBar
 import components.foundation.CLazyColumn
 import components.foundation.CTextButton
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
+import components.foundation.TonalCard
 import components.journal.BorderStup
 import components.journal.StupsButtons
 import components.networkInterface.NetworkState
@@ -45,14 +62,12 @@ fun DetailedStupsContent(
 ) {
 
 
-
-
     val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
 
 
     LaunchedEffect(Unit) {
-        if(!nModel.isLoading) component.onEvent(DetailedStupsStore.Intent.Init)
+        if (!nModel.isLoading) component.onEvent(DetailedStupsStore.Intent.Init)
     }
 
     //PullToRefresh
@@ -169,11 +184,12 @@ private fun DetailedStupsSubjectItem(
 ) {
     val isFullView = remember { mutableStateOf(false) }
 
-    ElevatedCard(
-        Modifier.fillMaxWidth().padding(top = 10.dp) //.padding(horizontal = 10.dp)
-            .animateContentSize().clip(CardDefaults.elevatedShape).clickable {
-                isFullView.value = !isFullView.value
-            }) {
+    TonalCard(
+        Modifier.fillMaxWidth().padding(top = 10.dp)
+            .animateContentSize(),
+        onClick = {
+            isFullView.value = !isFullView.value
+        }) {
         Column(Modifier.padding(5.dp).padding(start = 5.dp)) {
             Row(
                 Modifier.fillMaxWidth().padding(end = 5.dp),
@@ -184,7 +200,11 @@ private fun DetailedStupsSubjectItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(title, fontWeight = FontWeight.Medium, fontSize = MaterialTheme.typography.headlineSmall.fontSize)
+                    Text(
+                        title,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize
+                    )
                     StupsButtons(
                         stups = stups.map {
                             Pair(it.content.toInt(), it.reason)

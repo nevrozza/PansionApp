@@ -12,6 +12,7 @@ import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import schedule.ScheduleStore.Intent
@@ -21,12 +22,18 @@ import schedule.ScheduleStore.State
 import server.toMinutes
 
 class ScheduleExecutor(
-    private val adminRepository: AdminRepository,
+    private val adminRepository: AdminRepository = Inject.instance(),
     private val nInterface: NetworkInterface,
     private val mpCreateItem: MpChoseComponent,
     private val mpEditItem: MpChoseComponent,
     private val listCreateTeacher: ListComponent
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> init()

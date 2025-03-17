@@ -1,24 +1,23 @@
-@file:Suppress("OPT_IN_USAGE")
+import org.gradle.accessors.dm.LibrariesForLibs
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
+val libs = the<LibrariesForLibs>()
 plugins {
-    id("com.android.library")
     kotlin("multiplatform")
+    id("com.android.library")
+//    id("com.google.devtools.ksp")
 }
 
 
-android {
-    namespace = "com.nevrozq.pansion.android"
-    compileSdk = 34
-    defaultConfig {
-        minSdk = 26
-    }
-}
 
+
+// source sets
 kotlin {
-    //Targets
     jvm()
     androidTarget()
 
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
         common {
             group("notJvm") {
@@ -62,6 +61,7 @@ kotlin {
         this.binaries.library()
         browser()
     }
+    @OptIn(ExperimentalWasmDsl::class)
     wasmJs() {
         this.binaries.library()
         browser()
@@ -69,15 +69,30 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            //noinspection UseTomlInstead
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            implementation(libs.kotlinx.datetime)
         }
     }
 
-    //JVM
-    jvmToolchain(17)
+
+    jvmToolchain(Config.Java.intVersion)
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+        @Suppress("DEPRECATION")
+        kotlinOptions.jvmTarget = Config.Java.stringVersion
     }
 }
 
+
+android {
+    namespace = Config.Android.namespace + ".convention"
+    compileSdk = Config.Android.compileSdk
+    defaultConfig {
+        minSdk = Config.Android.minSdk
+    }
+
+
+    sourceSets {
+        named("main") {
+            res.srcDirs("src/main/res")
+        }
+    }
+}

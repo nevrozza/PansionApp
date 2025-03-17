@@ -10,6 +10,7 @@ import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import kotlinx.coroutines.launch
 import parents.AdminParentsStore.Intent
 import parents.AdminParentsStore.Label
@@ -18,11 +19,16 @@ import parents.AdminParentsStore.State
 import server.updateSafe
 
 class AdminParentsExecutor(
-    private val adminRepository: AdminRepository,
+    private val adminRepository: AdminRepository = Inject.instance(),
     private val nInterface: NetworkInterface,
     private val parentEditPicker: ListComponent,
     private val childCreatePicker: ListComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> init()

@@ -5,15 +5,45 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.*
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -28,30 +58,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.*
-import components.refresh.RefreshButton
-import components.refresh.RefreshWithoutPullCircle
-import components.refresh.keyRefresh
-import components.networkInterface.NetworkState
-import components.networkInterface.isLoading
-import decomposeComponents.CBottomSheetContent
-import main.school.DutyKid
-import main.school.MinistrySettingsReason
-import main.school.MinistryStudent
-import components.refresh.PullRefreshIndicator
-import components.refresh.pullRefresh
-import components.refresh.rememberPullRefreshState
-import resources.RIcons
-import school.SchoolComponent
-import school.SchoolStore
-import server.Ministries
-import server.Moderation
-import server.Roles
-import server.headerTitlesForMinistry
-import utils.toColor
-import view.*
-import utils.cursor.handy
-import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import components.DatesLine
+import components.DragDropList
+import components.FeatureButton
+import components.GetAsyncAvatar
+import components.GetAsyncIcon
+import components.MinistryKidItem
 import components.foundation.AppBar
 import components.foundation.CLazyColumn
 import components.foundation.CTextButton
@@ -59,7 +71,31 @@ import components.foundation.CTextField
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
 import components.foundation.LoadingAnimation
+import components.foundation.TonalCard
 import components.journal.Stepper
+import components.networkInterface.NetworkState
+import components.networkInterface.isLoading
+import components.refresh.PullRefreshIndicator
+import components.refresh.RefreshButton
+import components.refresh.RefreshWithoutPullCircle
+import components.refresh.keyRefresh
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
+import decomposeComponents.CBottomSheetContent
+import main.school.DutyKid
+import main.school.MinistrySettingsReason
+import main.school.MinistryStudent
+import resources.RIcons
+import school.SchoolComponent
+import school.SchoolStore
+import server.Ministries
+import server.Moderation
+import server.Roles
+import server.headerTitlesForMinistry
+import utils.cursor.handy
+import utils.toColor
+import view.LocalViewManager
+import view.WindowScreen
 import kotlin.math.ceil
 
 
@@ -241,8 +277,8 @@ fun SchoolContent(
                         Spacer(Modifier.height(15.dp))
                         val isEditDutyView = remember { mutableStateOf(false) }
                         val isFullDutyView = remember { mutableStateOf(false) }
-                        ElevatedCard(
-                            modifier = Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+                        TonalCard(
+                            modifier = Modifier.fillMaxWidth()
                                 .clickable(
                                     enabled = !isEditDutyView.value,
                                     indication = null,
@@ -928,16 +964,13 @@ private fun RowScope.MinistryCard(
     stupsCount: Int,
     onClick: () -> Unit
 ) {
-    ElevatedCard(
-        Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
+    TonalCard(
+        Modifier.fillMaxWidth()
             .weight(1f)
-            .handy()
-            .clickable {
-                onClick()
-            },
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+            .handy(),
+        onClick = {
+            onClick()
+        }
     ) {
         Column(
             Modifier.fillMaxHeight().padding(vertical = 10.dp, horizontal = 15.dp)

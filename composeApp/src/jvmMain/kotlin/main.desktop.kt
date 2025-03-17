@@ -100,7 +100,7 @@ fun main() {
 //
 
     GlobalScope.launchIO {
-//        com.nevrozq.pansion.main()
+        com.nevrozq.pansion.main()
     }
 
     PlatformSDK.init(
@@ -144,6 +144,7 @@ fun main() {
 
         var isVisible by remember { mutableStateOf(true) }
 
+        @Suppress("DEPRECATION")
         Tray(
             icon = painterResource("favicon.ico"),//TrayIcon,
             menu = {
@@ -197,6 +198,7 @@ fun main() {
                 ) {
 
                     AppTheme {
+                        @Suppress("DEPRECATION")
                         DecoratedWindow(
                             onCloseRequest = { isCloseDialogVisible = true },
                             state = windowState,

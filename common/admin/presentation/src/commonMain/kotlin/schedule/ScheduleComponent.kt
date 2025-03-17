@@ -1,7 +1,5 @@
 package schedule
 
-import AdminRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -10,7 +8,7 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.mpChose.MpChoseComponent
 import components.networkInterface.NetworkInterface
-import di.Inject
+import decompose.DefaultMVIComponent
 
 class ScheduleComponent(
     componentContext: ComponentContext,
@@ -18,7 +16,7 @@ class ScheduleComponent(
     login: String,
     val isCanBeEdited: Boolean,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext, DefaultMVIComponent<ScheduleStore.Intent, ScheduleStore.State, ScheduleStore.Label> {
     val nInterface = NetworkInterface(
         componentContext,
         storeFactory,
@@ -65,35 +63,19 @@ class ScheduleComponent(
     }
 
 
-    private val adminRepository: AdminRepository = Inject.instance()
-
-
-    private val scheduleStore =
+    override val store =
         instanceKeeper.getStore {
             ScheduleStoreFactory(
                 storeFactory = storeFactory,
-                adminRepository = adminRepository,
-                nInterface = nInterface,
-                mpCreateItem = mpCreateItem,
-                mpEditItem = mpEditItem,
-                listCreateTeacher = listCreateTeacher,
-                login = login
+                state = ScheduleStore.State(login = login),
+                executor = ScheduleExecutor(
+                    nInterface = nInterface,
+                    mpCreateItem = mpCreateItem,
+                    mpEditItem = mpEditItem,
+                    listCreateTeacher = listCreateTeacher
+                )
             ).create()
         }
-
-
-    init {
-        onEvent(ScheduleStore.Intent.Init)
-    }
-
-    val model = scheduleStore.asValue()
-
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    val state: StateFlow<UsersStore.State> = usersStore.stateFlow
-
-    fun onEvent(event: ScheduleStore.Intent) {
-        scheduleStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)

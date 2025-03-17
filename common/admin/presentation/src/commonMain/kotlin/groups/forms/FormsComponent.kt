@@ -1,62 +1,67 @@
 package groups.forms
 
 import AdminRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.networkInterface.NetworkInterface
 import components.cBottomSheet.CBottomSheetComponent
+import components.networkInterface.NetworkInterface
+import decompose.DefaultMVIComponent
+import decompose.getChildContext
 import groups.GroupsStore
 
 class FormsComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
+
     val groupModel: Value<GroupsStore.State>,
     private val adminRepository: AdminRepository,
     private val updateForms: () -> Unit,
     val nFormsInterface: NetworkInterface
-) : ComponentContext by componentContext {
-    private val nFormGroupsInterface = NetworkInterface(
-        componentContext,
-        storeFactory,
-        "FormGroupsNInterface"
-    )
 
+) : ComponentContext by componentContext,
+    DefaultMVIComponent<FormsStore.Intent, FormsStore.State, FormsStore.Label> {
+
+    private val nFormGroupsInterfaceName =
+        "FormGroupsNInterface"
+
+    private val creatingFormBottomSheetName = "creatingFormBottomSheet"
+    private val editFormBottomSheetName = "editFormBottomSheet"
+
+
+    private val nFormGroupsInterface = NetworkInterface(
+        getChildContext(nFormGroupsInterfaceName),
+        storeFactory,
+        nFormGroupsInterfaceName
+    )
 
     val creatingFormBottomSheet = CBottomSheetComponent(
-        componentContext,
+        getChildContext(creatingFormBottomSheetName),
         storeFactory,
-        name = "creatingFormBottomSheet"
+        name = creatingFormBottomSheetName
     )
     val editFormBottomSheet = CBottomSheetComponent(
-        componentContext,
+        getChildContext(editFormBottomSheetName),
         storeFactory,
-        name = "editFormBottomSheet"
+        name = editFormBottomSheetName
     )
 
     val nFormsModel = nFormsInterface.networkModel
     val nFormGroupsModel = nFormGroupsInterface.networkModel
-    val formsStore =
+
+
+    override val store =
         instanceKeeper.getStore("formsStore") {
             FormsStoreFactory(
                 storeFactory = storeFactory,
-                nFormGroupsInterface = nFormGroupsInterface,
-                adminRepository = adminRepository,
-                creatingFormBottomSheet = creatingFormBottomSheet,
-                updateForms = updateForms,
-                editFormBottomSheet = editFormBottomSheet
+                executor = FormsExecutor(
+                    adminRepository = adminRepository,
+                    nFormGroupsInterface = nFormGroupsInterface,
+                    creatingFormBottomSheet = creatingFormBottomSheet,
+                    updateForms = updateForms,
+                    editFormBottomSheet = editFormBottomSheet
+                )
             ).create()
         }
-    val model = formsStore.asValue()
-
-    init {
-//        nFormsInterface.nError("пошёл ты") {}
-        onEvent(FormsStore.Intent.UpdateMentors)
-    }
-
-    fun onEvent(event: FormsStore.Intent) {
-        formsStore.accept(event)
-    }
 }

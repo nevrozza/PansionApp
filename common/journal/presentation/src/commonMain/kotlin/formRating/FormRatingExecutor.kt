@@ -11,6 +11,7 @@ import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import formRating.FormRatingStore.Intent
 import formRating.FormRatingStore.Label
 import formRating.FormRatingStore.Message
@@ -22,13 +23,29 @@ import server.Roles
 
 class FormRatingExecutor(
     private val nInterface: NetworkInterface,
-    private val journalRepository: JournalRepository,
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val stupsDialog: CAlertDialogComponent,
     private val formPickerDialog: ListComponent,
     private val weeksListComponent: ListComponent,
     private val moduleListComponent: ListComponent,
     private val periodListComponent: ListComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+
+    override fun executeAction(action: Unit) {
+        executeIntent(Intent.Init)
+
+        periodListComponent.onEvent(
+            ListDialogStore.Intent.InitList(
+                listOf(Pair(PansionPeriod.Year, "За год")).map {
+                    ListItem(
+                        id = it.first.toStr(),
+                        text = it.second
+                    )
+                }
+            )
+        )
+    }
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.ChangeIsDetailed -> dispatch(Message.IsDetailedChanged)

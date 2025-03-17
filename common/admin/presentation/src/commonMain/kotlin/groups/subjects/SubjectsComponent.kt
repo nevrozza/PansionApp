@@ -1,17 +1,15 @@
 package groups.subjects
 
 import AdminRepository
-import MainRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.networkInterface.NetworkInterface
 import components.cAlertDialog.CAlertDialogComponent
-import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetComponent
-import di.Inject
+import components.networkInterface.NetworkInterface
+import decompose.DefaultMVIComponent
+import decompose.getChildContext
 import groups.GroupsStore
 
 class SubjectsComponent(
@@ -21,106 +19,90 @@ class SubjectsComponent(
     updateSubjects: () -> Unit,
     private val adminRepository: AdminRepository,
     val nSubjectsInterface: NetworkInterface
-) : ComponentContext by componentContext {
-//    private val nStudentGroupsInterface = NetworkInterface()
-//    val nStudentsInterface = NetworkInterface()
-//    //
-//    val nStudentsModel = nStudentsInterface.networkModel
-//    val nStudentGroupsModel = nStudentGroupsInterface.networkModel
+) : ComponentContext by componentContext,
+    DefaultMVIComponent<SubjectsStore.Intent, SubjectsStore.State, SubjectsStore.Label> {
 
+    private val nGroupInterfaceName = "NSubjectInsGroupInterfaceName"
+    private val inactiveSubjectsDialogName = "inactiveSubjectsDialogName"
+    private val deleteSubjectDialogName = "deleteSubjectDialogName"
+    private val editSubjectDialogName = "editSubjectDialogName"
+    private val cSubjectDialogName = "createSubjectDialog"
 
-    val mainRepository: MainRepository = Inject.instance()
+    private val createGroupBottomSheet = "createGroupBottomSheet"
+    private val editGroupBottomSheet = "editGroupBottomSheet"
 
-    val nGroupInterface = NetworkInterface(
-        componentContext, storeFactory,
-        name = "NSubjectInsGroupInterface"
+    private val nGroupInterface = NetworkInterface(
+        getChildContext(nGroupInterfaceName), storeFactory,
+        name = nGroupInterfaceName
     )
-
-
 
     val inactiveSubjectsDialog = CAlertDialogComponent(
-        componentContext,
+        getChildContext(inactiveSubjectsDialogName),
         storeFactory,
-        name = "inactiveSubjectsDialog",
-        onAcceptClick = {
-
-        }
+        name = inactiveSubjectsDialogName,
+        onAcceptClick = {}
     )
+
     val deleteSubjectDialog = CAlertDialogComponent(
-        componentContext,
+        getChildContext(deleteSubjectDialogName),
         storeFactory,
-        name = "deleteSubjectDialog",
-        onAcceptClick = {
-            onEvent(SubjectsStore.Intent.DeleteSubject)
-        }
+        name = deleteSubjectDialogName,
+        onAcceptClick = { onEvent(SubjectsStore.Intent.DeleteSubject) }
     )
     val editSubjectDialog = CAlertDialogComponent(
-        componentContext,
+        getChildContext(editSubjectDialogName),
         storeFactory,
-        name = "editSubjectDialog",
+        name = editSubjectDialogName,
         onAcceptClick = ::onEditSubjectDialog
     )
+
     private fun onEditSubjectDialog() {
         onEvent(SubjectsStore.Intent.EditSubject(sameCount = groupModel.value.subjects.filter { it.name == model.value.eSubjectText }.size))
     }
 
     val cSubjectDialog = CAlertDialogComponent(
-        componentContext,
+        getChildContext(cSubjectDialogName),
         storeFactory,
-        name = "createSubjectDialog",
+        name = cSubjectDialogName,
         onAcceptClick = {
             onEvent(SubjectsStore.Intent.CreateSubject)
         },
         onDeclineClick = { dialogOnDeclineClick() }
     )
-    fun dialogOnDeclineClick() {
+
+    private fun dialogOnDeclineClick() {
         onEvent(SubjectsStore.Intent.ChangeCSubjectText(""))
     }
 
-//    private fun createSubjectDialogOnDeclineClick() {
-//        cSubjectDialog.onEvent(CAlertDialogStore.Intent.HideDialog)
-//    }
-
     val cGroupBottomSheet = CBottomSheetComponent(
-        componentContext,
+        getChildContext(createGroupBottomSheet),
         storeFactory,
-        name = "createGroupBottomSheet"
+        name = createGroupBottomSheet
     )
     val eGroupBottomSheet = CBottomSheetComponent(
-        componentContext,
+        getChildContext(editGroupBottomSheet),
         storeFactory,
-        name = "editGroupBottomSheet"
+        name = editGroupBottomSheet
     )
-//    val formsListComponent = ListComponent(
-//        componentContext,
-//        storeFactory,
-//        name = "formListInGroups",
-//        onItemClick = {
-//            onEvent(StudentsStore.Intent.BindStudentToForm(it.id))
-//        })
 
 
-    private val studentsStore =
+    override val store =
         instanceKeeper.getStore {
             SubjectsStoreFactory(
                 storeFactory = storeFactory,
-                adminRepository = adminRepository,
-                nSubjectsInterface = nSubjectsInterface,
-                updateSubjects = { updateSubjects() },
-                cSubjectDialog = cSubjectDialog,
-                cGroupBottomSheet = cGroupBottomSheet,
-                mainRepository = mainRepository,
-                nGroupInterface = nGroupInterface,
-                editSubjectDialog = editSubjectDialog,
-                deleteSubjectDialog = deleteSubjectDialog,
-                eGroupBottomSheet = eGroupBottomSheet
+                executor = SubjectsExecutor(
+                    adminRepository = adminRepository,
+                    nSubjectsInterface = nSubjectsInterface,
+                    updateSubjects = { updateSubjects() },
+                    cSubjectDialog = cSubjectDialog,
+                    cGroupBottomSheet = cGroupBottomSheet,
+                    nGroupInterface = nGroupInterface,
+                    editSubjectDialog = editSubjectDialog,
+                    deleteSubjectDialog = deleteSubjectDialog,
+                    eGroupBottomSheet = eGroupBottomSheet
+                )
             ).create()
         }
-    val model = studentsStore.asValue()
-
-    fun onEvent(event: SubjectsStore.Intent) {
-        studentsStore.accept(event)
-    }
 
 
 }

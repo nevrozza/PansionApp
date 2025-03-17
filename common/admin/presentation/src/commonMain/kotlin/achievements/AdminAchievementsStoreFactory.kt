@@ -1,24 +1,15 @@
 package achievements
 
-import AdminRepository
-import com.arkivanov.mvikotlin.core.store.Store
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import com.arkivanov.mvikotlin.core.store.StoreFactory
 import achievements.AdminAchievementsStore.Intent
 import achievements.AdminAchievementsStore.Label
 import achievements.AdminAchievementsStore.State
-import achievements.AdminAchievementsStore.Message
-import components.cBottomSheet.CBottomSheetComponent
-import components.networkInterface.NetworkInterface
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
+import com.arkivanov.mvikotlin.core.store.Store
+import com.arkivanov.mvikotlin.core.store.StoreFactory
 
 class AdminAchievementsStoreFactory(
     private val storeFactory: StoreFactory,
-    private val adminRepository: AdminRepository,
-    private val bottomSheetComponent: CBottomSheetComponent,
-    private val hugeBottomSheetComponent: CBottomSheetComponent,
-    private val editBottomSheetComponent: CBottomSheetComponent,
-    private val nInterface: NetworkInterface,
-    private val nBSInterface: NetworkInterface,
+    private val executor: AdminAchievementsExecutor
 ) {
 
     fun create(): AdminAchievementsStore {
@@ -29,15 +20,9 @@ class AdminAchievementsStoreFactory(
         AdminAchievementsStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "AdminAchievementsStore",
-            initialState = AdminAchievementsStore.State(),
-            executorFactory = { AdminAchievementsExecutor(
-                adminRepository = adminRepository,
-                nInterface = nInterface,
-                bottomSheetComponent = bottomSheetComponent,
-                hugeBottomSheetComponent = hugeBottomSheetComponent,
-                editBottomSheetComponent = editBottomSheetComponent,
-                nBSInterface = nBSInterface
-            ) },
-            reducer = AdminAchievementsReducer
+            initialState = State(),
+            executorFactory = ::executor,
+            reducer = AdminAchievementsReducer,
+            bootstrapper = SimpleBootstrapper(Unit)
         )
 }

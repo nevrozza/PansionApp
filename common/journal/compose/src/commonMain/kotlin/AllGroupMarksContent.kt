@@ -15,6 +15,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -34,11 +36,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
@@ -55,7 +56,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -65,19 +65,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.GetAsyncIcon
+import components.MarkTableItem
+import components.cAlertDialog.CAlertDialogStore
 import components.foundation.AppBar
-import components.journal.BorderStup
 import components.foundation.CFilterChip
 import components.foundation.CLazyColumn
 import components.foundation.CTextButton
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.GetAsyncIcon
+import components.foundation.TonalCard
+import components.journal.BorderStup
 import components.journal.MarkContent
 import components.journal.MarkTable
-import components.MarkTableItem
 import components.journal.StupsButtons
-import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
 import decomposeComponents.CAlertDialogContent
@@ -87,10 +88,7 @@ import resources.RIcons
 import server.fetchReason
 import server.getLocalDate
 import server.roundTo
-import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import utils.cursor.handy
-import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
-import androidx.compose.material3.LocalTextStyle
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -332,7 +330,7 @@ fun AllGroupMarksContent(
                                                         }
                                                     }
                                                 },
-                                                isDs1Init = component.setingsRepository.fetchIsShowingPlusDS()
+                                                isDs1Init = component.settingsRepository.fetchIsShowingPlusDS()
                                             )
                                         }
                                     }
@@ -481,9 +479,9 @@ private fun AllGroupMarksStudentItem(
             .toInt() in firstHalfNums
     ) 1 else 2 else 1
 
-    ElevatedCard(
+    TonalCard(
         modifier.fillMaxWidth()//.padding(horizontal = 10.dp)
-            .animateContentSize().clip(CardDefaults.elevatedShape)
+            .animateContentSize()
     ) {
 //            .clickable {
 //                isFullView.value = !isFullView.value

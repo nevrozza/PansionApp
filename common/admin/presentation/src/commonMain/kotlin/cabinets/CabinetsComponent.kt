@@ -1,49 +1,34 @@
 package cabinets
 
-import AdminRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
-import di.Inject
+import decompose.DefaultMVIComponent
+import decompose.getChildContext
 
 class CabinetsComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext, DefaultMVIComponent<CabinetsStore.Intent, CabinetsStore.State, CabinetsStore.Label> {
+    private val cabinetsComponentNInterfaceName = "cabinetsComponentNInterface"
     val nInterface = NetworkInterface(
-        componentContext,
+        getChildContext(cabinetsComponentNInterfaceName),
         storeFactory,
-        "cabinetsComponentNInterface"
+        cabinetsComponentNInterfaceName
     )
 
-    private val adminRepository: AdminRepository = Inject.instance()
 
-
-    private val cabinetsStore =
+    override val store =
         instanceKeeper.getStore {
             CabinetsStoreFactory(
                 storeFactory = storeFactory,
-                adminRepository = adminRepository,
-                nInterface = nInterface
+                executor = CabinetsExecutor(
+                    nInterface = nInterface
+                )
             ).create()
         }
-
-
-    init {
-        onEvent(CabinetsStore.Intent.Init)
-    }
-
-    val model = cabinetsStore.asValue()
-
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    val state: StateFlow<UsersStore.State> = usersStore.stateFlow
-
-    fun onEvent(event: CabinetsStore.Intent) {
-        cabinetsStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)

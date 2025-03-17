@@ -30,9 +30,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -49,21 +47,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.GetAsyncIcon
 import components.foundation.AppBar
-import components.journal.BorderStup
 import components.foundation.CFilterChip
 import components.foundation.CLazyColumn
 import components.foundation.CTextButton
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.GetAsyncIcon
+import components.foundation.TonalCard
+import components.journal.BorderStup
 import components.journal.MarkTable
 import components.journal.StupsButton
 import components.journal.cMark
@@ -274,7 +272,7 @@ fun DnevnikRuMarkContent(
                                             else -> it.date in model.mDates
                                         }
                                     } },
-                                    isDs1Init = component.setingsRepository.fetchIsShowingPlusDS()
+                                    isDs1Init = component.settingsRepository.fetchIsShowingPlusDS()
                                 )
                             }
                         }
@@ -385,9 +383,8 @@ private fun SubjectMarksItem(
 
     val modules = marks.map { it.module.toInt() }.toSet().sortedByDescending { it }
 
-    ElevatedCard(
-        Modifier.fillMaxWidth().padding(top = 10.dp) //.padding(horizontal = 10.dp)
-            .clip(CardDefaults.elevatedShape)
+    TonalCard(
+        Modifier.fillMaxWidth().padding(top = 10.dp)
     ) {
         Column(Modifier.padding(5.dp).padding(start = 5.dp).animateContentSize()) {
             Row(

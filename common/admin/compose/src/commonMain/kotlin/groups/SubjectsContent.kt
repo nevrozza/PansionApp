@@ -26,7 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -54,16 +53,17 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.GetAsyncIcon
+import components.cAlertDialog.CAlertDialogStore
+import components.cBottomSheet.CBottomSheetStore
 import components.foundation.AnimatedCommonButton
 import components.foundation.CLazyColumn
 import components.foundation.CTextButton
 import components.foundation.CTextField
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.GetAsyncIcon
 import components.foundation.LoadingAnimation
-import components.cAlertDialog.CAlertDialogStore
-import components.cBottomSheet.CBottomSheetStore
+import components.foundation.TonalCard
 import components.foundation.cClickable
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
@@ -133,7 +133,7 @@ fun SubjectsContent(
                                         ""
                                     }
                                 Column {
-                                    ElevatedCard(
+                                    TonalCard(
                                         modifier = Modifier.heightIn(TextFieldDefaults.MinHeight)
                                             .fillMaxWidth()//.padding(horizontal = 10.dp)
                                             .padding(bottom = 5.dp),

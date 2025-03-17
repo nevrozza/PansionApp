@@ -1,15 +1,10 @@
 package components.listDialog
 
-import asValue
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.networkInterface.NetworkInterface
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
+import decompose.DefaultMVIComponent
 
 
 data class ListItem(
@@ -17,6 +12,7 @@ data class ListItem(
     val text: String,
     val isClickable: Boolean = true
 )
+
 //return@ListComponent model.value.forms.map {
 //    ListItem(
 //        id = it.id,
@@ -29,41 +25,33 @@ class ListComponent(
     name: String,
     private val onItemClick: (ListItem) -> Unit,
     customOnDismiss: (() -> Unit)? = null
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext,
+    DefaultMVIComponent<ListDialogStore.Intent, ListDialogStore.State, ListDialogStore.Label> {
     val nInterface = NetworkInterface(
         componentContext,
         storeFactory,
-        name+"NInterface"
+        name + "NInterface"
     )
     val nModel = nInterface.networkModel
-    private val listStore =
+    override val store =
         instanceKeeper.getStore(key = name) {
             ListDialogStoreFactory(
                 storeFactory = storeFactory,
                 name = name,
-                networkInterface = nInterface,
-                customOnDismiss = customOnDismiss
+                executor = ListDialogExecutor(
+                    nInterface = nInterface,
+                    customOnDismiss = customOnDismiss
+                )
             ).create()
         }
 
+//    private val backCallback = BackCallback {
+//        onEvent(ListDialogStore.Intent.HideDialog)
+//    }
+//    init {
+    //backHandler.register(backCallback)
+//    }
 
-    val model: Value<ListDialogStore.State> = listStore.asValue()
-
-    private val backCallback = BackCallback {
-        onEvent(ListDialogStore.Intent.HideDialog)
-    }
-
-
-    init {
-        //backHandler.register(backCallback)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<ListDialogStore.State> = listStore.stateFlow
-
-    fun onEvent(event: ListDialogStore.Intent) {
-        listStore.accept(event)
-    }
 
     fun onClick(item: ListItem) {
         onItemClick(item)

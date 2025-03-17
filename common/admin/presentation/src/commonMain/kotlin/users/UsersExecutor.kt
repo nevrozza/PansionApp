@@ -13,6 +13,7 @@ import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import server.Moderation
 import users.UsersStore.Intent
 import users.UsersStore.Label
@@ -20,12 +21,18 @@ import users.UsersStore.Message
 import users.UsersStore.State
 
 class UsersExecutor(
-    private val adminRepository: AdminRepository,
+    private val adminRepository: AdminRepository = Inject.instance(),
     private val nUsersInterface: NetworkInterface,
     private val eUserBottomSheet: CBottomSheetComponent,
     private val cUserBottomSheet: CBottomSheetComponent,
     private val eDeleteDialog: CAlertDialogComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+
+    override fun executeAction(action: Unit) {
+        fetchUsers(true)
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.FetchUsersInit -> fetchUsers(true)

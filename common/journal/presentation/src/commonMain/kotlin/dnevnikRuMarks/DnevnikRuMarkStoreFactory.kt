@@ -1,27 +1,16 @@
 package dnevnikRuMarks
 
-import JournalRepository
-import SettingsRepository
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.cAlertDialog.CAlertDialogComponent
-import components.networkInterface.NetworkInterface
 import dnevnikRuMarks.DnevnikRuMarkStore.Intent
 import dnevnikRuMarks.DnevnikRuMarkStore.Label
 import dnevnikRuMarks.DnevnikRuMarkStore.State
-import dnevnikRuMarks.DnevnikRuMarkStore.Message
-import studentReportDialog.StudentReportComponent
-import studentReportDialog.StudentReportDialogExecutor
 
 class DnevnikRuMarkStoreFactory(
     private val storeFactory: StoreFactory,
-    private val login: String,
-    private val nInterface: NetworkInterface,
-    private val journalRepository: JournalRepository,
-    private val settingsRepository: SettingsRepository,
-    private val stupsDialogComponent: CAlertDialogComponent,
-    private val studentReportDialog: StudentReportComponent
+    private val state: State,
+    private val executor: DnevnikRuMarkExecutor
 ) {
 
     fun create(): DnevnikRuMarkStore {
@@ -32,11 +21,9 @@ class DnevnikRuMarkStoreFactory(
         DnevnikRuMarkStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "DnevnikRuMarkStore",
-            initialState = DnevnikRuMarkStore.State(
-                studentLogin = login,
-                isTableView = settingsRepository.fetchIsMarkTable()
-            ),
-            executorFactory = { DnevnikRuMarkExecutor(journalRepository = journalRepository, nInterface = nInterface, stupsDialogComponent = stupsDialogComponent, studentReportDialog = studentReportDialog) },
-            reducer = DnevnikRuMarkReducer
+            initialState = state,
+            executorFactory = ::executor,
+            reducer = DnevnikRuMarkReducer,
+            bootstrapper = SimpleBootstrapper(Unit)
         )
 }

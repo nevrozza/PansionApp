@@ -5,6 +5,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import homeTasksDialog.HomeTasksDialogStore.Intent
 import homeTasksDialog.HomeTasksDialogStore.Label
 import homeTasksDialog.HomeTasksDialogStore.Message
@@ -12,7 +13,7 @@ import homeTasksDialog.HomeTasksDialogStore.State
 import homework.RFetchGroupHomeTasksReceive
 
 class HomeTasksDialogExecutor(
-    private val journalRepository: JournalRepository,
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val nInterface: NetworkInterface
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {

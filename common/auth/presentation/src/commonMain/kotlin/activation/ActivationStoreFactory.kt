@@ -1,14 +1,13 @@
 package activation
 
-import AuthRepository
 import activation.ActivationStore.Intent
 import activation.ActivationStore.State
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 
 class ActivationStoreFactory(
-    private val storeFactory: StoreFactory,
-    private val authRepository: AuthRepository
+    private val storeFactory: StoreFactory
 ) {
 
     fun create(): ActivationStore {
@@ -21,10 +20,9 @@ class ActivationStoreFactory(
             name = "ActivationStore",
             initialState = State(),
             executorFactory = {
-                ActivationExecutor(
-                    authRepository = authRepository
-                )
+                ActivationExecutor()
             },
-            reducer = ActivationReducer
+            reducer = ActivationReducer,
+            bootstrapper = SimpleBootstrapper(Unit)
         )
 }

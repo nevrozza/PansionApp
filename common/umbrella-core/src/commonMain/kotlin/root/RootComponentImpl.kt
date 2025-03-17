@@ -12,7 +12,7 @@ import activation.ActivationComponent
 import admin.AdminComponent
 import allGroupMarks.AllGroupMarksComponent
 import applicationVersion
-import asValue
+import decompose.asValue
 import cabinets.CabinetsComponent
 import calendar.CalendarComponent
 import com.arkivanov.decompose.ComponentContext

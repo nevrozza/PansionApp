@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -54,35 +55,35 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.GetAsyncIcon
 import components.foundation.AppBar
-import components.foundation.CLazyColumn
 import components.foundation.CCheckbox
+import components.foundation.CLazyColumn
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.GetAsyncIcon
-import components.journal.TeacherTime
 import components.foundation.cClickable
+import components.journal.TeacherTime
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
+import components.refresh.PullRefreshIndicator
 import components.refresh.RefreshButton
 import components.refresh.RefreshWithoutPullCircle
 import components.refresh.keyRefresh
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import journal.JournalComponent
 import journal.JournalStore
-import components.refresh.PullRefreshIndicator
-import components.refresh.pullRefresh
-import components.refresh.rememberPullRefreshState
 import resources.RIcons
 import server.Moderation
 import server.Roles
+import utils.cursor.handy
 import view.LocalViewManager
 import view.WindowScreen
-import utils.cursor.handy
 
 @ExperimentalMaterial3Api
 @ExperimentalLayoutApi
@@ -219,7 +220,7 @@ private fun TrueJournalContent(
                                                 },
                                                 label = {
                                                     AnimatedContent(
-                                                        if (!isPicked) "Учитель" else component.fTeachersListComponent.state.value.list.first { it.id == model.filterTeacherLogin }.text
+                                                        if (!isPicked) "Учитель" else component.fTeachersListComponent.model.value.list.first { it.id == model.filterTeacherLogin }.text
                                                     ) {
                                                         Text(
                                                             it, maxLines = 1,
@@ -257,7 +258,7 @@ private fun TrueJournalContent(
                                                 },
                                                 label = {
                                                     AnimatedContent(
-                                                        if (!isPicked) "Группа" else component.fGroupListComponent.state.value.list.first { it.id == model.filterGroupId.toString() }.text
+                                                        if (!isPicked) "Группа" else component.fGroupListComponent.model.value.list.first { it.id == model.filterGroupId.toString() }.text
                                                     ) {
                                                         Text(
                                                             it, maxLines = 1,

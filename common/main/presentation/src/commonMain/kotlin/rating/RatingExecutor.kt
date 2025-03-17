@@ -8,6 +8,7 @@ import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import getWeeks
 import rating.RatingStore.Intent
 import rating.RatingStore.Label
@@ -15,13 +16,16 @@ import rating.RatingStore.Message
 import rating.RatingStore.State
 
 class RatingExecutor(
-    private val mainRepository: MainRepository,
+    private val mainRepository: MainRepository = Inject.instance(),
     private val nInterface: NetworkInterface,
     private val subjectsListComponent: ListComponent,
     private val weeksListComponent: ListComponent,
     private val moduleListComponent: ListComponent,
     private val periodListComponent: ListComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> init()

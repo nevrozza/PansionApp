@@ -1,21 +1,17 @@
 package home
 
 import FIO
-import JournalRepository
-import MainRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
-import di.Inject
+import decompose.DefaultMVIComponent
+import home.HomeStore.State
 import journal.JournalComponent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
 import school.SchoolComponent
 import school.SchoolStore
+import server.Moderation
 import studentReportDialog.StudentReportComponent
 
 
@@ -34,8 +30,7 @@ class HomeComponent(
     private val moderation: String,
     val onBackButtonPress: (() -> Unit)? = null,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
-    //    private val settingsRepository: SettingsRepository = Inject.instance()
+) : ComponentContext by componentContext, DefaultMVIComponent<HomeStore.Intent, State, HomeStore.Label> {
     val reportsDialog = CAlertDialogComponent(
         componentContext,
         storeFactory,
@@ -72,60 +67,36 @@ class HomeComponent(
         storeFactory = storeFactory
     )
 
-//    private val authRepository: AuthRepository = Inject.instance()
-    private val mainRepository: MainRepository = Inject.instance()
-    private val journalRepository: JournalRepository = Inject.instance()
-    private val homeStore =
+    override val store =
         instanceKeeper.getStore {
             HomeStoreFactory(
                 storeFactory = storeFactory,
-                mainRepository = mainRepository,
-                quickTabNInterface = quickTabNInterface,
-                teacherNInterface = teacherNInterface,
-                gradesNInterface = gradesNInterface,
-                scheduleNInterface = scheduleNInterface,
-                journalComponent = journalComponent,
-                avatarId = avatarId,
-                login = login,
-                name = name,
-                surname = surname,
-                praname = praname,
-                role = role,
-                moderation = moderation,
-                isParent = isParent,
-                journalRepository = journalRepository
+                state = State(
+                    avatarId = avatarId,
+                    login = login,
+                    name = name,
+                    surname = surname,
+                    praname = praname,
+                    role = role,
+                    isParent = isParent,
+                    isMentor = moderation in listOf(Moderation.MENTOR, Moderation.BOTH),
+                    isModer = moderation in listOf(Moderation.MODERATOR, Moderation.BOTH)
+                ),
+                executor = HomeExecutor(
+                    quickTabNInterface = quickTabNInterface,
+                    teacherNInterface = teacherNInterface,
+                    gradesNInterface = gradesNInterface,
+                    scheduleNInterface = scheduleNInterface,
+                    journalComponent = journalComponent
+                )
             ).create()
         }
 
-    val model = homeStore.asValue()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<HomeStore.State> = homeStore.stateFlow
-
-//    fun getLogin() : String {
-//        return model.value.login
-//    }
-
-    fun onEvent(event: HomeStore.Intent) {
-        homeStore.accept(event)
-    }
 
     fun onRefreshClick() {
         onEvent(HomeStore.Intent.Init)
         schoolComponent.onEvent(SchoolStore.Intent.RefreshOnlyDuty)
     }
-
-    init {
-        onEvent(HomeStore.Intent.Init)
-        //.Init(
-        //            avatarId = authRepository.fetchAvatarId(),
-        //            login = authRepository.fetchLogin(),
-        //            name = authRepository.fetchName(),
-        //            surname = authRepository.fetchSurname(),
-        //            praname = authRepository.fetchPraname()
-        //
-    }
-
     fun onOutput(output: Output) {
         output(output)
     }

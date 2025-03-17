@@ -6,8 +6,6 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
 import android.view.ViewTreeObserver
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -24,7 +22,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import di.Inject
 import view.LocalViewManager
-import view.ThemeTint
+import view.isThemeDark
 
 @Composable
 actual fun dynamicDarkScheme(): ColorScheme? {
@@ -40,7 +38,6 @@ actual fun dynamicDarkScheme(): ColorScheme? {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 actual fun dynamicLightScheme(): ColorScheme? {
     val platformConfiguration: PlatformConfiguration = Inject.instance()
@@ -60,14 +57,11 @@ actual fun dynamicLightScheme(): ColorScheme? {
 actual fun StatusBarColorFix() {
     val viewManager = LocalViewManager.current
     val systemUiController = rememberSystemUiController()
-    if(!isSystemInDarkTheme()) {
-
-        systemUiController.setStatusBarColor(
-            color = Color.Transparent,
-            darkIcons = viewManager.tint.value != ThemeTint.Dark
-        )
-
-    }
+    systemUiController.setSystemBarsColor(
+        color = Color.Transparent,
+        darkIcons = !isThemeDark(isDarkPriority = false, viewManager.tint.value),
+        isNavigationBarContrastEnforced = false
+    )
 }
 
 @Composable

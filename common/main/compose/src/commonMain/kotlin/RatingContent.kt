@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,26 +54,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.foundation.AppBar
-import components.foundation.CLazyColumn
-import components.foundation.CCheckbox
-import components.foundation.DefaultErrorView
-import components.foundation.DefaultErrorViewPos
 import components.GetAsyncAvatar
 import components.GetAsyncIcon
 import components.PeriodButton
+import components.foundation.AppBar
+import components.foundation.CCheckbox
+import components.foundation.CLazyColumn
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.foundation.cClickable
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
+import components.refresh.PullRefreshIndicator
 import components.refresh.RefreshButton
 import components.refresh.RefreshWithoutPullCircle
 import components.refresh.keyRefresh
-import decomposeComponents.listDialogComponent.ListDialogDesktopContent
-import decomposeComponents.listDialogComponent.ListDialogMobileContent
-import components.refresh.PullRefreshIndicator
 import components.refresh.pullRefresh
 import components.refresh.rememberPullRefreshState
+import decomposeComponents.listDialogComponent.ListDialogDesktopContent
+import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import rating.PansionPeriod
 import rating.RatingComponent
 import rating.RatingItem
@@ -80,10 +81,9 @@ import rating.RatingStore
 import rating.toStr
 import resources.RIcons
 import server.roundTo
+import utils.toColor
 import view.LocalViewManager
 import view.WindowScreen
-import androidx.compose.desktop.ui.tooling.preview.utils.esp
-import utils.toColor
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
@@ -264,7 +264,7 @@ fun SharedTransitionScope.RatingContent(
                                     onClick = { component.formsListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
                                     label = {
                                         AnimatedContent(
-                                            component.formsListComponent.state.value.list.firstOrNull { it.id.toInt() == model.forms }?.text
+                                            component.formsListComponent.model.value.list.firstOrNull { it.id.toInt() == model.forms }?.text
                                                 ?: "Загрузка.."
                                         ) {
                                             Text(
@@ -281,7 +281,7 @@ fun SharedTransitionScope.RatingContent(
                                 inActiveText = "Недели",
                                 currentPeriod = model.period?.toStr() ?: "",
                                 isActive = model.period is PansionPeriod.Week,
-                                component = component.weekListComponent
+                                component = component.weeksListComponent
                             )
                             Spacer(Modifier.width(5.dp))
                             PeriodButton(

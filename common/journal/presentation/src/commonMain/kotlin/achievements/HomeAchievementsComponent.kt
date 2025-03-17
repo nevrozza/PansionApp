@@ -1,13 +1,11 @@
 package achievements
 
-import JournalRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
-import di.Inject
+import decompose.DefaultMVIComponent
+import decompose.getChildContext
 
 class HomeAchievementsComponent(
     componentContext: ComponentContext,
@@ -16,44 +14,30 @@ class HomeAchievementsComponent(
     private val name: String,
     private val avatarId: Int,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext,
+    DefaultMVIComponent<HomeAchievementsStore.Intent, HomeAchievementsStore.State, HomeAchievementsStore.Label> {
     private val nInterfaceName = "homeAchievementsComponentNInterface"
 
 
     val nInterface = NetworkInterface(
-        childContext(nInterfaceName + "CONTEXT"),
+        getChildContext(nInterfaceName),
         storeFactory,
         nInterfaceName
     )
-
-    private val journalRepository: JournalRepository = Inject.instance()
-
-
-    private val homeAchievementsStore =
+    override val store =
         instanceKeeper.getStore {
             HomeAchievementsStoreFactory(
                 storeFactory = storeFactory,
-                login = login,
-                nInterface = nInterface,
-                journalRepository = journalRepository,
-                name = name,
-                avatarId = avatarId
+                executor = HomeAchievementsExecutor(
+                    nInterface = nInterface
+                ),
+                state = HomeAchievementsStore.State(
+                    login = login,
+                    name = name,
+                    avatarId = avatarId
+                )
             ).create()
         }
-
-
-    init {
-        onEvent(HomeAchievementsStore.Intent.Init)
-    }
-
-    val model = homeAchievementsStore.asValue()
-
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    val state: StateFlow<UsersStore.State> = usersStore.stateFlow
-
-    fun onEvent(event: HomeAchievementsStore.Intent) {
-        homeAchievementsStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)

@@ -6,6 +6,7 @@ import components.cBottomSheet.CBottomSheetComponent
 import components.cBottomSheet.CBottomSheetStore
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import report.RFetchStudentReportReceive
 import studentReportDialog.StudentReportDialogStore.Intent
 import studentReportDialog.StudentReportDialogStore.Label
@@ -13,7 +14,7 @@ import studentReportDialog.StudentReportDialogStore.Message
 import studentReportDialog.StudentReportDialogStore.State
 
 class StudentReportDialogExecutor(
-    private val journalRepository: JournalRepository,
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val dialog: CBottomSheetComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {

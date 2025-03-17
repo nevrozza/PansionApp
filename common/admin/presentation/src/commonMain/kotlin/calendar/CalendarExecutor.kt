@@ -12,11 +12,17 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 
 class CalendarExecutor(
-    private val adminRepository: AdminRepository,
+    private val adminRepository: AdminRepository = Inject.instance(),
     private val nInterface: NetworkInterface
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> init()

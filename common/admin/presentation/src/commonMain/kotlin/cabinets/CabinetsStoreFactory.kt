@@ -1,19 +1,15 @@
 package cabinets
 
-import AdminRepository
-import com.arkivanov.mvikotlin.core.store.Store
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import com.arkivanov.mvikotlin.core.store.StoreFactory
 import cabinets.CabinetsStore.Intent
 import cabinets.CabinetsStore.Label
 import cabinets.CabinetsStore.State
-import cabinets.CabinetsStore.Message
-import components.networkInterface.NetworkInterface
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
+import com.arkivanov.mvikotlin.core.store.Store
+import com.arkivanov.mvikotlin.core.store.StoreFactory
 
 class CabinetsStoreFactory(
     private val storeFactory: StoreFactory,
-    private val adminRepository: AdminRepository,
-    private val nInterface: NetworkInterface
+    private val executor: CabinetsExecutor
 ) {
 
     fun create(): CabinetsStore {
@@ -25,10 +21,8 @@ class CabinetsStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "CabinetsStore",
             initialState = State(),
-            executorFactory = { CabinetsExecutor(
-                adminRepository = adminRepository,
-                nInterface = nInterface
-            ) },
-            reducer = CabinetsReducer
+            executorFactory = ::executor,
+            reducer = CabinetsReducer,
+            bootstrapper = SimpleBootstrapper(Unit)
         )
 }

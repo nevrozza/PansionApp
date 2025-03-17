@@ -1,6 +1,5 @@
 plugins {
     id("multiplatform-setup")
-//    id("android-setup")
     id(libs.plugins.serialization.get().pluginId)
 }
 

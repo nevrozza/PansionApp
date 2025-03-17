@@ -1,23 +1,18 @@
 package journal
 
 import AuthRepository
-import MainRepository
 import ReportData
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
-import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
+import decompose.DefaultMVIComponent
 import di.Inject
 import journal.init.TeacherGroup
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
 import report.ReportHeader
 import server.getDate
 import server.getSixTime
@@ -30,10 +25,9 @@ class JournalComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
-    //    private val settingsRepository: SettingsRepository = Inject.instance()
+) : ComponentContext by componentContext, DefaultMVIComponent<JournalStore.Intent, JournalStore.State, JournalStore.Label> {
     private val authRepository: AuthRepository = Inject.instance()
-    private val mainRepository: MainRepository = Inject.instance()
+
     val nInterface = NetworkInterface(componentContext, storeFactory, "journalCComponent")
     val nOpenReportInterface = NetworkInterface(componentContext, storeFactory, "nOpenReportComponent")
     val groupListComponent = ListComponent(
@@ -98,24 +92,24 @@ class JournalComponent(
     }
 
     private fun getReportHeader(
-        teacherGroups: List<TeacherGroup> = state.value.teacherGroups
+        teacherGroups: List<TeacherGroup> = store.state.teacherGroups
     ): ReportHeader {
         val group =
-            teacherGroups.first { it.cutedGroup.groupId == state.value.currentGroupId }
-        val time = if (state.value.time != "") state.value.time else getSixTime()
+            teacherGroups.first { it.cutedGroup.groupId == store.state.currentGroupId }
+        val time = if (store.state.time != "") store.state.time else getSixTime()
         onEvent(JournalStore.Intent.ResetTime)
         return ReportHeader(
             reportId = model.value.creatingReportId,
             subjectName = group.subjectName,
             subjectId = group.subjectId, //не нужное
             groupName = group.cutedGroup.groupName,
-            groupId = state.value.currentGroupId,
+            groupId = store.state.currentGroupId,
             teacherName = "${authRepository.fetchSurname()} ${authRepository.fetchName()[0]}. ${authRepository.fetchPraname()[0]}.",
             teacherLogin = authRepository.fetchLogin(),
             date = getDate(),
             time = time,
             status = false,
-            module = state.value.currentModule,
+            module = store.state.currentModule,
             theme = ""
         )
     }
@@ -144,16 +138,14 @@ class JournalComponent(
         )
     }
 
-    private val journalStore =
+    override val store =
         instanceKeeper.getStore {
             JournalStoreFactory(
                 storeFactory = storeFactory,
-                mainRepository = mainRepository,
                 groupListComponent = groupListComponent,
                 studentsInGroupCAlertDialogComponent = studentsInGroupCAlertDialogComponent,
                 nInterface = nInterface,
                 nOpenReportInterface = nOpenReportInterface,
-//                authRepository = authRepository
                 fTeachersListComponent = fTeachersListComponent,
                 fGroupListComponent = fGroupListComponent,
                 fDateListComponent = fDateListComponent,
@@ -161,34 +153,6 @@ class JournalComponent(
                 authRepository = authRepository
             ).create()
         }
-
-    val model = journalStore.asValue()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<JournalStore.State> = journalStore.stateFlow
-
-
-    init {
-        fStatusListComponent.onEvent(
-            ListDialogStore.Intent.InitList(
-                listOf(
-                    ListItem(
-                        id = "True",
-                        text = "Закончен"
-                    ),
-                    ListItem(
-                        id = "False",
-                        text = "В процессе"
-                    )
-                )
-            )
-        )
-//        onEvent(JournalStore.Intent.Init )
-    }
-
-    fun onEvent(event: JournalStore.Intent) {
-        journalStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)

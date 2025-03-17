@@ -22,8 +22,8 @@ class QRExecutor(
     private val nInterface: NetworkInterface,
     private val authBottomSheet: CBottomSheetComponent,
     private val registerBottomSheet: CBottomSheetComponent,
-    private val authRepository: AuthRepository,
-    private val settingsRepository: SettingsRepository,
+    private val authRepository: AuthRepository = Inject.instance(),
+    private val settingsRepository: SettingsRepository = Inject.instance(),
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {

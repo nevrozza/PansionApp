@@ -51,7 +51,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -89,6 +88,7 @@ import components.foundation.CCheckbox
 import components.foundation.CLazyColumn
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
+import components.foundation.TonalCard
 import components.foundation.cClickable
 import components.foundation.hazeHeader
 import components.networkInterface.NetworkState
@@ -126,58 +126,91 @@ fun SharedTransitionScope.ProfileContent(
 
 
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
-    val avatarsList: List<Pair<String, List<Pair<Int, PricedAvatar>>>> = if (model.avatars != null) remember {
-        listOf(
-            "Символы" to Images.symbolsCostedAvatars.map {
-                it.key to it.value.copy(
-                    price = if (model.avatars?.contains(
-                            it.key
-                        ) == true
-                    ) 0 else it.value.price
-                )
-            }
-                .sortedBy { it.second.price }
-                .filter { it.first != Images.Avatars.Symbols.pansionPrint.first || model.ministryId == Ministries.PRINT } + (0 to PricedAvatar(
-                path = null,
-                price = 0
-            )),
-            "Картины" to Images.picturesCostedAvatars.map {
-                it.key to it.value.copy(
-                    price = if (model.avatars?.contains(
-                            it.key
-                        ) == true
-                    ) 0 else it.value.price
-                )
-            }
-                .sortedBy { it.second.price },
-            "Котики" to Images.catsCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-                .sortedBy { it.second.price },
-            "Котяо" to Images.catsMCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-                .sortedBy { it.second.price },
-            "Смешарики" to Images.smesharikiCostedAvatars.map {
-                it.key to it.value.copy(
-                    price = if (model.avatars?.contains(
-                            it.key
-                        ) == true
-                    ) 0 else it.value.price
-                )
-            }.sortedBy { it.second.price },
-            "Аниме?.." to Images.animeCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-                .sortedBy { it.second.price },
-            "Другое" to Images.othersCostedAvatars.map { it.key to it.value.copy(price = if (model.avatars?.contains(it.key) == true) 0 else it.value.price) }
-                .sortedBy { it.second.price }
-        ) + if (model.fio.name in listOf("Артём", "Артëм") && model.fio.surname == "Маташков") listOf(
-            "nevrozq" to Images.nevrozqCostedAvatars.map {
-                it.key to it.value.copy(
-                    price = if (model.avatars?.contains(
-                            it.key
-                        ) == true
-                    ) 0 else it.value.price
-                )
-            }
-                .sortedBy { it.second.price }
-        ) else listOf()
-    } else listOf()
+    val avatarsList: List<Pair<String, List<Pair<Int, PricedAvatar>>>> =
+        if (model.avatars != null) remember {
+            listOf(
+                "Символы" to Images.symbolsCostedAvatars.map {
+                    it.key to it.value.copy(
+                        price = if (model.avatars?.contains(
+                                it.key
+                            ) == true
+                        ) 0 else it.value.price
+                    )
+                }
+                    .sortedBy { it.second.price }
+                    .filter { it.first != Images.Avatars.Symbols.pansionPrint.first || model.ministryId == Ministries.PRINT } + (0 to PricedAvatar(
+                    path = null,
+                    price = 0
+                )),
+                "Картины" to Images.picturesCostedAvatars.map {
+                    it.key to it.value.copy(
+                        price = if (model.avatars?.contains(
+                                it.key
+                            ) == true
+                        ) 0 else it.value.price
+                    )
+                }
+                    .sortedBy { it.second.price },
+                "Котики" to Images.catsCostedAvatars.map {
+                    it.key to it.value.copy(
+                        price = if (model.avatars?.contains(
+                                it.key
+                            ) == true
+                        ) 0 else it.value.price
+                    )
+                }
+                    .sortedBy { it.second.price },
+                "Котяо" to Images.catsMCostedAvatars.map {
+                    it.key to it.value.copy(
+                        price = if (model.avatars?.contains(
+                                it.key
+                            ) == true
+                        ) 0 else it.value.price
+                    )
+                }
+                    .sortedBy { it.second.price },
+                "Смешарики" to Images.smesharikiCostedAvatars.map {
+                    it.key to it.value.copy(
+                        price = if (model.avatars?.contains(
+                                it.key
+                            ) == true
+                        ) 0 else it.value.price
+                    )
+                }.sortedBy { it.second.price },
+                "Аниме?.." to Images.animeCostedAvatars.map {
+                    it.key to it.value.copy(
+                        price = if (model.avatars?.contains(
+                                it.key
+                            ) == true
+                        ) 0 else it.value.price
+                    )
+                }
+                    .sortedBy { it.second.price },
+                "Другое" to Images.othersCostedAvatars.map {
+                    it.key to it.value.copy(
+                        price = if (model.avatars?.contains(
+                                it.key
+                            ) == true
+                        ) 0 else it.value.price
+                    )
+                }
+                    .sortedBy { it.second.price }
+            ) + if (model.fio.name in listOf(
+                    "Артём",
+                    "Артëм"
+                ) && model.fio.surname == "Маташков"
+            ) listOf(
+                "nevrozq" to Images.nevrozqCostedAvatars.map {
+                    it.key to it.value.copy(
+                        price = if (model.avatars?.contains(
+                                it.key
+                            ) == true
+                        ) 0 else it.value.price
+                    )
+                }
+                    .sortedBy { it.second.price }
+            ) else listOf()
+        } else listOf()
 
 
     //PullToRefresh
@@ -305,10 +338,12 @@ fun SharedTransitionScope.ProfileContent(
                                 textSize = 75.esp,
                                 modifier = Modifier.sharedElementWithCallerManagedVisibility(
                                     sharedContentState = rememberSharedContentState(key = model.studentLogin + "avatar"),
-                                    visible = isSharedVisible
+                                    visible = isSharedVisible,
+                                    renderInOverlayDuringTransition = false
                                 )
                             )
                             val delay = 300
+                            @Suppress("LABEL_NAME_CLASH")
                             this@Column.AnimatedVisibility(
                                 visible = model.ministryLvl != "0" && isSharedVisible,
                                 enter = expandIn(
@@ -317,6 +352,7 @@ fun SharedTransitionScope.ProfileContent(
                                 ) + scaleIn(animationSpec = tween(delayMillis = delay)),
                                 exit = fadeOut() + scaleOut(),
                                 modifier = Modifier.offset(x = -5.dp, y = -5.dp)
+                                    .renderInSharedTransitionScopeOverlay(zIndexInOverlay = 1f)
                             ) {
                                 GetAsyncIcon(
                                     path = RIcons.ROCKET_LAUNCH,
@@ -324,6 +360,7 @@ fun SharedTransitionScope.ProfileContent(
                                     tint = MaterialTheme.colorScheme.inversePrimary.hv()
                                 )
                             }
+                            @Suppress("LABEL_NAME_CLASH")
                             this@Column.AnimatedVisibility(
                                 visible = model.ministryId != "0" && isSharedVisible,
                                 enter = fadeIn(animationSpec = tween(delayMillis = delay)) + scaleIn(
@@ -333,6 +370,7 @@ fun SharedTransitionScope.ProfileContent(
                                 ),
                                 exit = fadeOut() + scaleOut(),
                                 modifier = Modifier.align(Alignment.BottomEnd)
+                                    .renderInSharedTransitionScopeOverlay(zIndexInOverlay = 1f)
                             ) {
                                 GetAsyncIcon(
                                     path = when (model.ministryId) {
@@ -390,7 +428,10 @@ fun SharedTransitionScope.ProfileContent(
                             ),
                             modifier = Modifier.animateContentSize()
                         ) {
-                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 if (it) {
 
                                     val price =
@@ -450,7 +491,11 @@ fun SharedTransitionScope.ProfileContent(
                                                 }
 
                                                 NetworkState.Loading -> {
-                                                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(
+                                                            20.dp
+                                                        )
+                                                    )
                                                 }
 
                                                 NetworkState.Error -> {
@@ -545,15 +590,14 @@ fun SharedTransitionScope.ProfileContent(
                                     Column {
                                         Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
                                             if (model.form != null) {
-                                                ElevatedCard(
+                                                TonalCard(
                                                     Modifier.fillMaxWidth()
-                                                        .clip(CardDefaults.elevatedShape)
-                                                        .weight(1f)
-                                                        .clickable() {
-                                                            component.giaCBottomSheetComponent.onEvent(
-                                                                CBottomSheetStore.Intent.ShowSheet
-                                                            )
-                                                        }
+                                                        .weight(1f),
+                                                    onClick = {
+                                                        component.giaCBottomSheetComponent.onEvent(
+                                                            CBottomSheetStore.Intent.ShowSheet
+                                                        )
+                                                    }
                                                 ) {
                                                     val modifier = Modifier
                                                         .fillMaxWidth()
@@ -600,20 +644,19 @@ fun SharedTransitionScope.ProfileContent(
                                                 }
                                                 Spacer(Modifier.width(15.dp))
                                             }
-                                            ElevatedCard(
+                                            TonalCard(
                                                 Modifier.fillMaxWidth()
-                                                    .clip(CardDefaults.elevatedShape)
-                                                    .weight(1f)
-                                                    .clickable() {
-                                                        component.onOutput(
-                                                            ProfileComponent.Output.OpenAchievements(
-                                                                login = model.studentLogin,
-                                                                name = model.fio.name,
-                                                                avatarId = model.avatarId
-                                                            )
+                                                    .weight(1f),
+                                                shape = CardDefaults.elevatedShape,
+                                                onClick = {
+                                                    component.onOutput(
+                                                        ProfileComponent.Output.OpenAchievements(
+                                                            login = model.studentLogin,
+                                                            name = model.fio.name,
+                                                            avatarId = model.avatarId
                                                         )
-//
-                                                    }
+                                                    )
+                                                }
                                             ) {
                                                 Column(
                                                     Modifier.padding(
@@ -627,7 +670,9 @@ fun SharedTransitionScope.ProfileContent(
                                                     Box(
                                                         Modifier.fillMaxWidth()
                                                             .sharedElementWithCallerManagedVisibility(
-                                                                sharedContentState = rememberSharedContentState(key = "EventsTitle"),
+                                                                sharedContentState = rememberSharedContentState(
+                                                                    key = "EventsTitle"
+                                                                ),
                                                                 visible = isSharedVisible
                                                             )
                                                     ) {
@@ -653,10 +698,8 @@ fun SharedTransitionScope.ProfileContent(
                                             }
                                         }
                                         Spacer(Modifier.height(10.dp))
-                                        ElevatedCard(
+                                        TonalCard(
                                             Modifier.fillMaxWidth()
-                                                .clip(CardDefaults.elevatedShape)
-//                                            .weight(1f)
                                         ) {
                                             Column(
                                                 Modifier.padding(
@@ -692,7 +735,12 @@ fun SharedTransitionScope.ProfileContent(
 
                     item {
 
-                        Box(Modifier.fillMaxWidth().height(((viewManager.size?.maxHeight ?: 0.dp) - padding.calculateTopPadding()).coerceAtLeast(0.dp)), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier.fillMaxWidth().height(
+                                ((viewManager.size?.maxHeight
+                                    ?: 0.dp) - padding.calculateTopPadding()).coerceAtLeast(0.dp)
+                            ), contentAlignment = Alignment.Center
+                        ) {
                             if (model.isStatsOpened != null) {
 
                                 val isOpened = model.isStatsOpened ?: false
@@ -726,17 +774,28 @@ fun SharedTransitionScope.ProfileContent(
                                     }
 
                                 } else if (!model.isOwner) {
-                                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(
+                                        Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
                                         GetAsyncIcon(
                                             path = RIcons.VISIBILITY_OFF,
                                             size = 50.dp
                                         )
                                         Spacer(Modifier.height(10.dp))
-                                        Text("Пользователь скрыл свою статистику", modifier = Modifier.alpha(.5f), textAlign = TextAlign.Center)
+                                        Text(
+                                            "Пользователь скрыл свою статистику",
+                                            modifier = Modifier.alpha(.5f),
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
                                 }
                             } else {
-                                Text("Подождите немного. Данные загружаются", modifier = Modifier.alpha(.5f), textAlign = TextAlign.Center)
+                                Text(
+                                    "Подождите немного. Данные загружаются",
+                                    modifier = Modifier.alpha(.5f),
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
                     }
@@ -820,7 +879,12 @@ private fun AvatarsBlock(
     component: ProfileComponent
 ) {
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
-    Text(title, fontSize = 24.esp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+    Text(
+        title,
+        fontSize = 24.esp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(top = 10.dp)
+    )
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         FlowRow(
             Modifier.padding(vertical = 10.dp),
@@ -933,7 +997,10 @@ private fun GroupsItem(subjects: List<Subject>, teachers: HashMap<String, String
                 Text(teacher)
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(.5f, false)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(.5f, false)
+        ) {
             GetAsyncIcon(
                 path = RIcons.FIRE,
                 size = 22.dp
@@ -958,7 +1025,8 @@ private fun AvatarButton(
         GetAsyncAvatar(
             avatarId = i,
             name = name,
-            modifier = Modifier.padding(5.dp).padding(top = 5.dp).clip(CircleShape).clickable { onClick() },
+            modifier = Modifier.padding(5.dp).padding(top = 5.dp).clip(CircleShape)
+                .clickable { onClick() },
             isHighQuality = false,
             prePath = path
         )

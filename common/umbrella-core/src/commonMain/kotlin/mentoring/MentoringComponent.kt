@@ -1,23 +1,12 @@
 package mentoring
 
 import FIO
-import MainRepository
-import SettingsRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.childContext
-import com.arkivanov.decompose.router.stack.ChildStack
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.networkInterface.NetworkInterface
-import di.Inject
-import profile.ProfileStore
+import decompose.DefaultMVIComponent
 import root.RootComponent
-import root.RootComponent.Child
-import root.RootComponent.Config
 
 //data class JournalComponentData(
 //    val header: ReportHeader
@@ -27,10 +16,8 @@ class MentoringComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext, DefaultMVIComponent<MentoringStore.Intent, MentoringStore.State, MentoringStore.Label> {
 
-    val mainRepository: MainRepository = Inject.instance()
-//    val setingsRepository: SettingsRepository = Inject.instance()
     private val nInterfaceName = "MentoringComponentNInterface"
     private val nPreAttendanceInterfaceName = "MentoringPreAttendanceComponentNInterface"
 
@@ -45,26 +32,17 @@ class MentoringComponent(
         storeFactory = storeFactory,
         name = nPreAttendanceInterfaceName
     )
-    private val mentoringStore =
+    override val store =
         instanceKeeper.getStore {
             MentoringStoreFactory(
                 storeFactory = storeFactory,
-                mainRepository = mainRepository,
-                nInterface = nInterface,
-                nPreAttendance = nPreAttendanceInterface
+                executor = MentoringExecutor(
+                    nInterface = nInterface,
+                    nPreAttendance = nPreAttendanceInterface
+                )
             ).create()
         }
 
-    val model = mentoringStore.asValue()
-
-
-    init {
-        onEvent(MentoringStore.Intent.FetchStudents)
-    }
-
-    fun onEvent(event: MentoringStore.Intent) {
-        mentoringStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)

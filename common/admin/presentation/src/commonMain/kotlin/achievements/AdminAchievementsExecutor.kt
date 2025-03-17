@@ -12,17 +12,23 @@ import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import server.ExtraSubjectsId
 import server.getDate
 
 class AdminAchievementsExecutor(
-    private val adminRepository: AdminRepository,
+    private val adminRepository: AdminRepository = Inject.instance(),
     private val bottomSheetComponent: CBottomSheetComponent,
     private val hugeBottomSheetComponent: CBottomSheetComponent,
     private val editBottomSheetComponent: CBottomSheetComponent,
     private val nInterface: NetworkInterface,
     private val nBSInterface: NetworkInterface,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> init()

@@ -1,18 +1,13 @@
 package profile
 
-import AuthRepository
 import FIO
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cBottomSheet.CBottomSheetComponent
 import components.networkInterface.NetworkInterface
-import di.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
+import decompose.DefaultMVIComponent
 
 class ProfileComponent(
     componentContext: ComponentContext,
@@ -24,8 +19,7 @@ class ProfileComponent(
     isCanEdit: Boolean,
     val changeAvatarOnMain: (Int) -> Unit,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
-    private val authRepository: AuthRepository = Inject.instance()
+) : ComponentContext by componentContext, DefaultMVIComponent<ProfileStore.Intent, ProfileStore.State, ProfileStore.Label> {
     val nAboutMeInterface = NetworkInterface(
         componentContext,
         storeFactory,
@@ -43,45 +37,36 @@ class ProfileComponent(
         name = "giaCBottomSheetComponent"
     )
 
-    
 
-
-    private val profileStore =
+    override val store =
         instanceKeeper.getStore {
             ProfileStoreFactory(
                 storeFactory = storeFactory,
-                authRepository = authRepository,
-                fio = fio,
-                studentLogin = studentLogin,
-                avatarId = avatarId,
-                nAvatarInterface = nAvatarInterface,
-                nAboutMeInterface = nAboutMeInterface,
-                changeAvatarOnMain = { changeAvatarOnMain(it) },
-                isOwner = isOwner,
-                isCanEdit = isCanEdit
+                state = ProfileStore.State(
+                    studentLogin = studentLogin,
+                    fio = fio,
+                    avatarId = avatarId,
+                    isOwner = isOwner,
+                    isCanEdit = isCanEdit
+                ),
+                executor = ProfileExecutor(
+                    nAvatarInterface = nAvatarInterface,
+                    changeAvatarOnMain = { changeAvatarOnMain(it) },
+                    nAboutMeInterface = nAboutMeInterface
+                )
+
             ).create()
         }
 
-    val model = profileStore.asValue()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<ProfileStore.State> = profileStore.stateFlow
-
-    fun onEvent(event: ProfileStore.Intent) {
-        profileStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)
     }
 
-    init {
-        onEvent(ProfileStore.Intent.Init)
-    }
 
     sealed class Output {
         data object Back : Output()
-        data class OpenAchievements(val login: String, val name: String, val avatarId: Int) : Output()
-//        data object BackToActivation : Output()
+        data class OpenAchievements(val login: String, val name: String, val avatarId: Int) :
+            Output()
     }
 }

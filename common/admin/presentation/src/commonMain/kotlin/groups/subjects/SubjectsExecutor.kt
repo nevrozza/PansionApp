@@ -12,6 +12,7 @@ import components.cBottomSheet.CBottomSheetComponent
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import groups.subjects.SubjectsStore.Intent
 import groups.subjects.SubjectsStore.Label
 import groups.subjects.SubjectsStore.Message
@@ -22,7 +23,7 @@ import kotlinx.coroutines.launch
 
 class SubjectsExecutor(
     private val adminRepository: AdminRepository,
-    private val mainRepository: MainRepository,
+    private val mainRepository: MainRepository = Inject.instance(),
     private val nGroupInterface: NetworkInterface,
     private val nSubjectsInterface: NetworkInterface,
     private val updateSubjects: () -> Unit,

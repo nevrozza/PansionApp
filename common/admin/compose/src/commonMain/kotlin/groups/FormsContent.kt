@@ -30,7 +30,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -60,17 +59,18 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.GetAsyncIcon
+import components.GroupPicker
+import components.NSCutedGroup
+import components.NSSubject
+import components.cBottomSheet.CBottomSheetStore
 import components.foundation.AnimatedCommonButton
 import components.foundation.CLazyColumn
 import components.foundation.CTextButton
 import components.foundation.CTextField
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.GetAsyncIcon
-import components.GroupPicker
-import components.NSCutedGroup
-import components.NSSubject
-import components.cBottomSheet.CBottomSheetStore
+import components.foundation.TonalCard
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
 import excel.exportForms
@@ -119,7 +119,7 @@ fun FormsContent(
                                         )
                                     ),
                             ) {
-                                ElevatedCard(
+                                TonalCard(
                                     modifier = Modifier.defaultMinSize(minHeight = TextFieldDefaults.MinHeight)
                                         .wrapContentHeight()
                                         .fillMaxWidth(),

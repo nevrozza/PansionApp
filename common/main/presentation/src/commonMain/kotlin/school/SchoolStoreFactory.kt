@@ -1,26 +1,16 @@
 package school
 
-import JournalRepository
-import MainRepository
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.cBottomSheet.CBottomSheetComponent
-import components.networkInterface.NetworkInterface
 import school.SchoolStore.Intent
 import school.SchoolStore.Label
 import school.SchoolStore.State
 
 class SchoolStoreFactory(
     private val storeFactory: StoreFactory,
-    private val login: String,
-    private val role: String,
-    private val moderation: String,
-    private val nInterface: NetworkInterface,
-    private val nDutyInterface: NetworkInterface,
-    private val mainRepository: MainRepository,
-    private val openMinSettingsBottom: CBottomSheetComponent,
-    private val ministryOverview: CBottomSheetComponent,
-    private val journalRepository: JournalRepository
+    private val state: State,
+    private val executor: SchoolExecutor
 ) {
 
     fun create(): SchoolStore {
@@ -31,19 +21,9 @@ class SchoolStoreFactory(
         SchoolStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "SchoolStore",
-            initialState = SchoolStore.State(
-                login = login,
-                role = role,
-                moderation = moderation
-            ),
-            executorFactory = { SchoolExecutor(
-                nInterface = nInterface,
-                mainRepository = mainRepository,
-                openMinSettingsBottom = openMinSettingsBottom,
-                nDutyInterface = nDutyInterface,
-                ministryOverview = ministryOverview,
-                journalRepository = journalRepository
-            ) },
-            reducer = SchoolReducer
+            initialState = state,
+            executorFactory = ::executor,
+            reducer = SchoolReducer,
+            bootstrapper = SimpleBootstrapper(Unit)
         )
 }

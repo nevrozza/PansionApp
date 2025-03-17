@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -12,10 +13,8 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -55,10 +54,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import components.foundation.CTextButton
+import components.DefaultModalBottomSheet
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.DefaultModalBottomSheet
 import components.foundation.LoadingAnimation
 import components.foundation.hazeHeader
 import components.foundation.hazeUnder
@@ -72,7 +70,6 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import view.ViewManager
-import androidx.compose.desktop.ui.tooling.preview.utils.esp
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -271,11 +268,10 @@ fun DropdownVariant(
                     }
 
                     else -> {
-                        Text(nModel.error)
-                        Spacer(Modifier.height(7.dp))
-                        CTextButton("Попробовать ещё раз") {
-                            nModel.onFixErrorClick()
-                        }
+                        DefaultErrorView(
+                            model = nModel,
+                            pos = DefaultErrorViewPos.CenteredNotFull
+                        )
                     }
                 }
             }

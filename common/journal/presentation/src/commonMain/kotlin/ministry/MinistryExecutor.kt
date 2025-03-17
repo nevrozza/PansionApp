@@ -10,6 +10,7 @@ import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import main.school.MinistryListItem
 import main.school.MinistryStup
 import main.school.RMinistryListReceive
@@ -24,7 +25,7 @@ import server.getLocalDate
 class MinistryExecutor(
     private val nInterface: NetworkInterface,
     private val nUploadInterface: NetworkInterface,
-    private val journalRepository: JournalRepository,
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val ds1ListComponent: ListComponent,
     private val ds2ListComponent: ListComponent,
     private val ds3DialogComponent: CAlertDialogComponent

@@ -2,13 +2,11 @@ package components.listDialog
 
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.networkInterface.NetworkInterface
 
 class ListDialogStoreFactory(
     private val storeFactory: StoreFactory,
     private val name: String,
-    private val networkInterface: NetworkInterface,
-    private val customOnDismiss: (() -> Unit)? = null
+    private val executor: ListDialogExecutor
 ) {
 
     fun create(): ListDialogStore {
@@ -20,7 +18,7 @@ class ListDialogStoreFactory(
         Store<ListDialogStore.Intent, ListDialogStore.State, ListDialogStore.Label> by storeFactory.create(
             name = name+"ListDialogStore",
             initialState = ListDialogStore.State(),
-            executorFactory = { ListDialogExecutor(nInterface = networkInterface, customOnDismiss = customOnDismiss) },
+            executorFactory = ::executor,
             reducer = ListDialogReducer
         )
 }

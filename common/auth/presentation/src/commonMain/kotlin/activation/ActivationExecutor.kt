@@ -8,13 +8,19 @@ import auth.CheckActivationReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.CoroutineScope
 
 class ActivationExecutor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository = Inject.instance()
 ) :
     CoroutineExecutor<Intent, Unit, State, Message, Nothing>() {
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.InputLogin -> dispatch(Message.LoginChanged(intent.login))

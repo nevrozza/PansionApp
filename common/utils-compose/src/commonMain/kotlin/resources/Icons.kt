@@ -68,6 +68,7 @@ data object RIcons {
     const val TUNE = "sliders-solid.svg"
 
     const val LIKE = "thumbs-up-solid.svg"
+    const val LIKE_OUTLINE = "thumbs-up-regular.svg"
 
     const val FIRE = "fire-solid.svg"
 

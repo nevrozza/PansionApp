@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.nevrozq.pansion"
-version = "1.3.0-alpha08"
+version = Config.Application.version
 application {
     mainClass.set("com.nevrozq.pansion.ApplicationKt") //com.nevrozq
 
@@ -21,7 +21,7 @@ ktor {
     docker {
         jreVersion.set(JavaVersion.VERSION_17)
         localImageName.set("pansionApp-docker-image")
-        imageTag.set("1.3.0-alpha08")
+        imageTag.set(Config.Application.version)
 
         portMappings.set(
             listOf(
@@ -51,6 +51,8 @@ kotlin {
         withJava()
 
     }
+
+    //noinspection UseTomlInstead
     sourceSets {
         commonMain {
             dependencies {
@@ -81,12 +83,6 @@ kotlin {
                 implementation("org.mindrot:jbcrypt:0.4")
             }
         }
-//        jvmTest {
-//            this.dependsOn(jvmMain.get())
-//            this.impl
-//            implementation("io.ktor:ktor-server-tests-jvm")
-//            implementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.10")
-//        }
     }
 
 }

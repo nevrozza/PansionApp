@@ -9,6 +9,7 @@ import components.MarkTableItem
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import mentoring.MentoringStore.Intent
 import mentoring.MentoringStore.Label
 import mentoring.MentoringStore.Message
@@ -24,10 +25,15 @@ import server.getCurrentEdYear
 import server.getLocalDate
 
 class MentoringExecutor(
-    private val mainRepository: MainRepository,
+    private val mainRepository: MainRepository = Inject.instance(),
     private val nInterface: NetworkInterface,
     private val nPreAttendance: NetworkInterface
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        executeIntent(Intent.FetchStudents)
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.FetchStudents -> {

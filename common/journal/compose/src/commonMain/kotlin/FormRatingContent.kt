@@ -233,7 +233,7 @@ fun SharedTransitionScope.FormRatingContent(
                                             inActiveText = "Недели",
                                             currentPeriod = model.period?.toStr() ?: "",
                                             isActive = model.period is PansionPeriod.Week,
-                                            component = component.weekListComponent
+                                            component = component.weeksListComponent
                                         )
                                         Spacer(Modifier.width(5.dp))
                                         PeriodButton(

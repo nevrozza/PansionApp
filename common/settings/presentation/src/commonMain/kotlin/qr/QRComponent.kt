@@ -1,25 +1,20 @@
 package qr
 
-import AuthRepository
-import SettingsRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cBottomSheet.CBottomSheetComponent
 import components.networkInterface.NetworkInterface
-import di.Inject
+import decompose.DefaultMVIComponent
 
 class QRComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     val isRegistration: Boolean,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext, DefaultMVIComponent<QRStore.Intent, QRStore.State, QRStore.Label> {
 
-    private val settingsRepository: SettingsRepository = Inject.instance()
-    private val authRepository: AuthRepository = Inject.instance()
 
     val authBottomSheet = CBottomSheetComponent(
         componentContext = childContext("QRCBottomSheetComponentCONTEXT"),
@@ -38,26 +33,18 @@ class QRComponent(
         name = "QRNetworkInterface"
     )
 
-    private val qrStore =
+    override val store =
         instanceKeeper.getStore {
             QRStoreFactory(
                 storeFactory = storeFactory,
-                isRegistration = isRegistration,
-                nInterface = nInterface,
-                authRepository = authRepository,
-                authBottomSheet = authBottomSheet,
-                registerBottomSheet = registerBottomSheet,
-                settingsRepository = settingsRepository
+                state = QRStore.State(isRegistration = isRegistration),
+                executor = QRExecutor(
+                    nInterface = nInterface,
+                    authBottomSheet = authBottomSheet,
+                    registerBottomSheet = registerBottomSheet
+                )
             ).create()
         }
-
-    val model = qrStore.asValue()
-
-
-    fun onEvent(event: QRStore.Intent) {
-        qrStore.accept(event)
-    }
-
     fun onOutput(output: Output) {
         output(output)
     }
@@ -66,7 +53,4 @@ class QRComponent(
         data object Back : Output()
     }
 
-
-    init {
-    }
 }

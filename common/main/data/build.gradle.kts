@@ -1,7 +1,5 @@
 plugins {
-//    id("android-setup")
-    id("multiplatform-setup")
-    id(libs.plugins.serialization.get().pluginId)
+    id("data-ktor-setup")
 }
 
 kotlin {
@@ -9,11 +7,6 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":common:main:api"))
-//                implementation(project(":common:auth:api"))
-                implementation(project(":common:core"))
-
-                implementation(libs.kodein.di)
-                implementation(libs.settings.core)
             }
         }
     }

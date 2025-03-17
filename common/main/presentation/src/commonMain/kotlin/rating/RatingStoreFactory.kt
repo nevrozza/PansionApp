@@ -1,30 +1,15 @@
 package rating
 
-import AuthRepository
-import FIO
-import MainRepository
 import com.arkivanov.mvikotlin.core.store.Store
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.listDialog.ListComponent
-import components.networkInterface.NetworkInterface
 import rating.RatingStore.Intent
 import rating.RatingStore.Label
 import rating.RatingStore.State
-import rating.RatingStore.Message
 
 class RatingStoreFactory(
     private val storeFactory: StoreFactory,
-    private val mainRepository: MainRepository,
-    private val authRepository: AuthRepository,
-    private val nInterface: NetworkInterface,
-    private val subjectsListComponent: ListComponent,
-    private val avatarId: Int,
-    private val login: String,
-    private val fio: FIO,
-    private val weeksListComponent: ListComponent,
-    private val moduleListComponent: ListComponent,
-    private val periodListComponent: ListComponent,
+    private val state: State,
+    private val executor: RatingExecutor
 ) {
 
     fun create(): RatingStore {
@@ -35,19 +20,8 @@ class RatingStoreFactory(
         RatingStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "RatingStore",
-            initialState = State(
-                avatarId = avatarId,
-                fio = fio,
-                login = login
-            ),
-            executorFactory = { RatingExecutor(
-                mainRepository = mainRepository,
-                nInterface = nInterface,
-                subjectsListComponent = subjectsListComponent,
-                weeksListComponent = weeksListComponent,
-                moduleListComponent = moduleListComponent,
-                periodListComponent = periodListComponent
-            ) },
+            initialState = state,
+            executorFactory = ::executor,
             reducer = RatingReducer
         )
 }

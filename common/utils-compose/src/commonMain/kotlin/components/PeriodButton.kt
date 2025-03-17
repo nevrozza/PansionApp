@@ -9,9 +9,11 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
@@ -24,17 +26,19 @@ fun PeriodButton(
     activeColor: Color = MaterialTheme.colorScheme.primaryContainer,
     component: ListComponent
 ) {
+
     val color = animateColorAsState(
         if (isActive) activeColor
         else Color.Transparent
     )
+    val model by component.model.subscribeAsState()
     Box() {
         AssistChip(
             onClick = { component.onEvent(ListDialogStore.Intent.ShowDialog) },
             label = {
                 AnimatedContent(
                     if (isActive) {
-                        component.state.value.list.firstOrNull { it.id == currentPeriod }?.text
+                        model.list.firstOrNull { it.id == currentPeriod }?.text
                                 ?: "Загрузка.."
                     } else {inActiveText}
                 ) {

@@ -13,7 +13,7 @@ import login.LoginStore.Label
 import login.LoginStore.Message
 import login.LoginStore.State
 
-class LoginExecutor(private val authRepository: AuthRepository) :
+class LoginExecutor(private val authRepository: AuthRepository = Inject.instance()) :
     CoroutineExecutor<Intent, Unit, State, Message, Label>() {
     override fun executeIntent(intent: Intent) {
         when (intent) {

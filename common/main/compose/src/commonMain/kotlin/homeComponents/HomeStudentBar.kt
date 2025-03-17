@@ -28,7 +28,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,14 +41,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import cGrade
-import components.foundation.CTextButton
-import components.foundation.DefaultErrorView
-import components.foundation.DefaultErrorViewPos
 import components.FeatureButton
 import components.GetAsyncAvatar
 import components.GetAsyncIcon
 import components.GetAsyncImage
+import components.foundation.CTextButton
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.foundation.LoadingAnimation
+import components.foundation.TonalCard
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
 import home.HomeComponent
@@ -89,7 +89,7 @@ fun LazyListScope.homeStudentBar(
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = .7f)
             )
         }
-        ElevatedCard(Modifier.fillMaxWidth()) {
+        TonalCard(Modifier.fillMaxWidth()) {
             Box() {
                 Row(
                     Modifier.padding(10.dp),

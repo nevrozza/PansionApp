@@ -17,6 +17,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
@@ -31,16 +32,14 @@ import com.arkivanov.decompose.defaultComponentContext
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import dev.chrisbanes.haze.HazeState
+import deviceSupport.deviceType
 import di.Inject
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
-import io.ktor.util.decodeBase64Bytes
 import root.RootComponent
 import root.RootComponentImpl
 import server.cut
 import view.AppTheme
-import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
-import deviceSupport.deviceType
 import view.LocalViewManager
 import view.ViewManager
 import view.toRGB
@@ -61,7 +60,8 @@ class MainActivity : AppCompatActivity() {
 
         this.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         @SuppressLint("HardwareIds")
-        val uuid = UUID.nameUUIDFromBytes(Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID).decodeBase64Bytes())
+        val uuid = UUID.nameUUIDFromBytes(Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID).encodeToByteArray())
+
         PlatformSDK.init(
             configuration = PlatformConfiguration(applicationContext),
             cConfiguration = CommonPlatformConfiguration(

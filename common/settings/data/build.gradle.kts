@@ -1,6 +1,6 @@
 plugins {
-    id("multiplatform-setup")
-//    id("android-setup")
+    id("data-ktor-setup")
+    id("data-settings-setup")
 }
 
 kotlin {
@@ -8,12 +8,6 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":common:settings:api"))
-                implementation(project(":common:core"))
-                implementation(project(":common:utils"))
-                implementation(project(":common:ktor"))
-
-                implementation(libs.kodein.di)
-                implementation(libs.settings.core)
             }
         }
     }

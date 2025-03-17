@@ -4,18 +4,15 @@ import AuthRepository
 import JournalRepository
 import ReportData
 import SettingsRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
 import components.networkInterface.NetworkInterface
+import decompose.DefaultMVIComponent
 import di.Inject
 import homeTasksDialog.HomeTasksDialogComponent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
 import server.Moderation
 
 class AllGroupMarksComponent(
@@ -27,8 +24,7 @@ class AllGroupMarksComponent(
     private val subjectId: Int,
     private val subjectName: String,
     private val login: String
-) : ComponentContext by componentContext {
-    //    private val settingsRepository: SettingsRepository = Inject.instance()
+) : ComponentContext by componentContext, DefaultMVIComponent<AllGroupMarksStore.Intent, AllGroupMarksStore.State, AllGroupMarksStore.Label> {
 
     private val homeTaskDialogContentName = "homeTaskDialogContentNameAllGroups"
     val homeTasksDialogComponent = HomeTasksDialogComponent(
@@ -39,7 +35,7 @@ class AllGroupMarksComponent(
     )
 
     private val authRepository: AuthRepository = Inject.instance()
-    val setingsRepository: SettingsRepository = Inject.instance()
+    val settingsRepository: SettingsRepository = Inject.instance()
 
     val nInterface =
         NetworkInterface(componentContext, storeFactory, "AllGroupMarksComponent")
@@ -55,40 +51,31 @@ class AllGroupMarksComponent(
         {}
     )
 
-    private val allGroupMarksStore =
+    override val store =
         instanceKeeper.getStore(key = "AllGroupMarksComponent$groupId") {
             AllGroupMarksStoreFactory(
                 storeFactory = storeFactory,
-                groupId = groupId,
-                groupName = groupName,
-                subjectId = subjectId,
-                subjectName = subjectName,
-                nInterface = nInterface,
-                journalRepository = journalRepository,
-                stupsDialogComponent = stupsDialogComponent,
-                nOpenReportInterface = nOpenReportInterface,
-                login = login,
-                isModer = authRepository.fetchModeration() in listOf(Moderation.BOTH, Moderation.MODERATOR),
-                settingsRepository = Inject.instance()
+                executor = AllGroupMarksExecutor(
+                    nInterface = nInterface,
+                    stupsDialogComponent = stupsDialogComponent,
+                    nOpenReportInterface = nOpenReportInterface
+                ),
+                state = AllGroupMarksStore.State(
+                    groupId = groupId,
+                    groupName = groupName,
+                    subjectId = subjectId,
+                    subjectName = subjectName,
+                    login = login,
+                    isModer = authRepository.fetchModeration() in listOf(Moderation.BOTH, Moderation.MODERATOR),
+                    isTableView = settingsRepository.fetchIsMarkTable()
+                )
             ).create()
         }
-
-    val model = allGroupMarksStore.asValue()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<AllGroupMarksStore.State> = allGroupMarksStore.stateFlow
-
-    fun onEvent(event: AllGroupMarksStore.Intent) {
-        allGroupMarksStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)
     }
 
-    init {
-        onEvent(AllGroupMarksStore.Intent.Init)
-    }
 
     sealed class Output {
         data object Back : Output()

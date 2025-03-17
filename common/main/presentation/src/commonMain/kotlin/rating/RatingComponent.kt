@@ -1,23 +1,15 @@
 package rating
 
-import AuthRepository
 import FIO
-import MainRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
-import di.Inject
-import home.HomeComponent
-import home.HomeComponent.Output
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
-
+import decompose.DefaultMVIComponent
+import rating.RatingStore.State
 
 
 class RatingComponent(
@@ -27,8 +19,8 @@ class RatingComponent(
     private val avatarId: Int,
     private val login: String,
     private val fio: FIO
-) : ComponentContext by componentContext {
-    //    private val settingsRepository: SettingsRepository = Inject.instance()
+) : ComponentContext by componentContext, DefaultMVIComponent<RatingStore.Intent, State, RatingStore.Label> {
+
     val nInterface = NetworkInterface(
         componentContext = componentContext,
         storeFactory = storeFactory,
@@ -47,7 +39,7 @@ class RatingComponent(
         name = "RatingFormNumsListComponent",
         onItemClick = {onFormItemClick(it.id.toInt())}
     )
-    val weekListComponent = ListComponent(
+    val weeksListComponent = ListComponent(
         componentContext,
         storeFactory,
         name = "RatingWeekListComponent",
@@ -72,7 +64,7 @@ class RatingComponent(
     }
     private fun onPeriodItemClick(id: String) {
         onEvent(RatingStore.Intent.ClickOnPeriod(id))
-        listOf(weekListComponent, moduleListComponent, periodListComponent).forEach {
+        listOf(weeksListComponent, moduleListComponent, periodListComponent).forEach {
             it.onEvent(ListDialogStore.Intent.HideDialog)
         }
     }
@@ -82,37 +74,24 @@ class RatingComponent(
         subjectsListComponent.onEvent(ListDialogStore.Intent.HideDialog)
     }
 
-    private val authRepository: AuthRepository = Inject.instance()
-    private val mainRepository: MainRepository = Inject.instance()
-    private val homeStore =
+    override val store =
         instanceKeeper.getStore {
             RatingStoreFactory(
                 storeFactory = storeFactory,
-                authRepository = authRepository,
-                mainRepository = mainRepository,
-                nInterface = nInterface,
-                subjectsListComponent = subjectsListComponent,
-                avatarId = avatarId,
-                login = login,
-                fio = fio,
-                weeksListComponent = weekListComponent,
-                moduleListComponent = moduleListComponent,
-                periodListComponent = periodListComponent
+                state = State(
+                    avatarId = avatarId,
+                    fio = fio,
+                    login = login
+                ),
+                executor = RatingExecutor(
+                    nInterface = nInterface,
+                    subjectsListComponent = subjectsListComponent,
+                    weeksListComponent = weeksListComponent,
+                    moduleListComponent = moduleListComponent,
+                    periodListComponent = periodListComponent
+                )
             ).create()
         }
-
-    val model = homeStore.asValue()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<RatingStore.State> = homeStore.stateFlow
-
-    fun getLogin() : String {
-        return model.value.login
-    }
-
-    fun onEvent(event: RatingStore.Intent) {
-        homeStore.accept(event)
-    }
 
     init {
         formsListComponent.onEvent(
@@ -137,13 +116,6 @@ class RatingComponent(
         )
 
         onEvent(RatingStore.Intent.Init)
-        //.Init(
-        //            avatarId = authRepository.fetchAvatarId(),
-        //            login = authRepository.fetchLogin(),
-        //            name = authRepository.fetchName(),
-        //            surname = authRepository.fetchSurname(),
-        //            praname = authRepository.fetchPraname()
-        //
     }
 
     fun onOutput(output: Output) {

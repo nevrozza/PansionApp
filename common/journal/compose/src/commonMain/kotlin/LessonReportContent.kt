@@ -43,6 +43,7 @@ import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
@@ -58,6 +59,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -266,9 +268,9 @@ fun LessonReportOverlay(
         CBottomSheetContent(
             component.setReportColumnsComponent,
         ) {
-            val minSize = (LocalViewManager.current.size?.maxWidth ?: 0.dp)
+//            val minSize = (LocalViewManager.current.size?.maxWidth ?: 0.dp)
             val isLikeMenuOpened =
-                remember { mutableStateOf(minSize >= BottomSheetDefaults.SheetMaxWidth) }
+                remember { mutableStateOf(false) } //mutableStateOf(minSize >= BottomSheetDefaults.SheetMaxWidth)
             Column {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     Crossfade(
@@ -1068,48 +1070,28 @@ private fun SetupTabContent(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(10.dp))
-        AnimatedVisibility(isLikeMenuOpened.value && model.students.isNotEmpty()) {
+
+        val isLikeMenuOpenedFully = isLikeMenuOpened.value && model.students.isNotEmpty()
+
+        AnimatedVisibility(!isLikeMenuOpenedFully) {
             FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                model.students.sortedBy { it.shortFio }.forEach { student ->
-                    val containerColor = animateColorAsState(
-                        when (student.login) {
-                            in model.likedList -> {
-                                Color.Green.copy(alpha = .1f)
-                            }
-
-                            in model.dislikedList -> {
-                                Color.Red.copy(alpha = .1f)
-                            }
-
-                            else -> {
-                                MaterialTheme.colorScheme.primary.copy(
-                                    alpha = 0.1f
-                                )
-                            }
-                        }
-                    )
-                    Card(
-                        Modifier.padding(5.dp),
-                        //elevation = CardDefaults.elevatedCardElevation(defaultElevation = 15.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = CardDefaults.cardColors(containerColor = containerColor.value)
-                    ) {
-                        Row(
-                            Modifier.padding(5.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(student.shortFio, maxLines = 1)
-                            Spacer(Modifier.width(2.dp))
-                            LikeDislikeRow(
-                                component = component,
-                                student = student
-                            )
-                        }
-                    }
-                }
+                likesDislikesItems(
+                    model = model,
+                    component = component,
+                    isAll = false
+                )
             }
+        }
 
-            Spacer(Modifier.height(10.dp))
+        AnimatedVisibility(isLikeMenuOpenedFully) {
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+
+                likesDislikesItems(
+                    model = model,
+                    component = component,
+                    isAll = true
+                )
+            }
         }
         CTextField(
             value = model.description,
@@ -1345,6 +1327,56 @@ private fun MarksTabContent(
             )
         }
     }
+}
+
+@Composable
+fun likesDislikesItems(
+    model: LessonReportStore.State,
+    component: LessonReportComponent,
+    isAll: Boolean
+) {
+    val filteredStudents = model.students.filter { (isAll) || (it.login in model.likedList || it.login in model.dislikedList) }
+    filteredStudents
+        .sortedBy { it.shortFio }.forEach { student ->
+            val containerColor = animateColorAsState(
+                when (student.login) {
+                    in model.likedList -> {
+                        Color.Green.copy(alpha = .1f)
+                    }
+
+                    in model.dislikedList -> {
+                        Color.Red.copy(alpha = .1f)
+                    }
+
+                    else -> {
+                        MaterialTheme.colorScheme.primary.copy(
+                            alpha = 0.1f
+                        )
+                    }
+                }
+            )
+            Card(
+                Modifier.padding(5.dp),
+                //elevation = CardDefaults.elevatedCardElevation(defaultElevation = 15.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(containerColor = containerColor.value)
+            ) {
+                Row(
+                    Modifier.padding(5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(student.shortFio, maxLines = 1)
+                    Spacer(Modifier.width(2.dp))
+                    LikeDislikeRow(
+                        component = component,
+                        student = student
+                    )
+                }
+            }
+        }
+if (filteredStudents.isNotEmpty()) {
+    Spacer(Modifier.height(10.dp))
+}
 }
 
 private fun getColumnNamePrefix(reasonId: String): String {
@@ -1585,7 +1617,10 @@ fun LessonTable(
             }
         ) { index ->
             val columnIndex = index % columnsCount
-            Box(Modifier.fillMaxSize().padding(bottom = 3.dp), contentAlignment = Alignment.BottomStart) {
+            Box(
+                Modifier.fillMaxSize().padding(bottom = 3.dp),
+                contentAlignment = Alignment.BottomStart
+            ) {
                 LessonReportTableTitle(model.students[columnIndex], model, component)
             }
         }
@@ -1658,26 +1693,30 @@ fun LikeDislikeRow(
     component: LessonReportComponent,
     student: StudentLine
 ) {
-    if (component.model.value.isEditable) {
-        IconButton(onClick = {
-            component.onEvent(LessonReportStore.Intent.LikeStudent(student.login))
-        }, modifier = Modifier.size(20.dp)) {
-            GetAsyncIcon(
-                path = RIcons.LIKE
-            )
-        }
-        Spacer(Modifier.width(7.dp))
-        IconButton(onClick = {
-            component.onEvent(
-                LessonReportStore.Intent.DislikeStudent(
-                    student.login
+    CompositionLocalProvider(
+        LocalContentColor provides LocalContentColor.current
+    ) {
+        if (component.model.value.isEditable) {
+            IconButton(onClick = {
+                component.onEvent(LessonReportStore.Intent.LikeStudent(student.login))
+            }, modifier = Modifier.size(20.dp)) {
+                GetAsyncIcon(
+                    path = RIcons.LIKE_OUTLINE
                 )
-            )
-        }, modifier = Modifier.size(20.dp)) {
-            GetAsyncIcon(
-                path = RIcons.LIKE,
-                modifier = Modifier.rotate(180f)
-            )
+            }
+            Spacer(Modifier.width(7.dp))
+            IconButton(onClick = {
+                component.onEvent(
+                    LessonReportStore.Intent.DislikeStudent(
+                        student.login
+                    )
+                )
+            }, modifier = Modifier.size(20.dp)) {
+                GetAsyncIcon(
+                    path = RIcons.LIKE_OUTLINE,
+                    modifier = Modifier.rotate(180f)
+                )
+            }
         }
     }
 }

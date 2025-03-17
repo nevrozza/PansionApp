@@ -5,6 +5,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import homeTasks.HomeTasksStore.Intent
 import homeTasks.HomeTasksStore.Label
 import homeTasks.HomeTasksStore.Message
@@ -14,11 +15,16 @@ import homework.RFetchHomeTasksReceive
 import homework.RFetchTasksInitReceive
 
 class HomeTasksExecutor(
-    private val journalRepository: JournalRepository,
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val nInitInterface: NetworkInterface,
     private val nInterface: NetworkInterface,
     val updateHTCount: (Int) -> Unit
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.CheckTask -> checkTask(taskId = intent.taskId, isCheck = intent.isCheck, doneId = intent.doneId)

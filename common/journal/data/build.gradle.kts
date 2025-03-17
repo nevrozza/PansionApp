@@ -1,19 +1,12 @@
 plugins {
-//    id("android-setup")
-    id("multiplatform-setup")
-    id(libs.plugins.serialization.get().pluginId)
+    id("data-ktor-setup")
+    id("data-settings-setup")
 }
-
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
                 implementation(project(":common:journal:api"))
-//                implementation(project(":common:auth:api"))
-                implementation(project(":common:core"))
-
-                implementation(libs.kodein.di)
-                implementation(libs.settings.core)
             }
         }
     }

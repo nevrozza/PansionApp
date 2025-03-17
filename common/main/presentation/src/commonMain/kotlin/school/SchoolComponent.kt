@@ -2,17 +2,14 @@ package school
 
 import JournalRepository
 import MainRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cBottomSheet.CBottomSheetComponent
 import components.networkInterface.NetworkInterface
+import decompose.DefaultMVIComponent
 import di.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
 
 class SchoolComponent(
     componentContext: ComponentContext,
@@ -22,11 +19,11 @@ class SchoolComponent(
     private val moderation: String,
     val isSecondScreen: Boolean,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext, DefaultMVIComponent<SchoolStore.Intent, SchoolStore.State, SchoolStore.Label> {
     //    private val settingsRepository: SettingsRepository = Inject.instance()\
-    val nInterfaceName = "MainSchoolNInterface"
-    val nDutyInterfaceName = "DutySchoolNInterface"
-    val ministryBottomSheetComponentName = "MinistrySchoolNInterface"
+    private val nInterfaceName = "MainSchoolNInterface"
+    private val nDutyInterfaceName = "DutySchoolNInterface"
+    private val ministryBottomSheetComponentName = "MinistrySchoolNInterface"
 
     val nInterface = NetworkInterface(
         childContext(nInterfaceName + "CONTEXT"),
@@ -54,39 +51,29 @@ class SchoolComponent(
 
     private val mainRepository: MainRepository = Inject.instance()
     private val journalRepository: JournalRepository = Inject.instance()
-    private val schoolStore =
+    override val store =
         instanceKeeper.getStore {
             SchoolStoreFactory(
                 storeFactory = storeFactory,
-                login = login,
-                role = role,
-                moderation = moderation,
-                nInterface = nInterface,
-                mainRepository = mainRepository,
-                openMinSettingsBottom = ministrySettingsCBottomSheetComponent,
-                nDutyInterface = nDutyInterface,
-                ministryOverview = ministryOverviewComponent,
-                journalRepository = journalRepository
-//                authRepository = authRepository
+                state = SchoolStore.State(
+                    login = login,
+                    role = role,
+                    moderation = moderation
+                ),
+                executor = SchoolExecutor(
+                    nInterface = nInterface,
+                    mainRepository = mainRepository,
+                    openMinSettingsBottom = ministrySettingsCBottomSheetComponent,
+                    nDutyInterface = nDutyInterface,
+                    ministryOverview = ministryOverviewComponent,
+                    journalRepository = journalRepository
+                )
             ).create()
         }
 
 
-    val model = schoolStore.asValue()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<SchoolStore.State> = schoolStore.stateFlow
-
-    fun onEvent(event: SchoolStore.Intent) {
-        schoolStore.accept(event)
-    }
-
     fun onOutput(output: Output) {
         output(output)
-    }
-
-    init {
-        onEvent(SchoolStore.Intent.Init)
     }
 
     sealed class Output {

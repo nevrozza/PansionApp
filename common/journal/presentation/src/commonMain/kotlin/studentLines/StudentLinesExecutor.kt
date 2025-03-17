@@ -5,6 +5,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import report.RFetchStudentLinesReceive
 import server.getLocalDate
 import server.toMinutes
@@ -14,9 +15,13 @@ import studentLines.StudentLinesStore.Message
 import studentLines.StudentLinesStore.State
 
 class StudentLinesExecutor(
-    private val journalRepository: JournalRepository,
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val nInterface: NetworkInterface,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> init()

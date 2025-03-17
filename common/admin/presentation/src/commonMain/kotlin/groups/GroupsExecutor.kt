@@ -17,13 +17,18 @@ import groups.GroupsStore.State
 
 class GroupsExecutor(
     private val adminRepository: AdminRepository,
-    private val formListComponent: ListComponent,
+    private val formsListComponent: ListComponent,
     private val nGroupsInterface: NetworkInterface,
     private val nSubjectsInterface: NetworkInterface,
     private val nFormsInterface: NetworkInterface,
     private val updateMentorsInForms: () -> Unit
 ) :
     CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.InitList -> init()
@@ -108,7 +113,7 @@ class GroupsExecutor(
     }
 
     private fun updateFormsList(forms: List<Form>) {
-        formListComponent.onEvent(ListDialogStore.Intent.InitList(emptyList<ListItem>() + ListItem("0", "Никакой") + forms.map {
+        formsListComponent.onEvent(ListDialogStore.Intent.InitList(emptyList<ListItem>() + ListItem("0", "Никакой") + forms.map {
             ListItem(
                 id = it.id.toString(),
                 text = "${it.form.classNum}${if (it.form.title.length < 2) "-" else " "}${it.form.title} класс"

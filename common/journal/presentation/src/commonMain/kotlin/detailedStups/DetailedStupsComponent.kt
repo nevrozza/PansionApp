@@ -1,16 +1,10 @@
 package detailedStups
 
-import JournalRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.networkInterface.NetworkInterface
-import di.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
+import decompose.DefaultMVIComponent
 
 class DetailedStupsComponent(
     componentContext: ComponentContext,
@@ -20,51 +14,37 @@ class DetailedStupsComponent(
     private val name: String,
     private val avatarId: Int,
     private val reason: String
-) : ComponentContext by componentContext {
-    //    private val settingsRepository: SettingsRepository = Inject.instance()
-//    private val authRepository: AuthRepository = Inject.instance()
+) : ComponentContext by componentContext,
+    DefaultMVIComponent<DetailedStupsStore.Intent, DetailedStupsStore.State, DetailedStupsStore.Label> {
 
     val nInterface =
         NetworkInterface(componentContext, storeFactory, "DetailedStupsComponent")
 
-    val journalRepository: JournalRepository = Inject.instance()
 
-
-    private val detailedStupsStore =
+    override val store =
         instanceKeeper.getStore(key = "detailedStups$studentLogin") {
             DetailedStupsStoreFactory(
                 storeFactory = storeFactory,
-                login = studentLogin,
-                reason = reason,
-                nInterface = nInterface,
-                journalRepository = journalRepository,
-                name = name,
-                avatarId = avatarId
+                state = DetailedStupsStore.State(
+                    login = studentLogin,
+                    reason = reason,
+                    name = name,
+                    avatarId = avatarId
+                ),
+                executor =  DetailedStupsExecutor(
+                    nInterface = nInterface
+                )
             ).create()
         }
-
-    val model = detailedStupsStore.asValue()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<DetailedStupsStore.State> = detailedStupsStore.stateFlow
-
-    fun onEvent(event: DetailedStupsStore.Intent) {
-        detailedStupsStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)
     }
 
-
-    init {
-        onEvent(DetailedStupsStore.Intent.Init)
-
-    }
-
     sealed class Output {
         data object Back : Output()
-        data class NavigateToAchievements(val login: String, val name: String, val avatarId: Int) : Output()
+        data class NavigateToAchievements(val login: String, val name: String, val avatarId: Int) :
+            Output()
 
     }
 }

@@ -1,19 +1,15 @@
 package calendar
 
-import AdminRepository
-import com.arkivanov.mvikotlin.core.store.Store
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import com.arkivanov.mvikotlin.core.store.StoreFactory
 import calendar.CalendarStore.Intent
 import calendar.CalendarStore.Label
 import calendar.CalendarStore.State
-import calendar.CalendarStore.Message
-import components.networkInterface.NetworkInterface
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
+import com.arkivanov.mvikotlin.core.store.Store
+import com.arkivanov.mvikotlin.core.store.StoreFactory
 
 class CalendarStoreFactory(
     private val storeFactory: StoreFactory,
-    private val adminRepository: AdminRepository,
-    private val nInterface: NetworkInterface
+    private val executor: CalendarExecutor
 ) {
 
     fun create(): CalendarStore {
@@ -25,10 +21,8 @@ class CalendarStoreFactory(
         Store<Intent, State, Label> by storeFactory.create(
             name = "CalendarStore",
             initialState = State(),
-            executorFactory = { CalendarExecutor(
-                adminRepository = adminRepository,
-                nInterface = nInterface
-            ) },
-            reducer = CalendarReducer
+            executorFactory = ::executor,
+            reducer = CalendarReducer,
+            bootstrapper = SimpleBootstrapper(Unit)
         )
 }

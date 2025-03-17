@@ -9,17 +9,23 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import profile.ProfileStore.Intent
 import profile.ProfileStore.Label
 import profile.ProfileStore.Message
 import profile.ProfileStore.State
 
 class ProfileExecutor(
-    private val authRepository: AuthRepository,
+    private val authRepository: AuthRepository = Inject.instance(),
     private val nAvatarInterface: NetworkInterface,
     private val nAboutMeInterface: NetworkInterface,
     private val changeAvatarOnMain: (Int) -> Unit
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.ChangeTab -> dispatch(Message.TabChanged(intent.index))

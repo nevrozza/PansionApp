@@ -5,9 +5,7 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 
 class CAlertDialogStoreFactory(
     private val storeFactory: StoreFactory,
-    private val onAcceptClick: () -> Unit,
-    private val onDeclineClick: () -> Unit,
-    private val needDelayWhenHide: Boolean
+    private val state: CAlertDialogStore.State
 ) {
 
     fun create(): CAlertDialogStore {
@@ -18,11 +16,7 @@ class CAlertDialogStoreFactory(
         CAlertDialogStore,
         Store<CAlertDialogStore.Intent, CAlertDialogStore.State, CAlertDialogStore.Label> by storeFactory.create(
             name = "cAlertDialogStore",
-            initialState = CAlertDialogStore.State(
-                onAcceptClick = onAcceptClick,
-                onDeclineClick = onDeclineClick,
-                needDelayWhenHide = needDelayWhenHide
-            ),
+            initialState = state,
             executorFactory = { CAlertDialogExecutor() },
             reducer = CAlertDialogReducer
         )

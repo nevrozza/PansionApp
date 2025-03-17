@@ -1,7 +1,5 @@
 package ministry
 
-import JournalRepository
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
@@ -11,14 +9,14 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
-import di.Inject
+import decompose.DefaultMVIComponent
 import server.Ministries
 
 class MinistryComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext, DefaultMVIComponent<MinistryStore.Intent, MinistryStore.State, MinistryStore.Label> {
     private val nInterfaceName = "ministryComponentNInterface"
     private val nUploadInterfaceName = "ministryComponentNUploadInterface"
 
@@ -86,7 +84,6 @@ class MinistryComponent(
             )
             ds1ListComponent.onEvent(ListDialogStore.Intent.HideDialog)
             ds2ListComponent.onEvent(ListDialogStore.Intent.HideDialog)
-
         }
     }
 
@@ -103,7 +100,6 @@ class MinistryComponent(
         nUploadInterfaceName
     )
 
-    private val journalRepository: JournalRepository = Inject.instance()
     val ministriesListComponent = ListComponent(
         componentContext,
         storeFactory,
@@ -118,16 +114,17 @@ class MinistryComponent(
         ministriesListComponent.onEvent(ListDialogStore.Intent.HideDialog)
     }
 
-    private val ministryStore =
+    override val store =
         instanceKeeper.getStore {
             MinistryStoreFactory(
                 storeFactory = storeFactory,
-                nInterface = nInterface,
-                journalRepository = journalRepository,
-                ds1ListComponent = ds1ListComponent,
-                ds2ListComponent = ds2ListComponent,
-                ds3DialogComponent = ds3DialogComponent,
-                nUploadInterface = nUploadInterface
+                executor =  MinistryExecutor(
+                    nInterface = nInterface,
+                    ds1ListComponent = ds1ListComponent,
+                    ds2ListComponent = ds2ListComponent,
+                    ds3DialogComponent = ds3DialogComponent,
+                    nUploadInterface = nUploadInterface
+                )
             ).create()
         }
 
@@ -179,15 +176,6 @@ class MinistryComponent(
                     }
             ))
 
-    }
-
-    val model = ministryStore.asValue()
-
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    val state: StateFlow<UsersStore.State> = usersStore.stateFlow
-
-    fun onEvent(event: MinistryStore.Intent) {
-        ministryStore.accept(event)
     }
 
     fun onOutput(output: Output) {

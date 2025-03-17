@@ -10,18 +10,6 @@ class CAlertDialogExecutor() :
         intent: CAlertDialogStore.Intent
     ) {
         when (intent) {
-//            is CAlertDialogStore.Intent.CallError -> dispatch(
-//                CAlertDialogStore.Message.ErrorCalled(
-//                    intent.error,
-//                    intent.onClick
-//                )
-//            )
-
-//            is CAlertDialogStore.Intent.ClearError -> {
-//                dispatch(CAlertDialogStore.Message.ErrorCleared)
-//                intent.onClick?.invoke()
-//            }
-
             CAlertDialogStore.Intent.HideDialog -> scope.launch {
                 // fix mercanie background
                 if(state().needDelayWhenHide) {
@@ -33,9 +21,6 @@ class CAlertDialogExecutor() :
             is CAlertDialogStore.Intent.ShowDialog -> dispatch(
                 CAlertDialogStore.Message.ShowDialog
             )
-
-//            CAlertDialogStore.Intent.StartProcess -> dispatch(CAlertDialogStore.Message.StartProcess)
-//            CAlertDialogStore.Intent.StopProcess -> dispatch(CAlertDialogStore.Message.StopProcess)
         }
     }
 }

@@ -33,6 +33,11 @@ class SchoolExecutor(
     private val mainRepository: MainRepository,
     private val journalRepository: JournalRepository
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        executeIntent(Intent.Init)
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> {

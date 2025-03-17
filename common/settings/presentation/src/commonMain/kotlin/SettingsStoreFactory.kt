@@ -4,15 +4,11 @@ import SettingsStore.Label
 import SettingsStore.State
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import components.cAlertDialog.CAlertDialogComponent
-import components.networkInterface.NetworkInterface
 
 class SettingsStoreFactory(
     private val storeFactory: StoreFactory,
-    private val settingsRepository: SettingsRepository,
-    private val authRepository: AuthRepository,
-    private val nDevicesInterface: NetworkInterface,
-    private val changeLoginDialog: CAlertDialogComponent
+    private val state: State,
+    private val executor: SettingsExecutor
 ) {
 
     fun create(): SettingsStore {
@@ -23,17 +19,8 @@ class SettingsStoreFactory(
         SettingsStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "SettingsStore",
-            initialState = State(
-                login = authRepository.fetchLogin(),
-                isMarkTableDefault = settingsRepository.fetchIsMarkTable(),
-                isPlusDsStupsEnabled = settingsRepository.fetchIsShowingPlusDS()
-            ),
-            executorFactory = { SettingsExecutor(
-                settingsRepository = settingsRepository,
-                authRepository = authRepository,
-                nDevicesInterface = nDevicesInterface,
-                changeLoginDialog = changeLoginDialog
-            ) },
+            initialState = state,
+            executorFactory = ::executor,
             reducer = SettingsReducer
         )
 }

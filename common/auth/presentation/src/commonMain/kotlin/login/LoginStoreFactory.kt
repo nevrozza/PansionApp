@@ -1,16 +1,15 @@
 package login
 
-import AuthRepository
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import login.LoginStore.Intent
 import login.LoginStore.Label
 import login.LoginStore.State
-import kotlin.math.log
 
 class LoginStoreFactory(
-    private val storeFactory: StoreFactory, private val authRepository: AuthRepository,
-    private val login: String
+    private val storeFactory: StoreFactory,
+    private val state: State,
+    private val executor: LoginExecutor
 ) {
 
     fun create(): LoginStore {
@@ -21,10 +20,8 @@ class LoginStoreFactory(
         LoginStore,
         Store<Intent, State, Label> by storeFactory.create(
             name = "LoginStore",
-            initialState = State(
-                login = login
-            ),
-            executorFactory = { LoginExecutor(authRepository) },
+            initialState = state,
+            executorFactory = ::executor,
             reducer = LoginReducer
         )
 }

@@ -1,13 +1,14 @@
+
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import components.cAlertDialog.CAlertDialogComponent
 import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
+import decompose.DefaultMVIComponent
 import di.Inject
 import view.FontTypes
 
@@ -15,7 +16,7 @@ class SettingsComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext, DefaultMVIComponent<SettingsStore.Intent, SettingsStore.State, SettingsStore.Label> {
 
     private val settingsRepository: SettingsRepository = Inject.instance()
     private val authRepository: AuthRepository = Inject.instance()
@@ -81,26 +82,23 @@ class SettingsComponent(
 //    }
 
 
-    private val settingsStore =
+    override val store =
         instanceKeeper.getStore {
             SettingsStoreFactory(
                 storeFactory = storeFactory,
-                settingsRepository = settingsRepository,
-                authRepository = authRepository,
-                nDevicesInterface = nDevicesInterface,
-                changeLoginDialog = changeLoginDialog
+                executor = SettingsExecutor(
+                    settingsRepository = settingsRepository,
+                    authRepository = authRepository,
+                    nDevicesInterface = nDevicesInterface,
+                    changeLoginDialog = changeLoginDialog
+                ),
+                state = SettingsStore.State(
+                    login = authRepository.fetchLogin(),
+                    isMarkTableDefault = settingsRepository.fetchIsMarkTable(),
+                    isPlusDsStupsEnabled = settingsRepository.fetchIsShowingPlusDS()
+                )
             ).create()
         }
-
-    val model = settingsStore.asValue()
-    val labels = settingsStore.labels
-
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    val state: StateFlow<UsersStore.State> = usersStore.stateFlow
-
-    fun onEvent(event: SettingsStore.Intent) {
-        settingsStore.accept(event)
-    }
 
     fun onOutput(output: Output) {
         output(output)
@@ -109,7 +107,6 @@ class SettingsComponent(
     sealed class Output {
         data object Back : Output()
         data object GoToZero : Output()
-
         data object GoToScanner : Output()
     }
 
@@ -139,11 +136,9 @@ class SettingsComponent(
         fontTypeListComponent.onEvent(ListDialogStore.Intent.InitList(
             listOf(
                 ListItem(FontTypes.Geologica.ordinal.toString(), "Geologica"),
-//                ListItem(FontTypes.Cursive.ordinal.toString(), "Cursive"),
                 ListItem(FontTypes.Default.ordinal.toString(), "Обычный"),
                 ListItem(FontTypes.Monospace.ordinal.toString(), "Monospace"),
                 ListItem(FontTypes.SansSerif.ordinal.toString(), "SansSerif"),
-//                ListItem(FontTypes.Serif.ordinal.toString(), "Serif"),
             )
         ))
 

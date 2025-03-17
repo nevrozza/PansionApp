@@ -7,18 +7,15 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import java.security.MessageDigest
 
 plugins {
-//    id("compose-setup")
     id(libs.plugins.android.get().pluginId)
     id(libs.plugins.kotlin.get().pluginId)
     id(libs.plugins.compose.plugin.get().pluginId)
     id(libs.plugins.cocoapods.get().pluginId)
     id(libs.plugins.serialization.get().pluginId)
     id(libs.plugins.compose.compiler.get().pluginId)
-//    id("org.jetbrains.kotlin.plugin.compose")
 }
 
-version = "1.3.0"
-val versionAndroidCode = 29
+version = Config.Application.globalVersion
 
 val jsAppName = project.name+"-js"
 val wasmAppName = project.name+"-wasm"
@@ -88,6 +85,7 @@ kotlin {
     ).forEach { (target, appName) ->
 
         target.compilations.all {
+            @Suppress("DEPRECATION")
             kotlinOptions {
                 freeCompilerArgs += listOf("-Xir-minimized-member-names")
             }
@@ -112,12 +110,13 @@ kotlin {
     jvmToolchain(17)
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        @Suppress("DEPRECATION")
         kotlinOptions.jvmTarget = "17"
     }
     sourceSets {
         commonMain.dependencies {
-            implementation("io.github.alexzhirkevich:compottie:2.0.0-rc04")
-            implementation("io.github.alexzhirkevich:qrose:1.0.1")
+            implementation(libs.compottie)
+            implementation(libs.qrose)
 
 
             runtimeOnly(compose.runtime)
@@ -166,56 +165,26 @@ kotlin {
             implementation(libs.androidx.appcompat)
             implementation(libs.androidx.activity)
             runtimeOnly(libs.androidx.compose.runtime)
-            implementation("androidx.fragment:fragment-ktx:1.8.6")
+            implementation(libs.androidx.fragment.ktx)
         }
 
         jvmMain.dependencies {
-//            implementation(project(":server"))
+            implementation(project(":server"))
             implementation(compose.desktop.currentOs)  {
                 exclude(group = "org.jetbrains.compose.material", module = "material")
             }
-            implementation("org.jetbrains.jewel:jewel-int-ui-decorated-window-243:0.27.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
+            implementation(libs.jewel.int.ui.decorated.window.x43)
+            implementation(libs.kotlinx.coroutines.swing)
         }
 
         jsMain.dependencies {
-            implementation("com.benasher44:uuid:0.8.4")
+            implementation(libs.uuid)
             implementation(project.dependencies.enforcedPlatform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:1.0.0-pre.648"))
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-browser")
+            implementation(libs.kotlin.browser)
            }
 
         wasmJsMain.dependencies {
-            implementation("com.benasher44:uuid:0.8.4")
-        }
-
-//        val iosX64Main by getting
-//        val iosArm64Main by getting
-//        val iosSimulatorArm64Main by getting
-//        val commonMain by getting
-
-        iosMain {
-//            dependsOn(commonMain)
-//            iosX64Main.dependsOn(this)
-//            iosArm64Main.dependsOn(this)
-//            iosSimulatorArm64Main.dependsOn(this)
-            dependencies {
-
-//                api(libs.decompose.core)
-//                api(libs.decompose.compose)
-//                api(project(":common:core"))
-//
-//                api(project(":common:utils-compose"))
-//                api(project(":common:utils"))
-//
-//                api(project(":common:umbrella-core"))
-//
-//                api(project(":common:settings:api"))
-//                api(project(":common:auth:api"))
-//                api(project(":common:auth:compose"))
-//                api(project(":common:main:compose"))
-//                api(project(":common:admin:compose"))
-//                api(project(":common:journal:compose"))
-            }
+            implementation(libs.uuid)
         }
     }
 }
@@ -228,26 +197,20 @@ android {
         }
     }
 
-    namespace = "com.nevrozq.pansion.android"
-    compileSdk = 35
-//    namespace = "com.nevrozq.pansion.android"
-//    compileSdk = 34
+    namespace = Config.Android.namespace
+    compileSdk = Config.Android.compileSdk
+
     defaultConfig {
-        applicationId = "com.nevrozq.pansion.android"
-        minSdk = 26
-        targetSdk = 34
-        versionCode = versionAndroidCode
+        applicationId = Config.Android.namespace
+        minSdk = Config.Android.minSdk
+        targetSdk = Config.Android.targetSdk
+        versionCode = Config.Application.versionCode
         versionName = version.toString()
     }
     buildFeatures {
         compose = true
     }
-//    compose {
-//        kotlinCompilerPlugin = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.21"
-//    }
-//    composeOptions {
-//        kotlinCompilerExtensionVersion = "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.0-RC2"
-//    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -257,7 +220,6 @@ android {
     buildTypes {
         release {
             this.matchingFallbacks.add("release")
-
             this.isMinifyEnabled = true
             proguardFile("proguard-rules.pro")
         }
@@ -266,11 +228,6 @@ android {
         }
     }
 
-//    buildTypes {
-//        getByName("release") {
-//            isMinifyEnabled = false
-//        }
-//    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -280,10 +237,8 @@ compose.desktop {
     application {
         mainClass = "Main_desktopKt"
         nativeDistributions {
-
             targetFormats(
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
-//                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Pkg,
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb,
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Exe
@@ -311,17 +266,8 @@ compose.desktop {
                     "proguard-rules.pro",
                     "src/jvmMain/proguard-excelkt.pro",
                     "src/jvmMain/proguard-jvm.pro"
-//                    "src/jvmMain/compose-desktop.pro"
                 )
             }
-
-//            buildTypes.release.proguard {
-////                version.set("7.3.2")
-//                configurationFiles.from(project.file("compose-desktop.pro"))
-//                isEnabled.set(false)
-//                obfuscate.set(false)
-//            }
-
         }
     }
 }
@@ -331,11 +277,8 @@ rootProject.configure<BinaryenRootExtension> {
     this.version = "122"
 }
 
-
-
-
-
 /**
+Source: https://github.com/alexzhirkevich/compose-web-compat
 ./gradlew clean compatBrowserProductionDistribution
 ./gradlew compatBrowserDevelopmentDistribution
  */
@@ -372,6 +315,7 @@ listOf(
     tasks.named("${sourceSet}ProcessResources").configure {
         try {
             doLast {
+                @Suppress("DEPRECATION")
                 buildDir
                     .resolve("processedResources")
                     .resolve(sourceSet)
@@ -429,6 +373,7 @@ fun registerCompatDistTask(mode : Mode): TaskProvider<Task> {
         )
 
         doFirst {
+            @Suppress("DEPRECATION")
             val distDir = buildDir.resolve("dist")
 
             val compatDir = distDir
@@ -453,6 +398,7 @@ fun registerCompatDistTask(mode : Mode): TaskProvider<Task> {
 fun registerHashTask(mode : Mode) =
     tasks.register("compat${mode}Cache") {
         doFirst {
+            @Suppress("DEPRECATION")
             val distDir = buildDir
                 .resolve("dist")
                 .resolve("compat")

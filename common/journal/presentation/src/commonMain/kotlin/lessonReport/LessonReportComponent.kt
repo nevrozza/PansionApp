@@ -3,12 +3,10 @@ package lessonReport
 import AuthRepository
 import JournalRepository
 import ReportData
-import asValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
 import components.cAlertDialog.CAlertDialogComponent
 import components.cAlertDialog.CAlertDialogStore
 import components.cBottomSheet.CBottomSheetComponent
@@ -16,10 +14,9 @@ import components.listDialog.ListComponent
 import components.listDialog.ListDialogStore
 import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
+import decompose.DefaultMVIComponent
 import di.Inject
 import homeTasksDialog.HomeTasksDialogComponent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
 
 
 class LessonReportComponent(
@@ -28,9 +25,8 @@ class LessonReportComponent(
     private val output: (Output) -> Unit,
     private val reportData: ReportData,
     private val updateListScreen: () -> Unit,
-) : ComponentContext by componentContext {
-    //    private val settingsRepository: SettingsRepository = Inject.instance()
-//    private val authRepository: AuthRepository = Inject.instance()
+) : ComponentContext by componentContext, DefaultMVIComponent<LessonReportStore.Intent, LessonReportStore.State, LessonReportStore.Label> {
+
 
     private val homeTaskDialogContentName = "homeTaskDialogContentName"
     val homeTasksDialogComponent = HomeTasksDialogComponent(
@@ -78,11 +74,10 @@ class LessonReportComponent(
     var invokeAfterQuitClick = { onOutput(Output.BackAtAll) }
 
     private fun onSaveQuitAcceptClick() {
-        if (state.value.isUpdateNeeded) {
+        if (store.state.isUpdateNeeded) {
             onEvent(LessonReportStore.Intent.UpdateWholeReport)
         }
-
-        if (state.value.homeTasksToEditIds.isNotEmpty() || true in state.value.hometasks.map { it.isNew }) {
+        if (store.state.homeTasksToEditIds.isNotEmpty() || true in store.state.hometasks.map { it.isNew }) {
             onEvent(LessonReportStore.Intent.SaveHomeTasks)
         }
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.HideDialog)
@@ -166,8 +161,8 @@ class LessonReportComponent(
     private fun onSetMarkMenuItemClick(mark: String, id: String) {
         onEvent(LessonReportStore.Intent.SetMark(id))
         if (mark != "no"
-            || state.value.students.first { state.value.selectedLogin == it.login }
-                .marksOfCurrentLesson.count { it.reason == state.value.selectedMarkReason } == 4
+            || store.state.students.first { store.state.selectedLogin == it.login }
+                .marksOfCurrentLesson.count { it.reason == store.state.selectedMarkReason } == 4
         ) {
             setMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
             setDzMarkMenuComponent.onEvent(ListDialogStore.Intent.HideDialog)
@@ -187,7 +182,7 @@ class LessonReportComponent(
         }
     }
 
-    private val lessonReportStore =
+    override val store =
         instanceKeeper.getStore(key = "lessonReportN${reportData.header.reportId}") {
             LessonReportStoreFactory(
                 storeFactory = storeFactory,
@@ -220,33 +215,17 @@ class LessonReportComponent(
         }
     )
 
-
-    val model = lessonReportStore.asValue()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<LessonReportStore.State> = lessonReportStore.stateFlow
-
-    fun onEvent(event: LessonReportStore.Intent) {
-        lessonReportStore.accept(event)
-    }
-
     fun onOutput(output: Output) {
-        //ONLY ONE OUTPUT DEPRECATED
-//        if (model.value.isUpdateNeeded) {
-//            onEvent(LessonReportStore.Intent.UpdateWholeReport)
-//        }
         output(output)
     }
     fun outerIsNeedToSave() : Boolean {
-        return (state.value.isUpdateNeeded || state.value.homeTasksToEditIds.isNotEmpty() || true in state.value.hometasks.map { it.isNew }) && model.value.isEditable
+        return (store.state.isUpdateNeeded || store.state.homeTasksToEditIds.isNotEmpty() || true in store.state.hometasks.map { it.isNew }) && model.value.isEditable
     }
     fun outerDialogForSaving() {
         saveQuitNameDialogComponent.onEvent(CAlertDialogStore.Intent.ShowDialog)
     }
     init {
         onEvent(LessonReportStore.Intent.Init)
-
-
         val marks = listOf(
             ListItem(
                 id = "5",
@@ -266,7 +245,6 @@ class LessonReportComponent(
             ),
 
         )
-
         setDzMarkMenuComponent.onEvent(
             ListDialogStore.Intent.InitList(
                 marks +ListItem(
@@ -300,14 +278,9 @@ class LessonReportComponent(
                 )
             )
         )
-//        setReportColumnsComponent.onEvent(CBottomSheetStore.Intent.ShowSheet)
     }
 
     sealed class Output {
-        //        data object NavigateToMentors : Output()
-//        data object NavigateToUsers : Output()
-//        data object NavigateToGroups : Output()
-//        data object NavigateToStudents : Output()
         data object Back : Output()
         data object BackAtAll : Output()
 

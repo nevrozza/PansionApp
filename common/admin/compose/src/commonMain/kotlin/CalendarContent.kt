@@ -31,6 +31,7 @@ import components.foundation.CCheckbox
 import components.foundation.CTextButton
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
+import components.foundation.TonalCard
 import components.foundation.cClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -450,6 +451,7 @@ private fun WeekItem(
     w: Week,
     currentDate: String
 ) {
+    // Not TonalCard!
     ElevatedCard(
         modifier = Modifier.width(160.dp).height(110.dp).padding(end = 10.dp),
         colors = CardDefaults.elevatedCardColors(
@@ -491,11 +493,8 @@ private fun RangeButton(
     onClick: (DateRangePickerState) -> Unit
 ) {
     val isGoToDelete = remember { mutableStateOf(false) }
-    ElevatedCard(
+    TonalCard(
         modifier = Modifier.width(160.dp).height(110.dp).padding(end = 10.dp),
-//        colors = CardDefaults.cardColors(
-//            containerColor = MaterialTheme.colorScheme.secondaryContainer
-//        )
         onClick = {
             val today = Clock.System.now().toLocalDateTime(applicationTimeZone)
             if (!isGoToDelete.value && (isCreatingButton || h.edYear == getEdYear(today.date))) {
@@ -632,11 +631,8 @@ private fun ModuleButton(
     onClick: (DatePickerState) -> Unit
 ) {
     val isGoToDelete = remember { mutableStateOf(false) }
-    ElevatedCard(
+    TonalCard(
         modifier = Modifier.width(160.dp).height(110.dp).padding(end = 10.dp),
-//        colors = CardDefaults.cardColors(
-//            containerColor = MaterialTheme.colorScheme.secondaryContainer
-//        )
         onClick = {
             val today = Clock.System.now().toLocalDateTime(applicationTimeZone)
             if (!isGoToDelete.value && edYear == getEdYear(today.date)) {

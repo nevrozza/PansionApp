@@ -1,7 +1,7 @@
 package journal
 
 import AuthRepository
-import MainRepository
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import components.cAlertDialog.CAlertDialogComponent
@@ -14,7 +14,6 @@ import server.Moderation
 
 class JournalStoreFactory(
     private val storeFactory: StoreFactory,
-    private val mainRepository: MainRepository,
     private val authRepository: AuthRepository,
     private val groupListComponent: ListComponent,
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent,
@@ -39,7 +38,6 @@ class JournalStoreFactory(
                 login = authRepository.fetchLogin()
             ),
             executorFactory = { JournalExecutor(
-                mainRepository = mainRepository,
                 groupListComponent = groupListComponent,
                 studentsInGroupCAlertDialogComponent = studentsInGroupCAlertDialogComponent,
                 nInterface = nInterface,
@@ -49,6 +47,7 @@ class JournalStoreFactory(
                 fTeachersListComponent = fTeachersListComponent,
                 fStatusListComponent = fStatusListComponent
             ) },
-            reducer = JournalReducer
+            reducer = JournalReducer,
+            bootstrapper = SimpleBootstrapper(Unit)
         )
 }

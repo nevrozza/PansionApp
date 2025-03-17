@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,14 +40,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.GetAsyncIcon
+import components.GroupPicker
+import components.NSCutedGroup
+import components.NSSubject
 import components.foundation.CLazyColumn
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.GetAsyncIcon
-import components.GroupPicker
 import components.foundation.LoadingAnimation
-import components.NSCutedGroup
-import components.NSSubject
+import components.foundation.TonalCard
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
@@ -101,7 +101,7 @@ fun StudentsContent(
                                         ),
                                 ) {
 
-                                    ElevatedCard(
+                                    TonalCard(
                                         modifier = Modifier.defaultMinSize(minHeight = TextFieldDefaults.MinHeight)
                                             .wrapContentHeight()
                                             .fillMaxWidth().clip(CardDefaults.elevatedShape)

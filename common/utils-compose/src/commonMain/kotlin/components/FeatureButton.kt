@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import components.foundation.TonalCard
+import components.foundation.TonalCardDefaults
 import utils.cursor.handy
 
 @Composable
@@ -30,7 +31,7 @@ fun RowScope.FeatureButton(
     isActive: Boolean,
     onClick: () -> Unit,
 ) {
-    ElevatedCard(
+    TonalCard(
         Modifier.fillMaxWidth().clip(CardDefaults.elevatedShape)
             .weight(1f)
             .handy()
@@ -39,9 +40,7 @@ fun RowScope.FeatureButton(
             ) { //enabled = !isExpanded
                 onClick()
             },
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = if (isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        containerColor = if (isActive) MaterialTheme.colorScheme.secondaryContainer else TonalCardDefaults.containerColor,
     ) {
         Column(
             Modifier.fillMaxHeight().padding(vertical = 10.dp, horizontal = 15.dp)
@@ -73,7 +72,7 @@ fun RowScope.FeatureButton(
     isActive: Boolean,
     onClick: () -> Unit,
 
-) {
+    ) {
     FeatureButton(
         text,
         decoration = {

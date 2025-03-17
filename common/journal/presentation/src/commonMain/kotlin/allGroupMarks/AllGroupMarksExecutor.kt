@@ -11,14 +11,19 @@ import components.cAlertDialog.CAlertDialogStore
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import report.RFetchAllGroupMarksReceive
 
 class AllGroupMarksExecutor(
     private val nInterface: NetworkInterface,
-    private val journalRepository: JournalRepository,
+    private val journalRepository: JournalRepository = Inject.instance(),
     private val stupsDialogComponent: CAlertDialogComponent,
     private val nOpenReportInterface: NetworkInterface
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        fetchMarks()
+    }
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> fetchMarks()

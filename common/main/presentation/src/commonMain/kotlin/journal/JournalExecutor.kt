@@ -11,6 +11,7 @@ import components.listDialog.ListItem
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import journal.JournalStore.Intent
 import journal.JournalStore.Label
 import journal.JournalStore.Message
@@ -20,7 +21,7 @@ import report.RCreateReportReceive
 import server.getDate
 
 class JournalExecutor(
-    private val mainRepository: MainRepository,
+    private val mainRepository: MainRepository = Inject.instance(),
     private val groupListComponent: ListComponent,
     private val studentsInGroupCAlertDialogComponent: CAlertDialogComponent,
     private val nInterface: NetworkInterface,
@@ -30,6 +31,27 @@ class JournalExecutor(
     private val fTeachersListComponent: ListComponent,
     private val fStatusListComponent: ListComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+
+    override fun executeAction(action: Unit) {
+        initComponent()
+
+        fStatusListComponent.onEvent(
+            ListDialogStore.Intent.InitList(
+                listOf(
+                    ListItem(
+                        id = "True",
+                        text = "Закончен"
+                    ),
+                    ListItem(
+                        id = "False",
+                        text = "В процессе"
+                    )
+                )
+            )
+        )
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> initComponent()

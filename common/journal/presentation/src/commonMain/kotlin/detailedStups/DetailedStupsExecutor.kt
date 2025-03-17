@@ -9,12 +9,17 @@ import detailedStups.DetailedStupsStore.Message
 import detailedStups.DetailedStupsStore.State
 import deviceSupport.launchIO
 import deviceSupport.withMain
+import di.Inject
 import report.RFetchDetailedStupsReceive
 
 class DetailedStupsExecutor(
     private val nInterface: NetworkInterface,
-    private val journalRepository: JournalRepository
+    private val journalRepository: JournalRepository = Inject.instance()
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        init()
+    }
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             Intent.Init -> init()
@@ -25,9 +30,6 @@ class DetailedStupsExecutor(
         scope.launchIO {
             nInterface.nStartLoading()
             try {
-//                val subjects = journalRepository.fetchDnevnikRuMarks(state().studentLogin, getQuartersNum()).subjects
-//                dispatch(DnevnikRuMarkStore.Message.SubjectsUpdated(subjects))
-//                journalRepository.fe
                 val subjects = journalRepository.fetchAllStups(
                     RFetchDetailedStupsReceive(
                         login = state().login,

@@ -19,9 +19,9 @@ dependencies {
     implementation(libs.plugin.compose)
     implementation(libs.plugin.compose.compiler)
     implementation(libs.plugin.serialization)
-}
 
-kotlin {
-    jvmToolchain(17)
-    sourceSets.getByName("main").kotlin.srcDir("buildSrc/src/main/kotlin")
+    // for versionCatalog in setups
+    // https://stackoverflow.com/a/70878181
+    // An error in the editor, although the dependencies are correctly resolved.
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }

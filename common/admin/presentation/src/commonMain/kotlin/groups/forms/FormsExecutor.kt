@@ -21,6 +21,11 @@ class FormsExecutor(
     private val creatingFormBottomSheet: CBottomSheetComponent,
     private val editFormBottomSheet: CBottomSheetComponent,
 ) : CoroutineExecutor<Intent, Unit, State, Message, Label>() {
+    override fun executeAction(action: Unit) {
+        updateMentors()
+    }
+
+
     override fun executeIntent(intent: Intent) {
         when (intent) {
             is Intent.ClickOnForm -> chooseForm(intent.formId)

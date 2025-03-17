@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +53,7 @@ import components.foundation.AppBar
 import components.foundation.CLazyColumn
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
+import components.foundation.TonalCard
 import components.foundation.cClickable
 import components.journal.dashedBorder
 import components.networkInterface.NetworkState
@@ -182,7 +182,7 @@ private fun DateTasksItem(
 
 
     val isOpened = remember { mutableStateOf(!isCompleted) }
-    ElevatedCard(
+    TonalCard(
         Modifier.fillMaxWidth().padding(horizontal = 5.dp).padding(top = 2.dp, bottom = 5.dp)
     ) {
         Column(modifier = Modifier) { //.padding(8.dp)
