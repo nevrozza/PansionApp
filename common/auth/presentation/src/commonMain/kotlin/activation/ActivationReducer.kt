@@ -16,6 +16,7 @@ object ActivationReducer : Reducer<State, Message> {
 
             Message.AlreadyActivated -> copy(error = "Данный аккаунт уже активирован", isErrorShown = true, isInProcess = false)
             Message.UserNotExisting -> copy(error = "Данного аккаунта не существует", isErrorShown = true, isInProcess = false)
+
             is Message.CustomError -> copy(error = msg.error, isErrorShown = true, isInProcess = false)
 
 

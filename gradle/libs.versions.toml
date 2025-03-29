@@ -1,5 +1,5 @@
 [versions]
-# Need to be refactored
+# Have to be refactored
 # Plugins
 accompanistPermissions = "0.34.0"
 accompanistSystemuicontroller = "0.27.0"
@@ -13,10 +13,10 @@ jewelIntUiDecoratedWindowX43 = "0.27.0"
 kotlinxCoroutinesSwing = "1.8.0"
 mpfilepicker = "3.1.0"
 plugin-android = "8.5.2"
-plugin-compose = "1.7.3"#1.8.0-alpha02
+plugin-compose = "1.7.1"#1.8.0-beta01
 
 # Multiplatform
-kotlin = "2.1.0"
+kotlin = "2.1.20"
 coroutines = "1.10.1"
 qrKit = "2.0.0"
 qrose = "1.0.1"

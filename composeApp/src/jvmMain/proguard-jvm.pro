@@ -1,5 +1,6 @@
 -dontwarn okhttp3.internal.platform.**
 -keeppackagenames org.jetbrains.jewel
+-keep class org.jetbrains.jewel.**
 
 -keepclasseswithmembers public class Main_desktopKt {  # <-- Change com.company to yours
     public static void main(); #java.lang.String[]

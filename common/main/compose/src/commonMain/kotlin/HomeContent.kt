@@ -873,7 +873,8 @@ fun StudentHomeContent(
                     sharedTransitionScope = sharedTransitionScope,
                     isSharedVisible = isSharedVisible,
                     nTeacherModel = nTeacherModel,
-                    currentRouting = currentRouting
+                    currentRouting = currentRouting,
+                    kids = kids
                 )
                 this.homeStudentNotifications(
                     model = model,

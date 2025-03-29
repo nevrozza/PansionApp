@@ -1,20 +1,25 @@
-package lessonReportUtils
+package layouts
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFirst
+import eu.wewox.minabox.ScrollbarData
 
 
 private object LayoutIds {
@@ -22,6 +27,27 @@ private object LayoutIds {
     const val X_DIVIDER = "xDivider"
     const val Y_DIVIDER = "yDivider"
 }
+
+val defaultScrollbarData: ScrollbarData
+    @Composable
+    get() = ScrollbarData(
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation((10).dp),
+        hoveredColor = MaterialTheme.colorScheme.surfaceColorAtElevation(40.dp),
+        padding = 5.dp,
+        thickness = 8.dp,
+        shapeRadius = 16.dp,
+        isOuterTable = true
+    )
+
+
+
+val defaultMinaBoxTableModifier: Modifier
+    @Composable
+    get() = Modifier.border(
+        width = 1.dp,
+        color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
+        RoundedCornerShape(16.dp)
+    ).clip(RoundedCornerShape(16.dp))
 
 @Composable
 fun TableCellOutline(

@@ -9,7 +9,6 @@ import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -116,11 +115,13 @@ import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.ListDialogMobileContent
 import eu.wewox.minabox.MinaBox
 import eu.wewox.minabox.MinaBoxItem
-import eu.wewox.minabox.ScrollbarData
 import homeTasksDialog.HomeTasksDialogStore
 import homework.CreateReportHomeworkItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import layouts.TableCellOutline
+import layouts.defaultMinaBoxTableModifier
+import layouts.defaultScrollbarData
 import lessonReport.ColumnTypes
 import lessonReport.LessonReportComponent
 import lessonReport.LessonReportStore
@@ -130,7 +131,6 @@ import lessonReport.StudentLine
 import lessonReportUtils.LessonReportTableCell
 import lessonReportUtils.LessonReportTableHeader
 import lessonReportUtils.LessonReportTableTitle
-import lessonReportUtils.TableCellOutline
 import lessonReportUtils.getMaxStupsCount
 import resources.RIcons
 import server.fetchReason
@@ -1536,19 +1536,8 @@ fun LessonTable(
 
     val headerPadding = with(density) { (cellHeight - 30.dp).toPx() }
     MinaBox(
-        Modifier.border(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = .4f),
-            RoundedCornerShape(16.dp)
-        ).clip(RoundedCornerShape(16.dp)),
-        scrollBarData = ScrollbarData(
-            color = MaterialTheme.colorScheme.surfaceColorAtElevation((10).dp),
-            hoveredColor = MaterialTheme.colorScheme.surfaceColorAtElevation(40.dp),
-            padding = 5.dp,
-            thickness = 8.dp,
-            shapeRadius = 16.dp,
-            isOuterTable = true
-        )
+        modifier = defaultMinaBoxTableModifier,
+        scrollBarData = defaultScrollbarData
     ) {
         items(
             count = columnsCount * rowsCount,
@@ -1616,12 +1605,11 @@ fun LessonTable(
 
             }
         ) { index ->
-            val columnIndex = index % columnsCount
             Box(
                 Modifier.fillMaxSize().padding(bottom = 3.dp),
                 contentAlignment = Alignment.BottomStart
             ) {
-                LessonReportTableTitle(model.students[columnIndex], model, component)
+                LessonReportTableTitle(model.students[index], model, component)
             }
         }
 
@@ -1650,9 +1638,8 @@ fun LessonTable(
             },
             key = { it - model.columnNames.size }
         ) { index ->
-            val columnIndex = index % columnsCount
             TableCellOutline(backgroundColor = MaterialTheme.colorScheme.background) {
-                LessonReportTableHeader(model.columnNames[columnIndex], lP)
+                LessonReportTableHeader(model.columnNames[index], lP)
             }
         }
     }

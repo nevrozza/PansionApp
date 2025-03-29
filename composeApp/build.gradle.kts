@@ -159,6 +159,10 @@ kotlin {
             implementation(libs.compose.haze.core)
             implementation(libs.compose.haze.materials)
 
+            implementation(libs.coil.compose)
+            implementation(libs.coil.svg)
+            implementation(libs.coil.network.ktor3)
+
         }
 
         androidMain.dependencies {
@@ -169,7 +173,7 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation(project(":server"))
+//            implementation(project(":server"))
             implementation(compose.desktop.currentOs)  {
                 exclude(group = "org.jetbrains.compose.material", module = "material")
             }
@@ -237,6 +241,7 @@ compose.desktop {
     application {
         mainClass = "Main_desktopKt"
         nativeDistributions {
+            modules("jdk.unsupported")
             targetFormats(
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,

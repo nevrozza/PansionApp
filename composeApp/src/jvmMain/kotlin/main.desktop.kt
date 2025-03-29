@@ -47,12 +47,10 @@ import components.foundation.hazeHeader
 import components.foundation.hazeUnder
 import dev.chrisbanes.haze.HazeState
 import deviceSupport.deviceType
-import deviceSupport.launchIO
 import di.Inject
 import forks.splitPane.ExperimentalSplitPaneApi
 import forks.splitPane.SplitPaneState
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
@@ -99,9 +97,9 @@ import java.util.UUID
 fun main() {
 //
 
-    GlobalScope.launchIO {
-        com.nevrozq.pansion.main()
-    }
+//    GlobalScope.launchIO {
+//        com.nevrozq.pansion.main()
+//    }
 
     PlatformSDK.init(
         configuration = PlatformConfiguration(),

@@ -15,7 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 class ActivationExecutor(
     private val authRepository: AuthRepository = Inject.instance()
 ) :
-    CoroutineExecutor<Intent, Unit, State, Message, Nothing>() {
+    CoroutineExecutor<Intent, Unit, State, Message, ActivationStore.Label>() {
     override fun executeAction(action: Unit) {
         init()
     }
@@ -55,7 +55,8 @@ class ActivationExecutor(
             val response = authRepository.activate(state().login, state().password)
             withMain {
                 if (response.token.isNotBlank()) {
-                    dispatch(Message.Activated)
+//                    dispatch(Message.Activated)
+                    publish(ActivationStore.Label.Activated)
                 } else {
                     dispatch(Message.CustomError("Произошло что-то очень странное..."))
                 }
@@ -71,7 +72,6 @@ class ActivationExecutor(
                     login = state().login
                 )
             )
-            println(response)
             withMain {
                 if (response.isActivated) {
                     dispatch(Message.AlreadyActivated)

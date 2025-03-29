@@ -10,7 +10,7 @@ class ActivationComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     private val output: (Output) -> Unit
-) : ComponentContext by componentContext, DefaultMVIComponent<ActivationStore.Intent, ActivationStore.State, Nothing> {
+) : ComponentContext by componentContext, DefaultMVIComponent<ActivationStore.Intent, ActivationStore.State, ActivationStore.Label> {
     override val store =
         instanceKeeper.getStore {
             ActivationStoreFactory(

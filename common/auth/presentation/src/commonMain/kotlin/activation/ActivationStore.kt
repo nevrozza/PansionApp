@@ -1,10 +1,11 @@
 package activation
 
 import activation.ActivationStore.Intent
+import activation.ActivationStore.Label
 import activation.ActivationStore.State
 import com.arkivanov.mvikotlin.core.store.Store
 
-interface ActivationStore : Store<Intent, State, Nothing> {
+interface ActivationStore : Store<Intent, State, Label> {
     data class State(
         val login: String = "",
         val name: String? = null,
@@ -18,6 +19,10 @@ interface ActivationStore : Store<Intent, State, Nothing> {
         val isVerifyingPassword: Boolean = false,
         val logins: List<String> = emptyList()
     )
+
+    sealed interface Label {
+        data object Activated : Label
+    }
 
     sealed interface Intent {
 

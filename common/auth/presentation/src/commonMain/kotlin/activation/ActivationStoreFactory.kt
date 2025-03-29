@@ -16,7 +16,7 @@ class ActivationStoreFactory(
 
     private inner class ActivationStoreImpl :
         ActivationStore,
-        Store<Intent, State, Nothing> by storeFactory.create(
+        Store<Intent, State, ActivationStore.Label> by storeFactory.create(
             name = "ActivationStore",
             initialState = State(),
             executorFactory = {

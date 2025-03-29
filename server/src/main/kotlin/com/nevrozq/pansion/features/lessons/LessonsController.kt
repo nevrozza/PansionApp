@@ -1114,6 +1114,7 @@ class LessonsController {
     suspend fun fetchStudentsInGroup(call: ApplicationCall) {
         val perm = call.isMember
         call.dRes(perm, "Can't fetch students in group") {
+
             val r = this.receive<RFetchStudentsInGroupReceive>()
             val students = StudentGroups.fetchStudentsOfGroup(
                 groupId = r.groupId

@@ -67,16 +67,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.BottomThemePanel
+import components.GetAsyncIcon
 import components.foundation.AnimatedCommonButton
 import components.foundation.AnimatedElevatedButton
-import components.BottomThemePanel
 import components.foundation.CTextButton
 import components.foundation.CTextField
-import components.GetAsyncIcon
 import components.foundation.LoadingAnimation
 import kotlinx.coroutines.launch
 import resources.RIcons
 import utils.rememberImeState
+import utils.subscribeOnLabels
 import utils.toHex
 import view.LocalViewManager
 
@@ -91,7 +92,13 @@ fun ActivationContent(
 ) {
     val scrollState = rememberScrollState()
     val imeState = rememberImeState()
+
     val model by component.model.subscribeAsState()
+
+    LaunchedEffect(model) {
+        println("CHANGED: $model")
+    }
+
     val focusManager = LocalFocusManager.current
     val viewManager = LocalViewManager.current
     val coroutineScope = rememberCoroutineScope()
@@ -99,20 +106,41 @@ fun ActivationContent(
         !model.isInProcess && model.login.isNotBlank()
     val isActivationButtonEnabled =
         (!model.isInProcess && model.password.isNotBlank() && !model.isVerifyingPassword) || (!model.isInProcess && model.verifyPassword == model.password && model.isVerifyingPassword)
-    remember { FocusRequester() }
+
+
     val focusRequester2 = remember { FocusRequester() }
 
-    LaunchedEffect(model.activated) {
-        if (model.activated) {
-            component.navigateToMain()
+    component.subscribeOnLabels {
+        when(it) {
+            ActivationStore.Label.Activated ->
+                component.navigateToMain()
         }
+    }
+
+    val hostState = remember { mutableStateOf(SnackbarHostState()) }
+
+
+    // Actions
+    DisposableEffect(model) {
+        onDispose {
+            if (model.isErrorShown) {
+                coroutineScope.launch {
+                    if (model.error == "Данный аккаунт уже активирован") {
+                        component.onOutput(ActivationComponent.Output.NavigateToLogin(login = model.login))
+                    }
+                    hostState.value.showSnackbar(message = model.error)
+                }
+            } else {
+                hostState.value.currentSnackbarData?.dismiss()
+            }
+        }
+
     }
 
 
     Scaffold(
         Modifier.fillMaxSize(),
         snackbarHost = {
-            val hostState = remember { mutableStateOf(SnackbarHostState()) }
             SnackbarHost(
                 hostState = hostState.value,
                 snackbar = {
@@ -121,22 +149,6 @@ fun ActivationContent(
                     )
                 }
             )
-            //Actions
-            DisposableEffect(model.isErrorShown) {
-                onDispose {
-                    if (model.isErrorShown) {
-                        coroutineScope.launch {
-                            if (model.error == "Данный аккаунт уже активирован") {
-                                component.onOutput(ActivationComponent.Output.NavigateToLogin(login = model.login))
-                            }
-                            hostState.value.showSnackbar(message = model.error)
-                        }
-                    } else {
-                        hostState.value.currentSnackbarData?.dismiss()
-                    }
-                }
-
-            }
         }
     ) { padding ->
         Box {

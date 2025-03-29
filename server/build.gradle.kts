@@ -3,7 +3,7 @@ import io.ktor.plugin.features.DockerPortMappingProtocol
 
 val ktorV = "3.0.1"
 plugins {
-    kotlin("multiplatform")
+    kotlin("jvm")
     id("io.ktor.plugin") version "3.0.1"
     id(libs.plugins.serialization.get().pluginId)
 }
@@ -47,14 +47,14 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
 }
 kotlin {
-    jvm {
-        withJava()
-
-    }
+//    jvm {
+//        withJava()
+//
+//    }
 
     //noinspection UseTomlInstead
-    sourceSets {
-        commonMain {
+//    sourceSets {
+//        commonMain {
             dependencies {
 
                 implementation(project(":common:ktor"))
@@ -82,7 +82,7 @@ kotlin {
 
                 implementation("org.mindrot:jbcrypt:0.4")
             }
-        }
-    }
+//        }
+//    }
 
 }

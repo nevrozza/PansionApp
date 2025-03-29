@@ -56,6 +56,7 @@ import home.HomeComponent
 import home.HomeStore
 import kotlinx.coroutines.CoroutineScope
 import main.Period
+import main.school.DutyKid
 import resources.Images
 import resources.RIcons
 import server.roundTo
@@ -74,7 +75,8 @@ fun LazyListScope.homeStudentBar(
     coroutineScope: CoroutineScope,
     sharedTransitionScope: SharedTransitionScope,
     isSharedVisible: Boolean,
-    currentRouting: HomeRoutings
+    currentRouting: HomeRoutings,
+    kids: List<DutyKid>?
 //    isExpanded: Boolean
 ) {
     item {
@@ -330,7 +332,7 @@ fun LazyListScope.homeStudentBar(
                 }
             }
         }
-        if (model.notifications.isNotEmpty()) {
+        if (model.notifications.isNotEmpty() || model.login in (kids ?: listOf()).map { it.login }) {
             Spacer(Modifier.height(10.dp))
         }
     }
