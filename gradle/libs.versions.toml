@@ -13,7 +13,7 @@ jewelIntUiDecoratedWindowX43 = "0.27.0"
 kotlinxCoroutinesSwing = "1.8.0"
 mpfilepicker = "3.1.0"
 plugin-android = "8.5.2"
-plugin-compose = "1.7.1"#1.8.0-beta01
+plugin-compose = "1.7.3"#1.8.0-beta01
 
 # Multiplatform
 kotlin = "2.1.20"

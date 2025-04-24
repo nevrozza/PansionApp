@@ -77,17 +77,18 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.GetAsyncIcon
+import components.cAlertDialog.CAlertDialogStore
+import components.cBottomSheet.CBottomSheetStore
 import components.foundation.AnimatedCommonButton
 import components.foundation.AppBar
 import components.foundation.CTextField
-import components.GetAsyncIcon
 import components.foundation.LoadingAnimation
-import components.cAlertDialog.CAlertDialogStore
-import components.cBottomSheet.CBottomSheetStore
 import components.foundation.hazeUnder
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
@@ -758,7 +759,8 @@ fun GroupsOverlay(
                     ) {
                         append("$num/${properties.size}")
                     }
-                }
+                },
+                textAlign = TextAlign.Center
             )
             Column(
                 Modifier.imePadding()

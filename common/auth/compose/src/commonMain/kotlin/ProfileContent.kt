@@ -31,10 +31,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -118,6 +120,8 @@ fun SharedTransitionScope.ProfileContent(
     val lazyListState = rememberLazyListState()
     var isFullHeader by remember { mutableStateOf(true) } //!lazyListState.canScrollBackward || model.tabIndex == 2
 
+
+    val isRatingShown = model.likes.absoluteValue != 0 || model.dislikes.absoluteValue != 0
 
     LaunchedEffect(lazyListState.firstVisibleItemScrollOffset) {
         isFullHeader =
@@ -251,7 +255,7 @@ fun SharedTransitionScope.ProfileContent(
                                 !isFullHeader,
                                 enter = fadeIn() + expandVertically(
                                     expandFrom = Alignment.Top, clip = false
-                                ),
+                                ) ,
                                 exit = fadeOut() + shrinkVertically(
                                     shrinkTowards = Alignment.Top, clip = false
                                 ),
@@ -266,7 +270,7 @@ fun SharedTransitionScope.ProfileContent(
                                 )
                             }
                             this@Column.AnimatedVisibility(
-                                !isFullHeader,
+                                !isFullHeader && isRatingShown,
                                 enter = fadeIn() + expandVertically(
                                     expandFrom = Alignment.Top, clip = false
                                 ),
@@ -276,19 +280,27 @@ fun SharedTransitionScope.ProfileContent(
                                 modifier = Modifier.align(Alignment.CenterEnd)
                                     .offset(x = -17.5.dp, y = 2.dp)
                             ) {
-                                Text(
-                                    buildAnnotatedString {
-                                        withStyle(SpanStyle(Color.Green)) {
-                                            append("+${model.likes}")
-                                        }
-                                        append("/")
-                                        withStyle(SpanStyle(Color.Red)) {
-                                            append("-${model.dislikes}")
-                                        }
-                                    }
-                                )
+                                RatingText(model.likes, model.dislikes)
                             }
 
+                            this@Column.AnimatedVisibility(
+                                visible = model.tabIndex !in listOf(0, 1),
+                                enter = fadeIn() + scaleIn(),
+                                exit = fadeOut() + scaleOut(),
+                                modifier= Modifier.align(Alignment.CenterEnd)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    GetAsyncIcon(
+                                        RIcons.COINS
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        model.pansCoins.toString(),
+                                        fontSize = 17.esp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
                     },
                     navigationRow = {
@@ -298,25 +310,6 @@ fun SharedTransitionScope.ProfileContent(
                             GetAsyncIcon(
                                 path = RIcons.CHEVRON_LEFT
                             )
-                        }
-                    },
-                    actionRow = {
-                        AnimatedVisibility(
-                            visible = model.tabIndex !in listOf(0, 1),
-                            enter = fadeIn() + scaleIn(),
-                            exit = fadeOut() + scaleOut(),
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                GetAsyncIcon(
-                                    RIcons.COINS
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    model.pansCoins.toString(),
-                                    fontSize = 17.esp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
                         }
                     },
                     isTransparentHaze = true
@@ -506,18 +499,8 @@ fun SharedTransitionScope.ProfileContent(
                                     }
 
                                 } else {
-                                    if (model.likes.absoluteValue != 0 || model.dislikes.absoluteValue != 0) {
-                                        Text(
-                                            buildAnnotatedString {
-                                                withStyle(SpanStyle(Color.Green)) {
-                                                    append("+${model.likes}")
-                                                }
-                                                append("/")
-                                                withStyle(SpanStyle(Color.Red)) {
-                                                    append("-${model.dislikes}")
-                                                }
-                                            }
-                                        )
+                                    if (isRatingShown) {
+                                        RatingText(model.likes, model.dislikes)
                                     }
                                 }
                             }
@@ -588,10 +571,11 @@ fun SharedTransitionScope.ProfileContent(
 
                                 NetworkState.None -> {
                                     Column {
-                                        Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+                                        Row(Modifier.fillMaxWidth().padding(top = 10.dp).height(IntrinsicSize.Max)) {
                                             if (model.form != null) {
                                                 TonalCard(
                                                     Modifier.fillMaxWidth()
+                                                        .fillMaxHeight()
                                                         .weight(1f),
                                                     onClick = {
                                                         component.giaCBottomSheetComponent.onEvent(
@@ -601,6 +585,7 @@ fun SharedTransitionScope.ProfileContent(
                                                 ) {
                                                     val modifier = Modifier
                                                         .fillMaxWidth()
+
                                                         .defaultMinSize(minHeight = 80.dp)
                                                     Box(
                                                         modifier = modifier.padding(
@@ -646,6 +631,7 @@ fun SharedTransitionScope.ProfileContent(
                                             }
                                             TonalCard(
                                                 Modifier.fillMaxWidth()
+                                                    .fillMaxHeight()
                                                     .weight(1f),
                                                 shape = CardDefaults.elevatedShape,
                                                 onClick = {
@@ -664,6 +650,7 @@ fun SharedTransitionScope.ProfileContent(
                                                         horizontal = 15.dp
                                                     )
                                                         .fillMaxWidth()
+                                                        .matchParentSize()
                                                         .defaultMinSize(minHeight = 80.dp),
                                                     verticalArrangement = Arrangement.SpaceBetween
                                                 ) {
@@ -1062,3 +1049,17 @@ private fun AvatarButton(
     }
 }
 
+@Composable
+private fun RatingText(likes: Int, dislikes: Int) {
+    Text(
+        buildAnnotatedString {
+            withStyle(SpanStyle(Color.Green)) {
+                append("+${likes}")
+            }
+            append("/")
+            withStyle(SpanStyle(Color.Red)) {
+                append("-${dislikes}")
+            }
+        }
+    )
+}

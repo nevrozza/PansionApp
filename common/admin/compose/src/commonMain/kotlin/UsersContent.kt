@@ -79,6 +79,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.GetAsyncIcon
+import components.ScrollBaredBox
+import components.cBottomSheet.CBottomSheetStore
 import components.foundation.AnimatedCommonButton
 import components.foundation.AppBar
 import components.foundation.CCheckbox
@@ -86,16 +89,16 @@ import components.foundation.CTextButton
 import components.foundation.CTextField
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.GetAsyncIcon
 import components.foundation.LoadingAnimation
-import components.ScrollBaredBox
-import components.cBottomSheet.CBottomSheetStore
 import components.foundation.cClickable
 import components.foundation.hazeUnder
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
+import components.refresh.PullRefreshIndicator
 import components.refresh.RefreshButton
 import components.refresh.keyRefresh
+import components.refresh.pullRefresh
+import components.refresh.rememberPullRefreshState
 import decomposeComponents.CAlertDialogContent
 import decomposeComponents.CBottomSheetContent
 import decomposeComponents.listDialogComponent.customConnection
@@ -105,9 +108,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
-import components.refresh.PullRefreshIndicator
-import components.refresh.pullRefresh
-import components.refresh.rememberPullRefreshState
 import resources.RIcons
 import server.Roles
 import server.twoNums
@@ -426,7 +426,8 @@ fun UsersContent(
                                 val fio = with(it.user.fio) {
                                     "$surname $name $praname"
                                 }
-                                ((it.login.lowercase().contains(model.userFindField.lowercase()) || fio.lowercase()
+                                ((it.login.lowercase()
+                                    .contains(model.userFindField.lowercase()) || fio.lowercase()
                                     .contains(model.userFindField.lowercase())) || model.userFindField.isBlank()) && (it.user.role in roles
                                         && moder
                                         && isInActive
@@ -591,7 +592,8 @@ private fun editUserSheet(
                     ) {
                         append("$num/5")
                     }
-                }
+                },
+                textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(5.dp))
             LazyColumn(
@@ -692,18 +694,18 @@ private fun editUserSheet(
                     if (model.isDateDialogShowing) {
                         val datePickerState = rememberDatePickerState(
                             initialSelectedDateMillis =
-                                if (model.eBirthday.length == 8) {
-                                    val day = model.eBirthday.substring(0, 2).toInt()
-                                    val month = model.eBirthday.substring(2, 4).toInt()
-                                    val year = model.eBirthday.substring(4).toInt()
-                                    LocalDate(
-                                        year = year,
-                                        monthNumber = month,
-                                        dayOfMonth = day
-                                    ).atStartOfDayIn(
-                                        TimeZone.UTC
-                                    ).toEpochMilliseconds()
-                                } else null,
+                            if (model.eBirthday.length == 8) {
+                                val day = model.eBirthday.substring(0, 2).toInt()
+                                val month = model.eBirthday.substring(2, 4).toInt()
+                                val year = model.eBirthday.substring(4).toInt()
+                                LocalDate(
+                                    year = year,
+                                    monthNumber = month,
+                                    dayOfMonth = day
+                                ).atStartOfDayIn(
+                                    TimeZone.UTC
+                                ).toEpochMilliseconds()
+                            } else null,
                             yearRange = IntRange(1940, model.currentYear - 5)
                         )
                         DatePickerDialog(
@@ -802,10 +804,12 @@ private fun editUserSheet(
                             onValueChange = {},
                             label = { Text("Роль") },
                             trailingIcon = {
-                                val chevronRotation = animateFloatAsState(if (expandedRoles) 90f else -90f)
+                                val chevronRotation =
+                                    animateFloatAsState(if (expandedRoles) 90f else -90f)
                                 GetAsyncIcon(
                                     path = RIcons.CHEVRON_LEFT,
-                                    modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                    modifier = Modifier.padding(end = 10.dp)
+                                        .rotate(chevronRotation.value),
                                     size = 15.dp
                                 )
                             },
@@ -857,10 +861,12 @@ private fun editUserSheet(
                                 onValueChange = {},
                                 label = { Text("Предмет") },
                                 trailingIcon = {
-                                    val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                                    val chevronRotation =
+                                        animateFloatAsState(if (expandedSubjects) 90f else -90f)
                                     GetAsyncIcon(
                                         path = RIcons.CHEVRON_LEFT,
-                                        modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                        modifier = Modifier.padding(end = 10.dp)
+                                            .rotate(chevronRotation.value),
                                         size = 15.dp
                                     )
                                 },
@@ -1077,141 +1083,143 @@ private fun createUserSheet(
     ) {
         val focusManager = LocalFocusManager.current
         var num: Int
-        if (model.cLogin.isBlank() && cNModel.value.state != NetworkState.Error) {
-            Column(
-                Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                var expandedRoles by remember { mutableStateOf(false) }
-                val properties = listOf(
-                    model.cName,
-                    model.cSurname,
-                    model.cPraname,
-                    model.cRole,
-                )
-                num = properties.count { (it ?: "").isNotBlank() }
-                if (model.cBirthday.length == 8) num++
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = MaterialTheme.typography.titleLarge.fontSize
-                            )
-                        ) {
-                            append("Создать нового пользователя ")
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        ) {
-                            append("$num/5")
-                        }
-                    }
-                )
-                Spacer(Modifier.height(5.dp))
-                LazyColumn(
-                    Modifier
-                        .fillMaxWidth()
-                        .imePadding()
-                        .nestedScroll(lazyList.customConnection),
-                    state = lazyList,
+        Crossfade(model.cLogin.isBlank() && cNModel.value.state != NetworkState.Error) { tState ->
+            if (tState) {
+                Column(
+                    Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    item {
-
-
-                        Spacer(Modifier.height(7.dp))
-                        CTextField(
-                            value = model.cSurname,
-                            onValueChange = {
-                                component.onEvent(UsersStore.Intent.ChangeCSurname(it))
-                            },
-                            text = "Фамилия",
-                            isEnabled = !isCreatingInProcess,//model.isCreatingInProcess,
-                            onEnterClicked = {
-                                focusManager.moveFocus(FocusDirection.Next)
-                            },
-                            focusManager = focusManager,
-                            isMoveUpLocked = true,
-                            autoCorrect = false,
-                            keyboardType = KeyboardType.Password
-                        )
-                        Spacer(Modifier.height(7.dp))
-                        CTextField(
-                            value = model.cName,
-                            onValueChange = {
-                                component.onEvent(UsersStore.Intent.ChangeCName(it))
-                            },
-                            text = "Имя",
-                            isEnabled = !isCreatingInProcess,
-                            onEnterClicked = {
-                                focusManager.moveFocus(FocusDirection.Next)
-                            },
-                            focusManager = focusManager,
-                            isMoveUpLocked = false,
-                            autoCorrect = false,
-                            keyboardType = KeyboardType.Password
-                        )
-                        Spacer(Modifier.height(7.dp))
-                        CTextField(
-                            value = model.cPraname ?: "",
-                            onValueChange = {
-                                component.onEvent(UsersStore.Intent.ChangeCPraname(it))
-                            },
-                            text = "Отчество",
-                            isEnabled = !isCreatingInProcess,
-                            onEnterClicked = {
-                                focusManager.moveFocus(FocusDirection.Next)
-                            },
-                            focusManager = focusManager,
-                            isMoveUpLocked = false,
-                            autoCorrect = false,
-                            keyboardType = KeyboardType.Password
-                        )
-                        Spacer(Modifier.height(7.dp))
-                        CTextField(
-                            value = model.cBirthday,
-                            onValueChange = {
-                                if (it.length <= 8 && (it.matches("\\d{1,8}".toRegex()) || it.isEmpty())) {
-                                    component.onEvent(UsersStore.Intent.ChangeCBirthday(it))
-                                }
-                            },
-                            text = "Дата рождения",
-                            isEnabled = !isCreatingInProcess,
-                            onEnterClicked = {
-                                focusManager.moveFocus(FocusDirection.Down)
-                                expandedRoles = true
-                            },
-                            focusManager = focusManager,
-                            isMoveUpLocked = false,
-                            autoCorrect = false,
-                            keyboardType = KeyboardType.Number,
-                            supText = "ДД.ММ.ГГГГ",
-                            isDateEntry = true,
-                            trailingIcon = {
-                                IconButton(
-                                    {
-                                        component.onEvent(
-                                            UsersStore.Intent.ChangeDateDialogShowing(
-                                                true
-                                            )
-                                        )
-                                    },
-                                    enabled = !isCreatingInProcess
-                                ) {
-                                    GetAsyncIcon(
-                                        RIcons.CALENDAR
-                                    )
-                                }
+                    var expandedRoles by remember { mutableStateOf(false) }
+                    val properties = listOf(
+                        model.cName,
+                        model.cSurname,
+                        model.cPraname,
+                        model.cRole,
+                    )
+                    num = properties.count { (it ?: "").isNotBlank() }
+                    if (model.cBirthday.length == 8) num++
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                SpanStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize
+                                )
+                            ) {
+                                append("Создать нового пользователя ")
                             }
-                        )
-                        if (model.isDateDialogShowing) {
-                            val datePickerState = rememberDatePickerState(
-                                initialSelectedDateMillis =
+                            withStyle(
+                                SpanStyle(
+                                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            ) {
+                                append("$num/5")
+                            }
+                        },
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(5.dp))
+                    LazyColumn(
+                        Modifier
+                            .fillMaxWidth()
+                            .imePadding()
+                            .nestedScroll(lazyList.customConnection),
+                        state = lazyList,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+
+
+                            Spacer(Modifier.height(7.dp))
+                            CTextField(
+                                value = model.cSurname,
+                                onValueChange = {
+                                    component.onEvent(UsersStore.Intent.ChangeCSurname(it))
+                                },
+                                text = "Фамилия",
+                                isEnabled = !isCreatingInProcess,//model.isCreatingInProcess,
+                                onEnterClicked = {
+                                    focusManager.moveFocus(FocusDirection.Next)
+                                },
+                                focusManager = focusManager,
+                                isMoveUpLocked = true,
+                                autoCorrect = false,
+                                keyboardType = KeyboardType.Password
+                            )
+                            Spacer(Modifier.height(7.dp))
+                            CTextField(
+                                value = model.cName,
+                                onValueChange = {
+                                    component.onEvent(UsersStore.Intent.ChangeCName(it))
+                                },
+                                text = "Имя",
+                                isEnabled = !isCreatingInProcess,
+                                onEnterClicked = {
+                                    focusManager.moveFocus(FocusDirection.Next)
+                                },
+                                focusManager = focusManager,
+                                isMoveUpLocked = false,
+                                autoCorrect = false,
+                                keyboardType = KeyboardType.Password
+                            )
+                            Spacer(Modifier.height(7.dp))
+                            CTextField(
+                                value = model.cPraname ?: "",
+                                onValueChange = {
+                                    component.onEvent(UsersStore.Intent.ChangeCPraname(it))
+                                },
+                                text = "Отчество",
+                                isEnabled = !isCreatingInProcess,
+                                onEnterClicked = {
+                                    focusManager.moveFocus(FocusDirection.Next)
+                                },
+                                focusManager = focusManager,
+                                isMoveUpLocked = false,
+                                autoCorrect = false,
+                                keyboardType = KeyboardType.Password
+                            )
+                            Spacer(Modifier.height(7.dp))
+                            CTextField(
+                                value = model.cBirthday,
+                                onValueChange = {
+                                    if (it.length <= 8 && (it.matches("\\d{1,8}".toRegex()) || it.isEmpty())) {
+                                        component.onEvent(UsersStore.Intent.ChangeCBirthday(it))
+                                    }
+                                },
+                                text = "Дата рождения",
+                                isEnabled = !isCreatingInProcess,
+                                onEnterClicked = {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                    expandedRoles = true
+                                },
+                                focusManager = focusManager,
+                                isMoveUpLocked = false,
+                                autoCorrect = false,
+                                keyboardType = KeyboardType.Number,
+                                supText = "ДД.ММ.ГГГГ",
+                                isDateEntry = true,
+                                trailingIcon = {
+                                    IconButton(
+                                        {
+                                            component.onEvent(
+                                                UsersStore.Intent.ChangeDateDialogShowing(
+                                                    true
+                                                )
+                                            )
+                                        },
+                                        enabled = !isCreatingInProcess
+                                    ) {
+                                        GetAsyncIcon(
+                                            RIcons.CALENDAR
+                                        )
+                                    }
+                                }
+                            )
+                            if (model.isDateDialogShowing) {
+                                val datePickerState = rememberDatePickerState(
+                                    initialSelectedDateMillis =
                                     if (model.cBirthday.length == 8) {
                                         val day = model.cBirthday.substring(0, 2).toInt()
                                         val month = model.cBirthday.substring(2, 4).toInt()
@@ -1224,39 +1232,52 @@ private fun createUserSheet(
                                             TimeZone.UTC
                                         ).toEpochMilliseconds()
                                     } else null,
-                                yearRange = IntRange(1940, model.currentYear - 5)
-                            )
-                            DatePickerDialog(
-                                onDismissRequest = {
-                                    component.onEvent(
-                                        UsersStore.Intent.ChangeDateDialogShowing(
-                                            false
-                                        )
-                                    )
-                                },
-                                confirmButton = {
-                                    CTextButton(
-                                        "Ок",
-                                        modifier = Modifier.padding(
-                                            end = 30.dp,
-                                            start = 20.dp,
-                                            bottom = 10.dp
-                                        ),
-                                        color = if (datePickerState.selectedDateMillis != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(
-                                            alpha = 0.3f
-                                        )
-                                    ) {
-                                        if (datePickerState.selectedDateMillis != null) {
-                                            val date =
-                                                Instant.fromEpochMilliseconds(
-                                                    datePickerState.selectedDateMillis!!
-                                                )
-                                                    .toLocalDateTime(applicationTimeZone)
-                                            component.onEvent(
-                                                UsersStore.Intent.ChangeCBirthday(
-                                                    "${date.dayOfMonth.twoNums()}${date.monthNumber.twoNums()}${date.year}"
-                                                )
+                                    yearRange = IntRange(1940, model.currentYear - 5)
+                                )
+                                DatePickerDialog(
+                                    onDismissRequest = {
+                                        component.onEvent(
+                                            UsersStore.Intent.ChangeDateDialogShowing(
+                                                false
                                             )
+                                        )
+                                    },
+                                    confirmButton = {
+                                        CTextButton(
+                                            "Ок",
+                                            modifier = Modifier.padding(
+                                                end = 30.dp,
+                                                start = 20.dp,
+                                                bottom = 10.dp
+                                            ),
+                                            color = if (datePickerState.selectedDateMillis != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(
+                                                alpha = 0.3f
+                                            )
+                                        ) {
+                                            if (datePickerState.selectedDateMillis != null) {
+                                                val date =
+                                                    Instant.fromEpochMilliseconds(
+                                                        datePickerState.selectedDateMillis!!
+                                                    )
+                                                        .toLocalDateTime(applicationTimeZone)
+                                                component.onEvent(
+                                                    UsersStore.Intent.ChangeCBirthday(
+                                                        "${date.dayOfMonth.twoNums()}${date.monthNumber.twoNums()}${date.year}"
+                                                    )
+                                                )
+                                                component.onEvent(
+                                                    UsersStore.Intent.ChangeDateDialogShowing(
+                                                        false
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    },
+                                    dismissButton = {
+                                        CTextButton(
+                                            "Отмена",
+                                            modifier = Modifier.padding(bottom = 10.dp)
+                                        ) {
                                             component.onEvent(
                                                 UsersStore.Intent.ChangeDateDialogShowing(
                                                     false
@@ -1264,124 +1285,58 @@ private fun createUserSheet(
                                             )
                                         }
                                     }
-                                },
-                                dismissButton = {
-                                    CTextButton(
-                                        "Отмена",
-                                        modifier = Modifier.padding(bottom = 10.dp)
-                                    ) {
-                                        component.onEvent(
-                                            UsersStore.Intent.ChangeDateDialogShowing(
-                                                false
-                                            )
-                                        )
-                                    }
-                                }
-                            ) {
-                                DatePicker(
-                                    state = datePickerState,
-                                    showModeToggle = false,
-                                    title = {
-                                        Text(
-                                            "Выберите дату",
-                                            modifier = Modifier.padding(
-                                                top = 15.dp,
-                                                start = 20.dp
-                                            )
-                                        )
-                                    }
-                                )
-                            }
-                        }
-
-                        Spacer(Modifier.height(7.dp))
-
-                        val rolesList = mapOf(
-                            Roles.STUDENT to "Ученик",
-                            Roles.TEACHER to "Учитель",
-                            Roles.NOTHING to "Другое"
-                        )
-
-                        ExposedDropdownMenuBox(
-                            expanded = expandedRoles,
-                            onExpandedChange = {
-                                expandedRoles = !expandedRoles
-                            }
-                        ) {
-                            // textfield
-                            OutlinedTextField(
-                                modifier = Modifier
-                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
-                                readOnly = true,
-                                value = when (model.cRole) {
-                                    Roles.TEACHER -> "Учитель"
-                                    Roles.STUDENT -> "Ученик"
-                                    Roles.NOTHING -> "Другое"
-                                    else -> ""
-                                },
-                                placeholder = { Text("Выберите") },
-                                onValueChange = {},
-                                label = { Text("Роль") },
-                                trailingIcon = {
-                                    val chevronRotation = animateFloatAsState(if (expandedRoles) 90f else -90f)
-                                    GetAsyncIcon(
-                                        path = RIcons.CHEVRON_LEFT,
-                                        modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
-                                        size = 15.dp
-                                    )
-                                },
-                                shape = RoundedCornerShape(15.dp),
-                                enabled = !isCreatingInProcess
-                            )
-                            // menu
-                            ExposedDropdownMenu(
-                                expanded = expandedRoles,
-                                onDismissRequest = {
-                                    expandedRoles = false
-                                },
-                            ) {
-                                // menu items
-                                rolesList.forEach { selectionOption ->
-                                    DropdownMenuItem(
-                                        text = { Text(selectionOption.value) },
-                                        onClick = {
-                                            component.onEvent(
-                                                UsersStore.Intent.ChangeCRole(
-                                                    selectionOption.key
+                                ) {
+                                    DatePicker(
+                                        state = datePickerState,
+                                        showModeToggle = false,
+                                        title = {
+                                            Text(
+                                                "Выберите дату",
+                                                modifier = Modifier.padding(
+                                                    top = 15.dp,
+                                                    start = 20.dp
                                                 )
                                             )
-                                            expandedRoles = false
-                                        },
-                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                        }
                                     )
                                 }
                             }
-                        }
-                        Spacer(Modifier.height(7.dp))
-                        if (model.cRole == Roles.TEACHER) {
-                            var expandedSubjects by remember { mutableStateOf(false) }
+
+                            Spacer(Modifier.height(7.dp))
+
+                            val rolesList = mapOf(
+                                Roles.STUDENT to "Ученик",
+                                Roles.TEACHER to "Учитель",
+                                Roles.NOTHING to "Другое"
+                            )
 
                             ExposedDropdownMenuBox(
-                                expanded = expandedSubjects,
+                                expanded = expandedRoles,
                                 onExpandedChange = {
-                                    expandedSubjects = !expandedSubjects
+                                    expandedRoles = !expandedRoles
                                 }
                             ) {
-
                                 // textfield
                                 OutlinedTextField(
                                     modifier = Modifier
                                         .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
                                     readOnly = true,
-                                    value = model.subjects[model.cSubjectId] ?: "",
+                                    value = when (model.cRole) {
+                                        Roles.TEACHER -> "Учитель"
+                                        Roles.STUDENT -> "Ученик"
+                                        Roles.NOTHING -> "Другое"
+                                        else -> ""
+                                    },
                                     placeholder = { Text("Выберите") },
                                     onValueChange = {},
-                                    label = { Text("Предмет") },
+                                    label = { Text("Роль") },
                                     trailingIcon = {
-                                        val chevronRotation = animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                                        val chevronRotation =
+                                            animateFloatAsState(if (expandedRoles) 90f else -90f)
                                         GetAsyncIcon(
                                             path = RIcons.CHEVRON_LEFT,
-                                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
+                                            modifier = Modifier.padding(end = 10.dp)
+                                                .rotate(chevronRotation.value),
                                             size = 15.dp
                                         )
                                     },
@@ -1390,223 +1345,286 @@ private fun createUserSheet(
                                 )
                                 // menu
                                 ExposedDropdownMenu(
-                                    expanded = expandedSubjects,
+                                    expanded = expandedRoles,
                                     onDismissRequest = {
-                                        expandedSubjects = false
+                                        expandedRoles = false
                                     },
                                 ) {
                                     // menu items
-                                    (model.subjects).forEach { selectionOption ->
+                                    rolesList.forEach { selectionOption ->
                                         DropdownMenuItem(
-                                            text = { Text("${selectionOption.key} ${selectionOption.value}") },
+                                            text = { Text(selectionOption.value) },
                                             onClick = {
                                                 component.onEvent(
-                                                    UsersStore.Intent.ChangeCSubjectId(
+                                                    UsersStore.Intent.ChangeCRole(
                                                         selectionOption.key
                                                     )
                                                 )
-                                                expandedSubjects = false
+                                                expandedRoles = false
                                             },
                                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                                         )
                                     }
                                 }
                             }
-                        }
-                        if (model.cRole != Roles.STUDENT) {
-                            Row(
-                                Modifier.width(TextFieldDefaults.MinWidth)
-                                    .padding(horizontal = 7.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Модератор",
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    modifier = Modifier.padding(bottom = 4.dp)
-                                )
-                                Switch(
-                                    checked = model.cIsModerator,
-                                    onCheckedChange = {
-                                        component.onEvent(
-                                            UsersStore.Intent.ChangeCIsModerator(
-                                                it
-                                            )
-                                        )
-                                    },
-                                    enabled = !isCreatingInProcess
-                                )
-                            }
                             Spacer(Modifier.height(7.dp))
-                            Row(
-                                Modifier.width(TextFieldDefaults.MinWidth)
-                                    .padding(horizontal = 7.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Наставник",
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    modifier = Modifier.padding(bottom = 4.dp)
-                                )
-                                Switch(
-                                    checked = model.cIsMentor,
-                                    onCheckedChange = {
-                                        component.onEvent(
-                                            UsersStore.Intent.ChangeCIsMentor(
-                                                it
-                                            )
-                                        )
-                                    },
-                                    enabled = !isCreatingInProcess
-                                )
-                            }
-                            Spacer(Modifier.height(7.dp))
-                            Row(
-                                Modifier.width(TextFieldDefaults.MinWidth)
-                                    .padding(horizontal = 7.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Родитель",
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    modifier = Modifier.padding(bottom = 4.dp)
-                                )
-                                Switch(
-                                    checked = model.cIsParent,
-                                    onCheckedChange = {
-                                        component.onEvent(
-                                            UsersStore.Intent.ChangeCIsParent(
-                                                it
-                                            )
-                                        )
-                                    },
-                                    enabled = !isCreatingInProcess
-                                )
-                            }
-                        } else {
-                            var expandedForms by remember { mutableStateOf(false) }
+                            if (model.cRole == Roles.TEACHER) {
+                                var expandedSubjects by remember { mutableStateOf(false) }
 
-                            ExposedDropdownMenuBox(
-                                expanded = expandedForms,
-                                onExpandedChange = {
-                                    expandedForms = !expandedForms
-                                }
-                            ) {
-                                val form = model.forms.firstOrNull { it.id == model.cFormId }
-
-                                // textfield
-                                OutlinedTextField(
-                                    modifier = Modifier
-                                        .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
-                                    readOnly = true,
-                                    value = if (form != null) "${form.classNum} ${form.title}" else "",
-                                    placeholder = { Text("Выберите") },
-                                    onValueChange = {},
-                                    label = { Text("Класс") },
-                                    trailingIcon = {
-                                        val chevronRotation = animateFloatAsState(if (expandedForms) 90f else -90f)
-                                        GetAsyncIcon(
-                                            path = RIcons.CHEVRON_LEFT,
-                                            modifier = Modifier.padding(end = 10.dp).rotate(chevronRotation.value),
-                                            size = 15.dp
-                                        )
-                                    },
-                                    shape = RoundedCornerShape(15.dp),
-                                    enabled = !isCreatingInProcess
-                                )
-                                // menu
-                                ExposedDropdownMenu(
-                                    expanded = expandedForms,
-                                    onDismissRequest = {
-                                        expandedForms = false
-                                    },
+                                ExposedDropdownMenuBox(
+                                    expanded = expandedSubjects,
+                                    onExpandedChange = {
+                                        expandedSubjects = !expandedSubjects
+                                    }
                                 ) {
-                                    // menu items
-                                    (emptyList<CutedForm>() + CutedForm(
-                                        id = 0,
-                                        title = "Никакой",
-                                        0
-                                    ) + model.forms).forEach { selectionOption ->
-                                        DropdownMenuItem(
-                                            text = { Text("${selectionOption.classNum} ${selectionOption.title}") },
-                                            onClick = {
-                                                component.onEvent(
-                                                    UsersStore.Intent.ChangeCFormId(
-                                                        selectionOption.id
+
+                                    // textfield
+                                    OutlinedTextField(
+                                        modifier = Modifier
+                                            .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
+                                        readOnly = true,
+                                        value = model.subjects[model.cSubjectId] ?: "",
+                                        placeholder = { Text("Выберите") },
+                                        onValueChange = {},
+                                        label = { Text("Предмет") },
+                                        trailingIcon = {
+                                            val chevronRotation =
+                                                animateFloatAsState(if (expandedSubjects) 90f else -90f)
+                                            GetAsyncIcon(
+                                                path = RIcons.CHEVRON_LEFT,
+                                                modifier = Modifier.padding(end = 10.dp)
+                                                    .rotate(chevronRotation.value),
+                                                size = 15.dp
+                                            )
+                                        },
+                                        shape = RoundedCornerShape(15.dp),
+                                        enabled = !isCreatingInProcess
+                                    )
+                                    // menu
+                                    ExposedDropdownMenu(
+                                        expanded = expandedSubjects,
+                                        onDismissRequest = {
+                                            expandedSubjects = false
+                                        },
+                                    ) {
+                                        // menu items
+                                        (model.subjects).forEach { selectionOption ->
+                                            DropdownMenuItem(
+                                                text = { Text("${selectionOption.key} ${selectionOption.value}") },
+                                                onClick = {
+                                                    component.onEvent(
+                                                        UsersStore.Intent.ChangeCSubjectId(
+                                                            selectionOption.key
+                                                        )
                                                     )
-                                                )
-                                                expandedForms = false
-                                            },
-                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                        )
+                                                    expandedSubjects = false
+                                                },
+                                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                            )
+                                        }
                                     }
                                 }
                             }
-                            Spacer(Modifier.height(7.dp))
-                            CTextField(
-                                value = model.cParentFirstFIO,
-                                onValueChange = {
-                                    component.onEvent(UsersStore.Intent.ChangeCParentFirstFIO(it))
-                                },
-                                text = "ФИО матери",
-                                isEnabled = !isCreatingInProcess,//model.isCreatingInProcess,
-                                onEnterClicked = {
-                                    focusManager.moveFocus(FocusDirection.Next)
-                                },
-                                focusManager = focusManager,
-                                isMoveUpLocked = false,
-                                autoCorrect = false,
-                                keyboardType = KeyboardType.Password,
-                                supText = "Фамилия Имя Отчество"
-                            )
-                            Spacer(Modifier.height(7.dp))
-                            CTextField(
-                                value = model.cParentSecondFIO,
-                                onValueChange = {
-                                    component.onEvent(UsersStore.Intent.ChangeCParentSecondFIO(it))
-                                },
-                                text = "ФИО отца",
-                                isEnabled = !isCreatingInProcess,//model.isCreatingInProcess,
-                                onEnterClicked = {
-                                    focusManager.moveFocus(FocusDirection.Next)
-                                },
-                                focusManager = focusManager,
-                                isMoveUpLocked = false,
-                                autoCorrect = false,
-                                keyboardType = KeyboardType.Password,
-                                supText = "Фамилия Имя Отчество"
-                            )
-                            Spacer(Modifier.height(7.dp))
-                        }
+                            if (model.cRole != Roles.STUDENT) {
+                                Row(
+                                    Modifier.width(TextFieldDefaults.MinWidth)
+                                        .padding(horizontal = 7.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Модератор",
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                    Switch(
+                                        checked = model.cIsModerator,
+                                        onCheckedChange = {
+                                            component.onEvent(
+                                                UsersStore.Intent.ChangeCIsModerator(
+                                                    it
+                                                )
+                                            )
+                                        },
+                                        enabled = !isCreatingInProcess
+                                    )
+                                }
+                                Spacer(Modifier.height(7.dp))
+                                Row(
+                                    Modifier.width(TextFieldDefaults.MinWidth)
+                                        .padding(horizontal = 7.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Наставник",
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                    Switch(
+                                        checked = model.cIsMentor,
+                                        onCheckedChange = {
+                                            component.onEvent(
+                                                UsersStore.Intent.ChangeCIsMentor(
+                                                    it
+                                                )
+                                            )
+                                        },
+                                        enabled = !isCreatingInProcess
+                                    )
+                                }
+                                Spacer(Modifier.height(7.dp))
+                                Row(
+                                    Modifier.width(TextFieldDefaults.MinWidth)
+                                        .padding(horizontal = 7.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Родитель",
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                    Switch(
+                                        checked = model.cIsParent,
+                                        onCheckedChange = {
+                                            component.onEvent(
+                                                UsersStore.Intent.ChangeCIsParent(
+                                                    it
+                                                )
+                                            )
+                                        },
+                                        enabled = !isCreatingInProcess
+                                    )
+                                }
+                            } else {
+                                var expandedForms by remember { mutableStateOf(false) }
 
-                        Spacer(Modifier.height(7.dp))
-                        val isSolo =
-                            (model.users?.filter { it.user.fio.name == model.cName && it.user.fio.surname == model.cSurname && it.user.birthday == model.cBirthday }?.size
-                                ?: 0) == 0
-                        AnimatedCommonButton(
-                            text = if (isSolo) "Создать" else "Существует",
-                            modifier = Modifier.width(TextFieldDefaults.MinWidth),
-                            isEnabled = num == 5 && isSolo
-                        ) {
-                            component.onEvent(UsersStore.Intent.CreateUser)
-                        }
-                        Spacer(Modifier.height(10.dp))
+                                ExposedDropdownMenuBox(
+                                    expanded = expandedForms,
+                                    onExpandedChange = {
+                                        expandedForms = !expandedForms
+                                    }
+                                ) {
+                                    val form = model.forms.firstOrNull { it.id == model.cFormId }
 
+                                    // textfield
+                                    OutlinedTextField(
+                                        modifier = Modifier
+                                            .menuAnchor(MenuAnchorType.PrimaryNotEditable), // menuAnchor modifier must be passed to the text field for correctness.
+                                        readOnly = true,
+                                        value = if (form != null) "${form.classNum} ${form.title}" else "",
+                                        placeholder = { Text("Выберите") },
+                                        onValueChange = {},
+                                        label = { Text("Класс") },
+                                        trailingIcon = {
+                                            val chevronRotation =
+                                                animateFloatAsState(if (expandedForms) 90f else -90f)
+                                            GetAsyncIcon(
+                                                path = RIcons.CHEVRON_LEFT,
+                                                modifier = Modifier.padding(end = 10.dp)
+                                                    .rotate(chevronRotation.value),
+                                                size = 15.dp
+                                            )
+                                        },
+                                        shape = RoundedCornerShape(15.dp),
+                                        enabled = !isCreatingInProcess
+                                    )
+                                    // menu
+                                    ExposedDropdownMenu(
+                                        expanded = expandedForms,
+                                        onDismissRequest = {
+                                            expandedForms = false
+                                        },
+                                    ) {
+                                        // menu items
+                                        (emptyList<CutedForm>() + CutedForm(
+                                            id = 0,
+                                            title = "Никакой",
+                                            0
+                                        ) + model.forms).forEach { selectionOption ->
+                                            DropdownMenuItem(
+                                                text = { Text("${selectionOption.classNum} ${selectionOption.title}") },
+                                                onClick = {
+                                                    component.onEvent(
+                                                        UsersStore.Intent.ChangeCFormId(
+                                                            selectionOption.id
+                                                        )
+                                                    )
+                                                    expandedForms = false
+                                                },
+                                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(Modifier.height(7.dp))
+                                CTextField(
+                                    value = model.cParentFirstFIO,
+                                    onValueChange = {
+                                        component.onEvent(UsersStore.Intent.ChangeCParentFirstFIO(it))
+                                    },
+                                    text = "ФИО матери",
+                                    isEnabled = !isCreatingInProcess,//model.isCreatingInProcess,
+                                    onEnterClicked = {
+                                        focusManager.moveFocus(FocusDirection.Next)
+                                    },
+                                    focusManager = focusManager,
+                                    isMoveUpLocked = false,
+                                    autoCorrect = false,
+                                    keyboardType = KeyboardType.Password,
+                                    supText = "Фамилия Имя Отчество"
+                                )
+                                Spacer(Modifier.height(7.dp))
+                                CTextField(
+                                    value = model.cParentSecondFIO,
+                                    onValueChange = {
+                                        component.onEvent(
+                                            UsersStore.Intent.ChangeCParentSecondFIO(
+                                                it
+                                            )
+                                        )
+                                    },
+                                    text = "ФИО отца",
+                                    isEnabled = !isCreatingInProcess,//model.isCreatingInProcess,
+                                    onEnterClicked = {
+                                        focusManager.moveFocus(FocusDirection.Next)
+                                    },
+                                    focusManager = focusManager,
+                                    isMoveUpLocked = false,
+                                    autoCorrect = false,
+                                    keyboardType = KeyboardType.Password,
+                                    supText = "Фамилия Имя Отчество"
+                                )
+                                Spacer(Modifier.height(7.dp))
+                            }
+
+                            Spacer(Modifier.height(7.dp))
+                            val isSolo =
+                                (model.users?.filter { it.user.fio.name == model.cName && it.user.fio.surname == model.cSurname && it.user.birthday == model.cBirthday }?.size
+                                    ?: 0) == 0
+                            AnimatedCommonButton(
+                                text = if (isSolo) "Создать" else "Существует",
+                                modifier = Modifier.width(TextFieldDefaults.MinWidth),
+                                isEnabled = num == 5 && isSolo
+                            ) {
+                                component.onEvent(UsersStore.Intent.CreateUser)
+                            }
+                            Spacer(Modifier.height(10.dp))
+
+                        }
                     }
                 }
-            }
-        } else {
-            Column(
-                Modifier.padding(10.dp).fillMaxWidth()
-                    .height(if (model.cParentLogins != null) 260.dp else 200.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            } else {
+                Column(
+                    Modifier.padding(10.dp).fillMaxWidth()
+                        .height(if (model.cParentLogins != null) 260.dp else 200.dp),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 //                        if (cNModel.value.state == NetworkState.Error) {
 //                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //                                Text(cNModel.value.error)
@@ -1616,56 +1634,58 @@ private fun createUserSheet(
 //                                }
 //                            }
 //                        } else {
-                Text(
-                    "${model.cSurname} ${model.cName} ${model.cPraname}",
-                    fontWeight = FontWeight.Medium,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    textAlign = TextAlign.Center
-                )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        model.cLogin,
-                        fontWeight = FontWeight.Black,
-                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        "${model.cSurname} ${model.cName} ${model.cPraname}",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
                         textAlign = TextAlign.Center
                     )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            model.cLogin,
+                            fontWeight = FontWeight.Black,
+                            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                            textAlign = TextAlign.Center
+                        )
 
-                    Spacer(Modifier.height(7.dp))
-                    if (model.cParentLogins != null) {
-                        listOf(
-                            model.cParentFirstFIO,
-                            model.cParentSecondFIO
-                        ).forEachIndexed { i, s ->
-                            if (s.isNotEmpty()) {
-                                Text(
-                                    s,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    model.cParentLogins?.getOrNull(i).toString(),
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                                    textAlign = TextAlign.Center
-                                )
+                        Spacer(Modifier.height(7.dp))
+                        if (model.cParentLogins != null) {
+                            listOf(
+                                model.cParentFirstFIO,
+                                model.cParentSecondFIO
+                            ).forEachIndexed { i, s ->
+                                if (s.isNotEmpty()) {
+                                    Text(
+                                        s,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Text(
+                                        model.cParentLogins?.getOrNull(i).toString(),
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                     }
-                }
 
-                Button(
-                    onClick = {
-                        component.cUserBottomSheet.onEvent(CBottomSheetStore.Intent.HideSheet)
-                        component.onEvent(UsersStore.Intent.ClearUser)
-                    },
-                    modifier = Modifier.width(TextFieldDefaults.MinWidth)
-                ) {
-                    Text("Готово")
+                    Button(
+                        onClick = {
+                            component.cUserBottomSheet.onEvent(CBottomSheetStore.Intent.HideSheet)
+                            component.onEvent(UsersStore.Intent.ClearUser(1000))
+                        },
+                        modifier = Modifier.width(TextFieldDefaults.MinWidth)
+                    ) {
+                        Text("Готово")
+                    }
+                    Spacer(Modifier.height(20.dp))
                 }
-                Spacer(Modifier.height(20.dp))
             }
         }
+
     }
 }
 

@@ -1,4 +1,3 @@
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -565,6 +564,7 @@ fun LessonReportContent(
 
                                     }
                                 }
+
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     LessonTable(
                                         component
@@ -1335,7 +1335,8 @@ fun likesDislikesItems(
     component: LessonReportComponent,
     isAll: Boolean
 ) {
-    val filteredStudents = model.students.filter { (isAll) || (it.login in model.likedList || it.login in model.dislikedList) }
+    val filteredStudents =
+        model.students.filter { (isAll) || (it.login in model.likedList || it.login in model.dislikedList) }
     filteredStudents
         .sortedBy { it.shortFio }.forEach { student ->
             val containerColor = animateColorAsState(
@@ -1374,9 +1375,9 @@ fun likesDislikesItems(
                 }
             }
         }
-if (filteredStudents.isNotEmpty()) {
-    Spacer(Modifier.height(10.dp))
-}
+    if (filteredStudents.isNotEmpty()) {
+        Spacer(Modifier.height(10.dp))
+    }
 }
 
 private fun getColumnNamePrefix(reasonId: String): String {

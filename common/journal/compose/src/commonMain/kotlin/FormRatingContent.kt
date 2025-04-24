@@ -4,8 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -44,10 +47,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.GetAsyncAvatar
@@ -86,14 +91,16 @@ import utils.toColor
 import view.LocalViewManager
 import view.WindowScreen
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
+    ExperimentalSharedTransitionApi::class
+)
 @Composable
 fun SharedTransitionScope.FormRatingContent(
     component: FormRatingComponent,
     isVisible: Boolean
 ) {
-
-
 
 
     val model by component.model.subscribeAsState()
@@ -106,6 +113,9 @@ fun SharedTransitionScope.FormRatingContent(
     val rawPage =
         model.formRatingPages.firstOrNull { it.formId == model.formId && it.period == model.period }
 
+    val lazyState = rememberLazyListState()
+
+    val density = LocalDensity.current
 
     val refreshing = nModel.isLoading
 
@@ -117,6 +127,7 @@ fun SharedTransitionScope.FormRatingContent(
     LaunchedEffect(Unit) {
         refreshState.onRefreshState.value()
     }
+
 
     Scaffold(
         Modifier.fillMaxSize().keyRefresh(refreshState),
@@ -186,7 +197,9 @@ fun SharedTransitionScope.FormRatingContent(
                                                     }) {
                                                         GetAsyncIcon(
                                                             RIcons.CHEVRON_LEFT,
-                                                            modifier = Modifier.rotate(chevronRotation.value)
+                                                            modifier = Modifier.rotate(
+                                                                chevronRotation.value
+                                                            )
                                                         )
                                                     }
                                                 }
@@ -206,136 +219,141 @@ fun SharedTransitionScope.FormRatingContent(
             )
         }
     ) { padding ->
+        val lazyColumnHeight = lazyState.layoutInfo.viewportSize.height
+        val firstItemHeight = lazyState.layoutInfo.visibleItemsInfo.getOrNull(0)?.size ?: 0
+        val fullScreenHeight =
+            with(density) { (lazyColumnHeight - firstItemHeight).toDp() } - padding.calculateTopPadding()
+
         Box(Modifier.fillMaxSize().pullRefresh(refreshState)) {
-            Crossfade(nModel.state) { state ->
-                when {
-                    state is NetworkState.None || rawPage != null -> {
-                        AnimatedContent(
-                            rawPage,
-                            transitionSpec = { fadeIn(tween(750)).togetherWith(fadeOut(tween(750))) }
-                        ) { page ->
 
+            CLazyColumn(
+                padding = padding,
+                refreshState = refreshState,
+                state = lazyState
+            ) {
+                item {
 
-                            CLazyColumn(
-                                padding = padding,
-                                refreshState = refreshState
-                            ) {
-                                item {
+                    Row(
+                        modifier = Modifier.horizontalScroll(
+                            rememberScrollState()
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Недели",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Week,
+                            component = component.weeksListComponent
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Модули",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Module,
+                            component = component.moduleListComponent
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Периоды",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Year || model.period is PansionPeriod.Half,
+                            component = component.periodListComponent
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.cClickable {
+                                component.onEvent(FormRatingStore.Intent.ChangeIsDetailed)
+                            }) {
+                            CCheckbox(
+                                checked = model.isDetailed
+                            )
+                            Text("Отображать детально")
+                        }
+                        Spacer(Modifier.width(15.dp))
+                    }
+                }
 
-                                    Row(
-                                        modifier = Modifier.horizontalScroll(
-                                            rememberScrollState()
-                                        ),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Spacer(Modifier.width(5.dp))
-                                        PeriodButton(
-                                            inActiveText = "Недели",
-                                            currentPeriod = model.period?.toStr() ?: "",
-                                            isActive = model.period is PansionPeriod.Week,
-                                            component = component.weeksListComponent
-                                        )
-                                        Spacer(Modifier.width(5.dp))
-                                        PeriodButton(
-                                            inActiveText = "Модули",
-                                            currentPeriod = model.period?.toStr() ?: "",
-                                            isActive = model.period is PansionPeriod.Module,
-                                            component = component.moduleListComponent
-                                        )
-                                        Spacer(Modifier.width(5.dp))
-                                        PeriodButton(
-                                            inActiveText = "Периоды",
-                                            currentPeriod = model.period?.toStr() ?: "",
-                                            isActive = model.period is PansionPeriod.Year || model.period is PansionPeriod.Half,
-                                            component = component.periodListComponent
-                                        )
-                                        Spacer(Modifier.width(10.dp))
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.cClickable {
-                                                component.onEvent(FormRatingStore.Intent.ChangeIsDetailed)
-                                            }) {
-                                            CCheckbox(
-                                                checked = model.isDetailed
-                                            )
-                                            Text("Отображать детально")
-                                        }
-                                        Spacer(Modifier.width(15.dp))
-                                    }
-                                    //                                listOf(
-                                    //                                    Pair(0, "За неделю"),
-                                    //                                    Pair(1, "За прошлую неделю"),
-                                    //                                    Pair(2, "За модуль"),
-                                    //                                    Pair(3, "За полугодие"),
-                                    //                                    Pair(4, "За год")
-                                    //                                ).forEach { item ->
-                                    //
-                                    //                                    CFilterChip(
-                                    //                                        label = item.second,
-                                    //                                        isSelected = model.period == item.first,
-                                    //                                        state = state,
-                                    //                                        coroutineScope = coroutineScope
-                                    //                                    ) {
-                                    //                                        component.onEvent(
-                                    //                                            FormRatingStore.Intent.ChangePeriod(item.first)
-                                    //                                        )
-                                    //                                    }
-                                    //                                    Spacer(Modifier.width(5.dp))
-                                    //                                }
-                                    //                            }
-                                }
-                                if (page != null) {
-                                    val inRating = page.students.filter { it.avg.toFloat() >= 4 && it.edStups.isNotEmpty() && it.avgAlg > 0 }
-                                    items(inRating, key = { it.login }) { s ->
-                                        FormRatingCard(
-                                            item = s,
-                                            meLogin = model.login,
-                                            component = component,
-                                            isVisible = isVisible,
-                                            isDetailed = model.isDetailed,
-                                            isInRanked = true
-                                        )
-                                    }
-                                    itemsIndexed(
-                                        items = page.students.filter { it !in inRating },
-                                        key = { _, item -> item.login }) { index, item ->
-                                        if (index == 0) {
-                                            Text("Не участвуют в рейтинге: ")
-                                        }
-                                        FormRatingCard(
-                                            item = item,
-                                            meLogin = model.login,
-                                            component = component,
-                                            isVisible = isVisible,
-                                            isDetailed = model.isDetailed,
-                                            isInRanked = false
-                                        )
-                                    }
-
-                                }
+                if (rawPage != null) { //state is NetworkState.None ||
+                    val inRating =
+                        rawPage.students.filter { it.avg.toFloat() >= 4 && it.edStups.isNotEmpty() && it.avgAlg > 0 }
+                    items(inRating, key = { it.login }) { s ->
+                        Box(
+                            Modifier.animateItem(
+                                placementSpec = spring(
+                                    stiffness = Spring.StiffnessVeryLow,
+                                    visibilityThreshold = IntOffset.VisibilityThreshold
+                                )
+                            )
+                        ) {
+                            FormRatingCard(
+                                item = s,
+                                meLogin = model.login,
+                                component = component,
+                                isVisible = isVisible,
+                                isDetailed = model.isDetailed,
+                                isInRanked = true
+                            )
+                        }
+                    }
+                    itemsIndexed(
+                        items = rawPage.students.filter { it !in inRating },
+                        key = { _, item -> item.login }) { index, item ->
+                        Column(
+                            Modifier.animateItem(
+                                placementSpec = spring(
+                                    stiffness = Spring.StiffnessVeryLow,
+                                    visibilityThreshold = IntOffset.VisibilityThreshold
+                                )
+                            )
+                        ) {
+                            if (index == 0) {
+                                Text("Не участвуют в рейтинге: ")
                             }
+                            FormRatingCard(
+                                item = item,
+                                meLogin = model.login,
+                                component = component,
+                                isVisible = isVisible,
+                                isDetailed = model.isDetailed,
+                                isInRanked = false
+                            )
                         }
                     }
 
-                    state is NetworkState.Loading -> {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+                }
+                if (nModel.state is NetworkState.Loading) {
+                    item {
+                        Box(
+                            Modifier.animateItem().fillMaxWidth().height(
+                                fullScreenHeight
+                            ), contentAlignment = Alignment.Center
+                        ) {
                             CircularProgressIndicator()
                         }
                     }
-
-                    state is NetworkState.Error -> DefaultErrorView(
-                        nModel,
-                        DefaultErrorViewPos.CenteredFull
-                    )
+                } else if (nModel.state is NetworkState.Error) {
+                    item {
+                        DefaultErrorView(
+                            nModel,
+                            DefaultErrorViewPos.CenteredFull,
+                            modifier = Modifier.fillMaxWidth().height(fullScreenHeight)
+                        )
+                    }
                 }
             }
+
             PullRefreshIndicator(refreshState, padding.calculateTopPadding())
         }
     }
-    ListDialogMobileContent(
-        component = component.formPickerDialog,
-        title = "Классы"
-    )
+    if (model.role != Roles.STUDENT) {
+        ListDialogMobileContent(
+            component = component.formPickerDialog,
+            title = "Классы"
+        )
+    }
 
     val detailedStupsStudent =
         rawPage?.students?.firstOrNull { it.login == model.stupsLogin }
@@ -363,9 +381,19 @@ fun SharedTransitionScope.FormRatingContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(it.date.subSequence(0, 5).toString(), modifier = Modifier.weight(1f, false))
-                    Text(fetchReason(it.reason).split(":")[1], modifier = Modifier.weight(.5f, false))
-                    BorderStup(it.content, reason = it.reason, addModifier = Modifier.weight(.5f, false))
+                    Text(
+                        it.date.subSequence(0, 5).toString(),
+                        modifier = Modifier.weight(1f, false)
+                    )
+                    Text(
+                        fetchReason(it.reason).split(":")[1],
+                        modifier = Modifier.weight(.5f, false)
+                    )
+                    BorderStup(
+                        it.content,
+                        reason = it.reason,
+                        addModifier = Modifier.weight(.5f, false)
+                    )
                 }
             }
         }
@@ -467,7 +495,9 @@ private fun SharedTransitionScope.FormRatingCard(
             Spacer(modifier = Modifier.width(8.dp))
 
 
-            val stups = if (isDetailed) item.stupsAlg else item.edStups.sumOf { it.content.toIntOrNull() ?: 0 }
+            val stups = if (isDetailed) item.stupsAlg else item.edStups.sumOf {
+                it.content.toIntOrNull() ?: 0
+            }
             val avg = if (isDetailed) item.avgAlg.roundTo(2) else item.avg
 
             Column(
@@ -478,7 +508,7 @@ private fun SharedTransitionScope.FormRatingCard(
                 }) {
                 Text(
                     text = if (item.top != 0 && isInRanked) {
-                         avg + " (${item.topAvg})"
+                        avg + " (${item.topAvg})"
                     } else if ((avg.toFloatOrNull() ?: 0f) > 0f) avg
                     else "",
                     fontSize = 18.esp,

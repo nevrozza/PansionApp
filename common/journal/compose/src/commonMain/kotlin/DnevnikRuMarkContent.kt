@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -279,7 +280,7 @@ fun DnevnikRuMarkContent(
                     } else {
                         CLazyColumn(
                             padding = PaddingValues(
-                                top = padding.calculateTopPadding(),
+                                top = animateDpAsState(padding.calculateTopPadding()).value,
                                 bottom = padding.calculateBottomPadding()
                             )
                         ) {

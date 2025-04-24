@@ -4,12 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
@@ -26,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChipDefaults
@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.GetAsyncAvatar
@@ -113,6 +114,8 @@ fun SharedTransitionScope.RatingContent(
     LaunchedEffect(Unit) {
         if (!refreshing) component.onEvent(RatingStore.Intent.Init)
     }
+
+    val lazyState = rememberLazyListState()
 
 
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
@@ -217,105 +220,115 @@ fun SharedTransitionScope.RatingContent(
         }
     ) { padding ->
 
-        AnimatedContent(
-            rawItems,
-            transitionSpec = { fadeIn(tween(750)).togetherWith(fadeOut(tween(750))) }
-        ) { items ->
-            Box(Modifier.fillMaxSize().pullRefresh(refreshState)) {
-                CLazyColumn(
-                    padding = padding,
-                    isBottomPaddingNeeded = true,
-                    modifier = Modifier,
-                    refreshState = refreshState
-                ) {
-                    item {
-                        Row(
-                            Modifier.offset(y = -6.dp).horizontalScroll(rememberScrollState()),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box() {
-                                ElevatedAssistChip(
-                                    onClick = {
-                                        component.subjectsListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
-                                    },
-                                    label = {
-                                        AnimatedContent(
-                                            model.subjects.firstOrNull() { it.id == model.currentSubject }?.name
-                                                ?: "Загрузка.."
-                                        ) {
-                                            Text(
-                                                it, maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-                                    },
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        labelColor = MaterialTheme.colorScheme.onPrimary
-                                    ),
-                                    modifier = Modifier.animateContentSize()
-                                )
-                                ListDialogDesktopContent(component.subjectsListComponent)
-                            }
-                            Spacer(Modifier.width(5.dp))
-                            Box() {
-                                InputChip(
-                                    selected = true,
-                                    onClick = { component.formsListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
-                                    label = {
-                                        AnimatedContent(
-                                            component.formsListComponent.model.value.list.firstOrNull { it.id.toInt() == model.forms }?.text
-                                                ?: "Загрузка.."
-                                        ) {
-                                            Text(
-                                                it, maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier.animateContentSize()
-                                )
-                            }
-                            Spacer(Modifier.width(5.dp))
-                            PeriodButton(
-                                inActiveText = "Недели",
-                                currentPeriod = model.period?.toStr() ?: "",
-                                isActive = model.period is PansionPeriod.Week,
-                                component = component.weeksListComponent
-                            )
-                            Spacer(Modifier.width(5.dp))
-                            PeriodButton(
-                                inActiveText = "Модули",
-                                currentPeriod = model.period?.toStr() ?: "",
-                                isActive = model.period is PansionPeriod.Module,
-                                component = component.moduleListComponent
-                            )
-                            Spacer(Modifier.width(5.dp))
-                            PeriodButton(
-                                inActiveText = "Периоды",
-                                currentPeriod = model.period?.toStr() ?: "",
-                                isActive = model.period is PansionPeriod.Year || model.period is PansionPeriod.Half,
-                                component = component.periodListComponent
-                            )
+//        val lazyColumnHeight = lazyState.layoutInfo.viewportSize.height
+//        val firstItemHeight = lazyState.layoutInfo.visibleItemsInfo.getOrNull(0)?.size ?: 0
+//        val fullScreenHeight =
+//            with(density) { (lazyColumnHeight - firstItemHeight).toDp() } - padding.calculateTopPadding()
 
-                            Spacer(Modifier.width(10.dp))
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.cClickable {
-                                    component.onEvent(RatingStore.Intent.ChangeIsDetailed)
-                                }) {
-                                CCheckbox(
-                                    checked = model.isDetailed
-                                )
-                                Text("Отображать детально")
-                            }
-                            Spacer(Modifier.width(15.dp))
+
+        Box(Modifier.fillMaxSize().pullRefresh(refreshState)) {
+            CLazyColumn(
+                padding = padding,
+                isBottomPaddingNeeded = true,
+                modifier = Modifier,
+                refreshState = refreshState,
+                state = lazyState
+            ) {
+                item {
+                    Row(
+                        Modifier.offset(y = -6.dp).horizontalScroll(rememberScrollState()),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box() {
+                            ElevatedAssistChip(
+                                onClick = {
+                                    component.subjectsListComponent.onEvent(ListDialogStore.Intent.ShowDialog)
+                                },
+                                label = {
+                                    AnimatedContent(
+                                        model.subjects.firstOrNull() { it.id == model.currentSubject }?.name
+                                            ?: "Загрузка.."
+                                    ) {
+                                        Text(
+                                            it, maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    labelColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                modifier = Modifier.animateContentSize()
+                            )
+                            ListDialogDesktopContent(component.subjectsListComponent)
                         }
+                        Spacer(Modifier.width(5.dp))
+                        Box() {
+                            InputChip(
+                                selected = true,
+                                onClick = { component.formsListComponent.onEvent(ListDialogStore.Intent.ShowDialog) },
+                                label = {
+                                    AnimatedContent(
+                                        component.formsListComponent.model.value.list.firstOrNull { it.id.toInt() == model.forms }?.text
+                                            ?: "Загрузка.."
+                                    ) {
+                                        Text(
+                                            it, maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.animateContentSize()
+                            )
+                            ListDialogDesktopContent(component.formsListComponent)
+                        }
+                        Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Недели",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Week,
+                            component = component.weeksListComponent
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Модули",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Module,
+                            component = component.moduleListComponent
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        PeriodButton(
+                            inActiveText = "Периоды",
+                            currentPeriod = model.period?.toStr() ?: "",
+                            isActive = model.period is PansionPeriod.Year || model.period is PansionPeriod.Half,
+                            component = component.periodListComponent
+                        )
+
+                        Spacer(Modifier.width(10.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.cClickable {
+                                component.onEvent(RatingStore.Intent.ChangeIsDetailed)
+                            }) {
+                            CCheckbox(
+                                checked = model.isDetailed
+                            )
+                            Text("Отображать детально")
+                        }
+                        Spacer(Modifier.width(15.dp))
                     }
+                }
 
-                    if (!items.isNullOrEmpty()) {
+                if (!rawItems.isNullOrEmpty()) {
 
-                        items(items.sortedBy { it.top }) { i ->
+                    items(rawItems.sortedBy { it.top }, key = { it.login }) { i ->
+                        Box(Modifier.animateItem(
+                            placementSpec = spring(
+                                stiffness = Spring.StiffnessVeryLow,
+                                visibilityThreshold = IntOffset.VisibilityThreshold
+                            )
+                        )) {
                             RatingCard(
                                 i,
                                 meLogin = model.login,
@@ -324,50 +337,55 @@ fun SharedTransitionScope.RatingContent(
                                 isDetailed = model.isDetailed
                             )
                         }
-                    } else {
-                        item {
-                            Column(
-                                Modifier.fillMaxWidth()
-                                    .padding(top = viewManager.size!!.maxHeight / 2 - padding.calculateTopPadding() - viewManager.topPadding),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                if (nModel.state == NetworkState.Error) {
-                                    DefaultErrorView(
-                                        nModel,
-                                        pos = DefaultErrorViewPos.CenteredFull
-                                    )
-                                }
-                                if (nModel.state != NetworkState.Loading) {
-                                    Text(
-                                        "В этом рейтинге пока никто не участвует!", modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(
-                                        "Общие требования для участия в таблице рейтинга:\nСтупени ≥ 1 и Ср. Балл ≥ 4",
-                                        modifier = Modifier.fillMaxWidth().alpha(.5f),
-                                        textAlign = TextAlign.Center,
-                                        fontSize = 12.esp,
-                                        lineHeight = 14.esp
-                                    )
-                                    Text(
-                                        text = if (nModel.state == NetworkState.None) "\n" else "",
-                                        textAlign = TextAlign.Center
-                                    )
-                                } else {
+                    }
+                } else {
+                    item(key = "ratingContentInfoKey") {
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .animateItem()
+                                .padding(top = viewManager.size!!.maxHeight / 2 - padding.calculateTopPadding() - viewManager.topPadding),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (nModel.state == NetworkState.Error) {
+                                DefaultErrorView(
+                                    nModel,
+                                    pos = DefaultErrorViewPos.CenteredFull
+                                )
+                            }
+                            if (nModel.state != NetworkState.Loading) {
+                                Text(
+                                    "В этом рейтинге пока никто не участвует!", modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "Общие требования для участия в таблице рейтинга:\nСтупени ≥ 1 и Ср. Балл ≥ 4",
+                                    modifier = Modifier.fillMaxWidth().alpha(.5f),
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 12.esp,
+                                    lineHeight = 14.esp
+                                )
+                                Text(
+                                    text = if (nModel.state == NetworkState.None) "\n" else "",
+                                    textAlign = TextAlign.Center
+                                )
+                            } else {
+                                Box() {
                                     CircularProgressIndicator()
                                 }
                             }
                         }
                     }
                 }
-                PullRefreshIndicator(
-                    state = refreshState,
-                    topPadding = padding.calculateTopPadding()
-                )
             }
+            PullRefreshIndicator(
+                state = refreshState,
+                topPadding = padding.calculateTopPadding()
+            )
         }
+
+
         ListDialogMobileContent(component.subjectsListComponent, title = "Предмет")
         ListDialogMobileContent(component.formsListComponent, title = "Классы")
     }

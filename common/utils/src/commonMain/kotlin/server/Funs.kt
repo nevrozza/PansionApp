@@ -43,6 +43,8 @@ fun String.toMinutes(): Int {
     return (parts.getOrNull(0)?.toIntOrNull() ?: 0) * 60 + (parts.getOrNull(1)?.toIntOrNull() ?: 0)
 }
 
+
+
 fun List<String>.sortedDate() = this.sortedBy { getLocalDate(it).toEpochDays() }
 
 

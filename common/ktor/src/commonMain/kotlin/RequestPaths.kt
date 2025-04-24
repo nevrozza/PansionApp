@@ -1,15 +1,11 @@
-import deviceSupport.DeviceTypex
-import deviceSupport.deviceType
-
-
 object RequestPaths {
-//    val ip = "192.168.56.94:8080"
-    val ip = if (isTestMode) {
-//        "192.168.35.34:8080"
-        if (deviceType == DeviceTypex.ANDROID) "10.0.2.2:8080" else "127.0.0.1:8080"
-    } else {
-        "pansionapp-test-server.ru:${if (deviceType != DeviceTypex.WEB) 8080 else 8443}"
-    }
+    val ip = "192.168.43.55:8080"
+//    val ip = if (isTestMode) {
+////        "192.168.35.34:8080"
+//        if (deviceType == DeviceTypex.ANDROID) "10.0.2.2:8080" else "127.0.0.1:8080"
+//    } else {
+//        "pansionapp-test-server.ru:${if (deviceType != DeviceTypex.WEB) 8080 else 8443}"
+//    }
     // android emulator 10.0.2.2:8080
     // macos ifconfig
     // 1. Откройте Системные настройки на вашем Mac.

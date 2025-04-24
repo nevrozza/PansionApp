@@ -101,7 +101,7 @@ interface UsersStore : Store<Intent, State, Label>, InstanceKeeper.Instance {
         data class ChangeCParentSecondFIO(val fio: String) : Intent
 
         data object CreateUser : Intent
-        data object ClearUser : Intent
+        data class ClearUser(val delayMillis: Long) : Intent
 
         data class ChangeEName(val name: String) : Intent
         data class ChangeESurname(val surname: String) : Intent

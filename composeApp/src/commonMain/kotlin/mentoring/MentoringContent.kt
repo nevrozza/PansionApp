@@ -54,27 +54,31 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import components.DatesLine
+import components.GetAsyncAvatar
+import components.GetAsyncIcon
 import components.foundation.AnimatedCommonButton
 import components.foundation.AnimatedElevatedButton
 import components.foundation.AppBar
+import components.foundation.CCheckbox
 import components.foundation.CFilterChip
 import components.foundation.CLazyColumn
-import components.foundation.CCheckbox
 import components.foundation.CTextButton
 import components.foundation.CTextField
-import components.DatesLine
 import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
-import components.GetAsyncAvatar
-import components.GetAsyncIcon
 import components.foundation.LoadingAnimation
-import components.journal.MarkTable
 import components.foundation.cClickable
+import components.journal.MarkTable
 import components.networkInterface.NetworkState
 import components.networkInterface.isLoading
+import components.refresh.PullRefreshIndicator
 import components.refresh.RefreshButton
 import components.refresh.RefreshWithoutPullCircle
 import components.refresh.keyRefresh
+import components.refresh.pullRefresh
+import components.refresh.pullRefreshContentTransform
+import components.refresh.rememberPullRefreshState
 import di.Inject
 import io.github.alexzhirkevich.qrose.options.QrBallShape
 import io.github.alexzhirkevich.qrose.options.QrFrameShape
@@ -82,10 +86,6 @@ import io.github.alexzhirkevich.qrose.options.QrPixelShape
 import io.github.alexzhirkevich.qrose.options.QrShapes
 import io.github.alexzhirkevich.qrose.options.roundCorners
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
-import components.refresh.PullRefreshIndicator
-import components.refresh.pullRefresh
-import components.refresh.pullRefreshContentTransform
-import components.refresh.rememberPullRefreshState
 import registration.RegistrationRequest
 import resources.RIcons
 import root.RootComponent.Config
@@ -257,12 +257,14 @@ fun MentoringContent(
                                         val settingsRepository: SettingsRepository = remember {
                                             Inject.instance()
                                         }
-                                        MarkTable(
-                                            fields = model.filteredStudents.associate { s -> s.login to "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}" },
-                                            dms = model.filteredDateMarks,
-                                            nki = model.filteredNki,
-                                            isDs1Init = settingsRepository.fetchIsShowingPlusDS()
-                                        )
+                                        if (model.filteredStudents.isNotEmpty()) {
+                                            MarkTable(
+                                                fields = model.filteredStudents.associate { s -> s.login to "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}" },
+                                                dms = model.filteredDateMarks,
+                                                nki = model.filteredNki,
+                                                isDs1Init = settingsRepository.fetchIsShowingPlusDS()
+                                            )
+                                        }
                                     }
                                 }
                             } else {

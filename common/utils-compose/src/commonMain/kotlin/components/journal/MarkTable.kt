@@ -1,6 +1,7 @@
 package components.journal
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.desktop.ui.tooling.preview.utils.popupPositionProvider
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -100,7 +101,6 @@ fun MarkTable(
     nki: Map<String, List<StudentNka>>? = null,
     isDs1Init: Boolean
 ) {
-
     var isDs1 by remember { mutableStateOf(isDs1Init) }
     var dateMarks = dms.toMutableMap()
     nki?.forEach { n ->
@@ -128,7 +128,7 @@ fun MarkTable(
     val density = LocalDensity.current
     val lP = 170.dp //TODO: Make it related to font
     val markSize = 40.dp//30.dp
-    val minWidth = 50.dp
+    val minWidth = max(50.dp, with(density) { ((4.5f)*14).esp.toDp()})
 
 
     val fieldsList = fields.toList()

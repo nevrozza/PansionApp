@@ -840,7 +840,8 @@ fun SchoolContent(
 
 
     CBottomSheetContent(
-        component = component.ministryOverviewComponent
+        component = component.ministryOverviewComponent,
+        customLoadingScreen = true
     ) {
 
         LazyColumn(

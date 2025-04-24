@@ -225,10 +225,12 @@ android {
         release {
             this.matchingFallbacks.add("release")
             this.isMinifyEnabled = true
-            proguardFile("proguard-rules.pro")
+            proguardFile("proguard-rules-android.pro")
         }
         debug {
             this.matchingFallbacks.add("debug")
+            this.isMinifyEnabled = true
+            proguardFile("proguard-rules-android.pro")
         }
     }
 
@@ -458,7 +460,31 @@ fun registerHashTask(mode : Mode) =
                         script.src = wasmGCSupported 
                             ? "${wasmHashedAppFile.name}" 
                             : "${jsHashedAppFile.name}"
+                        
                         document.body.appendChild(script)
+                        
+                        
+                        const linkWasmApp = document.createElement('linkWasmApp');
+                        link.rel = 'preload';
+                        link.href = '${wasmHashedAppFile.name}';
+                        link.as = 'fetch';
+                        link.crossOrigin = 'anonymous';
+                        
+                        const linkWasmSkiko = document.createElement('linkWasmSkiko');
+                        link.rel = 'preload';
+                        link.href = '${skikoWasmHashedFile.name}';
+                        link.as = 'fetch';
+                        link.crossOrigin = 'anonymous';
+                        
+                        const linkWasmIdk = document.createElement('linkWasmIdk');
+                        link.rel = 'preload';
+                        link.href = 'composeApp-wasm.wasm';
+                        link.as = 'fetch';
+                        link.crossOrigin = 'anonymous';
+                        
+                        document.head.appendChild(linkWasmApp);
+                        document.head.appendChild(linkWasmSkiko);
+                        document.head.appendChild(linkWasmIdk);
                      
                     """.trimIndent()
                 )

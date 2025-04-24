@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import components.refresh.PullRefreshState
-import components.refresh.pullRefreshContentTransform
+import components.refresh.getPullRefreshTopPadding
 import view.LocalViewManager
 import view.WindowScreen
 
@@ -37,15 +37,17 @@ fun CLazyColumn(
     LazyColumn(
         Modifier
             .padding(horizontal = 15.dp)
+            .padding(top = getPullRefreshTopPadding(refreshState))
             .fillMaxSize()
             .consumeWindowInsets(padding)
             .imePadding()
             .hazeUnder(viewManager).then(modifier)
+
         ,
         state = state
     ) {
         item {
-            Spacer(Modifier.pullRefreshContentTransform(refreshState).height(padding.calculateTopPadding()))
+            Spacer(Modifier.height(padding.calculateTopPadding()))
         }
 
 //        item {

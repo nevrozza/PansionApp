@@ -1,7 +1,6 @@
 package decomposeComponents
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -87,9 +86,22 @@ fun CBottomSheetContent(
                 component.onEvent(CBottomSheetStore.Intent.HideSheet)
             }
         ) {
+            val tState = if (!customLoadingScreen) {
+                when(nModel.state) {
+                    NetworkState.Error -> "e"
+                    NetworkState.Loading -> "l"
+                    NetworkState.None -> "n"
+                }
+            } else {
+                when(nModel.state) {
+                    NetworkState.Error -> "e"
+                    NetworkState.Loading -> "n"
+                    NetworkState.None -> "n"
+                }
+            }
             Crossfade(
-                nModel,
-                modifier = Modifier.animateContentSize()
+                tState,
+                modifier = Modifier//.animateContentSize()
             ) {
                 Column(
                     Modifier.fillMaxWidth().defaultMinSize(minHeight = 100.dp),
@@ -97,7 +109,7 @@ fun CBottomSheetContent(
                     verticalArrangement = Arrangement.Center
                 ) {
                     if (customLoadingScreen) {
-                        when (it.state) {
+                        when (nModel.state) {
                             NetworkState.Error -> DefaultErrorView(
                                 nModel
                             )
@@ -107,7 +119,7 @@ fun CBottomSheetContent(
                             }
                         }
                     } else {
-                        when (it.state) {
+                        when (nModel.state) {
                             NetworkState.None -> {
                                 content()
                             }

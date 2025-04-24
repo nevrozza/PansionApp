@@ -5,6 +5,7 @@ import admin.groups.forms.FormInit
 import admin.groups.forms.outside.REditFormReceive
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import components.cBottomSheet.CBottomSheetComponent
+import components.cBottomSheet.CBottomSheetStore
 import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
@@ -12,6 +13,7 @@ import groups.forms.FormsStore.Intent
 import groups.forms.FormsStore.Label
 import groups.forms.FormsStore.Message
 import groups.forms.FormsStore.State
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class FormsExecutor(
@@ -157,13 +159,16 @@ class FormsExecutor(
                 )
 
                 withMain {
+                    // for animation
+                    creatingFormBottomSheet.onEvent(CBottomSheetStore.Intent.HideSheet)
+                    delay(1000)
+                    creatingFormBottomSheet.fullySuccess()
                     dispatch(Message.CFormTitleChanged(""))
                     dispatch(Message.CFormClassNumChanged(""))
                     dispatch(Message.CFormShortTitleChanged(""))
                     dispatch(Message.CFormMentorLoginChanged(""))
 
 //                dispatch(GroupsStore.Message.FormCreated(forms))
-                    creatingFormBottomSheet.fullySuccess()
                 }
                 //nInterfaceOfSheet
             } catch (e: Throwable) {

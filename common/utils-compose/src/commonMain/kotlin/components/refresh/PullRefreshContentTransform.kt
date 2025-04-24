@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.platform.inspectable
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -26,11 +27,21 @@ fun Modifier.pullRefreshContentTransform(
     properties["state"] = state
     properties["scale"] = scale
 }) {
+    Modifier
+        .padding(
+            top = getPullRefreshTopPadding(state)
+        )
+
+}
+
+@Composable
+fun getPullRefreshTopPadding(
+    state: PullRefreshState?
+): Dp {
     val density = LocalDensity.current
-    if (state != null) {
-        Modifier
-            .padding(
-                top = with(density) { ((state.position) * 2).toDp().coerceAtLeast(0.dp) }
-            )
-    } else Modifier
+    return if (state != null) {
+        with(density) { ((state.position) * 2).toDp().coerceAtLeast(0.dp) }
+    } else {
+        0.dp
+    }
 }

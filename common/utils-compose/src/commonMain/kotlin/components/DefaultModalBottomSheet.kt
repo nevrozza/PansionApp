@@ -1,5 +1,8 @@
 package components
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -41,7 +44,7 @@ fun DefaultModalBottomSheet(
         },
         sheetState = modalBottomSheetState,
         contentWindowInsets = { WindowInsets.ime },
-        containerColor = if(viewManager.hazeHardware.value) Color.Transparent else BottomSheetDefaults.ContainerColor,
+        containerColor = if (viewManager.hazeHardware.value) Color.Transparent else BottomSheetDefaults.ContainerColor,
         dragHandle = null
 //        windowInsets = WindowInsets.ime
     ) {
@@ -53,11 +56,17 @@ fun DefaultModalBottomSheet(
             ).hazeUnder(
                 viewManager,
                 zIndex = 2f
-            ).windowInsetsPadding(WindowInsets.navigationBars), horizontalAlignment = Alignment.CenterHorizontally
+            ).windowInsetsPadding(WindowInsets.navigationBars),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             BottomSheetDefaults.DragHandle()
             Box(
                 modifier.then(additionalModifier)
+                    .animateContentSize(
+                        spring(
+                            stiffness = Spring.StiffnessMediumLow),
+                        alignment = Alignment.Center
+                    )
             ) {
                 content()
             }

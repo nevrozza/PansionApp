@@ -14,6 +14,8 @@ import components.networkInterface.NetworkInterface
 import deviceSupport.launchIO
 import deviceSupport.withMain
 import di.Inject
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import server.Moderation
 import users.UsersStore.Intent
 import users.UsersStore.Label
@@ -49,9 +51,13 @@ class UsersExecutor(
             is Intent.ChangeCIsParent -> dispatch(Message.CIsParentChanged(intent.isParent))
 
             Intent.CreateUser -> createUser(state())
-            Intent.ClearUser -> {
+            is Intent.ClearUser -> {
                 cUserBottomSheet.fullySuccess()
-                dispatch(Message.ClearUser)
+                scope.launch {
+                    // for animation
+                    delay(intent.delayMillis)
+                    dispatch(Message.ClearUser)
+                }
             }
 
             is Intent.ChangeEName -> dispatch(Message.ENameChanged(intent.name))

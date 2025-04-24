@@ -4,6 +4,8 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
@@ -62,8 +64,13 @@ import homeTasks.HomeTasksStore
 import homework.ClientHomeworkItem
 import homework.CutedDateTimeGroup
 import kotlinx.datetime.Clock
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.Month
 import kotlinx.datetime.toInstant
 import resources.RIcons
+import server.getLocalDate
+import view.colorScheme
+import view.typography
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -73,20 +80,12 @@ fun HomeTasksContent(
     component: HomeTasksComponent,
     onWholeDateCompleted: () -> Unit
 ) {
-
-
-
-
-
-
-
-
     val model by component.model.subscribeAsState()
     val nInitModel by component.nInitInterface.networkModel.subscribeAsState()
     val lazyListState = rememberLazyListState()
 
-    LaunchedEffect(model.dates.size >= 1) {
-        if (model.dates.size >= 1) {
+    LaunchedEffect(model.dates.isNotEmpty()) {
+        if (model.dates.isNotEmpty()) {
             lazyListState.scrollToItem(index = model.dates.size - 1)
         }
     }
@@ -199,12 +198,62 @@ private fun DateTasksItem(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        date,
+                        with (getLocalDate(date)) {
+                            val d = this
+                            buildAnnotatedString {
+                                append(d.dayOfMonth.toString())
+                                append(" ")
+                                append(
+                                    when(d.month) {
+                                        Month.JANUARY -> "января"
+                                        Month.FEBRUARY -> "февраля"
+                                        Month.MARCH -> "марта"
+                                        Month.APRIL -> "апреля"
+                                        Month.MAY -> "мая"
+                                        Month.JUNE -> "июня"
+                                        Month.JULY -> "июля"
+                                        Month.AUGUST -> "августа"
+                                        Month.SEPTEMBER -> "сентября"
+                                        Month.OCTOBER -> "октября"
+                                        Month.NOVEMBER -> "ноября"
+                                        Month.DECEMBER -> "декабря"
+                                        else -> "null"
+                                    }
+                                )
+                                append(" ")
+                                append(d.year.toString())
+                                append(" ")
+                                withStyle(SpanStyle(
+                                    fontSize = typography.titleSmall.fontSize,
+                                    fontWeight = FontWeight.Normal,
+                                    color = colorScheme.onBackground.copy(alpha = .5f),
+
+                                )) {
+                                    append("(")
+
+                                    append(when(d.dayOfWeek) {
+                                        DayOfWeek.MONDAY -> "пн"
+                                        DayOfWeek.TUESDAY -> "вт"
+                                        DayOfWeek.WEDNESDAY -> "ср"
+                                        DayOfWeek.THURSDAY -> "чт"
+                                        DayOfWeek.FRIDAY -> "пт"
+                                        DayOfWeek.SATURDAY -> "сб"
+                                        DayOfWeek.SUNDAY -> "вс"
+                                        else -> "null"
+                                    })
+                                    append(")")
+                                }
+                            }
+                        },
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 6.dp)
                     )
-                    AnimatedVisibility(isCompleted) {
+                    AnimatedVisibility(
+                        isCompleted,
+                        enter = fadeIn() + scaleIn(),
+                        exit = fadeOut() + scaleOut()
+                    ) {
                         GetAsyncIcon(
                             path = RIcons.CHECK,
                             tint = MaterialTheme.colorScheme.primary

@@ -100,6 +100,8 @@ fun MinaBox(
     ),
     content: MinaBoxScope.() -> Unit
 ) {
+
+
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val contentPaddingPx = contentPadding.toPx()
@@ -181,14 +183,17 @@ fun MinaBox(
             layout(
                 width, height
             ) {
-                placeables.forEach { (itemPlaceables, position) ->
-                    itemPlaceables.forEach { placeable ->
-                        placeable.placeRelative(
-                            x = position.x.toInt(),
-                            y = position.y.toInt(),
-                        )
+                // ... fixed crash when change orientation
+                try {
+                    placeables.forEach { (itemPlaceables, position) ->
+                        itemPlaceables.forEach { placeable ->
+                            placeable.placeRelative(
+                                x = position.x.toInt(),
+                                y = position.y.toInt(),
+                            )
+                        }
                     }
-                }
+                } catch (_: Throwable) {}
             }
         }
 

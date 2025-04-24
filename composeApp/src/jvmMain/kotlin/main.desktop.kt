@@ -73,6 +73,7 @@ import view.LocalViewManager
 import view.ThemeTint
 import view.ViewManager
 import view.WindowType
+import view.colorScheme
 import view.toRGB
 import view.toTint
 import java.awt.Dimension
@@ -100,7 +101,6 @@ fun main() {
 //    GlobalScope.launchIO {
 //        com.nevrozq.pansion.main()
 //    }
-
     PlatformSDK.init(
         configuration = PlatformConfiguration(),
         cConfiguration = CommonPlatformConfiguration(
@@ -160,7 +160,6 @@ fun main() {
                 isVisible = true
             }
         )
-
         if (isVisible) {
             var isCloseDialogVisible by remember { mutableStateOf(false) }
 
@@ -213,9 +212,19 @@ fun main() {
 //                            )
 
                             val l = LocalTitleBarStyle.current
+
+                            val colorscheme = colorScheme
+
                             viewManager.topPadding =
                                 (l.metrics.height - 10.dp).coerceAtLeast(0.dp)
                             this.window.setMinSize(400, 600)
+                            this.window.background = with(colorscheme.background) {
+                                java.awt.Color(
+                                    red,
+                                    green,
+                                    blue
+                                )
+                            }
                             Box(contentAlignment = Alignment.TopCenter) {
                                 Root(root, WindowType.PC)
 
@@ -256,9 +265,9 @@ fun main() {
                                                 viewManager = viewManager,
                                                 isMasked = false
                                             ).hazeUnder(
-                                            viewManager,
-                                            zIndex = 20f
-                                        ),
+                                                viewManager,
+                                                zIndex = 20f
+                                            ),
                                         containerColor = if (viewManager.hazeHardware.value) Color.Transparent else AlertDialogDefaults.containerColor,
 
                                         )
@@ -269,6 +278,7 @@ fun main() {
                 }
             }
         }
+
     }
 //    } else {
 //        application {
