@@ -1,11 +1,18 @@
+import deviceSupport.DeviceTypex
+import deviceSupport.deviceType
+
 object RequestPaths {
-    val ip = "192.168.43.55:8080"
-//    val ip = if (isTestMode) {
-////        "192.168.35.34:8080"
-//        if (deviceType == DeviceTypex.ANDROID) "10.0.2.2:8080" else "127.0.0.1:8080"
-//    } else {
-//        "pansionapp-test-server.ru:${if (deviceType != DeviceTypex.WEB) 8080 else 8443}"
-//    }
+    const val testIp = "192.168.43.39"
+
+    //    val ip = "192.168.43.55:8080"
+    val ip = if (testIp.isEmpty()) {
+        if (isTestMode) {
+//        "192.168.35.34:8080"
+            if (deviceType == DeviceTypex.ANDROID) "10.0.2.2:8080" else "127.0.0.1:8080"
+        } else {
+            "pansionapp-test-server.ru:${if (deviceType != DeviceTypex.WEB) 8080 else 8443}"
+        }
+    } else testIp+":8080"
     // android emulator 10.0.2.2:8080
     // macos ifconfig
     // 1. Откройте Системные настройки на вашем Mac.
@@ -22,10 +29,10 @@ object RequestPaths {
 //    val ip =
 //    val ip = "192.168.36.76:8080"
 //    val -------ip = "192.168.0.112:8080"
-    object Parents {
-        const val FetchParents = "server/admin/parents/fetch"
-        const val UpdateParent = "server/admin/parents/update"
-    }
+        object Parents {
+            const val FetchParents = "server/admin/parents/fetch"
+            const val UpdateParent = "server/admin/parents/update"
+        }
 
     object WebLoad {
         const val FetchUserData = "server/webload/userdata"

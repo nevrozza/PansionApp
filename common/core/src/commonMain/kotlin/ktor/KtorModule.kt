@@ -62,17 +62,8 @@ internal val ktorModule = DI.Module("ktorModule") {
     }
 }
 
-val vzlomList = listOf<String>(
-    "Tebe ne stidno?",
-    "Samiy umniy?",
-    "I see you.",
-    "Ono togo stoilo?",
-    "Kuda smotrim?"
-)
 
 fun HttpMessageBuilder.bearer(isActive: Boolean = true) {
-    val vzlom = vzlomList.random()
-    header("Vzlom", vzlom)
     if (isActive) {
         val token = Inject.instance<AuthRepository>().fetchToken()
         header("Bearer-Authorization", token)

@@ -3,6 +3,8 @@ package settings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.get
 import com.russhwolf.settings.set
+import deviceSupport.DeviceTypex
+import deviceSupport.deviceType
 import deviceSupport.isCanInDynamic
 import view.Language
 import view.ThemeTint
@@ -103,13 +105,17 @@ class SettingsDataSource(
     }
     fun fetchIsRefreshButtonsEnabled() = settings[IS_REFRESH_BUTTONS_ENABLED_KEY, true]
 
+    fun saveIsHideKeyboardButtonEnabled(isEnabled: Boolean) {
+        settings[IS_HIDE_KEYBOARD_BUTTON_ENABLED_KEY] = isEnabled
+    }
+    fun fetchIsHideKeyboardButtonEnabled() = settings[IS_HIDE_KEYBOARD_BUTTON_ENABLED_KEY, deviceType == DeviceTypex.WEB]
+
     fun saveHardwareStatus(status: String) {
         settings[HARDWARE_STATUS_KEY] = status
     }
     fun fetchHardwareStatus() = settings[HARDWARE_STATUS_KEY, ""]
 
     fun saveIsLockedVerticalView(isLocked: Boolean) {
-        println("SAVED!: !")
         settings[IS_LOCKED_VERTICAL_VIEW_KEY] = isLocked
     }
     fun fetchIsLockedVerticalView() : Boolean? = settings.getBooleanOrNull(IS_LOCKED_VERTICAL_VIEW_KEY)
@@ -129,6 +135,7 @@ class SettingsDataSource(
 
         const val IS_AMOLED_ENABLED_KEY = "isAmoledEnabledKey"
         const val IS_REFRESH_BUTTONS_ENABLED_KEY = "isRefreshButtonsEnabledKey"
+        const val IS_HIDE_KEYBOARD_BUTTON_ENABLED_KEY = "isHideKeyboardButtonEnabledKey"
         const val IS_AVATARS_ENABLED_KEY = "isAvatarsEnabledKey"
         const val HARDWARE_STATUS_KEY = "hardwareStatusKey"
         const val IS_LOCKED_VERTICAL_VIEW_KEY = "isLockedVerticalViewKey"

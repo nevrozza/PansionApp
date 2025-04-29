@@ -1580,7 +1580,7 @@ fun LessonTable(
                     LessonReportTableCell(
                         student = model.students[studentIndex],
                         column = model.columnNames[columnIndex],
-                        model = model,
+//                        model = model,
                         component = component
                     )
                 }

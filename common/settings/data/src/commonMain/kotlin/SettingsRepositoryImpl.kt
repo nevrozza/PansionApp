@@ -115,6 +115,12 @@ class SettingsRepositoryImpl(
     override fun saveIsRefreshButtons(isRefreshButtons: Boolean) = cacheDataSource.saveIsRefreshButtonsEnabled(isRefreshButtons)
 
     override fun fetchIsRefreshButtons(): Boolean = cacheDataSource.fetchIsRefreshButtonsEnabled()
+    override fun saveIsHideKeyboardButton(isHideKeyboardButton: Boolean) {
+        cacheDataSource.saveIsHideKeyboardButtonEnabled(isHideKeyboardButton)
+    }
+
+    override fun fetchIsHideKeyboardButton(): Boolean = cacheDataSource.fetchIsHideKeyboardButtonEnabled()
+
     override fun saveIsLockedVerticalView(isLocked: Boolean) {
         cacheDataSource.saveIsLockedVerticalView(isLocked)
     }

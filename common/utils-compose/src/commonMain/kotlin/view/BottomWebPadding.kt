@@ -18,7 +18,9 @@ val LocalBottomWebPadding: ProvidableCompositionLocal<MutableState<Float>> = com
 
 
 @Composable
-fun Modifier.webPadding(): Modifier {
+fun Modifier.webPadding(
+
+): Modifier {
     val density = LocalDensity.current
     val bottomWebPadding = LocalBottomWebPadding.current
 

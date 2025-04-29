@@ -224,7 +224,8 @@ fun ActivationContent(
                                 ActivationStore.Step.Login -> {
                                     Spacer(Modifier.height(5.dp))
                                     Text(
-                                        "Введите логин",
+                                        RequestPaths.ip,
+                                        //"Введите логин",
                                         fontSize = MaterialTheme.typography.titleLarge.fontSize,
                                         modifier = Modifier.alpha(.5f)
                                     )
@@ -254,7 +255,7 @@ fun ActivationContent(
                                                 )
                                             }
                                         },
-                                        keyboardType = KeyboardType.Password
+                                        keyboardType = KeyboardType.Text
                                     )
                                     Spacer(Modifier.height(10.dp))
                                     Row(

@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.desktop.ui.tooling.preview.utils.GlobalHazeState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.PredictiveBackGestureOverlay
-import com.arkivanov.essenty.backhandler.BackDispatcher
 import dev.chrisbanes.haze.HazeState
 import deviceSupport.initIsLockedVerticalView
 import di.Inject

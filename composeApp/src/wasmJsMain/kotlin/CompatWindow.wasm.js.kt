@@ -45,9 +45,11 @@ actual fun CompatWindow(
         applyDefaultStyles = false,
         requestResize = {
             val size = sizeManager.getChanges().await<Size>()
-            val height = window.innerHeight
-            bottomPaddingWeb.value = (height - size.height) * window.devicePixelRatio.toFloat()
 
+            val height = window.innerHeight
+//            bottomPaddingWeb.value = (height - size.height) * window.devicePixelRatio.toFloat()
+
+            window.scrollTo(0.0,0.0)
             IntSize(width = window.innerWidth, height = height)
         }
     ) {

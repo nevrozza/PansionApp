@@ -136,7 +136,11 @@ fun MentoringContent(
                             RIcons.CUTE_CHECK
                         )
                     }
-                    RefreshWithoutPullCircle(refreshing, refreshState.position, model.forms.isNotEmpty())
+                    RefreshWithoutPullCircle(
+                        refreshing,
+                        refreshState.position,
+                        model.forms.isNotEmpty()
+                    )
 
                 },
                 actionRow = {
@@ -164,7 +168,7 @@ fun MentoringContent(
             )
         }
     ) { padding ->
-        Box (Modifier.fillMaxSize().pullRefresh(refreshState)) {
+        Box(Modifier.fillMaxSize().pullRefresh(refreshState)) {
             Crossfade(nModel.state) {
                 when {
                     it is NetworkState.Loading && model.forms.isEmpty() -> {
@@ -180,7 +184,8 @@ fun MentoringContent(
                         Crossfade(model.isTableView) { cf ->
                             if (cf) {
                                 Box(
-                                    Modifier.fillMaxSize().pullRefreshContentTransform(refreshState).padding(padding).padding(
+                                    Modifier.fillMaxSize().pullRefreshContentTransform(refreshState)
+                                        .padding(padding).padding(
                                         bottom =
                                         if (viewManager.orientation.value != WindowScreen.Expanded) {
                                             padding.calculateBottomPadding() + 80.dp - 20.dp
@@ -257,18 +262,21 @@ fun MentoringContent(
                                         val settingsRepository: SettingsRepository = remember {
                                             Inject.instance()
                                         }
-                                        if (model.filteredStudents.isNotEmpty()) {
-                                            MarkTable(
-                                                fields = model.filteredStudents.associate { s -> s.login to "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}" },
-                                                dms = model.filteredDateMarks,
-                                                nki = model.filteredNki,
-                                                isDs1Init = settingsRepository.fetchIsShowingPlusDS()
-                                            )
-                                        }
+                                        MarkTable(
+                                            fields = model.filteredStudents.associate { s -> s.login to "${s.fio.surname} ${s.fio.name[0]}.${if (s.fio.praname != null) " " + s.fio.praname!![0] + "." else ""}" },
+                                            dms = model.filteredDateMarks,
+                                            nki = model.filteredNki,
+                                            isDs1Init = settingsRepository.fetchIsShowingPlusDS()
+                                        )
+
                                     }
                                 }
                             } else {
-                                CLazyColumn(padding = padding, isBottomPaddingNeeded = true, refreshState = refreshState) {
+                                CLazyColumn(
+                                    padding = padding,
+                                    isBottomPaddingNeeded = true,
+                                    refreshState = refreshState
+                                ) {
                                     items(model.forms) { f ->
                                         val students = model.students.filter { it.formId == f.id }
                                         val requests = model.requests.filter { it.formId == f.id }
@@ -277,7 +285,7 @@ fun MentoringContent(
                                                 form = f,
                                                 students = students,
                                                 component = component,
-                                                model = model,
+//                                                model = model,
                                                 requests = requests
                                             )
                                         }
@@ -307,9 +315,9 @@ private fun FormsItem(
     form: MentorForms,
     students: List<MentorPerson>,
     requests: List<RegistrationRequest>,
-    model: MentoringStore.State,
     component: MentoringComponent
 ) {
+    val model by component.model.subscribeAsState()
     val nPAModel by component.nPreAttendanceInterface.networkModel.subscribeAsState()
     val isExpanded = remember { mutableStateOf(form.id in model.openedForms) }
     val onExpandClick = {
@@ -339,7 +347,10 @@ private fun FormsItem(
                 fontSize = 19.esp,
                 fontWeight = FontWeight.Bold
             )
-            Row(modifier = Modifier.weight(.4f, false), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.weight(.4f, false),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Checkbox(
                     checked = form.id in model.formsForSummary,
                     onCheckedChange = {

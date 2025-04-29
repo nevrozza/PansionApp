@@ -195,7 +195,7 @@ fun LoginContent(
                         focusManager = focusManager,
                         isMoveUpLocked = true,
                         autoCorrect = false,
-                        keyboardType = KeyboardType.Password
+                        keyboardType = KeyboardType.Text
                     )
 
 

@@ -284,7 +284,7 @@ private fun createUserSheet(
                             focusManager = focusManager,
                             isMoveUpLocked = true,
                             autoCorrect = false,
-                            keyboardType = KeyboardType.Password
+                            keyboardType = KeyboardType.Text
                         )
                         Spacer(Modifier.height(7.dp))
                         CTextField(
@@ -300,7 +300,7 @@ private fun createUserSheet(
                             focusManager = focusManager,
                             isMoveUpLocked = false,
                             autoCorrect = false,
-                            keyboardType = KeyboardType.Password
+                            keyboardType = KeyboardType.Text
                         )
                         Spacer(Modifier.height(7.dp))
                         CTextField(
@@ -316,7 +316,7 @@ private fun createUserSheet(
                             focusManager = focusManager,
                             isMoveUpLocked = false,
                             autoCorrect = false,
-                            keyboardType = KeyboardType.Password
+                            keyboardType = KeyboardType.Text
                         )
                         Spacer(Modifier.height(7.dp))
                         CTextField(
@@ -451,7 +451,7 @@ private fun createUserSheet(
                             focusManager = focusManager,
                             isMoveUpLocked = false,
                             autoCorrect = false,
-                            keyboardType = KeyboardType.Password,
+                            keyboardType = KeyboardType.Text,
                             supText = "Фамилия Имя Отчество"
                         )
                         Spacer(Modifier.height(7.dp))
@@ -468,7 +468,7 @@ private fun createUserSheet(
                             focusManager = focusManager,
                             isMoveUpLocked = false,
                             autoCorrect = false,
-                            keyboardType = KeyboardType.Password,
+                            keyboardType = KeyboardType.Text,
                             supText = "Фамилия Имя Отчество"
                         )
                         Spacer(Modifier.height(7.dp))

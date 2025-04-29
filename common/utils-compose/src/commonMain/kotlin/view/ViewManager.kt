@@ -33,7 +33,10 @@ class ViewManager @OptIn(ExperimentalSplitPaneApi::class) constructor(
 
     val hardwareStatus: MutableState<String> = mutableStateOf(""),
 
-    val isLockedVerticalView: MutableState<Boolean?> = mutableStateOf(null)
+    val isLockedVerticalView: MutableState<Boolean?> = mutableStateOf(null),
+
+    val imeInsetValue: MutableState<Int> = mutableStateOf(0),
+    val isHideKeyboardButtonShown: MutableState<Boolean> = mutableStateOf(true)
 )
 
 val LocalViewManager: ProvidableCompositionLocal<ViewManager> = compositionLocalOf {

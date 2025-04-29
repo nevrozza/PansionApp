@@ -1,5 +1,7 @@
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import root.RootComponent
 import root.RootComponent.Config
 import root.store.QuickRoutings
@@ -7,9 +9,10 @@ import root.store.RootStore
 
 @Composable
 fun DeepLinkErrorCatcher(
-    component: RootComponent,
-    model: RootStore.State
+    component: RootComponent
 ) {
+    val model by component.model.subscribeAsState()
+
     LaunchedEffect(model.startRouting) {
         if (model.startRouting != null) {
             if (model.startRouting !in listOf(QuickRoutings.HomeAllGroupMarks, QuickRoutings.LessonReport)) {

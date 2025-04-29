@@ -97,17 +97,17 @@ import androidx.compose.ui.unit.times
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.foundation.AppBar
-import components.foundation.CCheckbox
-import components.foundation.CTextButton
-import components.foundation.CTextField
 import components.DateButton
-import components.foundation.DefaultErrorView
-import components.foundation.DefaultErrorViewPos
 import components.GetAsyncIcon
 import components.SaveAnimation
 import components.ScrollBaredBox
 import components.cAlertDialog.CAlertDialogStore
+import components.foundation.AppBar
+import components.foundation.CCheckbox
+import components.foundation.CTextButton
+import components.foundation.CTextField
+import components.foundation.DefaultErrorView
+import components.foundation.DefaultErrorViewPos
 import components.foundation.cClickable
 import components.foundation.hazeUnder
 import components.listDialog.ListDialogStore
@@ -460,7 +460,7 @@ fun ScheduleContent(
                                         Box(Modifier.height(minuteHeight * ("20:00".toMinutes() - "08:45".toMinutes()) + headerP)) {
                                             ScheduleColumn(
                                                 component = component,
-                                                model = model,
+//                                                model = model,
                                                 nModel,
                                                 mpModel,
                                                 mpEditModel = mpEditModel,
@@ -487,7 +487,7 @@ fun ScheduleContent(
                                         Box(Modifier.height(minuteHeight * ("20:00".toMinutes() - "08:45".toMinutes()) + headerP)) {
                                             ScheduleColumnForForms(
                                                 component = component,
-                                                model = model,
+//                                                model = model,
                                                 nModel,
                                                 mpModel,
                                                 mpEditModel,
@@ -634,7 +634,6 @@ private fun getNameOfConflictLesson(groupId: Int, teacherLogin: String, id: Int,
 @Composable
 private fun LazyItemScope.ScheduleColumn(
     component: ScheduleComponent,
-    model: ScheduleStore.State,
     nModel: NetworkInterface.NetworkModel,
     mpModel: MpChoseStore.State,
     mpEditModel: MpChoseStore.State,
@@ -646,6 +645,7 @@ private fun LazyItemScope.ScheduleColumn(
     headerP: Dp,
     density: Density
 ) {
+    val model by component.model.subscribeAsState()
     val c = model.teachers.first { it.login == login }
     val cabinet = model.cabinets.firstOrNull { it.login == login }
 
@@ -1579,7 +1579,7 @@ private fun LazyItemScope.ScheduleColumn(
                                     model.students.firstOrNull { it.login == l }
                                 } ?: listOf()
                                 EditPopup(
-                                    model = model,
+//                                    model = model,
                                     nModel = nModel,
 //                                    index = index,
                                     e = e,
@@ -1651,7 +1651,6 @@ private fun LazyItemScope.ScheduleColumn(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun BoxScope.EditPopup(
-    model: ScheduleStore.State,
     nModel: NetworkInterface.NetworkModel,
     e: ScheduleItem,
 //    index: Int,
@@ -1661,7 +1660,7 @@ fun BoxScope.EditPopup(
     okKids: List<SchedulePerson>,
     deletedKids: List<SchedulePerson>,
 ) {
-
+    val model by component.model.subscribeAsState()
     if (model.eiIndex == e.index) {
         if (e.groupId !in listOf(-11, -6, 0)) {
 

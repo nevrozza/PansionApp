@@ -13,10 +13,12 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import components.refresh.PullRefreshState
 import components.refresh.getPullRefreshTopPadding
+import utils.rememberImeState
 import view.LocalViewManager
 import view.WindowScreen
 
@@ -33,7 +35,8 @@ fun CLazyColumn(
 ) {
     val viewManager = LocalViewManager.current
     val isExpanded = viewManager.orientation.value == WindowScreen.Expanded
-
+    val ime by rememberImeState()
+    val isKeyboardHideButtonShown = ime && viewManager.isHideKeyboardButtonShown.value
     LazyColumn(
         Modifier
             .padding(horizontal = 15.dp)
@@ -41,7 +44,8 @@ fun CLazyColumn(
             .fillMaxSize()
             .consumeWindowInsets(padding)
             .imePadding()
-            .hazeUnder(viewManager).then(modifier)
+            .hazeUnder(viewManager)
+            .then(modifier)
 
         ,
         state = state
@@ -50,15 +54,17 @@ fun CLazyColumn(
             Spacer(Modifier.height(padding.calculateTopPadding()))
         }
 
-//        item {
-//            Spacer(modifier = Modifier)
-//        }
         content()
         if(isBottomPaddingNeeded) {
             item {
                 if (!isExpanded) {
                     Spacer(Modifier.height(padding.calculateBottomPadding() + 80.dp))
                 }
+            }
+        }
+        if (isKeyboardHideButtonShown) {
+            item {
+                Spacer(Modifier.height(35.dp))
             }
         }
     }

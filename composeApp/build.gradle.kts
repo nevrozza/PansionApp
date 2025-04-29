@@ -229,8 +229,8 @@ android {
         }
         debug {
             this.matchingFallbacks.add("debug")
-            this.isMinifyEnabled = true
-            proguardFile("proguard-rules-android.pro")
+//            this.isMinifyEnabled = true
+//            proguardFile("proguard-rules-android.pro")
         }
     }
 

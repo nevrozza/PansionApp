@@ -114,8 +114,10 @@ import server.twoNums
 import users.UsersComponent
 import users.UsersStore
 import utils.LockScreenOrientation
+import utils.rememberImeState
 import view.DefaultMultiPane
 import view.LocalViewManager
+import view.viewManager
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -148,14 +150,11 @@ fun UsersScreen(
 fun UsersOverlay(
     component: UsersComponent
 ) {
-    val model by component.model.subscribeAsState()
     editUserSheet(
-        component,
-        model
+        component
     )
     createUserSheet(
-        component,
-        model
+        component
     )
 }
 
@@ -526,14 +525,17 @@ fun UsersContent(
 @ExperimentalMaterial3Api
 @Composable
 private fun editUserSheet(
-    component: UsersComponent,
-    model: UsersStore.State,
+    component: UsersComponent
 ) {
 
-
+    val model by component.model.subscribeAsState()
     val eNModel = component.eUserBottomSheet.nModel.subscribeAsState()
     val isEditingInProcess = (eNModel.value.state == NetworkState.Loading)
     val isActive = model.users?.firstOrNull { it.login == model.eLogin }?.isActive != false
+
+    val ime by rememberImeState()
+    val isKeyboardHideButtonShown = ime && viewManager.isHideKeyboardButtonShown.value
+
 
 //                LaunchedEffect(modalBottomSheetState.isVisible) {
 //                    if (modalBottomSheetState.isVisible) {
@@ -620,7 +622,7 @@ private fun editUserSheet(
                         focusManager = focusManager,
                         isMoveUpLocked = true,
                         autoCorrect = false,
-                        keyboardType = KeyboardType.Password
+                        keyboardType = KeyboardType.Text
                     )
                     Spacer(Modifier.height(7.dp))
                     CTextField(
@@ -636,7 +638,7 @@ private fun editUserSheet(
                         focusManager = focusManager,
                         isMoveUpLocked = false,
                         autoCorrect = false,
-                        keyboardType = KeyboardType.Password
+                        keyboardType = KeyboardType.Text
                     )
                     Spacer(Modifier.height(7.dp))
                     CTextField(
@@ -652,7 +654,7 @@ private fun editUserSheet(
                         focusManager = focusManager,
                         isMoveUpLocked = false,
                         autoCorrect = false,
-                        keyboardType = KeyboardType.Password
+                        keyboardType = KeyboardType.Text
                     )
                     Spacer(Modifier.height(7.dp))
                     CTextField(
@@ -1023,6 +1025,12 @@ private fun editUserSheet(
                     Spacer(Modifier.height(10.dp))
 
                 }
+
+                if (isKeyboardHideButtonShown) {
+                    item {
+                        Spacer(Modifier.height(35.dp))
+                    }
+                }
             }
 
 
@@ -1070,12 +1078,16 @@ private fun editUserSheet(
 )
 @Composable
 private fun createUserSheet(
-    component: UsersComponent,
-    model: UsersStore.State,
+    component: UsersComponent
 ) {
+    val model by component.model.subscribeAsState()
     val cNModel = component.cUserBottomSheet.nModel.subscribeAsState()
     val isCreatingInProcess = (cNModel.value.state == NetworkState.Loading)
     val lazyList = rememberLazyListState()
+
+    val ime by rememberImeState()
+    val isKeyboardHideButtonShown = ime && viewManager.isHideKeyboardButtonShown.value
+
     CBottomSheetContent(
         component = component.cUserBottomSheet,
         customLoadingScreen = true,
@@ -1133,6 +1145,7 @@ private fun createUserSheet(
 
 
                             Spacer(Modifier.height(7.dp))
+
                             CTextField(
                                 value = model.cSurname,
                                 onValueChange = {
@@ -1146,7 +1159,7 @@ private fun createUserSheet(
                                 focusManager = focusManager,
                                 isMoveUpLocked = true,
                                 autoCorrect = false,
-                                keyboardType = KeyboardType.Password
+                                keyboardType = KeyboardType.Text
                             )
                             Spacer(Modifier.height(7.dp))
                             CTextField(
@@ -1162,7 +1175,7 @@ private fun createUserSheet(
                                 focusManager = focusManager,
                                 isMoveUpLocked = false,
                                 autoCorrect = false,
-                                keyboardType = KeyboardType.Password
+                                keyboardType = KeyboardType.Text
                             )
                             Spacer(Modifier.height(7.dp))
                             CTextField(
@@ -1178,7 +1191,7 @@ private fun createUserSheet(
                                 focusManager = focusManager,
                                 isMoveUpLocked = false,
                                 autoCorrect = false,
-                                keyboardType = KeyboardType.Password
+                                keyboardType = KeyboardType.Text
                             )
                             Spacer(Modifier.height(7.dp))
                             CTextField(
@@ -1575,7 +1588,7 @@ private fun createUserSheet(
                                     focusManager = focusManager,
                                     isMoveUpLocked = false,
                                     autoCorrect = false,
-                                    keyboardType = KeyboardType.Password,
+                                    keyboardType = KeyboardType.Text,
                                     supText = "Фамилия Имя Отчество"
                                 )
                                 Spacer(Modifier.height(7.dp))
@@ -1596,7 +1609,7 @@ private fun createUserSheet(
                                     focusManager = focusManager,
                                     isMoveUpLocked = false,
                                     autoCorrect = false,
-                                    keyboardType = KeyboardType.Password,
+                                    keyboardType = KeyboardType.Text,
                                     supText = "Фамилия Имя Отчество"
                                 )
                                 Spacer(Modifier.height(7.dp))
@@ -1615,6 +1628,11 @@ private fun createUserSheet(
                             }
                             Spacer(Modifier.height(10.dp))
 
+                        }
+                        if (isKeyboardHideButtonShown) {
+                            item {
+                                Spacer(Modifier.height(35.dp))
+                            }
                         }
                     }
                 }

@@ -1,11 +1,13 @@
 package view
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import com.materialkolor.DynamicMaterialTheme
@@ -30,7 +32,7 @@ fun AppTheme(content: @Composable () -> Unit) {
         else -> GeologicaFont
     }
     viewManager.isDark.value = isThemeDark(isDarkPriority = false, tint = viewManager.tint.value)
-    val fontMultiply = viewManager.fontSize.value
+    val fontMultiply by animateFloatAsState(viewManager.fontSize.value)
 
     DynamicMaterialTheme(
         seedColor = viewManager.seedColor.value,

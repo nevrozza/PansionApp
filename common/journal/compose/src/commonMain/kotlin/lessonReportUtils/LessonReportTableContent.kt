@@ -21,14 +21,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import components.foundation.CTextButton
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.GetAsyncIcon
+import components.foundation.CTextButton
 import components.journal.MarkContent
 import components.journal.Stepper
 import decomposeComponents.listDialogComponent.ListDialogDesktopContent
@@ -52,9 +54,9 @@ import utils.hv
 fun LessonReportTableCell(
     student: StudentLine,
     column: ReportColumn,
-    model: LessonReportStore.State,
     component: LessonReportComponent
 ) {
+    val model by component.model.subscribeAsState()
     val isPersonWasOnLesson = student.attended?.attendedType in listOf("0", null)
     when (column.type) {
         ColumnTypes.PRISUT -> PrisutBox(
@@ -67,7 +69,9 @@ fun LessonReportTableCell(
             student, component
         )
         else -> RatingEntityCell(
-            student, column, model, component
+            student, column,
+            model = model,
+            component
         )
     }
 }
@@ -80,6 +84,7 @@ private fun RatingEntityCell(
     model: LessonReportStore.State,
     component: LessonReportComponent
 ) {
+
     if (column.type.st !in listOf("!st", "!ds")) {
         MarksBox(
             student, column, model, component

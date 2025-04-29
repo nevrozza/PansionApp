@@ -74,6 +74,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -95,6 +96,7 @@ import components.foundation.cClickable
 import components.foundation.hazeHeader
 import components.networkInterface.NetworkState
 import decomposeComponents.CBottomSheetContent
+import decomposeComponents.listDialogComponent.customConnection
 import profile.ProfileComponent
 import profile.ProfileStore
 import resources.Images
@@ -797,7 +799,7 @@ fun SharedTransitionScope.ProfileContent(
                         AvatarsBlock(
                             title = it.first,
                             avatars = it.second,
-                            model = model,
+//                            model = model,
                             component = component
                         )
                     }
@@ -814,9 +816,11 @@ fun SharedTransitionScope.ProfileContent(
         ) egeNecessarySubjects else ogeNecessarySubjects
         val subjects = if ((model.form?.form?.classNum ?: 0) > 9) egeSubjects else ogeSubjects
         val finalSubjects = subjects.sortedByDescending { it.first in model.giaSubjects }
-
+        val lazyList = rememberLazyListState()
         LazyColumn(
             Modifier.padding(horizontal = 15.dp)
+                .nestedScroll(lazyList.customConnection),
+            state = lazyList
         ) {
             items(necessarySubjects) { s ->
                 SubjectItem(
@@ -862,9 +866,9 @@ fun SharedTransitionScope.ProfileContent(
 private fun AvatarsBlock(
     title: String,
     avatars: List<Pair<Int, PricedAvatar>>,
-    model: ProfileStore.State,
     component: ProfileComponent
 ) {
+    val model by component.model.subscribeAsState()
     val headerAvatar = if (model.tabIndex == 2) model.newAvatarId else model.avatarId
     Text(
         title,

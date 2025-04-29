@@ -135,7 +135,7 @@ fun HomeTasksContent(
                                 groups = model.groups,
                                 subjects = model.subjects,
                                 component = component,
-                                model = model
+//                                model = model
                             ) {
                                 onWholeDateCompleted()
                             }
@@ -170,11 +170,10 @@ private fun DateTasksItem(
     tasks: List<ClientHomeworkItem>,
     groups: List<CutedDateTimeGroup>,
     subjects: Map<Int, String>,
-    model: HomeTasksStore.State,
     component: HomeTasksComponent,
     onWholeDateCompleted: () -> Unit
 ) {
-
+    val model by component.model.subscribeAsState()
     val nModel by component.nInterface.networkModel.subscribeAsState()
 
     val isCompleted = tasks.count { it.done } == tasks.size

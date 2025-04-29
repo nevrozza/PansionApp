@@ -110,7 +110,7 @@ fun AdminAchievementsOverlay(
         component = component.bottomSheetComponent
     ) {
         BottomSheetContent(
-            model = model,
+//            model = model,
             component = component,
             nBSInterface = component.nBSInterface
         )
@@ -119,7 +119,7 @@ fun AdminAchievementsOverlay(
         component = component.hugeBottomSheetComponent
     ) {
         HugeBottomSheetContent(
-            model = model,
+//            model = model,
             component = component,
             nBSInterface = component.nBSInterface
         )
@@ -128,7 +128,7 @@ fun AdminAchievementsOverlay(
         component = component.editBottomSheetComponent
     ) {
         EditBottomSheetContent(
-            model = model,
+//            model = model,
             component = component,
             nBSInterface = component.nBSInterface
         )
@@ -373,10 +373,10 @@ fun AdminAchievementsContent(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun BottomSheetContent(
-    model: AdminAchievementsStore.State,
     component: AdminAchievementsComponent,
     nBSInterface: NetworkInterface
 ) {
+    val model by component.model.subscribeAsState()
     val isAllowed =
         model.bsStudentLogin !in model.achievements.filter { it.text == model.bsText && it.date == model.bsDate && it.subjectId == model.bsSubjectId }
             .map { it.studentLogin }
@@ -588,10 +588,10 @@ private fun BottomSheetContent(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun HugeBottomSheetContent(
-    model: AdminAchievementsStore.State,
     component: AdminAchievementsComponent,
     nBSInterface: NetworkInterface
 ) {
+    val model by component.model.subscribeAsState()
     val isAllowed =
         model.achievements.filter { it.text == model.bsText && it.date == model.bsDate && it.showDate == model.bsShowDate }
             .isEmpty()
@@ -661,10 +661,10 @@ private fun HugeBottomSheetContent(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun EditBottomSheetContent(
-    model: AdminAchievementsStore.State,
     component: AdminAchievementsComponent,
     nBSInterface: NetworkInterface
 ) {
+    val model by component.model.subscribeAsState()
     val isAllowed =
         model.achievements.filter { it.text == model.bsText && it.date == model.bsDate && it.studentLogin == model.bsStudentLogin && it.subjectId == model.bsSubjectId && it.stups == model.bsStups }
             .isEmpty()

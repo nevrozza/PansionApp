@@ -32,6 +32,12 @@ fun changeIsRefreshButtons(viewManager: ViewManager, isRefreshButtons: Boolean) 
     repository.saveIsRefreshButtons(isRefreshButtons)
 }
 
+fun changeIsHideKeyboardButton(viewManager: ViewManager, isHideKeyboard: Boolean) {
+    val repository: SettingsRepository = Inject.instance()
+    viewManager.isHideKeyboardButtonShown.value = isHideKeyboard
+    repository.saveIsHideKeyboardButton(isHideKeyboard)
+}
+
 fun changeIsLockedVerticalView(viewManager: ViewManager, isLocked: Boolean) {
     val repository: SettingsRepository = Inject.instance()
     viewManager.isLockedVerticalView.value = isLocked
@@ -94,6 +100,7 @@ fun setViewManager(viewManager: ViewManager) {
     viewManager.showAvatars.value = repository.fetchIsAvatars()
     viewManager.hardwareStatus.value = repository.fetchHardwareStatus()
     viewManager.isLockedVerticalView.value = repository.fetchIsLockedVerticalView()
+    viewManager.isHideKeyboardButtonShown.value = repository.fetchIsHideKeyboardButton()
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)

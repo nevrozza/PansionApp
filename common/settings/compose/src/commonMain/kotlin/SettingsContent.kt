@@ -1,6 +1,7 @@
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -34,10 +35,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -51,15 +52,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import components.foundation.AnimatedCommonButton
-import components.foundation.AppBar
 import components.BottomThemePanel
-import components.foundation.CLazyColumn
-import components.foundation.CTextButton
-import components.foundation.CTextField
 import components.GetAsyncIcon
 import components.ThemePreview
 import components.cAlertDialog.CAlertDialogStore
+import components.foundation.AnimatedCommonButton
+import components.foundation.AppBar
+import components.foundation.CLazyColumn
+import components.foundation.CTextButton
+import components.foundation.CTextField
 import components.listDialog.ListDialogStore
 import components.networkInterface.NetworkState
 import decomposeComponents.CAlertDialogContent
@@ -250,7 +251,15 @@ fun SettingsView(
                                 )
                             }
                         }
+
                         Spacer(Modifier.height(10.dp))
+                        SettingsSwitchRow(
+                            text = "Amoled (beta)",
+                            checked = viewManager.isAmoled.value
+                        ) {
+                            changeAmoled(viewManager, it)
+                        }
+                        Spacer(Modifier.height(15.dp))
                         SettingsSwitchRow(
                             text = "Прозрачность элементов",
                             checked = isHaze.value
@@ -284,13 +293,22 @@ fun SettingsView(
                             fontSize = 10.esp,
                             lineHeight = 10.esp
                         )
-                        Spacer(Modifier.height(8.dp))
-                        SettingsSwitchRow(
-                            text = "Amoled (beta)",
-                            checked = viewManager.isAmoled.value
+
+                        if (deviceType in listOf(
+                                DeviceTypex.ANDROID,
+                                DeviceTypex.IOS,
+                                DeviceTypex.WEB
+                            )
                         ) {
-                            changeAmoled(viewManager, it)
+                            Spacer(Modifier.height(8.dp))
+                            SettingsSwitchRow(
+                                text = "Кнопка \"Спрятать клавиатуру\"",
+                                checked = viewManager.isHideKeyboardButtonShown.value
+                            ) {
+                                changeIsHideKeyboardButton(viewManager, it)
+                            }
                         }
+
                         Spacer(Modifier.height(15.dp))
                         SettingsSwitchRow(
                             text = "Кнопка \"Обновить\"",
@@ -306,7 +324,8 @@ fun SettingsView(
                             fontSize = 10.esp,
                             lineHeight = 10.esp
                         )
-                        if(deviceType == DeviceTypex.WEB ) {
+
+                        if (deviceType == DeviceTypex.WEB) {
                             Spacer(Modifier.height(8.dp))
                             SettingsSwitchRow(
                                 text = "Мобильный вид (всегда)",
@@ -316,7 +335,7 @@ fun SettingsView(
                             }
                             Spacer(Modifier.height(5.dp))
                             Text(
-                                text = "Убирает провисания из-за появления клавиатуры",
+                                text = "Оптимизирует появление клавиатуры",
                                 modifier = Modifier.fillMaxWidth().alpha(.5f),
                                 textAlign = TextAlign.Center,
                                 fontSize = 10.esp,
@@ -335,7 +354,7 @@ fun SettingsView(
                         value = viewManager.hardwareStatus.value,
                         onValueChange = {
                             changeHardwareStatus(viewManager, it)
-                                        },
+                        },
                         text = "Статус",
                         supText = "Только на вашем устройстве",
                         isEnabled = true,
@@ -632,8 +651,10 @@ fun SettingsView(
                 (loginNModel.state == NetworkState.None) && (model.secondLogin != model.eSecondLogin)
             Column(Modifier.padding(6.dp)) {
                 Text(
-                    "Смена логина", fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize, modifier = Modifier.padding(start = 5.dp)
+                    "Смена логина",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    modifier = Modifier.padding(start = 5.dp)
                 )
                 Spacer(Modifier.height(5.dp))
                 CTextField(

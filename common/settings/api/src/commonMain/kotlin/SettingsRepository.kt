@@ -58,6 +58,9 @@ interface SettingsRepository {
     fun saveIsRefreshButtons(isRefreshButtons: Boolean)
     fun fetchIsRefreshButtons(): Boolean
 
+    fun saveIsHideKeyboardButton(isHideKeyboardButton: Boolean)
+    fun fetchIsHideKeyboardButton(): Boolean
+
     fun saveIsLockedVerticalView(isLocked: Boolean)
     fun fetchIsLockedVerticalView(): Boolean?
 

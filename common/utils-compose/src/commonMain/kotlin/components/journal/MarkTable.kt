@@ -101,258 +101,263 @@ fun MarkTable(
     nki: Map<String, List<StudentNka>>? = null,
     isDs1Init: Boolean
 ) {
-    var isDs1 by remember { mutableStateOf(isDs1Init) }
-    var dateMarks = dms.toMutableMap()
-    nki?.forEach { n ->
-        n.value.forEach { d ->
-            if (dateMarks[d.date] == null) {
-                dateMarks[d.date] = listOf()
+    if (fields.isNotEmpty()) {
+        var isDs1 by remember { mutableStateOf(isDs1Init) }
+        var dateMarks = dms.toMutableMap()
+        nki?.forEach { n ->
+            n.value.forEach { d ->
+                if (dateMarks[d.date] == null) {
+                    dateMarks[d.date] = listOf()
+                }
             }
         }
-    }
-    dateMarks = dateMarks.toList().toMap().toMutableMap()
+        dateMarks = dateMarks.toList().toMap().toMutableMap()
 
-    val filteredDateMarks = dateMarks.mapNotNull {
-        val marks = it.value.filter {
-            isDs1 || !(it.reason.subSequence(
-                0,
-                3
-            ) == "!ds" && it.content == "1")
-        }
-        if (marks.isNotEmpty()) {
-            it.key to marks
-        } else null
-    }
-
-
-    val density = LocalDensity.current
-    val lP = 170.dp //TODO: Make it related to font
-    val markSize = 40.dp//30.dp
-    val minWidth = max(50.dp, with(density) { ((4.5f)*14).esp.toDp()})
-
-
-    val fieldsList = fields.toList()
-    val marksList = dateMarks.flatMap { it.value }
-    val filteredDateMarksList = filteredDateMarks.sortedByDescending { getLocalDate(it.first).toEpochDays() }.toList()
-    val widths: MutableList<Dp> = mutableListOf()
-    filteredDateMarksList.map { dm ->
-        var maxSize = 0
-        fields.keys.forEach { login ->
-            val size = dm.second.filter {
-                (isDs1 || !(it.reason.subSequence(
+        val filteredDateMarks = dateMarks.mapNotNull {
+            val marks = it.value.filter {
+                isDs1 || !(it.reason.subSequence(
                     0,
                     3
-                ) == "!ds" && it.content == "1")) && it.login == login
-            }.size
-            maxSize = max(size, maxSize)
-        }
-        widths.add(max(maxSize * markSize, minWidth))
-    }
-    if (widths.size > 0) {
-        widths[0] = widths[0] + lP
-    }
-    Column {
-        AnimatedVisibility(!isDs1) {
-            CTextButton("Отобразить +1 за МВД") {
-                isDs1 = true
+                ) == "!ds" && it.content == "1")
             }
+            if (marks.isNotEmpty()) {
+                it.key to marks
+            } else null
         }
-        if (fields.isEmpty()) {
-            Box(
-                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-                contentAlignment = Alignment.Center
-            ) {
-                OutlinedCard(Modifier.fillMaxWidth().padding(20.dp).height(80.dp)) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Здесь пусто")
-                    }
+
+
+        val density = LocalDensity.current
+        val lP = 170.dp //TODO: Make it related to font
+        val markSize = 40.dp//30.dp
+        val minWidth = max(50.dp, with(density) { ((4.5f) * 14).esp.toDp() })
+
+
+        val fieldsList = fields.toList()
+        val marksList = dateMarks.flatMap { it.value }
+        val filteredDateMarksList =
+            filteredDateMarks.sortedByDescending { getLocalDate(it.first).toEpochDays() }.toList()
+        val widths: MutableList<Dp> = mutableListOf()
+        filteredDateMarksList.map { dm ->
+            var maxSize = 0
+            fields.keys.forEach { login ->
+                val size = dm.second.filter {
+                    (isDs1 || !(it.reason.subSequence(
+                        0,
+                        3
+                    ) == "!ds" && it.content == "1")) && it.login == login
+                }.size
+                maxSize = max(size, maxSize)
+            }
+            widths.add(max(maxSize * markSize, minWidth))
+        }
+        if (widths.size > 0) {
+            widths[0] = widths[0] + lP
+        }
+        Column {
+            AnimatedVisibility(!isDs1) {
+                CTextButton("Отобразить +1 за МВД") {
+                    isDs1 = true
                 }
             }
-
-        }
-
-
-
-        val columnsCount = filteredDateMarks.size
-        val rowsCount = fields.size
-
-        val cellHeight = 57.dp
-        val bigCellHeight = 65.dp
-        val headerHeight = 30.dp
-        val headerPadding = with(density) { (cellHeight - headerHeight).toPx() }
-
-        MinaBox(
-            modifier = defaultMinaBoxTableModifier,
-            scrollBarData = defaultScrollbarData
-        ) {
-            items(
-                count = columnsCount * rowsCount,
-                layoutInfo = {
-                    val index = it + columnsCount
-                    val column = index % columnsCount
-                    val row = index / columnsCount
-
-                    val itemSizePx = with(density) {
-                        DpSize(
-                            width = widths[column],
-                            height = bigCellHeight
-                        ).toSize()
-                    }
-                    val prevX = (0 until column)
-                        .map { with(density) { widths[it].toPx() } }.sum() //0 until column
-                    MinaBoxItem(
-                        x = prevX,
-                        y = itemSizePx.height * row - headerPadding,
-                        width = itemSizePx.width,
-                        height = itemSizePx.height
-                    )
-                },
-                key = { it }
-            ) { index ->
-                val columnIndex = index % columnsCount
-                val studentIndex = (index / (columnsCount))
-
-
-                val student = fieldsList[studentIndex]
-
-                val currentDateMarks = filteredDateMarksList[columnIndex]
-
-                val marks = currentDateMarks.second.filter { it.login == student.first }
-
-                var nka = ""
-                nki?.get(student.first)?.filter { it.date == currentDateMarks.first }?.forEach {
-                    nka += if (it.isUv) "Ув" else "Н"
-                }
-
-
-                TableCellOutline {
-                    Row {
-                        if (columnIndex == 0) {
-                            Spacer(Modifier.width(lP))
-                        }
-                        Column {
-                            Spacer(Modifier.height(Paddings.medium))
-                            MarkTableContent(
-                                marks = marks,
-                                markSize = markSize,
-                                nka = nka
-                            )
+            if (fields.isEmpty()) {
+                Box(
+                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    OutlinedCard(Modifier.fillMaxWidth().padding(20.dp).height(80.dp)) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Здесь пусто")
                         }
                     }
-
                 }
+
             }
 
 
-            items(
-                count = rowsCount,
-                layoutInfo = {
-                    val itemSizePx = with(density) {
-                        DpSize(
-                            width = 400.dp,
-                            height = bigCellHeight
-                        ).toSize()
+            val columnsCount = filteredDateMarks.size
+            val rowsCount = fields.size
+
+            val cellHeight = 57.dp
+            val bigCellHeight = 65.dp
+            val headerHeight = 30.dp
+            val headerPadding = with(density) { (cellHeight - headerHeight).toPx() }
+
+            MinaBox(
+                modifier = defaultMinaBoxTableModifier,
+                scrollBarData = defaultScrollbarData
+            ) {
+                items(
+                    count = columnsCount * rowsCount,
+                    layoutInfo = {
+                        val index = it + columnsCount
+                        val column = index % columnsCount
+                        val row = index / columnsCount
+
+                        val itemSizePx = with(density) {
+                            DpSize(
+                                width = widths[column],
+                                height = bigCellHeight
+                            ).toSize()
+                        }
+                        val prevX = (0 until column)
+                            .map { with(density) { widths[it].toPx() } }.sum() //0 until column
+                        MinaBoxItem(
+                            x = prevX,
+                            y = itemSizePx.height * row - headerPadding,
+                            width = itemSizePx.width,
+                            height = itemSizePx.height
+                        )
+                    },
+                    key = { it }
+                ) { index ->
+                    val columnIndex = index % columnsCount
+                    val studentIndex = (index / (columnsCount))
+
+
+                    val student = fieldsList[studentIndex]
+
+                    val currentDateMarks = filteredDateMarksList[columnIndex]
+
+                    val marks = currentDateMarks.second.filter { it.login == student.first }
+
+                    var nka = ""
+                    nki?.get(student.first)?.filter { it.date == currentDateMarks.first }?.forEach {
+                        nka += if (it.isUv) "Ув" else "Н"
                     }
-                    MinaBoxItem(
-                        x = 0f,
-                        y = itemSizePx.height * it,
-                        width = itemSizePx.width,
-                        height = itemSizePx.height,
-                        lockHorizontally = true
-                    )
 
-                }
-            ) { index ->
-                Box(
-                    Modifier.fillMaxSize().padding(bottom = 3.dp),
-                    contentAlignment = Alignment.BottomStart
-                ) {
-                    MarkTableTitle(fieldsList[index].second)
-                }
-            }
 
-            items(
-                count = rowsCount,
-                layoutInfo = {
-                    val itemSizePx = with(density) {
-                        DpSize(
-                            width = 400.dp,
-                            height = bigCellHeight
-                        ).toSize()
+                    TableCellOutline {
+                        Row {
+                            if (columnIndex == 0) {
+                                Spacer(Modifier.width(lP))
+                            }
+                            Column {
+                                Spacer(Modifier.height(Paddings.medium))
+                                MarkTableContent(
+                                    marks = marks,
+                                    markSize = markSize,
+                                    nka = nka
+                                )
+                            }
+                        }
+
                     }
-                    MinaBoxItem(
-                        x = 0f,
-                        y = itemSizePx.height * it + headerPadding,
-                        width = itemSizePx.width,
-                        height = itemSizePx.height
-                    )
-
                 }
-            ) { index ->
-                val allMarks = marksList.filter { it.login == fieldsList[index].first }
-                val marks = allMarks.filter {
-                    it.reason.subSequence(0, 3).toString() !in listOf(
-                        "!st",
-                        "!ds"
-                    )
-                }
-                // goddamn
-                val avg = (marks.sumOf { it.content.toInt() } / marks.size.toFloat()).roundTo(2)
-                val normStupsCount =
-                    allMarks.filter { it.reason.subSequence(0, 3) in listOf("!st") }
-                        .sumOf { it.content.toInt() }
-                val dsStupsCount =
-                    allMarks.filter { it.reason.subSequence(0, 3) in listOf("!ds") }
-                        .sumOf { it.content.toInt() }
 
-                Box(
-                    Modifier.fillMaxSize().padding(bottom = 3.dp),
-                    contentAlignment = Alignment.BottomStart
+
+                items(
+                    count = rowsCount,
+                    layoutInfo = {
+                        val itemSizePx = with(density) {
+                            DpSize(
+                                width = 400.dp,
+                                height = bigCellHeight
+                            ).toSize()
+                        }
+                        MinaBoxItem(
+                            x = 0f,
+                            y = itemSizePx.height * it,
+                            width = itemSizePx.width,
+                            height = itemSizePx.height,
+                            lockHorizontally = true
+                        )
+
+                    }
+                ) { index ->
+                    Box(
+                        Modifier.fillMaxSize().padding(bottom = 3.dp),
+                        contentAlignment = Alignment.BottomStart
+                    ) {
+                        MarkTableTitle(fieldsList[index].second)
+                    }
+                }
+
+                items(
+                    count = rowsCount,
+                    layoutInfo = {
+                        val itemSizePx = with(density) {
+                            DpSize(
+                                width = 400.dp,
+                                height = bigCellHeight
+                            ).toSize()
+                        }
+                        MinaBoxItem(
+                            x = 0f,
+                            y = itemSizePx.height * it + headerPadding,
+                            width = itemSizePx.width,
+                            height = itemSizePx.height
+                        )
+
+                    }
+                ) { index ->
+                    val allMarks = marksList.filter { it.login == fieldsList[index].first }
+                    val marks = allMarks.filter {
+                        it.reason.subSequence(0, 3).toString() !in listOf(
+                            "!st",
+                            "!ds"
+                        )
+                    }
+                    // goddamn
+                    val avg = (marks.sumOf { it.content.toInt() } / marks.size.toFloat()).roundTo(2)
+                    val normStupsCount =
+                        allMarks.filter { it.reason.subSequence(0, 3) in listOf("!st") }
+                            .sumOf { it.content.toInt() }
+                    val dsStupsCount =
+                        allMarks.filter { it.reason.subSequence(0, 3) in listOf("!ds") }
+                            .sumOf { it.content.toInt() }
+
+                    Box(
+                        Modifier.fillMaxSize().padding(bottom = 3.dp),
+                        contentAlignment = Alignment.BottomStart
+                    ) {
+                        MarkTableUnderTitleContent(
+                            avg = avg,
+                            normStupsCount = normStupsCount,
+                            dsStupsCount = dsStupsCount
+                        )
+                    }
+                }
+
+                items(
+                    count = columnsCount,
+                    layoutInfo = {
+                        val index = it + columnsCount
+                        val column = index % columnsCount
+
+                        val itemSizePx = with(density) {
+                            DpSize(
+                                width = widths[column],
+                                headerHeight
+                            ).toSize()
+                        }
+
+                        val prevX = (0 until column)
+                            .map { with(density) { widths[it].toPx() } }.sum() //0 until column
+                        MinaBoxItem(
+                            x = prevX,
+                            y = 0f,
+                            width = itemSizePx.width,
+                            height = itemSizePx.height,
+                            lockVertically = true
+                        )
+                    }
                 ) {
-                    MarkTableUnderTitleContent(
-                        avg = avg,
-                        normStupsCount = normStupsCount,
-                        dsStupsCount = dsStupsCount
-                    )
-                }
-            }
-
-            items(
-                count = columnsCount,
-                layoutInfo = {
                     val index = it + columnsCount
                     val column = index % columnsCount
+                    TableCellOutline(backgroundColor = colorScheme.background) {
 
-                    val itemSizePx = with(density) {
-                        DpSize(
-                            width = widths[column],
-                            headerHeight
-                        ).toSize()
+                        MarkTableTableHeader(
+                            date = filteredDateMarksList[column].first,
+                            startColumnPadding = if (column == 0) lP else 0.dp
+                        )
                     }
-
-                    val prevX = (0 until column)
-                        .map { with(density) { widths[it].toPx() } }.sum() //0 until column
-                    MinaBoxItem(
-                        x = prevX,
-                        y = 0f,
-                        width = itemSizePx.width,
-                        height = itemSizePx.height,
-                        lockVertically = true
-                    )
                 }
-            ) {
-                val index = it + columnsCount
-                val column = index % columnsCount
-                TableCellOutline(backgroundColor = colorScheme.background) {
 
-                    MarkTableTableHeader(
-                        date = filteredDateMarksList[column].first,
-                        startColumnPadding = if(column == 0) lP else 0.dp
-                    )
-                }
+
             }
-
-
         }
+    } else {
+
+        Text("Не данный момент, таблица пустая\n")
     }
 }

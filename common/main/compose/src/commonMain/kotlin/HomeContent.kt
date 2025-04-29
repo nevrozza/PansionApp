@@ -479,7 +479,7 @@ fun TeacherHomeContent(
                     }
                     item {
                         RaspisanieTable(
-                            model = model,
+//                            model = model,
                             nScheduleModel = nScheduleModel,
                             component = component,
                             journalModel = journalModel
@@ -583,11 +583,11 @@ fun TeacherHomeContent(
 
 @Composable
 private fun RaspisanieTable(
-    model: HomeStore.State,
     journalModel: JournalStore.State?,
     nScheduleModel: NetworkInterface.NetworkModel,
     component: HomeComponent
 ) {
+    val model by component.model.subscribeAsState()
     val isLoadingTestMode = isTestMode && false
     val items = model.items[model.currentDate.second]
     val dots = remember { mutableStateOf(".") }
@@ -628,7 +628,7 @@ private fun RaspisanieTable(
                                     role = model.role,
                                     component = component,
                                     groupId = it.groupId,
-                                    model = model,
+//                                    model = model,
                                     journalModel = journalModel,
                                     marks = it.marks,
                                     stupsSum = it.stupsSum,
@@ -891,7 +891,7 @@ fun StudentHomeContent(
                         )
                     } else {
                         RaspisanieTable(
-                            model = model,
+//                            model = model,
                             nScheduleModel = nScheduleModel,
                             component = component,
                             journalModel = null
@@ -1014,13 +1014,12 @@ fun Lesson(
     marks: List<UserMark>,
     stupsSum: Int,
     component: HomeComponent,
-    model: HomeStore.State,
     journalModel: JournalStore.State?,
     isSwapped: Boolean,
     lessonIndex: Int,
     isMarked: Boolean
 ) {
-
+    val model by component.model.subscribeAsState()
     val isSurnameShown = remember { mutableStateOf(groupId == -6) }
     val firstElement =
         model.items[date]?.sortedBy { it.start.toMinutes() }?.first { it.groupId == groupId }

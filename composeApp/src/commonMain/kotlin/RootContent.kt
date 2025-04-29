@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -57,9 +58,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import transitions.iosSlide
-import transitions.slideEnterModifier
-import transitions.slideExitModifier
 import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -70,9 +68,9 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.essenty.backhandler.BackEvent
+import components.GetAsyncIcon
 import components.foundation.CTextButton
 import components.foundation.DefaultErrorView
-import components.GetAsyncIcon
 import components.foundation.hazeHeader
 import components.foundation.hazeUnder
 import components.networkInterface.NetworkState
@@ -133,11 +131,13 @@ import server.Moderation
 import server.Roles
 import server.cut
 import server.getDate
+import transitions.iosSlide
+import transitions.slideEnterModifier
+import transitions.slideExitModifier
 import view.LocalViewManager
 import view.ViewManager
 import view.WindowCalculator
 import view.WindowScreen
-import androidx.compose.desktop.ui.tooling.preview.utils.esp
 
 @ExperimentalAnimationApi
 @OptIn(
@@ -159,7 +159,8 @@ fun RootContent(
     val nCheckModel by component.checkNInterface.networkModel.subscribeAsState()
 
     DeepLinkErrorCatcher(
-        component, model
+        component,
+//        model = model
     )
 //    val isExpanded =
 //        viewManager.orientation.value == WindowScreen.Expanded

@@ -33,6 +33,7 @@ import components.foundation.DefaultErrorView
 import components.foundation.DefaultErrorViewPos
 import components.foundation.TonalCard
 import components.foundation.cClickable
+import utils.HideKeyboardLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,8 +165,15 @@ fun CalendarContent(
                                 }
                             }
                             item {
-                                if (model.modules.filter { it.halfNum == 2 }.isEmpty() && model.modules.size < 9) {
-                                    ModuleButton(component, null, null, false, edYear = model.edYear) {
+                                if (model.modules.filter { it.halfNum == 2 }
+                                        .isEmpty() && model.modules.size < 9) {
+                                    ModuleButton(
+                                        component,
+                                        null,
+                                        null,
+                                        false,
+                                        edYear = model.edYear
+                                    ) {
                                         datePickerState = it
                                         component.onEvent(
                                             CalendarStore.Intent.OpenCalendar(
@@ -208,7 +216,13 @@ fun CalendarContent(
                                 }
                                 item {
                                     if (model.modules.size < 9) {
-                                        ModuleButton(component, null, null, false, edYear = model.edYear) {
+                                        ModuleButton(
+                                            component,
+                                            null,
+                                            null,
+                                            false,
+                                            edYear = model.edYear
+                                        ) {
                                             datePickerState = it
                                             component.onEvent(
                                                 CalendarStore.Intent.OpenCalendar(
@@ -251,8 +265,10 @@ fun CalendarContent(
                                 RangeButton(
                                     component,
                                     h = Holiday(
-                                        id = (holidays.lastOrNull()?.id ?: 0) + 1, edYear = model.edYear,
-                                        start = "01.01.${model.edYear}", end = "01.01.${model.edYear}",
+                                        id = (holidays.lastOrNull()?.id ?: 0) + 1,
+                                        edYear = model.edYear,
+                                        start = "01.01.${model.edYear}",
+                                        end = "01.01.${model.edYear}",
                                         isForAll = true
                                     ),
                                     isCreatingButton = true
@@ -311,7 +327,8 @@ fun CalendarContent(
 
             val isForAll = remember {
                 mutableStateOf(
-                    model.holidays.firstOrNull { it.id == model.selectedHolidayId }?.isForAll ?: true
+                    model.holidays.firstOrNull { it.id == model.selectedHolidayId }?.isForAll
+                        ?: true
                 )
             }
 
@@ -390,49 +407,53 @@ fun CalendarContent(
                     }
                 }
             ) {
-                if (isRangePicker) {
-                    DateRangePicker(
-                        state = dateRangePickerState,
-                        title = {
-                            Text(
-                                "Выберите период каникул",
-                                modifier = Modifier.padding(
-                                    top = 15.dp,
-                                    start = 20.dp
+                Column {
+                    if (isRangePicker) {
+                        DateRangePicker(
+                            state = dateRangePickerState,
+                            title = {
+                                Text(
+                                    "Выберите период каникул",
+                                    modifier = Modifier.padding(
+                                        top = 15.dp,
+                                        start = 20.dp
+                                    )
                                 )
-                            )
-                        },
-                        headline = {
-                            val start =
-                                if (dateRangePickerState.selectedStartDateMillis != null) Instant.fromEpochMilliseconds(
-                                    dateRangePickerState.selectedStartDateMillis!!
-                                ).toLocalDateTime(
-                                    applicationTimeZone
-                                ).to10() else "?"
-                            val end =
-                                if (dateRangePickerState.selectedEndDateMillis != null) Instant.fromEpochMilliseconds(
-                                    dateRangePickerState.selectedEndDateMillis!!
-                                ).toLocalDateTime(
-                                    applicationTimeZone
-                                ).to10() else "?"
-                            Text("$start-$end")
-                        }
-                    )
-                } else {
-                    DatePicker(
-                        state = datePickerState,
-                        showModeToggle = true,
-                        title = {
-                            Text(
-                                "Выберите день старта модуля",
-                                modifier = Modifier.padding(
-                                    top = 15.dp,
-                                    start = 20.dp
+                            },
+                            headline = {
+                                val start =
+                                    if (dateRangePickerState.selectedStartDateMillis != null) Instant.fromEpochMilliseconds(
+                                        dateRangePickerState.selectedStartDateMillis!!
+                                    ).toLocalDateTime(
+                                        applicationTimeZone
+                                    ).to10() else "?"
+                                val end =
+                                    if (dateRangePickerState.selectedEndDateMillis != null) Instant.fromEpochMilliseconds(
+                                        dateRangePickerState.selectedEndDateMillis!!
+                                    ).toLocalDateTime(
+                                        applicationTimeZone
+                                    ).to10() else "?"
+                                Text("$start-$end")
+                            }
+                        )
+                    } else {
+                        DatePicker(
+                            state = datePickerState,
+                            showModeToggle = true,
+                            title = {
+                                Text(
+                                    "Выберите день старта модуля",
+                                    modifier = Modifier.padding(
+                                        top = 15.dp,
+                                        start = 20.dp
+                                    )
                                 )
-                            )
-                        }
-                    )
+                            }
+                        )
+                    }
+                    HideKeyboardLayout(isSmall = true)
                 }
+
             }
         }
 
@@ -500,33 +521,33 @@ private fun RangeButton(
             if (!isGoToDelete.value && (isCreatingButton || h.edYear == getEdYear(today.date))) {
                 val dateRangePickerState = DateRangePickerState(
                     initialSelectedStartDateMillis =
-                        if (h.start.length == 10) {
-                            val s = h.start.split(".")
-                            val day = s[0].toInt()
-                            val month = s[1].toInt()
-                            val year = s[2].toInt()
-                            LocalDate(
-                                year = year,
-                                monthNumber = month,
-                                dayOfMonth = day
-                            ).atStartOfDayIn(
-                                TimeZone.UTC
-                            ).toEpochMilliseconds()
-                        } else null,
+                    if (h.start.length == 10) {
+                        val s = h.start.split(".")
+                        val day = s[0].toInt()
+                        val month = s[1].toInt()
+                        val year = s[2].toInt()
+                        LocalDate(
+                            year = year,
+                            monthNumber = month,
+                            dayOfMonth = day
+                        ).atStartOfDayIn(
+                            TimeZone.UTC
+                        ).toEpochMilliseconds()
+                    } else null,
                     initialSelectedEndDateMillis =
-                        if (h.end.length == 10) {
-                            val s = h.end.split(".")
-                            val day = s[0].toInt()
-                            val month = s[1].toInt()
-                            val year = s[2].toInt()
-                            LocalDate(
-                                year = year,
-                                monthNumber = month,
-                                dayOfMonth = day
-                            ).atStartOfDayIn(
-                                TimeZone.UTC
-                            ).toEpochMilliseconds()
-                        } else null,
+                    if (h.end.length == 10) {
+                        val s = h.end.split(".")
+                        val day = s[0].toInt()
+                        val month = s[1].toInt()
+                        val year = s[2].toInt()
+                        LocalDate(
+                            year = year,
+                            monthNumber = month,
+                            dayOfMonth = day
+                        ).atStartOfDayIn(
+                            TimeZone.UTC
+                        ).toEpochMilliseconds()
+                    } else null,
                     yearRange = IntRange(h.edYear, h.edYear + 1),
                     selectableDates = getSelectableDates(
                         prevDate = component.model.value.holidays.firstOrNull { it.id == h.id - 1 }?.end
@@ -638,19 +659,19 @@ private fun ModuleButton(
             if (!isGoToDelete.value && edYear == getEdYear(today.date)) {
                 val datePickerState = DatePickerState(
                     initialSelectedDateMillis =
-                        if (startDate != null && startDate.length == 10) {
-                            val s = startDate.split(".")
-                            val day = s[0].toInt()
-                            val month = s[1].toInt()
-                            val year = s[2].toInt()
-                            LocalDate(
-                                year = year,
-                                monthNumber = month,
-                                dayOfMonth = day
-                            ).atStartOfDayIn(
-                                TimeZone.UTC
-                            ).toEpochMilliseconds()
-                        } else null,
+                    if (startDate != null && startDate.length == 10) {
+                        val s = startDate.split(".")
+                        val day = s[0].toInt()
+                        val month = s[1].toInt()
+                        val year = s[2].toInt()
+                        LocalDate(
+                            year = year,
+                            monthNumber = month,
+                            dayOfMonth = day
+                        ).atStartOfDayIn(
+                            TimeZone.UTC
+                        ).toEpochMilliseconds()
+                    } else null,
                     yearRange = IntRange(edYear, edYear + 1),
                     selectableDates = getSelectableDates(
                         prevDate = if (num == null) {

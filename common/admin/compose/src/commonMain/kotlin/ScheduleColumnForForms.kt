@@ -73,6 +73,7 @@ import server.cut
 import server.isTimeFormat
 import server.toMinutes
 import androidx.compose.desktop.ui.tooling.preview.utils.esp
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 
 //data class ScheduleForFormsItem(
@@ -83,7 +84,6 @@ import androidx.compose.desktop.ui.tooling.preview.utils.esp
 @Composable
 fun LazyItemScope.ScheduleColumnForForms(
     component: ScheduleComponent,
-    model: ScheduleStore.State,
     nModel: NetworkInterface.NetworkModel,
     mpModel: MpChoseStore.State,
     mpEditModel: MpChoseStore.State,
@@ -96,6 +96,7 @@ fun LazyItemScope.ScheduleColumnForForms(
     headerP: Dp,
     density: Density
 ) {
+    val model by component.model.subscribeAsState()
     val groups = model.groups.filter {
         it.id in model.students.filter { s -> s.login in form.logins }.flatMap { s -> s.groups.map { x -> x.first } }
     }
@@ -572,7 +573,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                             Box(Modifier.fillMaxSize()) {
                                 ScheduleForFormsContent(
                                     e = e,
-                                    model = model,
+//                                    model = model,
                                     isInPopup = false,
                                     component = component,
                                     nModel = nModel,
@@ -653,7 +654,7 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                     Box(Modifier.width(200.dp).height(80.dp)) {
                                                         ScheduleForFormsContent(
                                                             e = item,
-                                                            model = model,
+//                                                            model = model,
                                                             isInPopup = true,
                                                             component = component,
                                                             nModel = nModel,
@@ -754,7 +755,6 @@ fun LazyItemScope.ScheduleColumnForForms(
 @Composable
 private fun BoxScope.ScheduleForFormsContent(
     e: ScheduleItem,
-    model: ScheduleStore.State,
     isInPopup: Boolean,
     component: ScheduleComponent,
     nModel: NetworkInterface.NetworkModel,
@@ -762,6 +762,7 @@ private fun BoxScope.ScheduleForFormsContent(
     key: String,
     onDeleteClick: () -> Unit
 ) {
+    val model by component.model.subscribeAsState()
     when (e.groupId) {
         ScheduleIds.FOOD -> {
             Text(
@@ -986,7 +987,7 @@ private fun BoxScope.ScheduleForFormsContent(
             model.students.firstOrNull { it.login == l}
         } ?: listOf()
         EditPopup(
-            model = model,
+//            model = model,
             nModel = nModel,
             e = e,
             component = component,
