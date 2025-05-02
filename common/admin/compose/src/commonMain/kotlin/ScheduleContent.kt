@@ -1,4 +1,3 @@
-
 import admin.schedule.ScheduleGroup
 import admin.schedule.SchedulePerson
 import admin.schedule.ScheduleSubject
@@ -127,13 +126,16 @@ import schedule.ScheduleStore.EditState
 import schedule.ScheduleTiming
 import schedule.StudentError
 import schedule.fetchLoginsOfLesson
+import schedule.tOverlap
 import schedule.timingsPairs
+import server.ScheduleIds
 import server.isTimeFormat
 import server.toMinutes
 import server.weekPairs
 import utils.LockScreenOrientation
 import view.LocalViewManager
 import view.blend
+import view.colorScheme
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -143,7 +145,7 @@ fun ScheduleContent(
 ) {
     LockScreenOrientation(-1)
 
-    
+
     val viewManager = LocalViewManager.current
 
 
@@ -160,6 +162,7 @@ fun ScheduleContent(
     val density = LocalDensity.current
     val lazyListState = remember { LazyListState() }
     val isStatic = remember { mutableStateOf(false) }
+    val isExtraHidden = remember { mutableStateOf(false) }
 
 
     val dayStartTime = "8:30"
@@ -281,6 +284,16 @@ fun ScheduleContent(
                     }
                 },
                 actionRow = {
+                    IconButton(
+                        onClick = {
+                            isExtraHidden.value = !isExtraHidden.value
+                        }
+                    ) {
+                        GetAsyncIcon(
+                            if (!isExtraHidden.value) RIcons.VISIBILITY
+                            else RIcons.VISIBILITY_OFF
+                        )
+                    }
                     IconButton(
                         onClick = {
                             component.onEvent(ScheduleStore.Intent.ChangeIsTeacherView)
@@ -452,7 +465,10 @@ fun ScheduleContent(
                             if (model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty()) {
                                 val trueTeachers =
                                     model.activeTeachers[key]
-                                LazyRow(Modifier.padding(start = 38.dp).fillMaxSize(), state = lazyListState) {
+                                LazyRow(
+                                    Modifier.padding(start = 38.dp).fillMaxSize(),
+                                    state = lazyListState
+                                ) {
                                     item { Spacer(Modifier.width(12.dp)) }
                                     items(
                                         trueTeachers?.reversed() ?: emptyList(),
@@ -470,14 +486,18 @@ fun ScheduleContent(
                                                 login,
                                                 key,
                                                 headerP,
-                                                density
+                                                density,
+                                                isExtraHidden = isExtraHidden.value
                                             )
                                         }
                                     }
                                     item { Spacer(Modifier.width(200.dp)) }
                                 }
                             } else if (!model.isTeachersView && model.groups.isNotEmpty() && model.students.isNotEmpty() && model.subjects.isNotEmpty() && model.teachers.isNotEmpty() && model.forms.isNotEmpty()) {
-                                LazyRow(Modifier.padding(start = 38.dp).fillMaxSize(), state = lazyListState) {
+                                LazyRow(
+                                    Modifier.padding(start = 38.dp).fillMaxSize(),
+                                    state = lazyListState
+                                ) {
                                     item { Spacer(Modifier.width(12.dp)) }
                                     items(
                                         items = model.forms.toList().sortedWith(
@@ -498,7 +518,8 @@ fun ScheduleContent(
                                                 formId = form.first,
                                                 key = key,
                                                 headerP,
-                                                density
+                                                density,
+                                                isExtraHidden = isExtraHidden.value
                                             )
                                         }
                                     }
@@ -551,13 +572,17 @@ fun ScheduleContent(
     )
 
     if (model.niErrors.isNotEmpty()) {
+
         CAlertDialogContent(
             component = component.chooseConflictDialog,
             dialogProperties = DialogProperties(false, false)
         ) {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 model.niErrors.forEach { e ->
-                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Spacer(Modifier.height(5.dp))
                         Text(
                             "Куда пойдут ${
@@ -583,7 +608,8 @@ fun ScheduleContent(
                         ) {
                             component.onEvent(
                                 ScheduleStore.Intent.SolveConflict(
-                                    lessonId = model.niId!!,
+                                    fromLessonId = model.niId!!,
+                                    toLessonId = e.id,
                                     studentLogins = e.logins
                                 )
                             )
@@ -594,10 +620,12 @@ fun ScheduleContent(
                         ) {
                             component.onEvent(
                                 ScheduleStore.Intent.SolveConflict(
-                                    lessonId = e.id,
+                                    fromLessonId = e.id,
+                                    toLessonId = model.niId!!,
                                     studentLogins = e.logins
                                 )
                             )
+
                         }
                         Spacer(Modifier.height(5.dp))
                     }
@@ -607,7 +635,12 @@ fun ScheduleContent(
     }
 }
 
-private fun getNameOfConflictLesson(groupId: Int, teacherLogin: String, id: Int, model: ScheduleStore.State): String {
+private fun getNameOfConflictLesson(
+    groupId: Int,
+    teacherLogin: String,
+    id: Int,
+    model: ScheduleStore.State
+): String {
 
     return if (groupId == -6) {
         "Доп с ${model.teachers.firstOrNull { it.login == teacherLogin }?.fio?.surname}"
@@ -615,7 +648,8 @@ private fun getNameOfConflictLesson(groupId: Int, teacherLogin: String, id: Int,
         "Приём пищи"
     } else if (groupId == 0) {
         if ((model.items.flatMap { it.value.map { it.index } }.maxByOrNull { it } ?: 1) + 1 != id) {
-            val key = if (model.isDefault) model.defaultDate.toString() else model.currentDate.second
+            val key =
+                if (model.isDefault) model.defaultDate.toString() else model.currentDate.second
             val trueItems = model.items[key]?.firstOrNull { it.index == id }
             "${trueItems?.custom?.firstOrNull()}"
         } else {
@@ -643,7 +677,8 @@ private fun LazyItemScope.ScheduleColumn(
     login: String,
     key: String,
     headerP: Dp,
-    density: Density
+    density: Density,
+    isExtraHidden: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val c = model.teachers.first { it.login == login }
@@ -651,7 +686,8 @@ private fun LazyItemScope.ScheduleColumn(
 
 
     Box(
-        Modifier.width(200.dp).fillMaxHeight().padding(end = 5.dp).animateItem(fadeInSpec = null, fadeOutSpec = null)
+        Modifier.width(200.dp).fillMaxHeight().padding(end = 5.dp)
+            .animateItem(fadeInSpec = null, fadeOutSpec = null)
     ) {
         val headerState = remember {
             MutableTransitionState(false).apply {
@@ -716,7 +752,13 @@ private fun LazyItemScope.ScheduleColumn(
                                     null
                                 } else {
                                     {
-                                        component.onEvent(ScheduleStore.Intent.ciChangeCustom(listOf("")))
+                                        component.onEvent(
+                                            ScheduleStore.Intent.ciChangeCustom(
+                                                listOf(
+                                                    ""
+                                                )
+                                            )
+                                        )
                                         component.onEvent(ScheduleStore.Intent.ciNullGroupId)
                                     }
                                 }
@@ -918,6 +960,7 @@ private fun LazyItemScope.ScheduleColumn(
                                                                             model.ciTiming!!.studentErrors,
                                                                             model
                                                                         )
+
                                                                     ErrorsTooltip(
                                                                         cabinetErrorSubject = cabinetErrorSubject,
                                                                         cabinetErrorGroup = cabinetErrorGroup,
@@ -925,9 +968,11 @@ private fun LazyItemScope.ScheduleColumn(
                                                                         cabinetErrorGroupId = model.ciTiming!!.cabinetErrorGroupId,
                                                                         component = component,
                                                                         niCustom = model.ciCustom,
-                                                                        niFormId = model.ciFormId ?: 0,
+                                                                        niFormId = model.ciFormId
+                                                                            ?: 0,
                                                                         niGroupId = model.ciId ?: 0,
-                                                                        niTeacherLogin = model.ciLogin ?: model.login,
+                                                                        niTeacherLogin = model.ciLogin
+                                                                            ?: model.login,
                                                                         classicStudentErrors = model.ciTiming!!.studentErrors,
                                                                         niOnClick = {
                                                                             with(component) {
@@ -942,7 +987,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                                             }
                                                                         },
                                                                         niIndex = (model.items.flatMap { it.value.map { it.index } }
-                                                                            .maxByOrNull { it } ?: 1) + 1
+                                                                            .maxByOrNull { it }
+                                                                            ?: 1) + 1
                                                                     )
                                                                 }
                                                             } else {
@@ -1017,7 +1063,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                                     niCustom = model.ciCustom,
                                                                     niFormId = model.ciFormId ?: 0,
                                                                     niGroupId = model.ciId ?: 0,
-                                                                    niTeacherLogin = model.ciLogin ?: model.login,
+                                                                    niTeacherLogin = model.ciLogin
+                                                                        ?: model.login,
                                                                     classicStudentErrors = t.studentErrors,
                                                                     niOnClick = {
                                                                         with(
@@ -1032,7 +1079,8 @@ private fun LazyItemScope.ScheduleColumn(
                                                                         }
                                                                     },
                                                                     niIndex = (model.items.flatMap { it.value.map { it.index } }
-                                                                        .maxByOrNull { it } ?: 1) + 1
+                                                                        .maxByOrNull { it }
+                                                                        ?: 1) + 1
                                                                 )
                                                             }
                                                         },
@@ -1123,13 +1171,10 @@ private fun LazyItemScope.ScheduleColumn(
                                                                 with(
                                                                     component
                                                                 ) {
-                                                                    if (!model.ciIsPair) {
-                                                                        mpCreateItem.onEvent(
-                                                                            MpChoseStore.Intent.HideDialog
-                                                                        )
-                                                                    }
                                                                     onEvent(
-                                                                        ScheduleStore.Intent.ciCreate(null)
+                                                                        ScheduleStore.Intent.ciCreate(
+                                                                            null
+                                                                        )
                                                                     )
                                                                 }
                                                             }
@@ -1286,43 +1331,69 @@ private fun LazyItemScope.ScheduleColumn(
                                                 ) {
                                                     IconButton(
                                                         onClick = {
-                                                            val erroredItems = studentErrors.filter {
-                                                                it.logins.filter {
-                                                                    it in model.ciCustom
-                                                                }.isNotEmpty()
-                                                            }.map {
-                                                                it.copy(
-                                                                    logins = it.logins.filter {
-                                                                        model.ciCustom.contains(
-                                                                            it
-                                                                        )
-                                                                    }
-                                                                )
-                                                            }
+                                                            val erroredItems =
+                                                                studentErrors.filter {
+                                                                    it.logins.filter {
+                                                                        it in model.ciCustom
+                                                                    }.isNotEmpty()
+                                                                }.map {
+                                                                    it.copy(
+                                                                        logins = it.logins.filter {
+                                                                            model.ciCustom.contains(
+                                                                                it
+                                                                            )
+                                                                        }
+                                                                    )
+                                                                }
                                                             if (erroredItems.isEmpty()) {
-                                                                component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+                                                                component.mpCreateItem.onEvent(
+                                                                    MpChoseStore.Intent.HideDialog
+                                                                )
                                                                 component.onEvent(
-                                                                    ScheduleStore.Intent.ciCreate(null)
+                                                                    ScheduleStore.Intent.ciCreate(
+                                                                        null
+                                                                    )
                                                                 )
                                                             } else {
+
+                                                                val niId = (coItems.filter {
+                                                                    it.groupId == model.ciId &&
+                                                                            it.subjectId == model.ciSubjectId &&
+                                                                            it.formId == model.ciFormId &&
+                                                                            tOverlap(
+                                                                                it.t,
+                                                                                model.ciTiming
+                                                                            )
+                                                                }.getOrNull(0)?.index)
+                                                                    ?: ((model.items.flatMap { it.value.map { it.index } }
+                                                                        .maxByOrNull { it }
+                                                                        ?: 1) + 1)
+                                                                println("NEW NI_ID: ${niId}")
                                                                 //                                                            val item = coItems.first { it.index == erroredItem.id }
                                                                 component.onEvent(
                                                                     ScheduleStore.Intent.StartConflict(
-                                                                        niFormId = model.ciFormId ?: 0,
+                                                                        niFormId = model.ciFormId
+                                                                            ?: 0,
                                                                         niGroupId = model.ciId!!,
                                                                         niCustom = model.ciCustom,
-                                                                        niTeacherLogin = model.ciLogin ?: model.login,
+                                                                        niTeacherLogin = model.ciLogin
+                                                                            ?: model.login,
                                                                         niErrors = erroredItems,
-                                                                        niId = (model.items.flatMap { it.value.map { it.index } }
-                                                                            .maxByOrNull { it } ?: 1) + 1,
+                                                                        niId = niId,
                                                                         niOnClick = {
-                                                                            component.mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+                                                                            component.mpCreateItem.onEvent(
+                                                                                MpChoseStore.Intent.HideDialog
+                                                                            )
                                                                             component.onEvent(
-                                                                                ScheduleStore.Intent.ciCreate(null)
+                                                                                ScheduleStore.Intent.ciCreate(
+                                                                                    null
+                                                                                )
                                                                             )
                                                                         }
                                                                     ))
-                                                                component.chooseConflictDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
+                                                                component.chooseConflictDialog.onEvent(
+                                                                    CAlertDialogStore.Intent.ShowDialog
+                                                                )
                                                             }
                                                         }
                                                     ) {
@@ -1349,9 +1420,10 @@ private fun LazyItemScope.ScheduleColumn(
                                                 //                                                val cabinetErros = coItems.filter { it.cabinet  }
                                                 //                                                val isErrored = s.login in studentErrors.flatMap { it.logins }
                                                 val erroredItem =
-                                                    studentErrors.firstOrNull { s.login in it.logins }?.copy(
-                                                        logins = listOf(s.login)
-                                                    )
+                                                    studentErrors.firstOrNull { s.login in it.logins }
+                                                        ?.copy(
+                                                            logins = listOf(s.login)
+                                                        )
                                                 DropdownMenuItem(
                                                     text = {
                                                         Text(
@@ -1396,7 +1468,10 @@ private fun LazyItemScope.ScheduleColumn(
         Box(Modifier.padding(top = headerP)) {
             val trueItems =
                 model.items[key]
-            trueItems?.filter { it.teacherLogin == login }
+            trueItems?.filter {
+                it.teacherLogin == login &&
+                        (!isExtraHidden || (isExtraHidden && it.groupId != ScheduleIds.EXTRA))
+            }
                 ?.forEach { e ->
 //                    val index = trueItems.indexOf(e)
                     val aState = remember {
@@ -1464,7 +1539,8 @@ private fun LazyItemScope.ScheduleColumn(
                                     )
 
                                 } else if (e.groupId == -6) {
-                                    val studentFio = model.students.filter { e.custom.contains(it.login) }
+                                    val studentFio =
+                                        model.students.filter { e.custom.contains(it.login) }
                                     Text(
                                         modifier = Modifier.align(Alignment.Center),
                                         textAlign = TextAlign.Center,
@@ -1573,10 +1649,10 @@ private fun LazyItemScope.ScheduleColumn(
                                     state = model
                                 )
                                 val okKids = logins?.okLogins?.mapNotNull { l ->
-                                    model.students.firstOrNull { it.login == l }
+                                    getFormatedKid(l, model)
                                 } ?: listOf()
                                 val deletedKids = logins?.deletedLogins?.mapNotNull { l ->
-                                    model.students.firstOrNull { it.login == l }
+                                    getFormatedKid(l, model)
                                 } ?: listOf()
                                 EditPopup(
 //                                    model = model,
@@ -1587,7 +1663,8 @@ private fun LazyItemScope.ScheduleColumn(
                                     trueItems = trueItems,
                                     tLogin = login,
                                     okKids = okKids,
-                                    deletedKids = deletedKids
+                                    deletedKids = deletedKids,
+                                    currentForm = null
                                 )
 
 
@@ -1632,14 +1709,14 @@ private fun LazyItemScope.ScheduleColumn(
                         .height(height),
                     colors = CardDefaults.cardColors(
                         containerColor =
-                            if (t.cabinetErrorGroupId == 0 && t.studentErrors.isEmpty())
-                                MaterialTheme.colorScheme.primaryContainer.copy(
-                                    alpha = .3f
-                                )
-                            else
-                                MaterialTheme.colorScheme.errorContainer.copy(
-                                    alpha = .3f
-                                )
+                        if (t.cabinetErrorGroupId == 0 && t.studentErrors.isEmpty())
+                            MaterialTheme.colorScheme.primaryContainer.copy(
+                                alpha = .3f
+                            )
+                        else
+                            MaterialTheme.colorScheme.errorContainer.copy(
+                                alpha = .3f
+                            )
                     )
                 ) { }
             }
@@ -1657,12 +1734,13 @@ fun BoxScope.EditPopup(
     component: ScheduleComponent,
     trueItems: List<ScheduleItem>,
     tLogin: String?,
-    okKids: List<SchedulePerson>,
-    deletedKids: List<SchedulePerson>,
+    okKids: List<Pair<SchedulePerson, String?>>,
+    deletedKids: List<Pair<SchedulePerson, String?>>,
+    currentForm: String?
 ) {
     val model by component.model.subscribeAsState()
     if (model.eiIndex == e.index) {
-        if (e.groupId !in listOf(-11, -6, 0)) {
+        if (e.groupId !in listOf(ScheduleIds.FOOD, ScheduleIds.EXTRA, 0)) {
 
             val login = tLogin ?: trueItems.first { it.index == e.index }.teacherLogin
             val c = model.teachers.first { it.login == login }
@@ -1686,19 +1764,19 @@ fun BoxScope.EditPopup(
                     y = (-35).dp
                 ),
                 backButton =
-                    when (model.eiState) {
-                        EditState.Preview -> null
+                when (model.eiState) {
+                    EditState.Preview -> null
 
-                        else -> {
-                            {
-                                component.onEvent(
-                                    ScheduleStore.Intent.eiChangeState(
-                                        EditState.Preview
-                                    )
+                    else -> {
+                        {
+                            component.onEvent(
+                                ScheduleStore.Intent.eiChangeState(
+                                    EditState.Preview
                                 )
-                            }
+                            )
                         }
                     }
+                }
 
             ) {
                 /////
@@ -1972,23 +2050,7 @@ fun BoxScope.EditPopup(
                                 }
                             }
 
-                            Column(Modifier.padding(horizontal = 10.dp, vertical = 5.dp)) {
-                                Text("В этой группе:")
-                                if (okKids.isNotEmpty()) {
-                                    okKids.forEach {
-                                        Text("${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}.")
-                                    }
-                                }
-                                if (deletedKids.isNotEmpty()) {
-                                    deletedKids.forEach {
-                                        Text(
-                                            "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}.",
-                                            textDecoration = TextDecoration.LineThrough,
-                                            modifier = Modifier.alpha(.5f)
-                                        )
-                                    }
-                                }
-                            }
+                            InThisGroupContent(okKids, deletedKids, currentForm = null)
                         }
 
 
@@ -2223,11 +2285,14 @@ fun BoxScope.EditPopup(
                 ),
                 backButton = null
             ) {
-                CTextButton(
-                    text = "Удалить${if (e.groupId == -6) " доп" else ""}",
-                    modifier = Modifier.padding(7.dp)
-                ) {
-                    component.onEvent(ScheduleStore.Intent.eiDelete(e.index))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    InThisGroupContent(okKids, deletedKids, currentForm = currentForm)
+                    CTextButton(
+                        text = "Удалить${if (e.groupId == -6) " доп" else ""}",
+                        modifier = Modifier.padding(7.dp)
+                    ) {
+                        component.onEvent(ScheduleStore.Intent.eiDelete(e.index))
+                    }
                 }
             }
         }
@@ -2280,6 +2345,46 @@ fun getStudentErrors(
     }
 }
 
+@Composable
+fun InThisGroupContent(
+    okKids: List<Pair<SchedulePerson, String?>>,
+    deletedKids: List<Pair<SchedulePerson, String?>>,
+    currentForm: String?
+) {
+    val currentFormColor = colorScheme.onSurface.blend(
+        colorScheme.primary, amount = .5f
+    )
+    Column(Modifier.padding(horizontal = 10.dp, vertical = 5.dp)) {
+        Text("В этой группе:")
+        if (okKids.isNotEmpty()) {
+            okKids.forEach {
+                val student = it.first
+                val form = it.second
+                val isCurrentForm = currentForm != null && currentForm == form
+                Text(
+                    "${form?.let { f -> "$f " } ?: ""}${student.fio.surname} ${student.fio.name.first()}. ${(student.fio.praname ?: " ").first()}.",
+                    color =  if (isCurrentForm) currentFormColor else Color.Unspecified,
+                    fontWeight = if (isCurrentForm) FontWeight.SemiBold else FontWeight.Normal
+                )
+            }
+        }
+        if (deletedKids.isNotEmpty()) {
+            deletedKids.forEach {
+                val student = it.first
+                val form = it.second
+                Text(
+                    "${it.second?.let { f -> "$f " } ?: ""}${student.fio.surname} ${student.fio.name.first()}. ${(student.fio.praname ?: " ").first()}.",
+                    textDecoration = TextDecoration.LineThrough,
+                    modifier = Modifier.alpha(.5f),
+                    color = if (currentForm != null && currentForm == form) currentFormColor else Color.Unspecified
+
+                )
+            }
+        }
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ErrorsTooltip(
@@ -2300,6 +2405,7 @@ fun ErrorsTooltip(
         rememberTooltipState(
             isPersistent = true
         )
+    val model by component.model.subscribeAsState()
     TooltipBox(
         state = tState,
         tooltip = {
@@ -2338,6 +2444,30 @@ fun ErrorsTooltip(
     ) {
         IconButton(
             {
+                val key =
+                    if (model.isDefault) model.defaultDate.toString() else model.currentDate.second
+                val trueItems =
+                    model.items[key]?.filter { it.groupId in model.groups.map { it.id } + (-11) + (0) + (-6) }
+                        ?: emptyList()
+                //                                                    ?.filter { (it.formId == null ) && (it.groupId != -6 || it.custom in form.logins) }
+                val coItems =
+                    (trueItems).filter {
+                        // ! (закончилось раньше чем началось наше) или (началось позже чем началось наше)
+                        ((!((it.t.end.toMinutes() < model.ciTiming!!.start.toMinutes() ||
+                                it.t.start.toMinutes() > model.ciTiming!!.end.toMinutes())) && it.groupId != -11) ||
+                                (!((it.t.end.toMinutes() <= model.ciTiming!!.start.toMinutes() ||
+                                        it.t.start.toMinutes() >= model.ciTiming!!.end.toMinutes())) && it.groupId == -11))
+                    }
+
+                val niId = (coItems.filter {
+                    it.groupId == model.ciId &&
+                            it.subjectId == model.ciSubjectId &&
+                            it.formId == model.ciFormId &&
+                            tOverlap(it.t, model.ciTiming)
+                }.getOrNull(0)?.index) ?: niIndex
+                println("NEW NI_ID: ${niId}")
+
+
                 component.chooseConflictDialog.onEvent(CAlertDialogStore.Intent.ShowDialog)
                 component.onEvent(
                     ScheduleStore.Intent.StartConflict(
@@ -2347,7 +2477,7 @@ fun ErrorsTooltip(
                         niTeacherLogin = niTeacherLogin,
                         niErrors = classicStudentErrors,
                         niOnClick = niOnClick,
-                        niId = niIndex
+                        niId = niId
                     )
                 )
             },

@@ -71,7 +71,11 @@ interface ScheduleStore : Store<Intent, State, Label> {
 
     sealed interface Intent {
 
-        data class SolveConflict(val lessonId: Int, val studentLogins: List<String>) : Intent
+        data class SolveConflict(
+            val fromLessonId: Int,
+            val toLessonId: Int,
+            val studentLogins: List<String>
+        ) : Intent
 
         data object CopyFromStandart: Intent
 

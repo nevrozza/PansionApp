@@ -1,10 +1,12 @@
 
 import admin.schedule.ScheduleFormValue
+import admin.schedule.SchedulePerson
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
+import androidx.compose.desktop.ui.tooling.preview.utils.esp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
@@ -42,13 +44,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
@@ -56,8 +56,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import components.foundation.CTextField
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import components.GetAsyncIcon
+import components.foundation.CTextField
 import components.mpChose.MpChoseStore
 import components.networkInterface.NetworkInterface
 import components.networkInterface.NetworkState
@@ -72,8 +73,6 @@ import server.ScheduleIds
 import server.cut
 import server.isTimeFormat
 import server.toMinutes
-import androidx.compose.desktop.ui.tooling.preview.utils.esp
-import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 
 //data class ScheduleForFormsItem(
@@ -94,7 +93,8 @@ fun LazyItemScope.ScheduleColumnForForms(
     formId: Int,
     key: String,
     headerP: Dp,
-    density: Density
+    density: Density,
+    isExtraHidden: Boolean
 ) {
     val model by component.model.subscribeAsState()
     val groups = model.groups.filter {
@@ -107,7 +107,7 @@ fun LazyItemScope.ScheduleColumnForForms(
     ) {
         val headerState = remember {
             MutableTransitionState(false).apply {
-                // Start the animation immediately.
+                //  the animation immediately.
                 targetState = true
             }
         }
@@ -115,6 +115,7 @@ fun LazyItemScope.ScheduleColumnForForms(
         val trueItems =
             model.items[key]?.filter { it.groupId in groups.map { x -> x.id } + (ScheduleIds.FOOD) + (0) + (ScheduleIds.EXTRA) }
                 ?.filter { (it.formId == null || it.formId == formId) && (it.groupId != -6 || form.logins.any { x -> it.custom.contains(x)  }) }
+                ?.filter { (!isExtraHidden  || (isExtraHidden && it.groupId != ScheduleIds.EXTRA)) }
         AnimatedVisibility(
             visibleState = headerState,
             enter = fadeIn() + scaleIn(),
@@ -578,7 +579,9 @@ fun LazyItemScope.ScheduleColumnForForms(
                                     component = component,
                                     nModel = nModel,
                                     trueItems = trueItems,
-                                    key = key
+                                    key = key,
+                                    formId = formId,
+                                    form = form
                                 ) {
                                     component.onEvent(ScheduleStore.Intent.eiDelete(e.index))
                                 }
@@ -659,7 +662,9 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                             component = component,
                                                             nModel = nModel,
                                                             trueItems = trueItems,
-                                                            key = key
+                                                            key = key,
+                                                            formId = formId,
+                                                            form = form
                                                         ) {
                                                             component.onEvent(ScheduleStore.Intent.eiDelete(item.index))
                                                         }
@@ -673,29 +678,12 @@ fun LazyItemScope.ScheduleColumnForForms(
                                                         state = model
                                                     )
                                                     val okKids = logins?.okLogins?.mapNotNull { l ->
-                                                        model.students.firstOrNull { it.login == l}
+                                                        getFormatedKid(l, model)
                                                     } ?: listOf()
                                                     val deletedKids = logins?.deletedLogins?.mapNotNull { l ->
-                                                        model.students.firstOrNull { it.login == l}
+                                                        getFormatedKid(l, model)
                                                     } ?: listOf()
-                                                    Column(Modifier.padding(horizontal = 10.dp, vertical = 5.dp)) {
-                                                        Text("В этой группе:")
-                                                        if (okKids.isNotEmpty()) {
-                                                            okKids.forEach {
-                                                                Text("${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}.")
-                                                            }
-                                                        }
-                                                        if (deletedKids.isNotEmpty()) {
-                                                            deletedKids.forEach {
-                                                                Text(
-                                                                    "${it.fio.surname} ${it.fio.name.first()}. ${(it.fio.praname ?: " ").first()}.",
-                                                                    textDecoration = TextDecoration.LineThrough,
-                                                                    modifier = Modifier.alpha(.5f)
-                                                                )
-                                                            }
-                                                        }
-
-                                                    }
+                                                    InThisGroupContent(okKids, deletedKids, currentForm = getFormatedFormName(form))
                                                 }
                                                 if (e.index != coItems.last().index) {
                                                     Spacer(Modifier.width(15.dp))
@@ -755,6 +743,8 @@ fun LazyItemScope.ScheduleColumnForForms(
 @Composable
 private fun BoxScope.ScheduleForFormsContent(
     e: ScheduleItem,
+    formId: Int,
+    form: ScheduleFormValue,
     isInPopup: Boolean,
     component: ScheduleComponent,
     nModel: NetworkInterface.NetworkModel,
@@ -763,6 +753,7 @@ private fun BoxScope.ScheduleForFormsContent(
     onDeleteClick: () -> Unit
 ) {
     val model by component.model.subscribeAsState()
+
     when (e.groupId) {
         ScheduleIds.FOOD -> {
             Text(
@@ -981,22 +972,42 @@ private fun BoxScope.ScheduleForFormsContent(
             state = model
         )
         val okKids = logins?.okLogins?.mapNotNull { l ->
-            model.students.firstOrNull { it.login == l}
+            getFormatedKid(l, model)
         } ?: listOf()
         val deletedKids = logins?.deletedLogins?.mapNotNull { l ->
-            model.students.firstOrNull { it.login == l}
+            getFormatedKid(l, model)
         } ?: listOf()
-        EditPopup(
+        if (model.eiFormId == formId) {
+            EditPopup(
 //            model = model,
-            nModel = nModel,
-            e = e,
-            component = component,
-            trueItems = trueItems,
-            tLogin = null,
-            okKids = okKids,
-            deletedKids = deletedKids
+                nModel = nModel,
+                e = e,
+                component = component,
+                trueItems = trueItems,
+                tLogin = null,
+                okKids = okKids,
+                deletedKids = deletedKids,
+                currentForm = getFormatedFormName(form)
 //            kids = if (coItemsCount == 1) model.students.filter { it.login in form.logins }
 //                .filter { e.groupId in it.groups.map { it.first } } else listOf()
-        )
+            )
+        }
+    }
+}
+
+
+fun getFormatedKid(l: String, model: ScheduleStore.State): Pair<SchedulePerson, String?>? {
+    val form = model.forms.values.firstOrNull { l in it.logins }
+    val student = model.students.firstOrNull { it.login == l }
+    return student?.let {
+        it to getFormatedFormName(form)
+    }
+}
+
+fun getFormatedFormName(
+    form: ScheduleFormValue?
+): String? {
+    return form?.let {
+        "${it.num}${if (it.shortTitle.length < 2) "-" else " "}${it.shortTitle}"
     }
 }

@@ -28,8 +28,6 @@ import server.getDate
 import server.getEdYear
 import server.getLocalDate
 import server.getSixTime
-import javax.management.monitor.StringMonitor
-import kotlin.math.abs
 
 object ReportHeaders : Table() {
     val id = ReportHeaders.integer("id").autoIncrement().uniqueIndex()
@@ -145,6 +143,27 @@ object ReportHeaders : Table() {
                         isLiked = "",
                         attended = null,
                         aReason = null,
+                        subjectName = subjectN,
+                        groupName = groupN,
+                        time = getSixTime(),
+                        date = getDate(),
+                        module = module,
+                        edYear = getEdYear(getLocalDate(r.date))
+                    ),
+                    isDelete = false
+                )
+            }
+
+            r.deletedStudentLogins.forEach {
+                StudentLines.insert(
+                    StudentLinesDTO(
+                        reportId = reportId,
+                        groupId = r.groupId,
+                        login = it,
+                        lateTime = "0",
+                        isLiked = "",
+                        attended = "2",
+                        aReason = "Накладка",
                         subjectName = subjectN,
                         groupName = groupN,
                         time = getSixTime(),

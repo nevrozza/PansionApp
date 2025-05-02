@@ -807,7 +807,7 @@ class LessonsController {
             this.respond(
                 RFetchInitScheduleResponse(
                     teachers = teachers.filter { it.groups.isNotEmpty() },
-                    students = students.filter { it.groups.isNotEmpty() },
+                    students = students,
                     groups = gg.map {
                         ScheduleGroup(
                             id = it.id,

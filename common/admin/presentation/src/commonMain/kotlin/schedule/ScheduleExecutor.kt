@@ -15,6 +15,7 @@ import deviceSupport.withMain
 import di.Inject
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import schedule.ScheduleStore.Intent
 import schedule.ScheduleStore.Label
 import schedule.ScheduleStore.Message
@@ -52,7 +53,9 @@ class ScheduleExecutor(
             is Intent.ciCreate -> {
 
                 createItem(intent.cTiming ?: state().ciTiming!!)
-                mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+                if (!state().ciIsPair) {
+                    mpCreateItem.onEvent(MpChoseStore.Intent.HideDialog)
+                }
             }
 
             Intent.ciPreview -> dispatch(Message.ciPreviewed)
@@ -164,7 +167,7 @@ class ScheduleExecutor(
                             )
                         )
                         mpEditItem.onEvent(MpChoseStore.Intent.HideDialog)
-                        deleteEmptyLessons()
+                        deleteEmptyAndRepeatedLessons()
                     }
 
                 }
@@ -201,13 +204,14 @@ class ScheduleExecutor(
             is Intent.eiChangeLogin -> dispatch(Message.eiLoginChanged(intent.login))
             is Intent.ciChangeCustom -> dispatch(Message.ciCustomChanged(intent.custom))
             is Intent.CopyFromStandart -> copyFromStandart()
-            is Intent.StartConflict ->
+            is Intent.StartConflict -> scope.launch {
+                val errors = intent.niErrors.filter { it.groupId != intent.niGroupId }
                 dispatch(
                     Message.ConflictStarted(
                         niFormId = intent.niFormId,
                         niGroupId = intent.niGroupId,
                         niCustom = intent.niCustom,
-                        niErrors = intent.niErrors,
+                        niErrors = errors,
                         niTeacherLogin = intent.niTeacherLogin,
                         niId = intent.niId,
                         niOnClick = {
@@ -215,10 +219,12 @@ class ScheduleExecutor(
                             dispatch(Message.NiOnClicked)
                         }
                     ))
+            }
 
 
             is Intent.SolveConflict -> solveConflict(
-                lessonId = intent.lessonId,
+                fromLessonId = intent.fromLessonId,
+                toLessonId = intent.toLessonId,
                 studentLogins = intent.studentLogins
             )
 
@@ -231,10 +237,24 @@ class ScheduleExecutor(
             val key =
                 if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
             val list = (state().items[key] ?: emptyList()).toMutableList()
-            list.remove(list.first { it.index == index })
+
+            val item = list.first { it.index == index }
+
+            list.remove(item)
+            println("CHECK: ${item.t.studentErrors}")
             val newSolveConflictItems = state().solveConflictItems.toMutableMap()
             newSolveConflictItems[key]?.set(index, emptyList())
-
+            item.t.studentErrors.forEach { studentError ->
+                if (newSolveConflictItems.containsKey(key)) {
+                    val newSolveConflictItem = newSolveConflictItems[key]!!
+                    if (newSolveConflictItem.containsKey(studentError.id)) {
+                        newSolveConflictItems[key]?.set(
+                            studentError.id,
+                            newSolveConflictItem[studentError.id]!! - studentError.logins.toSet()
+                        )
+                    }
+                }
+            }
             withMain {
                 dispatch(Message.ItemsUpdated(list))
                 dispatch(
@@ -248,27 +268,36 @@ class ScheduleExecutor(
         }
     }
 
-    private fun solveConflict(lessonId: Int, studentLogins: List<String>) {
+    private fun solveConflict(fromLessonId: Int, toLessonId: Int, studentLogins: List<String>) {
         scope.launchIO {
             try {
                 val key =
                     if (state().isDefault) state().defaultDate.toString() else state().currentDate.second
                 val newSolveConflictItems = state().solveConflictItems.toMutableMap()
                 if (newSolveConflictItems.containsKey(key)) {
-                    newSolveConflictItems[key]!![lessonId] =
-                        (newSolveConflictItems[key]?.get(1) ?: listOf()) + studentLogins
+                    newSolveConflictItems[key]!![fromLessonId] =
+                        (newSolveConflictItems[key]!![fromLessonId] ?: listOf()) + studentLogins
                 } else {
                     newSolveConflictItems[key] =
                         mutableMapOf(
-                            lessonId to (newSolveConflictItems[key]?.get(1)
+                            fromLessonId to (newSolveConflictItems[key]?.get(fromLessonId)
                                 ?: listOf()) + studentLogins
                         )
                 }
+                newSolveConflictItems[key]!![toLessonId] =
+                    (newSolveConflictItems[key]!![toLessonId] ?: listOf()) - studentLogins.toSet()
+
                 val niErrors = state().niErrors.mapNotNull {
-                    if (it.logins == studentLogins) {
-                        null
+                    if (it.id in listOf(fromLessonId, toLessonId))  {
+                        val newLogins = it.logins- studentLogins.toSet()
+                        if (newLogins.isNotEmpty()) {
+                            it.copy(logins = newLogins)
+                        } else null
                     } else it
                 }
+
+                println("NI_ERRORS: ${fromLessonId} ${niErrors}")
+
                 withMain {
                     dispatch(
                         Message.SolveConflictItemsUpdated(
@@ -281,7 +310,7 @@ class ScheduleExecutor(
                         state().niOnClick()
                     }
                     val lessons = state().items[key]!!.toMutableList()
-                    val lesson = lessons.firstOrNull { it.index == lessonId }
+                    val lesson = lessons.firstOrNull { it.index == fromLessonId }
                     if (lesson != null) {
                         if (lesson.groupId == -6) {
                             val newList = lesson.custom - studentLogins.toSet()
@@ -531,6 +560,8 @@ class ScheduleExecutor(
     }
 
     private fun createItem(t: ScheduleTiming) {
+        // добавить проверку, чтобы такого предмета не было
+
         val item = ScheduleItem(
             teacherLogin = state().ciLogin ?: state().login,
             groupId = state().ciId!!,
@@ -550,18 +581,31 @@ class ScheduleExecutor(
             val items =
                 (state().items[key]
                     ?: emptyList()).toMutableList()
+            val time = item.t
+            val coItems =
+                (items).filter {
+                    // ! (закончилось раньше чем началось наше) или (началось позже чем началось наше)
+                    ((!((it.t.end.toMinutes() < time.start.toMinutes() ||
+                            it.t.start.toMinutes() > time.end.toMinutes())) && it.groupId != -11) ||
+                            (!((it.t.end.toMinutes() <= time.start.toMinutes() ||
+                                    it.t.start.toMinutes() >= time.end.toMinutes())) && it.groupId == -11))
+                }
+
 
             items.add(
                 item
             )
             withMain {
-                dispatch(Message.ItemsUpdated(items))
-                deleteEmptyLessons(item)
+                if (!coItems.any { it.groupId == item.groupId }) {
+                    dispatch(Message.ItemsUpdated(items))
+                }
+                deleteEmptyAndRepeatedLessons() //item
             }
 
             withMain {
                 dispatch(Message.ciReset)
             }
+
         }
     }
 
@@ -585,7 +629,7 @@ class ScheduleExecutor(
     }
 
 
-    private fun deleteEmptyLessons(
+    private fun deleteEmptyAndRepeatedLessons(
         immuniItem: ScheduleItem? = null
     ) {
         scope.launchIO {
@@ -594,20 +638,28 @@ class ScheduleExecutor(
             val trueItems =
                 (state().items[key]
                     ?: emptyList())
-            trueItems.map {
-                if (fetchLoginsOfLesson(
+            // delete the oldest
+            trueItems.reversed().map { item ->
+                if ((fetchLoginsOfLesson(
                         trueItems = trueItems,
                         solvedConflictsItems = state().solveConflictItems[key],
                         students = state().students,
                         forms = state().forms,
-                        lessonIndex = it.index,
+                        lessonIndex = item.index,
                         state = state(),
                         timing = null
-                    )?.okLogins?.isEmpty() == true && it != immuniItem
+                    )?.okLogins?.isEmpty() == true && item != immuniItem) ||
+                    trueItems.any {
+                        it.index != item.index &&
+                                it.groupId == item.groupId &&
+                                it.teacherLogin == item.teacherLogin &&
+                                it.t.start == item.t.start &&
+                                it.t.end == item.t.end //TODO: что если время чуть другое, но перекрывает?
+                    }
                 ) {
                     // Because of this it works
-                    eiDelete(it.index) //null
-                } else it
+                    eiDelete(item.index) //null
+                } else item
             }
 //            val items =
 
@@ -736,15 +788,22 @@ class ScheduleExecutor(
         val studentErrors: MutableList<StudentError> = mutableListOf()
         val studentErrorItems =
             coItems.filter { coItem ->
-                coItem.groupId in students.flatMap { student -> student.groups.map { it.first } } ||
-                        (students.map { student -> student.login }).any { coItem.custom.contains(it) } ||
-                        coItem.formId in students.flatMap { student ->
-                    state().forms.mapNotNull {
-                        if (student.login in it.value.logins) {
-                            it.key
-                        } else null
-                    }
-                }
+                coItem.groupId != state().ciId &&
+                        (
+                                coItem.groupId in students.flatMap { student -> student.groups.map { it.first } } ||
+                                        (students.map { student -> student.login }).any {
+                                            coItem.custom.contains(
+                                                it
+                                            )
+                                        } ||
+                                        coItem.formId in students.flatMap { student ->
+                                    state().forms.mapNotNull {
+                                        if (student.login in it.value.logins) {
+                                            it.key
+                                        } else null
+                                    }
+                                }
+                                )
             }
 
         studentErrorItems.forEach { item ->
@@ -900,14 +959,22 @@ fun fetchLoginsOfLesson(
         val beforeLogins = students.filter { s ->
             item.groupId in s.groups.map { it.first }
                     || item.custom.contains(s.login)
-                    || item.formId == (forms.toList()
-                .firstOrNull { s.login in it.second.logins }?.first)
+                    || (item.formId != null && item.formId == (forms.toList()
+                .firstOrNull { s.login in it.second.logins }?.first))
         }.map { it.login }
         LoginsOfLesson(
             okLogins = (beforeLogins - minusLogins.toSet()).toList(),
             deletedLogins = minusLogins.toSet().toList()
         )
     } else null
+}
+
+
+fun tOverlap(a: ScheduleTiming?, b: ScheduleTiming?): Boolean {
+    if (a == null || b == null) {
+        return false
+    }
+    return a.start <= b.end && b.start <= a.end
 }
 
 val timingsPairs = listOf( //<Pair<String, String>>

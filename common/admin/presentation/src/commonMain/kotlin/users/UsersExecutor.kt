@@ -188,7 +188,9 @@ class UsersExecutor(
                     ),
                     subjectId = state.eSubjectId
                 )
-                eUserBottomSheet.fullySuccess()
+                withMain {
+                    eUserBottomSheet.fullySuccess()
+                }
             } catch (e: Throwable) {
                 with(eUserBottomSheet.nInterface) {
                     nError("Что-то пошло не так =/", e, onFixErrorClick = {

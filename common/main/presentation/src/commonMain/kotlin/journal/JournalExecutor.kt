@@ -67,11 +67,15 @@ class JournalExecutor(
                 scope.launchIO {
                     try {
                         studentsInGroupCAlertDialogComponent.nInterface.nStartLoading()
+
+                        val studentLogins = state().studentsInGroup.filter { !it.isDeleted }
+                        val deletedStudentLogins = state().studentsInGroup - studentLogins.toSet()
                         val id = mainRepository.createReport(RCreateReportReceive(
                             groupId = state().currentGroupId,
                             date = getDate(),
                             time = state().time,
-                            studentLogins = state().studentsInGroup.filter { !it.isDeleted }.map { it.p.login },
+                            studentLogins = studentLogins.map { it.p.login },
+                            deletedStudentLogins = deletedStudentLogins.map { it.p.login },
                             lessonId = state().lessonId
                         )).reportId
                         withMain {

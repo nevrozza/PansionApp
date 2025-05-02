@@ -8,6 +8,7 @@ data class RCreateReportReceive(
     val date: String,
     val time: String,
     val studentLogins: List<String>,
+    val deletedStudentLogins: List<String>,
     val lessonId: Int?
 )
 

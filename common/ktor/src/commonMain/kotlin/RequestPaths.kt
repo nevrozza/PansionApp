@@ -2,7 +2,7 @@ import deviceSupport.DeviceTypex
 import deviceSupport.deviceType
 
 object RequestPaths {
-    const val testIp = "192.168.43.39"
+    const val testIp = ""
 
     //    val ip = "192.168.43.55:8080"
     val ip = if (testIp.isEmpty()) {
